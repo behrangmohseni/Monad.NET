@@ -1,0 +1,71 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Target Frameworks - .NET 6.0 and later -->
+    <TargetFrameworks>net6.0;net7.0;net8.0;net9.0;net10.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    
+    <!-- Package Metadata -->
+    <PackageId>Monad.NET</PackageId>
+    <Version>1.0.0-alpha.1</Version>
+    <Authors>Behrang Mohseni</Authors>
+    <Company>Behrang Mohseni</Company>
+    <Product>Monad.NET</Product>
+    <Copyright>Copyright © 2025 Behrang Mohseni</Copyright>
+    <Description>A comprehensive functional programming library for .NET with 9 essential monads: Option, Result, Either, Validation, Try, RemoteData, NonEmptyList, Writer, and Reader. Features async support, LINQ integration, collection extensions, and zero dependencies. Supports .NET 6.0+.</Description>
+    <PackageTags>monad;functional;functional-programming;option;result;either;validation;try;remotedata;nonemptylist;writer;reader;railway-oriented-programming;error-handling;async;linq;immutable;type-safe;null-safety</PackageTags>
+    
+    <!-- URLs -->
+    <PackageProjectUrl>https://github.com/behrangmohseni/Monad.NET</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/behrangmohseni/Monad.NET</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReleaseNotes>https://github.com/behrangmohseni/Monad.NET/releases</PackageReleaseNotes>
+    
+    <!-- License -->
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    
+    <!-- Package Files -->
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <!-- Uncomment when icon.png is added to repository root -->
+    <!-- <PackageIcon>icon.png</PackageIcon> -->
+    
+    <!-- Build Settings -->
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Deterministic>true</Deterministic>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    
+    <!-- Source Link for debugging -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    
+    <!-- Assembly Info -->
+    <AssemblyName>Monad.NET</AssemblyName>
+    <RootNamespace>Monad.NET</RootNamespace>
+    <NeutralLanguage>en-US</NeutralLanguage>
+  </PropertyGroup>
+
+  <!-- Package Files -->
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="\" />
+    <!-- Uncomment when icon.png is added -->
+    <!-- <None Include="..\..\icon.png" Pack="true" PackagePath="\" /> -->
+  </ItemGroup>
+
+  <!-- Source Link -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+  </ItemGroup>
+
+  <!-- Continuous Integration -->
+  <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+</Project>

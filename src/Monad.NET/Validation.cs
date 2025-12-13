@@ -1,0 +1,383 @@
+namespace Monad.NET;
+
+/// <summary>
+/// Represents a validation result that can accumulate multiple errors.
+/// Unlike Result which short-circuits on the first error, Validation collects all errors.
+/// This is an Applicative Functor, perfect for form validation and business rule checking.
+/// </summary>
+/// <typeparam name="T">The type of the valid value</typeparam>
+/// <typeparam name="TErr">The type of the error</typeparam>
+public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
+{
+    private readonly T? _value;
+    private readonly IReadOnlyList<TErr>? _errors;
+    private readonly bool _isValid;
+
+    private Validation(T value, IReadOnlyList<TErr> errors, bool isValid)
+    {
+        _value = value;
+        _errors = errors;
+        _isValid = isValid;
+    }
+
+    /// <summary>
+    /// Returns true if the validation is valid (no errors).
+    /// </summary>
+    public bool IsValid => _isValid;
+
+    /// <summary>
+    /// Returns true if the validation is invalid (has errors).
+    /// </summary>
+    public bool IsInvalid => !_isValid;
+
+    /// <summary>
+    /// Creates a valid validation with the specified value.
+    /// </summary>
+    public static Validation<T, TErr> Valid(T value)
+    {
+        if (value is null)
+            throw new ArgumentNullException(nameof(value), "Cannot create Valid with null value.");
+        
+        return new Validation<T, TErr>(value, Array.Empty<TErr>(), true);
+    }
+
+    /// <summary>
+    /// Creates an invalid validation with a single error.
+    /// </summary>
+    public static Validation<T, TErr> Invalid(TErr error)
+    {
+        if (error is null)
+            throw new ArgumentNullException(nameof(error), "Cannot create Invalid with null error.");
+        
+        return new Validation<T, TErr>(default!, new[] { error }, false);
+    }
+
+    /// <summary>
+    /// Creates an invalid validation with multiple errors.
+    /// </summary>
+    public static Validation<T, TErr> Invalid(IEnumerable<TErr> errors)
+    {
+        if (errors is null)
+            throw new ArgumentNullException(nameof(errors));
+        
+        var errorList = errors.ToList();
+        if (errorList.Count == 0)
+            throw new ArgumentException("Must provide at least one error.", nameof(errors));
+        
+        return new Validation<T, TErr>(default!, errorList, false);
+    }
+
+    /// <summary>
+    /// Returns the valid value.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the validation is invalid</exception>
+    public T Unwrap()
+    {
+        if (!_isValid)
+            throw new InvalidOperationException($"Called Unwrap on Invalid validation with errors: {string.Join(", ", _errors!)}");
+        
+        return _value!;
+    }
+
+    /// <summary>
+    /// Returns the errors.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the validation is valid</exception>
+    public IReadOnlyList<TErr> UnwrapErrors()
+    {
+        if (_isValid)
+            throw new InvalidOperationException("Called UnwrapErrors on Valid validation");
+        
+        return _errors!;
+    }
+
+    /// <summary>
+    /// Returns the valid value or a default value.
+    /// </summary>
+    public T UnwrapOr(T defaultValue)
+    {
+        return _isValid ? _value! : defaultValue;
+    }
+
+    /// <summary>
+    /// Maps the valid value if it exists.
+    /// </summary>
+    public Validation<U, TErr> Map<U>(Func<T, U> mapper)
+    {
+        if (mapper is null)
+            throw new ArgumentNullException(nameof(mapper));
+        
+        return _isValid 
+            ? Validation<U, TErr>.Valid(mapper(_value!)) 
+            : Validation<U, TErr>.Invalid(_errors!);
+    }
+
+    /// <summary>
+    /// Maps the errors if they exist.
+    /// </summary>
+    public Validation<T, F> MapErrors<F>(Func<TErr, F> mapper)
+    {
+        if (mapper is null)
+            throw new ArgumentNullException(nameof(mapper));
+        
+        return _isValid 
+            ? Validation<T, F>.Valid(_value!) 
+            : Validation<T, F>.Invalid(_errors!.Select(mapper).ToList());
+    }
+
+    /// <summary>
+    /// Combines two validations using applicative functor semantics.
+    /// If both are valid, applies the function. If either/both are invalid, accumulates ALL errors.
+    /// </summary>
+    public Validation<U, TErr> Apply<TIntermediate, U>(
+        Validation<TIntermediate, TErr> other,
+        Func<T, TIntermediate, U> combiner)
+    {
+        if (combiner is null)
+            throw new ArgumentNullException(nameof(combiner));
+
+        if (_isValid && other.IsValid)
+            return Validation<U, TErr>.Valid(combiner(_value!, other._value!));
+        
+        if (!_isValid && !other.IsValid)
+        {
+            var allErrors = _errors!.Concat(other._errors!).ToList();
+            return Validation<U, TErr>.Invalid(allErrors);
+        }
+        
+        return _isValid 
+            ? Validation<U, TErr>.Invalid(other._errors!) 
+            : Validation<U, TErr>.Invalid(_errors!);
+    }
+
+    /// <summary>
+    /// Combines this validation with another, accumulating errors from both if invalid.
+    /// This is useful for running multiple independent validations.
+    /// </summary>
+    public Validation<T, TErr> And(Validation<T, TErr> other)
+    {
+        if (_isValid && other.IsValid)
+            return other; // Return the last valid value
+        
+        if (!_isValid && !other.IsValid)
+        {
+            var allErrors = _errors!.Concat(other._errors!).ToList();
+            return Validation<T, TErr>.Invalid(allErrors);
+        }
+        
+        return _isValid ? other : this;
+    }
+
+    /// <summary>
+    /// Chains a validation operation. If this is invalid, returns this.
+    /// If this is valid, applies the function (which may return invalid).
+    /// Note: This does NOT accumulate errors like And() - it short-circuits like Result.
+    /// </summary>
+    public Validation<U, TErr> AndThen<U>(Func<T, Validation<U, TErr>> binder)
+    {
+        if (binder is null)
+            throw new ArgumentNullException(nameof(binder));
+        
+        return _isValid ? binder(_value!) : Validation<U, TErr>.Invalid(_errors!);
+    }
+
+    /// <summary>
+    /// Pattern matches on the validation.
+    /// </summary>
+    public void Match(Action<T> validAction, Action<IReadOnlyList<TErr>> invalidAction)
+    {
+        if (validAction is null)
+            throw new ArgumentNullException(nameof(validAction));
+        if (invalidAction is null)
+            throw new ArgumentNullException(nameof(invalidAction));
+        
+        if (_isValid)
+            validAction(_value!);
+        else
+            invalidAction(_errors!);
+    }
+
+    /// <summary>
+    /// Pattern matches on the validation and returns a result.
+    /// </summary>
+    public U Match<U>(Func<T, U> validFunc, Func<IReadOnlyList<TErr>, U> invalidFunc)
+    {
+        if (validFunc is null)
+            throw new ArgumentNullException(nameof(validFunc));
+        if (invalidFunc is null)
+            throw new ArgumentNullException(nameof(invalidFunc));
+        
+        return _isValid ? validFunc(_value!) : invalidFunc(_errors!);
+    }
+
+    /// <summary>
+    /// Converts this Validation to a Result.
+    /// If invalid with multiple errors, only the first error is used.
+    /// </summary>
+    public Result<T, TErr> ToResult()
+    {
+        return _isValid 
+            ? Result<T, TErr>.Ok(_value!) 
+            : Result<T, TErr>.Err(_errors![0]);
+    }
+
+    /// <summary>
+    /// Converts this Validation to a Result with a combined error.
+    /// </summary>
+    public Result<T, TErr> ToResult(Func<IReadOnlyList<TErr>, TErr> combineErrors)
+    {
+        if (combineErrors is null)
+            throw new ArgumentNullException(nameof(combineErrors));
+        
+        return _isValid 
+            ? Result<T, TErr>.Ok(_value!) 
+            : Result<T, TErr>.Err(combineErrors(_errors!));
+    }
+
+    /// <summary>
+    /// Converts this Validation to an Option.
+    /// Discards error information if invalid.
+    /// </summary>
+    public Option<T> ToOption()
+    {
+        return _isValid ? Option<T>.Some(_value!) : Option<T>.None();
+    }
+
+    /// <inheritdoc />
+    public bool Equals(Validation<T, TErr> other)
+    {
+        if (_isValid != other._isValid)
+            return false;
+        
+        if (_isValid)
+            return EqualityComparer<T>.Default.Equals(_value, other._value);
+        
+        if (_errors!.Count != other._errors!.Count)
+            return false;
+        
+        return _errors.SequenceEqual(other._errors);
+    }
+
+    /// <inheritdoc />
+    public override bool Equals(object? obj)
+    {
+        return obj is Validation<T, TErr> other && Equals(other);
+    }
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+    {
+        if (_isValid)
+            return HashCode.Combine(_isValid, _value);
+        
+        var hash = new HashCode();
+        hash.Add(_isValid);
+        foreach (var error in _errors!)
+            hash.Add(error);
+        return hash.ToHashCode();
+    }
+
+    /// <inheritdoc />
+    public override string ToString()
+    {
+        return _isValid 
+            ? $"Valid({_value})" 
+            : $"Invalid([{string.Join(", ", _errors!)}])";
+    }
+
+    /// <summary>
+    /// Determines whether two Validation instances are equal.
+    /// </summary>
+    public static bool operator ==(Validation<T, TErr> left, Validation<T, TErr> right)
+    {
+        return left.Equals(right);
+    }
+
+    /// <summary>
+    /// Determines whether two Validation instances are not equal.
+    /// </summary>
+    public static bool operator !=(Validation<T, TErr> left, Validation<T, TErr> right)
+    {
+        return !left.Equals(right);
+    }
+}
+
+/// <summary>
+/// Extension methods for Validation&lt;T, E&gt;.
+/// </summary>
+public static class ValidationExtensions
+{
+    /// <summary>
+    /// Combines multiple validations into one, accumulating all errors.
+    /// Returns Valid only if ALL validations are valid.
+    /// </summary>
+    public static Validation<T, TErr> Combine<T, TErr>(
+        this IEnumerable<Validation<T, TErr>> validations)
+    {
+        if (validations is null)
+            throw new ArgumentNullException(nameof(validations));
+
+        var validationList = validations.ToList();
+        if (validationList.Count == 0)
+            throw new ArgumentException("Must provide at least one validation.", nameof(validations));
+
+        var allErrors = new List<TErr>();
+        T? lastValue = default;
+
+        foreach (var validation in validationList)
+        {
+            if (validation.IsValid)
+                lastValue = validation.Unwrap();
+            else
+                allErrors.AddRange(validation.UnwrapErrors());
+        }
+
+        return allErrors.Count == 0
+            ? Validation<T, TErr>.Valid(lastValue!)
+            : Validation<T, TErr>.Invalid(allErrors);
+    }
+
+    /// <summary>
+    /// Executes an action if the validation is valid, allowing method chaining.
+    /// </summary>
+    public static Validation<T, TErr> Tap<T, TErr>(
+        this Validation<T, TErr> validation,
+        Action<T> action)
+    {
+        if (action is null)
+            throw new ArgumentNullException(nameof(action));
+        
+        if (validation.IsValid)
+            action(validation.Unwrap());
+        
+        return validation;
+    }
+
+    /// <summary>
+    /// Executes an action if the validation is invalid, allowing method chaining.
+    /// </summary>
+    public static Validation<T, TErr> TapErrors<T, TErr>(
+        this Validation<T, TErr> validation,
+        Action<IReadOnlyList<TErr>> action)
+    {
+        if (action is null)
+            throw new ArgumentNullException(nameof(action));
+        
+        if (validation.IsInvalid)
+            action(validation.UnwrapErrors());
+        
+        return validation;
+    }
+
+    /// <summary>
+    /// Converts a Result to a Validation.
+    /// </summary>
+    public static Validation<T, TErr> ToValidation<T, TErr>(this Result<T, TErr> result)
+    {
+        return result.Match(
+            okFunc: value => Validation<T, TErr>.Valid(value),
+            errFunc: err => Validation<T, TErr>.Invalid(err)
+        );
+    }
+}
+
