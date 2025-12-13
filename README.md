@@ -499,7 +499,7 @@ Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) for gu
 - Your preferred IDE (Visual Studio, Rider, VS Code)
 
 ```bash
-git clone https://github.com/AlirezaEiji191379/Monad.NET.git
+git clone https://github.com/behrangmohseni/Monad.NET.git
 cd Monad.NET
 dotnet build
 dotnet test
@@ -517,4 +517,4 @@ You are free to use, modify, and distribute this library in both commercial and 
 
 **Monad.NET** — Functional programming for the pragmatic .NET developer.
 
-[Documentation](https://behrangmohseni.com/monad_dot_net) · [NuGet](https://www.nuget.org/packages/Monad.NET/) · [Issues](https://github.com/AlirezaEiji191379/Monad.NET/issues)
+[Documentation](https://www.nuget.org/packages/Monad.NET/) · [NuGet](https://www.nuget.org/packages/Monad.NET/) · [Issues](https://github.com/behrangmohseni/Monad.NET/issues)
