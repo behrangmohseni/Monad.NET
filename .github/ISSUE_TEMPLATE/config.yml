@@ -1,0 +1,9 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://github.com/behrangmohseni/Monad.NET#readme
+    about: Check the README for usage examples and API documentation
+  - name: Discussions
+    url: https://github.com/behrangmohseni/Monad.NET/discussions
+    about: Ask questions and share ideas in GitHub Discussions
+
