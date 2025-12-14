@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1"/>
+      <stop offset="100%" style="stop-color:#8b5cf6"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#c4b5fd"/>
+      <stop offset="100%" style="stop-color:#a78bfa"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background rounded square -->
+  <rect x="4" y="4" width="120" height="120" rx="24" ry="24" fill="url(#bg)"/>
+  
+  <!-- Lambda symbol (λ) representing functional programming -->
+  <text x="64" y="88" 
+        font-family="Georgia, serif" 
+        font-size="72" 
+        font-weight="bold"
+        fill="white" 
+        text-anchor="middle">λ</text>
+  
+  <!-- Decorative dots representing composition/chaining -->
+  <circle cx="28" cy="28" r="6" fill="url(#accent)" opacity="0.8"/>
+  <circle cx="100" cy="28" r="6" fill="url(#accent)" opacity="0.8"/>
+  <circle cx="100" cy="100" r="6" fill="url(#accent)" opacity="0.8"/>
+  
+  <!-- Connecting lines representing data flow -->
+  <path d="M34 28 L94 28" stroke="url(#accent)" stroke-width="2" opacity="0.5"/>
+  <path d="M100 34 L100 94" stroke="url(#accent)" stroke-width="2" opacity="0.5"/>
+</svg>
+

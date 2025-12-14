@@ -29,8 +29,7 @@
     
     <!-- Package Files -->
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <!-- Uncomment when icon.png is added to repository root -->
-    <!-- <PackageIcon>icon.png</PackageIcon> -->
+    <PackageIcon>icon.png</PackageIcon>
     
     <!-- Build Settings -->
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
@@ -54,8 +53,7 @@
   <ItemGroup>
     <None Include="..\..\README.md" Pack="true" PackagePath="\" />
     <None Include="..\..\LICENSE" Pack="true" PackagePath="\" />
-    <!-- Uncomment when icon.png is added -->
-    <!-- <None Include="..\..\icon.png" Pack="true" PackagePath="\" /> -->
+    <None Include="..\..\icon.png" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <!-- Source Link -->
