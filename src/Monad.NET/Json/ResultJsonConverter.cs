@@ -103,4 +103,3 @@ public class ResultJsonConverterFactory : JsonConverterFactory
         return (JsonConverter?)Activator.CreateInstance(converterType);
     }
 }
-
