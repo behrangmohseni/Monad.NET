@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace Monad.NET;
 
 /// <summary>
@@ -13,6 +15,7 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
     private readonly TRight? _right;
     private readonly bool _isRight;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Either(TLeft left, TRight right, bool isRight)
     {
         _left = left;
@@ -23,20 +26,29 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
     /// <summary>
     /// Returns true if the Either is a Right value.
     /// </summary>
-    public bool IsRight => _isRight;
+    public bool IsRight
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _isRight;
+    }
 
     /// <summary>
     /// Returns true if the Either is a Left value.
     /// </summary>
-    public bool IsLeft => !_isRight;
+    public bool IsLeft
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => !_isRight;
+    }
 
     /// <summary>
     /// Creates a Left value.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Either<TLeft, TRight> Left(TLeft value)
     {
         if (value is null)
-            throw new ArgumentNullException(nameof(value), "Cannot create Left with null value.");
+            ThrowHelper.ThrowArgumentNull(nameof(value), "Cannot create Left with null value.");
         
         return new Either<TLeft, TRight>(value, default!, false);
     }
@@ -44,10 +56,11 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
     /// <summary>
     /// Creates a Right value.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Either<TLeft, TRight> Right(TRight value)
     {
         if (value is null)
-            throw new ArgumentNullException(nameof(value), "Cannot create Right with null value.");
+            ThrowHelper.ThrowArgumentNull(nameof(value), "Cannot create Right with null value.");
         
         return new Either<TLeft, TRight>(default!, value, true);
     }
@@ -56,10 +69,11 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
     /// Returns the contained Right value.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the value is Left</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public TRight UnwrapRight()
     {
         if (!_isRight)
-            throw new InvalidOperationException($"Called UnwrapRight on a Left value: {_left}");
+            ThrowHelper.ThrowInvalidOperation($"Called UnwrapRight on a Left value: {_left}");
         
         return _right!;
     }
@@ -68,10 +82,11 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
     /// Returns the contained Left value.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the value is Right</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public TLeft UnwrapLeft()
     {
         if (_isRight)
-            throw new InvalidOperationException($"Called UnwrapLeft on a Right value: {_right}");
+            ThrowHelper.ThrowInvalidOperation($"Called UnwrapLeft on a Right value: {_right}");
         
         return _left!;
     }
@@ -79,6 +94,7 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
     /// <summary>
     /// Returns the Right value or a default value.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public TRight RightOr(TRight defaultValue)
     {
         return _isRight ? _right! : defaultValue;
@@ -87,6 +103,7 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
     /// <summary>
     /// Returns the Left value or a default value.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public TLeft LeftOr(TLeft defaultValue)
     {
         return !_isRight ? _left! : defaultValue;
@@ -95,11 +112,9 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
     /// <summary>
     /// Maps the Right value if it exists.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Either<TLeft, U> MapRight<U>(Func<TRight, U> mapper)
     {
-        if (mapper is null)
-            throw new ArgumentNullException(nameof(mapper));
-        
         return _isRight 
             ? Either<TLeft, U>.Right(mapper(_right!)) 
             : Either<TLeft, U>.Left(_left!);
@@ -108,11 +123,9 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
     /// <summary>
     /// Maps the Left value if it exists.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Either<U, TRight> MapLeft<U>(Func<TLeft, U> mapper)
     {
-        if (mapper is null)
-            throw new ArgumentNullException(nameof(mapper));
-        
         return _isRight 
             ? Either<U, TRight>.Right(_right!) 
             : Either<U, TRight>.Left(mapper(_left!));
@@ -121,13 +134,9 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
     /// <summary>
     /// Maps both Left and Right values.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Either<L, R> BiMap<L, R>(Func<TLeft, L> leftMapper, Func<TRight, R> rightMapper)
     {
-        if (leftMapper is null)
-            throw new ArgumentNullException(nameof(leftMapper));
-        if (rightMapper is null)
-            throw new ArgumentNullException(nameof(rightMapper));
-        
         return _isRight 
             ? Either<L, R>.Right(rightMapper(_right!)) 
             : Either<L, R>.Left(leftMapper(_left!));
@@ -136,28 +145,25 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
     /// <summary>
     /// Binds the Right value if it exists.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Either<TLeft, U> AndThen<U>(Func<TRight, Either<TLeft, U>> binder)
     {
-        if (binder is null)
-            throw new ArgumentNullException(nameof(binder));
-        
         return _isRight ? binder(_right!) : Either<TLeft, U>.Left(_left!);
     }
 
     /// <summary>
     /// Binds the Left value if it exists.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Either<U, TRight> OrElse<U>(Func<TLeft, Either<U, TRight>> binder)
     {
-        if (binder is null)
-            throw new ArgumentNullException(nameof(binder));
-        
         return _isRight ? Either<U, TRight>.Right(_right!) : binder(_left!);
     }
 
     /// <summary>
     /// Swaps Left and Right.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Either<TRight, TLeft> Swap()
     {
         return _isRight 
@@ -168,13 +174,9 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
     /// <summary>
     /// Pattern matches on the Either and executes the appropriate action.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Match(Action<TLeft> leftAction, Action<TRight> rightAction)
     {
-        if (leftAction is null)
-            throw new ArgumentNullException(nameof(leftAction));
-        if (rightAction is null)
-            throw new ArgumentNullException(nameof(rightAction));
-        
         if (_isRight)
             rightAction(_right!);
         else
@@ -184,19 +186,16 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
     /// <summary>
     /// Pattern matches on the Either and returns a result.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public U Match<U>(Func<TLeft, U> leftFunc, Func<TRight, U> rightFunc)
     {
-        if (leftFunc is null)
-            throw new ArgumentNullException(nameof(leftFunc));
-        if (rightFunc is null)
-            throw new ArgumentNullException(nameof(rightFunc));
-        
         return _isRight ? rightFunc(_right!) : leftFunc(_left!);
     }
 
     /// <summary>
     /// Converts the Either to an Option of the Right value.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Option<TRight> RightOption()
     {
         return _isRight ? Option<TRight>.Some(_right!) : Option<TRight>.None();
@@ -205,6 +204,7 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
     /// <summary>
     /// Converts the Either to an Option of the Left value.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Option<TLeft> LeftOption()
     {
         return !_isRight ? Option<TLeft>.Some(_left!) : Option<TLeft>.None();
@@ -213,6 +213,7 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
     /// <summary>
     /// Converts the Either to a Result, treating Left as Err and Right as Ok.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Result<TRight, TLeft> ToResult()
     {
         return _isRight 
@@ -221,6 +222,7 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
     }
 
     /// <inheritdoc />
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Equals(Either<TLeft, TRight> other)
     {
         if (_isRight != other._isRight)
@@ -233,12 +235,14 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
     }
 
     /// <inheritdoc />
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override bool Equals(object? obj)
     {
         return obj is Either<TLeft, TRight> other && Equals(other);
     }
 
     /// <inheritdoc />
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override int GetHashCode()
     {
         return _isRight ? _right?.GetHashCode() ?? 0 : _left?.GetHashCode() ?? 0;
@@ -253,6 +257,7 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
     /// <summary>
     /// Determines whether two Either instances are equal.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator ==(Either<TLeft, TRight> left, Either<TLeft, TRight> right)
     {
         return left.Equals(right);
@@ -261,6 +266,7 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
     /// <summary>
     /// Determines whether two Either instances are not equal.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator !=(Either<TLeft, TRight> left, Either<TLeft, TRight> right)
     {
         return !left.Equals(right);
@@ -275,21 +281,20 @@ public static class EitherExtensions
     /// <summary>
     /// Flattens a nested Either (Right side).
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Either<TLeft, T> Flatten<TLeft, T>(this Either<TLeft, Either<TLeft, T>> either)
     {
-        return either.AndThen(inner => inner);
+        return either.AndThen(static inner => inner);
     }
 
     /// <summary>
     /// Executes an action if the Either is Right, allowing method chaining.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Either<TLeft, TRight> TapRight<TLeft, TRight>(
         this Either<TLeft, TRight> either, 
         Action<TRight> action)
     {
-        if (action is null)
-            throw new ArgumentNullException(nameof(action));
-        
         if (either.IsRight)
             action(either.UnwrapRight());
         
@@ -299,13 +304,11 @@ public static class EitherExtensions
     /// <summary>
     /// Executes an action if the Either is Left, allowing method chaining.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Either<TLeft, TRight> TapLeft<TLeft, TRight>(
         this Either<TLeft, TRight> either, 
         Action<TLeft> action)
     {
-        if (action is null)
-            throw new ArgumentNullException(nameof(action));
-        
         if (either.IsLeft)
             action(either.UnwrapLeft());
         
@@ -315,12 +318,12 @@ public static class EitherExtensions
     /// <summary>
     /// Converts a Result to an Either.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Either<TErr, T> ToEither<T, TErr>(this Result<T, TErr> result)
     {
         return result.Match(
-            okFunc: value => Either<TErr, T>.Right(value),
-            errFunc: err => Either<TErr, T>.Left(err)
+            okFunc: static value => Either<TErr, T>.Right(value),
+            errFunc: static err => Either<TErr, T>.Left(err)
         );
     }
 }
-

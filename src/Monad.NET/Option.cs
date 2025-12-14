@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace Monad.NET;
 
 /// <summary>
@@ -10,6 +12,7 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     private readonly T? _value;
     private readonly bool _isSome;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Option(T value, bool isSome)
     {
         _value = value;
@@ -19,16 +22,25 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     /// <summary>
     /// Returns true if the option is a Some value.
     /// </summary>
-    public bool IsSome => _isSome;
+    public bool IsSome
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _isSome;
+    }
 
     /// <summary>
     /// Returns true if the option is a None value.
     /// </summary>
-    public bool IsNone => !_isSome;
+    public bool IsNone
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => !_isSome;
+    }
 
     /// <summary>
     /// Creates a Some value containing the specified value.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Option<T> Some(T value)
     {
         if (value is null)
@@ -40,6 +52,7 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     /// <summary>
     /// Creates a None value.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Option<T> None() => new(default!, false);
 
     /// <summary>
@@ -47,10 +60,11 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     /// </summary>
     /// <param name="message">The panic message if None</param>
     /// <exception cref="InvalidOperationException">Thrown if the value is None</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T Expect(string message)
     {
         if (!_isSome)
-            throw new InvalidOperationException(message);
+            ThrowHelper.ThrowInvalidOperation(message);
         
         return _value!;
     }
@@ -59,14 +73,19 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     /// Returns the contained Some value.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the value is None</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T Unwrap()
     {
-        return Expect("Called Unwrap on a None value");
+        if (!_isSome)
+            ThrowHelper.ThrowInvalidOperation("Called Unwrap on a None value");
+        
+        return _value!;
     }
 
     /// <summary>
     /// Returns the contained Some value or a default value.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T UnwrapOr(T defaultValue)
     {
         return _isSome ? _value! : defaultValue;
@@ -75,17 +94,16 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     /// <summary>
     /// Returns the contained Some value or computes it from a function.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T UnwrapOrElse(Func<T> defaultFunc)
     {
-        if (defaultFunc is null)
-            throw new ArgumentNullException(nameof(defaultFunc));
-        
         return _isSome ? _value! : defaultFunc();
     }
 
     /// <summary>
     /// Returns the contained Some value or a default value of type T.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T? UnwrapOrDefault()
     {
         return _isSome ? _value : default;
@@ -94,11 +112,9 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     /// <summary>
     /// Maps an Option&lt;T&gt; to Option&lt;U&gt; by applying a function to a contained value.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Option<U> Map<U>(Func<T, U> mapper)
     {
-        if (mapper is null)
-            throw new ArgumentNullException(nameof(mapper));
-        
         return _isSome ? Option<U>.Some(mapper(_value!)) : Option<U>.None();
     }
 
@@ -107,35 +123,27 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     /// - Some(t) if predicate returns true (where t is the wrapped value)
     /// - None if predicate returns false
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Option<T> Filter(Func<T, bool> predicate)
     {
-        if (predicate is null)
-            throw new ArgumentNullException(nameof(predicate));
-        
         return _isSome && predicate(_value!) ? this : None();
     }
 
     /// <summary>
     /// Returns the provided default result (if none), or applies a function to the contained value (if any).
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public U MapOr<U>(U defaultValue, Func<T, U> mapper)
     {
-        if (mapper is null)
-            throw new ArgumentNullException(nameof(mapper));
-        
         return _isSome ? mapper(_value!) : defaultValue;
     }
 
     /// <summary>
     /// Computes a default function result (if none), or applies a different function to the contained value (if any).
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public U MapOrElse<U>(Func<U> defaultFunc, Func<T, U> mapper)
     {
-        if (defaultFunc is null)
-            throw new ArgumentNullException(nameof(defaultFunc));
-        if (mapper is null)
-            throw new ArgumentNullException(nameof(mapper));
-        
         return _isSome ? mapper(_value!) : defaultFunc();
     }
 
@@ -143,17 +151,16 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     /// Returns None if the option is None, otherwise calls the function with the wrapped value and returns the result.
     /// Some languages call this operation flatmap.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Option<U> AndThen<U>(Func<T, Option<U>> binder)
     {
-        if (binder is null)
-            throw new ArgumentNullException(nameof(binder));
-        
         return _isSome ? binder(_value!) : Option<U>.None();
     }
 
     /// <summary>
     /// Returns None if the option is None, otherwise returns optionB.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Option<U> And<U>(Option<U> optionB)
     {
         return _isSome ? optionB : Option<U>.None();
@@ -162,6 +169,7 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     /// <summary>
     /// Returns the option if it contains a value, otherwise returns optionB.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Option<T> Or(Option<T> optionB)
     {
         return _isSome ? this : optionB;
@@ -170,17 +178,16 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     /// <summary>
     /// Returns the option if it contains a value, otherwise calls the function and returns the result.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Option<T> OrElse(Func<Option<T>> optionFunc)
     {
-        if (optionFunc is null)
-            throw new ArgumentNullException(nameof(optionFunc));
-        
         return _isSome ? this : optionFunc();
     }
 
     /// <summary>
     /// Returns Some if exactly one of the two options is Some, otherwise returns None.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Option<T> Xor(Option<T> optionB)
     {
         if (_isSome && !optionB._isSome)
@@ -194,13 +201,9 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     /// <summary>
     /// Executes the provided action if the option contains a value.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Match(Action<T> someAction, Action noneAction)
     {
-        if (someAction is null)
-            throw new ArgumentNullException(nameof(someAction));
-        if (noneAction is null)
-            throw new ArgumentNullException(nameof(noneAction));
-        
         if (_isSome)
             someAction(_value!);
         else
@@ -210,19 +213,16 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     /// <summary>
     /// Pattern matches on the option and returns a result.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public U Match<U>(Func<T, U> someFunc, Func<U> noneFunc)
     {
-        if (someFunc is null)
-            throw new ArgumentNullException(nameof(someFunc));
-        if (noneFunc is null)
-            throw new ArgumentNullException(nameof(noneFunc));
-        
         return _isSome ? someFunc(_value!) : noneFunc();
     }
 
     /// <summary>
     /// Converts this Option to a Result, mapping Some(v) to Ok(v) and None to Err(err).
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Result<T, TErr> OkOr<TErr>(TErr err)
     {
         return _isSome ? Result<T, TErr>.Ok(_value!) : Result<T, TErr>.Err(err);
@@ -231,15 +231,14 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     /// <summary>
     /// Converts this Option to a Result, mapping Some(v) to Ok(v) and None to Err computed from the function.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Result<T, TErr> OkOrElse<TErr>(Func<TErr> errFunc)
     {
-        if (errFunc is null)
-            throw new ArgumentNullException(nameof(errFunc));
-        
         return _isSome ? Result<T, TErr>.Ok(_value!) : Result<T, TErr>.Err(errFunc());
     }
 
     /// <inheritdoc />
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Equals(Option<T> other)
     {
         if (_isSome != other._isSome)
@@ -252,12 +251,14 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     }
 
     /// <inheritdoc />
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override bool Equals(object? obj)
     {
         return obj is Option<T> other && Equals(other);
     }
 
     /// <inheritdoc />
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override int GetHashCode()
     {
         return _isSome ? _value?.GetHashCode() ?? 0 : 0;
@@ -272,6 +273,7 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     /// <summary>
     /// Determines whether two Option instances are equal.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator ==(Option<T> left, Option<T> right)
     {
         return left.Equals(right);
@@ -280,6 +282,7 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     /// <summary>
     /// Determines whether two Option instances are not equal.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator !=(Option<T> left, Option<T> right)
     {
         return !left.Equals(right);
@@ -288,6 +291,7 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     /// <summary>
     /// Implicit conversion from T to Option&lt;T&gt;.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator Option<T>(T value)
     {
         return value is null ? None() : Some(value);
@@ -302,6 +306,7 @@ public static class OptionExtensions
     /// <summary>
     /// Converts a nullable value to an Option.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Option<T> ToOption<T>(this T? value) where T : struct
     {
         return value.HasValue ? Option<T>.Some(value.Value) : Option<T>.None();
@@ -310,6 +315,7 @@ public static class OptionExtensions
     /// <summary>
     /// Converts a reference type to an Option.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Option<T> ToOption<T>(this T? value) where T : class
     {
         return value is not null ? Option<T>.Some(value) : Option<T>.None();
@@ -318,23 +324,49 @@ public static class OptionExtensions
     /// <summary>
     /// Flattens a nested Option.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Option<T> Flatten<T>(this Option<Option<T>> option)
     {
-        return option.AndThen(inner => inner);
+        return option.AndThen(static inner => inner);
     }
 
     /// <summary>
     /// Transposes an Option of a Result into a Result of an Option.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Result<Option<T>, TErr> Transpose<T, TErr>(this Option<Result<T, TErr>> option)
     {
         return option.Match(
-            someFunc: result => result.Match(
-                okFunc: value => Result<Option<T>, TErr>.Ok(Option<T>.Some(value)),
-                errFunc: err => Result<Option<T>, TErr>.Err(err)
+            someFunc: static result => result.Match(
+                okFunc: static value => Result<Option<T>, TErr>.Ok(Option<T>.Some(value)),
+                errFunc: static err => Result<Option<T>, TErr>.Err(err)
             ),
-            noneFunc: () => Result<Option<T>, TErr>.Ok(Option<T>.None())
+            noneFunc: static () => Result<Option<T>, TErr>.Ok(Option<T>.None())
         );
     }
 }
 
+/// <summary>
+/// Helper class for throwing exceptions without inlining the throw site.
+/// This keeps hot paths small and improves JIT optimization.
+/// </summary>
+internal static class ThrowHelper
+{
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void ThrowInvalidOperation(string message)
+    {
+        throw new InvalidOperationException(message);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void ThrowArgumentNull(string paramName)
+    {
+        throw new ArgumentNullException(paramName);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void ThrowArgumentNull(string paramName, string message)
+    {
+        throw new ArgumentNullException(paramName, message);
+    }
+}
