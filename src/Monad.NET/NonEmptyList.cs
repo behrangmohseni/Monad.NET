@@ -44,7 +44,7 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
         {
             if (index < 0 || index >= Count)
                 throw new IndexOutOfRangeException($"Index {index} is out of range for NonEmptyList with {Count} elements");
-            
+
             return index == 0 ? _head : _tail[index - 1];
         }
     }
@@ -56,7 +56,7 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     {
         if (head is null)
             throw new ArgumentNullException(nameof(head), "Cannot create NonEmptyList with null head");
-        
+
         return new NonEmptyList<T>(head, Array.Empty<T>());
     }
 
@@ -67,7 +67,7 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     {
         if (head is null)
             throw new ArgumentNullException(nameof(head), "Cannot create NonEmptyList with null head");
-        
+
         return new NonEmptyList<T>(head, tail ?? Array.Empty<T>());
     }
 
@@ -222,7 +222,7 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
         var result = _head;
         foreach (var item in _tail)
             result = reducer(result, item);
-        
+
         return result;
     }
 
@@ -237,7 +237,7 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
         var result = folder(initial, _head);
         foreach (var item in _tail)
             result = folder(result, item);
-        
+
         return result;
     }
 
@@ -329,9 +329,12 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     /// <inheritdoc />
     public bool Equals(NonEmptyList<T>? other)
     {
-        if (other is null) return false;
-        if (ReferenceEquals(this, other)) return true;
-        if (Count != other.Count) return false;
+        if (other is null)
+            return false;
+        if (ReferenceEquals(this, other))
+            return true;
+        if (Count != other.Count)
+            return false;
 
         return this.SequenceEqual(other);
     }
@@ -362,7 +365,8 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     /// </summary>
     public static bool operator ==(NonEmptyList<T>? left, NonEmptyList<T>? right)
     {
-        if (left is null) return right is null;
+        if (left is null)
+            return right is null;
         return left.Equals(right);
     }
 
@@ -411,7 +415,7 @@ public static class NonEmptyListExtensions
 
         var groupedList = list.ToList().GroupBy(keySelector);
         var groupsList = new List<(TKey, NonEmptyList<T>)>();
-        
+
         foreach (var group in groupedList)
         {
             var groupValues = group.ToList();
@@ -432,7 +436,7 @@ public static class NonEmptyListExtensions
 
         if (typeof(IComparable<T>).IsAssignableFrom(typeof(T)))
         {
-            return list.Reduce((a, b) => 
+            return list.Reduce((a, b) =>
                 Comparer<T>.Default.Compare(a, b) > 0 ? a : b);
         }
         throw new NotSupportedException($"Type {typeof(T).Name} does not implement IComparable<T>");
@@ -448,7 +452,7 @@ public static class NonEmptyListExtensions
 
         if (typeof(IComparable<T>).IsAssignableFrom(typeof(T)))
         {
-            return list.Reduce((a, b) => 
+            return list.Reduce((a, b) =>
                 Comparer<T>.Default.Compare(a, b) < 0 ? a : b);
         }
         throw new NotSupportedException($"Type {typeof(T).Name} does not implement IComparable<T>");

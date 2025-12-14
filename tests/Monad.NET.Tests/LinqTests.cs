@@ -269,8 +269,8 @@ public class LinqTests
     public void Option_ParseAndCalculate_UsingLinq()
     {
         Option<string> TryParse(string input) =>
-            int.TryParse(input, out var value) 
-                ? Option<int>.Some(value).Map(x => x.ToString()) 
+            int.TryParse(input, out var value)
+                ? Option<int>.Some(value).Map(x => x.ToString())
                 : Option<string>.None();
 
         var result = from a in TryParse("10")
@@ -285,13 +285,13 @@ public class LinqTests
     public void Result_ValidationChain_UsingLinq()
     {
         Result<int, string> ValidatePositive(int x) =>
-            x > 0 
-                ? Result<int, string>.Ok(x) 
+            x > 0
+                ? Result<int, string>.Ok(x)
                 : Result<int, string>.Err("Must be positive");
 
         Result<int, string> ValidateLessThan100(int x) =>
-            x < 100 
-                ? Result<int, string>.Ok(x) 
+            x < 100
+                ? Result<int, string>.Ok(x)
                 : Result<int, string>.Err("Must be less than 100");
 
         var result = from x in Result<int, string>.Ok(50)
@@ -307,13 +307,13 @@ public class LinqTests
     public void Option_DatabaseLookup_Simulation()
     {
         Option<User> FindUser(int id) =>
-            id == 1 
-                ? Option<User>.Some(new User { Id = 1, Name = "John" }) 
+            id == 1
+                ? Option<User>.Some(new User { Id = 1, Name = "John" })
                 : Option<User>.None();
 
         Option<Address> FindAddress(int userId) =>
-            userId == 1 
-                ? Option<Address>.Some(new Address { City = "NYC" }) 
+            userId == 1
+                ? Option<Address>.Some(new Address { City = "NYC" })
                 : Option<Address>.None();
 
         var result = from user in FindUser(1)

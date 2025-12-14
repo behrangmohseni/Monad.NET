@@ -48,7 +48,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     {
         if (value is null)
             ThrowHelper.ThrowArgumentNull(nameof(value), "Cannot create Success with null value.");
-        
+
         return new Try<T>(value, null, true);
     }
 
@@ -60,7 +60,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     {
         if (exception is null)
             ThrowHelper.ThrowArgumentNull(nameof(exception));
-        
+
         return new Try<T>(default!, exception, false);
     }
 
@@ -104,7 +104,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     {
         if (!_isSuccess)
             ThrowHelper.ThrowInvalidOperation($"Cannot get value from failed Try: {_exception!.Message}");
-        
+
         return _value!;
     }
 
@@ -117,7 +117,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     {
         if (_isSuccess)
             ThrowHelper.ThrowInvalidOperation("Cannot get exception from successful Try");
-        
+
         return _exception!;
     }
 
@@ -197,8 +197,8 @@ public readonly struct Try<T> : IEquatable<Try<T>>
 
         try
         {
-            return predicate(_value!) 
-                ? this 
+            return predicate(_value!)
+                ? this
                 : Failure(new InvalidOperationException("Predicate not satisfied"));
         }
         catch (Exception ex)
@@ -218,8 +218,8 @@ public readonly struct Try<T> : IEquatable<Try<T>>
 
         try
         {
-            return predicate(_value!) 
-                ? this 
+            return predicate(_value!)
+                ? this
                 : Failure(new InvalidOperationException(errorMessage));
         }
         catch (Exception ex)
@@ -239,8 +239,8 @@ public readonly struct Try<T> : IEquatable<Try<T>>
 
         try
         {
-            return predicate(_value!) 
-                ? this 
+            return predicate(_value!)
+                ? this
                 : Failure(exceptionFactory());
         }
         catch (Exception ex)
@@ -342,8 +342,8 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Result<T, Exception> ToResult()
     {
-        return _isSuccess 
-            ? Result<T, Exception>.Ok(_value!) 
+        return _isSuccess
+            ? Result<T, Exception>.Ok(_value!)
             : Result<T, Exception>.Err(_exception!);
     }
 
@@ -353,8 +353,8 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Result<T, TErr> ToResult<TErr>(Func<Exception, TErr> errorMapper)
     {
-        return _isSuccess 
-            ? Result<T, TErr>.Ok(_value!) 
+        return _isSuccess
+            ? Result<T, TErr>.Ok(_value!)
             : Result<T, TErr>.Err(errorMapper(_exception!));
     }
 
@@ -369,7 +369,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>
             return EqualityComparer<T>.Default.Equals(_value, other._value);
 
         // Compare exception types and messages
-        return _exception!.GetType() == other._exception!.GetType() 
+        return _exception!.GetType() == other._exception!.GetType()
                && _exception.Message == other._exception.Message;
     }
 
@@ -384,16 +384,16 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override int GetHashCode()
     {
-        return _isSuccess 
-            ? HashCode.Combine(_isSuccess, _value) 
+        return _isSuccess
+            ? HashCode.Combine(_isSuccess, _value)
             : HashCode.Combine(_isSuccess, _exception!.GetType(), _exception.Message);
     }
 
     /// <inheritdoc />
     public override string ToString()
     {
-        return _isSuccess 
-            ? $"Success({_value})" 
+        return _isSuccess
+            ? $"Success({_value})"
             : $"Failure({_exception!.GetType().Name}: {_exception.Message})";
     }
 

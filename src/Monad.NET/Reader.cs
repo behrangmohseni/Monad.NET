@@ -23,7 +23,7 @@ public sealed class Reader<R, A>
     {
         if (func is null)
             throw new ArgumentNullException(nameof(func));
-        
+
         return new Reader<R, A>(func);
     }
 
@@ -50,7 +50,7 @@ public sealed class Reader<R, A>
     {
         if (selector is null)
             throw new ArgumentNullException(nameof(selector));
-        
+
         return new Reader<R, A>(selector);
     }
 
@@ -61,7 +61,7 @@ public sealed class Reader<R, A>
     {
         if (environment is null)
             throw new ArgumentNullException(nameof(environment));
-        
+
         return _run(environment);
     }
 
@@ -72,7 +72,7 @@ public sealed class Reader<R, A>
     {
         if (mapper is null)
             throw new ArgumentNullException(nameof(mapper));
-        
+
         return new Reader<R, B>(env => mapper(_run(env)));
     }
 
@@ -84,7 +84,7 @@ public sealed class Reader<R, A>
     {
         if (binder is null)
             throw new ArgumentNullException(nameof(binder));
-        
+
         return new Reader<R, B>(env =>
         {
             var a = _run(env);
@@ -100,7 +100,7 @@ public sealed class Reader<R, A>
     {
         if (transform is null)
             throw new ArgumentNullException(nameof(transform));
-        
+
         return new Reader<R2, A>(env2 => _run(transform(env2)));
     }
 
@@ -111,7 +111,7 @@ public sealed class Reader<R, A>
     {
         if (combiner is null)
             throw new ArgumentNullException(nameof(combiner));
-        
+
         return new Reader<R, C>(env =>
         {
             var a = _run(env);

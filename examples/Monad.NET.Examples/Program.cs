@@ -1,4 +1,4 @@
-﻿using Monad.NET;
+using Monad.NET;
 
 namespace Monad.NET.Examples;
 
@@ -7,43 +7,43 @@ public class Program
     public static void Main(string[] args)
     {
         Console.WriteLine("=== Monad.NET Examples ===\n");
-        
+
         OptionExamples();
         Console.WriteLine("\n" + new string('-', 50) + "\n");
-        
+
         ResultExamples();
         Console.WriteLine("\n" + new string('-', 50) + "\n");
-        
+
         EitherExamples();
         Console.WriteLine("\n" + new string('-', 50) + "\n");
-        
+
         ValidationExamples();
         Console.WriteLine("\n" + new string('-', 50) + "\n");
-        
+
         TryExamples();
         Console.WriteLine("\n" + new string('-', 50) + "\n");
-        
+
         RemoteDataExamples();
         Console.WriteLine("\n" + new string('-', 50) + "\n");
-        
+
         NonEmptyListExamples();
         Console.WriteLine("\n" + new string('-', 50) + "\n");
-        
+
         WriterExamples();
         Console.WriteLine("\n" + new string('-', 50) + "\n");
-        
+
         ReaderExamples();
         Console.WriteLine("\n" + new string('-', 50) + "\n");
-        
+
         LinqExamples();
         Console.WriteLine("\n" + new string('-', 50) + "\n");
-        
+
         AsyncExamples().GetAwaiter().GetResult();
         Console.WriteLine("\n" + new string('-', 50) + "\n");
-        
+
         CollectionExamples();
         Console.WriteLine("\n" + new string('-', 50) + "\n");
-        
+
         RealWorldExamples();
     }
 
@@ -106,8 +106,8 @@ public class Program
         // Chaining operations
         var pipeline = Divide(20, 4)
             .Map(x => x * 2)
-            .AndThen(x => x > 5 
-                ? Result<string, string>.Ok($"Large: {x}") 
+            .AndThen(x => x > 5
+                ? Result<string, string>.Ok($"Large: {x}")
                 : Result<string, string>.Err("Too small"))
             .Match(
                 okFunc: msg => msg,
@@ -171,12 +171,12 @@ public class Program
         Console.WriteLine("\n2. User Validation:");
         var validUser = ValidateAndCreateUser("john@example.com", 25);
         var invalidUser = ValidateAndCreateUser("invalid-email", 15);
-        
+
         validUser.Match(
             okAction: user => Console.WriteLine($"   Created user: {user.Email}, Age: {user.Age}"),
             errAction: errors => Console.WriteLine($"   Validation failed: {string.Join(", ", errors)}")
         );
-        
+
         invalidUser.Match(
             okAction: user => Console.WriteLine($"   Created user: {user.Email}"),
             errAction: errors => Console.WriteLine($"   Validation failed: {string.Join(", ", errors)}")
@@ -200,7 +200,7 @@ public class Program
     {
         if (denominator == 0)
             return Result<double, string>.Err("Cannot divide by zero");
-        
+
         return Result<double, string>.Ok(numerator / denominator);
     }
 
@@ -215,7 +215,7 @@ public class Program
 
         if (configs.TryGetValue(key, out var value) && int.TryParse(value, out var parsed))
             return Option<int>.Some(parsed);
-        
+
         return Option<int>.None();
     }
 
@@ -225,17 +225,17 @@ public class Program
 
         if (!email.Contains('@'))
             errors.Add("Invalid email format");
-        
+
         if (age < 18)
             errors.Add("Must be 18 or older");
 
         if (errors.Count > 0)
             return Result<User, List<string>>.Err(errors);
 
-        return Result<User, List<string>>.Ok(new User 
-        { 
-            Email = email, 
-            Age = age 
+        return Result<User, List<string>>.Ok(new User
+        {
+            Email = email,
+            Age = age
         });
     }
 
@@ -243,7 +243,7 @@ public class Program
     {
         if (input == "valid-input")
             return Result<string, string>.Ok("Success!");
-        
+
         return Result<string, string>.Err("Invalid input");
     }
 
@@ -368,7 +368,7 @@ public class Program
         // Safe division
         Console.WriteLine("\n3. Safe Division:");
         var divideOk = Try<double>.Of(() => 10.0 / 2);
-        var divideByZero = Try<double>.Of(() => 
+        var divideByZero = Try<double>.Of(() =>
         {
             int zero = 0;
             return 10 / zero; // Will throw DivideByZeroException
@@ -489,7 +489,7 @@ public class Program
         Console.WriteLine("\n7. Combining Multiple RemoteData:");
         var userData = RemoteData<string, string>.Success("John");
         var postsData = RemoteData<int, string>.Success(42);
-        
+
         // Combine using Map - if both are Success, combine them
         var combined = userData.Map(user => $"{user} has {postsData.UnwrapOr(0)} posts");
         Console.WriteLine($"   Combined: {combined}");
@@ -730,7 +730,7 @@ public class Program
         // Real-world: Service composition
         Console.WriteLine("\n7. Real-World: Service Composition:");
         var userService = GetUserReader(1);
-        var greeting = userService.FlatMap(user => 
+        var greeting = userService.FlatMap(user =>
             Reader<AppConfig, string>.Asks(c => $"Welcome to {c.AppName}, {user}!"));
         Console.WriteLine($"   Greeting: {greeting.Run(config)}");
 
@@ -749,7 +749,7 @@ public class Program
 
     static Reader<AppConfig, string> GetUserReader(int userId)
     {
-        return Reader<AppConfig, string>.From(config => 
+        return Reader<AppConfig, string>.From(config =>
         {
             // Simulate using config for database access
             return $"User_{userId}";
@@ -785,7 +785,7 @@ public class Program
 
         // Real-world: Parse and validate
         Console.WriteLine("\n4. Parse and Validate:");
-        Option<int> TryParse(string s) => 
+        Option<int> TryParse(string s) =>
             int.TryParse(s, out var v) ? Option<int>.Some(v) : Option<int>.None();
 
         var parseResult = from a in TryParse("10")
@@ -846,8 +846,8 @@ public class Program
     static async Task<Result<string, string>> SimulateApiCall(bool success)
     {
         await Task.Delay(10);
-        return success 
-            ? Result<string, string>.Ok("Data from API") 
+        return success
+            ? Result<string, string>.Ok("Data from API")
             : Result<string, string>.Err("API Error");
     }
 
@@ -915,7 +915,7 @@ public class Program
                 ? Result<int, string>.Ok(v)
                 : Result<int, string>.Err($"Invalid: {s}"))
             .Map(numbers => numbers.Sum());
-        
+
         Console.WriteLine($"   Total: {processed.Match(
             okFunc: sum => sum.ToString(),
             errFunc: err => err

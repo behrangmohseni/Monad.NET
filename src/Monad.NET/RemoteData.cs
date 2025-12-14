@@ -70,7 +70,7 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>
     {
         if (data is null)
             throw new ArgumentNullException(nameof(data), "Cannot create Success with null data.");
-        
+
         return new RemoteData<T, TErr>(data, default!, RemoteDataState.Success);
     }
 
@@ -81,7 +81,7 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>
     {
         if (error is null)
             throw new ArgumentNullException(nameof(error), "Cannot create Failure with null error.");
-        
+
         return new RemoteData<T, TErr>(default!, error, RemoteDataState.Failure);
     }
 
@@ -109,7 +109,7 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>
     {
         if (_state != RemoteDataState.Failure)
             throw new InvalidOperationException("Called UnwrapError on non-Failure state");
-        
+
         return _error!;
     }
 
@@ -128,7 +128,7 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>
     {
         if (defaultFunc is null)
             throw new ArgumentNullException(nameof(defaultFunc));
-        
+
         return _state == RemoteDataState.Success ? _data! : defaultFunc();
     }
 
@@ -139,7 +139,7 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>
     {
         if (mapper is null)
             throw new ArgumentNullException(nameof(mapper));
-        
+
         return _state switch
         {
             RemoteDataState.Success => RemoteData<U, TErr>.Success(mapper(_data!)),
@@ -157,7 +157,7 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>
     {
         if (mapper is null)
             throw new ArgumentNullException(nameof(mapper));
-        
+
         return _state switch
         {
             RemoteDataState.Success => RemoteData<T, F>.Success(_data!),
@@ -175,7 +175,7 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>
     {
         if (binder is null)
             throw new ArgumentNullException(nameof(binder));
-        
+
         return _state switch
         {
             RemoteDataState.Success => binder(_data!),
@@ -201,7 +201,7 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>
     {
         if (recovery is null)
             throw new ArgumentNullException(nameof(recovery));
-        
+
         return _state == RemoteDataState.Failure ? recovery(_error!) : this;
     }
 
@@ -274,8 +274,8 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>
     /// </summary>
     public Option<T> ToOption()
     {
-        return _state == RemoteDataState.Success 
-            ? Option<T>.Some(_data!) 
+        return _state == RemoteDataState.Success
+            ? Option<T>.Some(_data!)
             : Option<T>.None();
     }
 
@@ -385,10 +385,10 @@ public static class RemoteDataExtensions
     {
         if (action is null)
             throw new ArgumentNullException(nameof(action));
-        
+
         if (remoteData.IsSuccess)
             action(remoteData.Unwrap());
-        
+
         return remoteData;
     }
 
@@ -401,10 +401,10 @@ public static class RemoteDataExtensions
     {
         if (action is null)
             throw new ArgumentNullException(nameof(action));
-        
+
         if (remoteData.IsFailure)
             action(remoteData.UnwrapError());
-        
+
         return remoteData;
     }
 

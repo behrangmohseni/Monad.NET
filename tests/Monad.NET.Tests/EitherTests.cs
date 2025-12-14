@@ -8,7 +8,7 @@ public class EitherTests
     public void Left_CreatesEitherWithLeftValue()
     {
         var either = Either<string, int>.Left("error");
-        
+
         Assert.True(either.IsLeft);
         Assert.False(either.IsRight);
         Assert.Equal("error", either.UnwrapLeft());
@@ -18,7 +18,7 @@ public class EitherTests
     public void Right_CreatesEitherWithRightValue()
     {
         var either = Either<string, int>.Right(42);
-        
+
         Assert.True(either.IsRight);
         Assert.False(either.IsLeft);
         Assert.Equal(42, either.UnwrapRight());
@@ -40,7 +40,7 @@ public class EitherTests
     public void UnwrapRight_OnLeft_ThrowsException()
     {
         var either = Either<string, int>.Left("error");
-        
+
         Assert.Throws<InvalidOperationException>(() => either.UnwrapRight());
     }
 
@@ -48,7 +48,7 @@ public class EitherTests
     public void UnwrapLeft_OnRight_ThrowsException()
     {
         var either = Either<string, int>.Right(42);
-        
+
         Assert.Throws<InvalidOperationException>(() => either.UnwrapLeft());
     }
 
@@ -56,7 +56,7 @@ public class EitherTests
     public void RightOr_OnRight_ReturnsValue()
     {
         var either = Either<string, int>.Right(42);
-        
+
         Assert.Equal(42, either.RightOr(0));
     }
 
@@ -64,7 +64,7 @@ public class EitherTests
     public void RightOr_OnLeft_ReturnsDefault()
     {
         var either = Either<string, int>.Left("error");
-        
+
         Assert.Equal(0, either.RightOr(0));
     }
 
@@ -72,7 +72,7 @@ public class EitherTests
     public void LeftOr_OnLeft_ReturnsValue()
     {
         var either = Either<string, int>.Left("error");
-        
+
         Assert.Equal("error", either.LeftOr("default"));
     }
 
@@ -80,7 +80,7 @@ public class EitherTests
     public void LeftOr_OnRight_ReturnsDefault()
     {
         var either = Either<string, int>.Right(42);
-        
+
         Assert.Equal("default", either.LeftOr("default"));
     }
 
@@ -89,7 +89,7 @@ public class EitherTests
     {
         var either = Either<string, int>.Right(42);
         var mapped = either.MapRight(x => x * 2);
-        
+
         Assert.True(mapped.IsRight);
         Assert.Equal(84, mapped.UnwrapRight());
     }
@@ -99,7 +99,7 @@ public class EitherTests
     {
         var either = Either<string, int>.Left("error");
         var mapped = either.MapRight(x => x * 2);
-        
+
         Assert.True(mapped.IsLeft);
         Assert.Equal("error", mapped.UnwrapLeft());
     }
@@ -109,7 +109,7 @@ public class EitherTests
     {
         var either = Either<string, int>.Left("error");
         var mapped = either.MapLeft(x => x.Length);
-        
+
         Assert.True(mapped.IsLeft);
         Assert.Equal(5, mapped.UnwrapLeft());
     }
@@ -119,7 +119,7 @@ public class EitherTests
     {
         var either = Either<string, int>.Right(42);
         var mapped = either.MapLeft(x => x.Length);
-        
+
         Assert.True(mapped.IsRight);
         Assert.Equal(42, mapped.UnwrapRight());
     }
@@ -132,7 +132,7 @@ public class EitherTests
             leftMapper: x => x.Length,
             rightMapper: x => x * 2
         );
-        
+
         Assert.True(mapped.IsRight);
         Assert.Equal(84, mapped.UnwrapRight());
     }
@@ -145,7 +145,7 @@ public class EitherTests
             leftMapper: x => x.Length,
             rightMapper: x => x * 2
         );
-        
+
         Assert.True(mapped.IsLeft);
         Assert.Equal(5, mapped.UnwrapLeft());
     }
@@ -155,7 +155,7 @@ public class EitherTests
     {
         var either = Either<string, int>.Right(42);
         var result = either.AndThen(x => Either<string, string>.Right(x.ToString()));
-        
+
         Assert.True(result.IsRight);
         Assert.Equal("42", result.UnwrapRight());
     }
@@ -165,7 +165,7 @@ public class EitherTests
     {
         var either = Either<string, int>.Left("error");
         var result = either.AndThen(x => Either<string, string>.Right(x.ToString()));
-        
+
         Assert.True(result.IsLeft);
         Assert.Equal("error", result.UnwrapLeft());
     }
@@ -175,7 +175,7 @@ public class EitherTests
     {
         var either = Either<string, int>.Left("error");
         var result = either.OrElse(x => Either<int, int>.Right(100));
-        
+
         Assert.True(result.IsRight);
         Assert.Equal(100, result.UnwrapRight());
     }
@@ -185,7 +185,7 @@ public class EitherTests
     {
         var either = Either<string, int>.Right(42);
         var result = either.OrElse(x => Either<int, int>.Right(100));
-        
+
         Assert.True(result.IsRight);
         Assert.Equal(42, result.UnwrapRight());
     }
@@ -195,7 +195,7 @@ public class EitherTests
     {
         var either = Either<string, int>.Right(42);
         var swapped = either.Swap();
-        
+
         Assert.True(swapped.IsLeft);
         Assert.Equal(42, swapped.UnwrapLeft());
     }
@@ -205,7 +205,7 @@ public class EitherTests
     {
         var either = Either<string, int>.Left("error");
         var swapped = either.Swap();
-        
+
         Assert.True(swapped.IsRight);
         Assert.Equal("error", swapped.UnwrapRight());
     }
@@ -215,12 +215,12 @@ public class EitherTests
     {
         var either = Either<string, int>.Right(42);
         var value = 0;
-        
+
         either.Match(
             leftAction: x => value = -1,
             rightAction: x => value = x
         );
-        
+
         Assert.Equal(42, value);
     }
 
@@ -229,12 +229,12 @@ public class EitherTests
     {
         var either = Either<string, int>.Left("error");
         var message = string.Empty;
-        
+
         either.Match(
             leftAction: x => message = x,
             rightAction: x => message = "right"
         );
-        
+
         Assert.Equal("error", message);
     }
 
@@ -246,7 +246,7 @@ public class EitherTests
             leftFunc: x => x,
             rightFunc: x => x.ToString()
         );
-        
+
         Assert.Equal("42", result);
     }
 
@@ -258,7 +258,7 @@ public class EitherTests
             leftFunc: x => x,
             rightFunc: x => x.ToString()
         );
-        
+
         Assert.Equal("error", result);
     }
 
@@ -267,7 +267,7 @@ public class EitherTests
     {
         var either = Either<string, int>.Right(42);
         var option = either.RightOption();
-        
+
         Assert.True(option.IsSome);
         Assert.Equal(42, option.Unwrap());
     }
@@ -277,7 +277,7 @@ public class EitherTests
     {
         var either = Either<string, int>.Left("error");
         var option = either.RightOption();
-        
+
         Assert.True(option.IsNone);
     }
 
@@ -286,7 +286,7 @@ public class EitherTests
     {
         var either = Either<string, int>.Left("error");
         var option = either.LeftOption();
-        
+
         Assert.True(option.IsSome);
         Assert.Equal("error", option.Unwrap());
     }
@@ -296,7 +296,7 @@ public class EitherTests
     {
         var either = Either<string, int>.Right(42);
         var option = either.LeftOption();
-        
+
         Assert.True(option.IsNone);
     }
 
@@ -305,7 +305,7 @@ public class EitherTests
     {
         var either = Either<string, int>.Right(42);
         var result = either.ToResult();
-        
+
         Assert.True(result.IsOk);
         Assert.Equal(42, result.Unwrap());
     }
@@ -315,7 +315,7 @@ public class EitherTests
     {
         var either = Either<string, int>.Left("error");
         var result = either.ToResult();
-        
+
         Assert.True(result.IsErr);
         Assert.Equal("error", result.UnwrapErr());
     }
@@ -325,7 +325,7 @@ public class EitherTests
     {
         var nested = Either<string, Either<string, int>>.Right(Either<string, int>.Right(42));
         var flattened = nested.Flatten();
-        
+
         Assert.True(flattened.IsRight);
         Assert.Equal(42, flattened.UnwrapRight());
     }
@@ -335,7 +335,7 @@ public class EitherTests
     {
         var nested = Either<string, Either<string, int>>.Right(Either<string, int>.Left("inner error"));
         var flattened = nested.Flatten();
-        
+
         Assert.True(flattened.IsLeft);
         Assert.Equal("inner error", flattened.UnwrapLeft());
     }
@@ -345,9 +345,9 @@ public class EitherTests
     {
         var either = Either<string, int>.Right(42);
         var executed = false;
-        
+
         var returned = either.TapRight(x => executed = true);
-        
+
         Assert.True(executed);
         Assert.Equal(either, returned);
     }
@@ -357,9 +357,9 @@ public class EitherTests
     {
         var either = Either<string, int>.Left("error");
         var executed = false;
-        
+
         var returned = either.TapRight(x => executed = true);
-        
+
         Assert.False(executed);
         Assert.Equal(either, returned);
     }
@@ -369,9 +369,9 @@ public class EitherTests
     {
         var either = Either<string, int>.Left("error");
         var executed = false;
-        
+
         var returned = either.TapLeft(x => executed = true);
-        
+
         Assert.True(executed);
         Assert.Equal(either, returned);
     }
@@ -381,9 +381,9 @@ public class EitherTests
     {
         var either = Either<string, int>.Right(42);
         var executed = false;
-        
+
         var returned = either.TapLeft(x => executed = true);
-        
+
         Assert.False(executed);
         Assert.Equal(either, returned);
     }
@@ -393,7 +393,7 @@ public class EitherTests
     {
         var result = Result<int, string>.Ok(42);
         var either = result.ToEither();
-        
+
         Assert.True(either.IsRight);
         Assert.Equal(42, either.UnwrapRight());
     }
@@ -403,7 +403,7 @@ public class EitherTests
     {
         var result = Result<int, string>.Err("error");
         var either = result.ToEither();
-        
+
         Assert.True(either.IsLeft);
         Assert.Equal("error", either.UnwrapLeft());
     }
@@ -413,7 +413,7 @@ public class EitherTests
     {
         var either1 = Either<string, int>.Right(42);
         var either2 = Either<string, int>.Right(42);
-        
+
         Assert.Equal(either1, either2);
         Assert.True(either1 == either2);
     }
@@ -423,7 +423,7 @@ public class EitherTests
     {
         var either1 = Either<string, int>.Left("error");
         var either2 = Either<string, int>.Left("error");
-        
+
         Assert.Equal(either1, either2);
         Assert.True(either1 == either2);
     }
@@ -433,7 +433,7 @@ public class EitherTests
     {
         var either1 = Either<string, int>.Right(42);
         var either2 = Either<string, int>.Left("error");
-        
+
         Assert.NotEqual(either1, either2);
         Assert.True(either1 != either2);
     }
@@ -442,7 +442,7 @@ public class EitherTests
     public void ToString_OnRight_ReturnsFormattedString()
     {
         var either = Either<string, int>.Right(42);
-        
+
         Assert.Equal("Right(42)", either.ToString());
     }
 
@@ -450,7 +450,7 @@ public class EitherTests
     public void ToString_OnLeft_ReturnsFormattedString()
     {
         var either = Either<string, int>.Left("error");
-        
+
         Assert.Equal("Left(error)", either.ToString());
     }
 }

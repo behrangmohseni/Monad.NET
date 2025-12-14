@@ -178,9 +178,9 @@ public class ValidationTests
     public void AndThen_OnValid_ExecutesFunction()
     {
         var validation = Validation<int, string>.Valid(42);
-        var result = validation.AndThen(x => 
-            x > 40 
-                ? Validation<string, string>.Valid("large") 
+        var result = validation.AndThen(x =>
+            x > 40
+                ? Validation<string, string>.Valid("large")
                 : Validation<string, string>.Invalid("small"));
 
         Assert.True(result.IsValid);
@@ -386,9 +386,12 @@ public class ValidationTests
 
         // Manually accumulate errors
         var errors = new List<string>();
-        if (nameValid.IsInvalid) errors.AddRange(nameValid.UnwrapErrors());
-        if (emailValid.IsInvalid) errors.AddRange(emailValid.UnwrapErrors());
-        if (ageValid.IsInvalid) errors.AddRange(ageValid.UnwrapErrors());
+        if (nameValid.IsInvalid)
+            errors.AddRange(nameValid.UnwrapErrors());
+        if (emailValid.IsInvalid)
+            errors.AddRange(emailValid.UnwrapErrors());
+        if (ageValid.IsInvalid)
+            errors.AddRange(ageValid.UnwrapErrors());
 
         Assert.Equal(3, errors.Count);
         Assert.Contains("Name is required", errors);
@@ -404,9 +407,12 @@ public class ValidationTests
         var ageValidation = ValidateAge2(25);
 
         var errors = new List<string>();
-        if (nameValidation.IsInvalid) errors.AddRange(nameValidation.UnwrapErrors());
-        if (emailValidation.IsInvalid) errors.AddRange(emailValidation.UnwrapErrors());
-        if (ageValidation.IsInvalid) errors.AddRange(ageValidation.UnwrapErrors());
+        if (nameValidation.IsInvalid)
+            errors.AddRange(nameValidation.UnwrapErrors());
+        if (emailValidation.IsInvalid)
+            errors.AddRange(emailValidation.UnwrapErrors());
+        if (ageValidation.IsInvalid)
+            errors.AddRange(ageValidation.UnwrapErrors());
 
         Assert.Empty(errors);
     }
