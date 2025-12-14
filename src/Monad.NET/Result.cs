@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace Monad.NET;
 
 /// <summary>
@@ -12,6 +14,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     private readonly TErr? _error;
     private readonly bool _isOk;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Result(T value, TErr error, bool isOk)
     {
         _value = value;
@@ -22,20 +25,29 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     /// <summary>
     /// Returns true if the result is Ok.
     /// </summary>
-    public bool IsOk => _isOk;
+    public bool IsOk
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _isOk;
+    }
 
     /// <summary>
     /// Returns true if the result is Err.
     /// </summary>
-    public bool IsErr => !_isOk;
+    public bool IsErr
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => !_isOk;
+    }
 
     /// <summary>
     /// Creates an Ok result containing the specified value.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Result<T, TErr> Ok(T value)
     {
         if (value is null)
-            throw new ArgumentNullException(nameof(value), "Cannot create Ok with null value.");
+            ThrowHelper.ThrowArgumentNull(nameof(value), "Cannot create Ok with null value.");
         
         return new Result<T, TErr>(value, default!, true);
     }
@@ -43,10 +55,11 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     /// <summary>
     /// Creates an Err result containing the specified error.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Result<T, TErr> Err(TErr error)
     {
         if (error is null)
-            throw new ArgumentNullException(nameof(error), "Cannot create Err with null error.");
+            ThrowHelper.ThrowArgumentNull(nameof(error), "Cannot create Err with null error.");
         
         return new Result<T, TErr>(default!, error, false);
     }
@@ -56,10 +69,11 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     /// </summary>
     /// <param name="message">The panic message if Err</param>
     /// <exception cref="InvalidOperationException">Thrown if the value is Err</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T Expect(string message)
     {
         if (!_isOk)
-            throw new InvalidOperationException($"{message}: {_error}");
+            ThrowHelper.ThrowInvalidOperation($"{message}: {_error}");
         
         return _value!;
     }
@@ -69,10 +83,11 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     /// </summary>
     /// <param name="message">The panic message if Ok</param>
     /// <exception cref="InvalidOperationException">Thrown if the value is Ok</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public TErr ExpectErr(string message)
     {
         if (_isOk)
-            throw new InvalidOperationException($"{message}: {_value}");
+            ThrowHelper.ThrowInvalidOperation($"{message}: {_value}");
         
         return _error!;
     }
@@ -81,23 +96,32 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     /// Returns the contained Ok value.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the value is Err</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T Unwrap()
     {
-        return Expect("Called Unwrap on an Err value");
+        if (!_isOk)
+            ThrowHelper.ThrowInvalidOperation($"Called Unwrap on an Err value: {_error}");
+        
+        return _value!;
     }
 
     /// <summary>
     /// Returns the contained Err value.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the value is Ok</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public TErr UnwrapErr()
     {
-        return ExpectErr("Called UnwrapErr on an Ok value");
+        if (_isOk)
+            ThrowHelper.ThrowInvalidOperation($"Called UnwrapErr on an Ok value: {_value}");
+        
+        return _error!;
     }
 
     /// <summary>
     /// Returns the contained Ok value or a default value.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T UnwrapOr(T defaultValue)
     {
         return _isOk ? _value! : defaultValue;
@@ -106,17 +130,16 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     /// <summary>
     /// Returns the contained Ok value or computes it from the error.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T UnwrapOrElse(Func<TErr, T> op)
     {
-        if (op is null)
-            throw new ArgumentNullException(nameof(op));
-        
         return _isOk ? _value! : op(_error!);
     }
 
     /// <summary>
     /// Returns the contained Ok value or a default value of type T.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T? UnwrapOrDefault()
     {
         return _isOk ? _value : default;
@@ -125,46 +148,36 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     /// <summary>
     /// Maps a Result&lt;T, TErr&gt; to Result&lt;U, TErr&gt; by applying a function to a contained Ok value.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Result<U, TErr> Map<U>(Func<T, U> mapper)
     {
-        if (mapper is null)
-            throw new ArgumentNullException(nameof(mapper));
-        
         return _isOk ? Result<U, TErr>.Ok(mapper(_value!)) : Result<U, TErr>.Err(_error!);
     }
 
     /// <summary>
     /// Maps a Result&lt;T, TErr&gt; to Result&lt;T, F&gt; by applying a function to a contained Err value.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Result<T, F> MapErr<F>(Func<TErr, F> mapper)
     {
-        if (mapper is null)
-            throw new ArgumentNullException(nameof(mapper));
-        
         return _isOk ? Result<T, F>.Ok(_value!) : Result<T, F>.Err(mapper(_error!));
     }
 
     /// <summary>
     /// Returns the provided default (if Err), or applies a function to the contained value (if Ok).
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public U MapOr<U>(U defaultValue, Func<T, U> mapper)
     {
-        if (mapper is null)
-            throw new ArgumentNullException(nameof(mapper));
-        
         return _isOk ? mapper(_value!) : defaultValue;
     }
 
     /// <summary>
     /// Maps a Result&lt;T, TErr&gt; to U by applying a function to a contained Ok value, or a fallback function to a contained Err value.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public U MapOrElse<U>(Func<TErr, U> defaultFunc, Func<T, U> mapper)
     {
-        if (defaultFunc is null)
-            throw new ArgumentNullException(nameof(defaultFunc));
-        if (mapper is null)
-            throw new ArgumentNullException(nameof(mapper));
-        
         return _isOk ? mapper(_value!) : defaultFunc(_error!);
     }
 
@@ -172,17 +185,16 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     /// Calls the function if the result is Ok, otherwise returns the Err value.
     /// This function can be used for control flow based on Result values.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Result<U, TErr> AndThen<U>(Func<T, Result<U, TErr>> binder)
     {
-        if (binder is null)
-            throw new ArgumentNullException(nameof(binder));
-        
         return _isOk ? binder(_value!) : Result<U, TErr>.Err(_error!);
     }
 
     /// <summary>
     /// Returns resultB if the result is Ok, otherwise returns the Err value.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Result<U, TErr> And<U>(Result<U, TErr> resultB)
     {
         return _isOk ? resultB : Result<U, TErr>.Err(_error!);
@@ -191,17 +203,16 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     /// <summary>
     /// Calls the function if the result is Err, otherwise returns the Ok value.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Result<T, F> OrElse<F>(Func<TErr, Result<T, F>> op)
     {
-        if (op is null)
-            throw new ArgumentNullException(nameof(op));
-        
         return _isOk ? Result<T, F>.Ok(_value!) : op(_error!);
     }
 
     /// <summary>
     /// Returns the result if it contains an Ok value, otherwise returns resultB.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Result<T, TErr> Or(Result<T, TErr> resultB)
     {
         return _isOk ? this : resultB;
@@ -211,6 +222,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     /// Converts from Result&lt;T, TErr&gt; to Option&lt;T&gt;.
     /// Converts self into an Option&lt;T&gt;, consuming self, and discarding the error, if any.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Option<T> Ok()
     {
         return _isOk ? Option<T>.Some(_value!) : Option<T>.None();
@@ -220,6 +232,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     /// Converts from Result&lt;T, TErr&gt; to Option&lt;TErr&gt;.
     /// Converts self into an Option&lt;TErr&gt;, consuming self, and discarding the success value, if any.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Option<TErr> Err()
     {
         return _isOk ? Option<TErr>.None() : Option<TErr>.Some(_error!);
@@ -228,13 +241,9 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     /// <summary>
     /// Pattern matches on the result and executes the appropriate action.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Match(Action<T> okAction, Action<TErr> errAction)
     {
-        if (okAction is null)
-            throw new ArgumentNullException(nameof(okAction));
-        if (errAction is null)
-            throw new ArgumentNullException(nameof(errAction));
-        
         if (_isOk)
             okAction(_value!);
         else
@@ -244,17 +253,14 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     /// <summary>
     /// Pattern matches on the result and returns a result.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public U Match<U>(Func<T, U> okFunc, Func<TErr, U> errFunc)
     {
-        if (okFunc is null)
-            throw new ArgumentNullException(nameof(okFunc));
-        if (errFunc is null)
-            throw new ArgumentNullException(nameof(errFunc));
-        
         return _isOk ? okFunc(_value!) : errFunc(_error!);
     }
 
     /// <inheritdoc />
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Equals(Result<T, TErr> other)
     {
         if (_isOk != other._isOk)
@@ -267,12 +273,14 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     }
 
     /// <inheritdoc />
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override bool Equals(object? obj)
     {
         return obj is Result<T, TErr> other && Equals(other);
     }
 
     /// <inheritdoc />
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override int GetHashCode()
     {
         return _isOk ? _value?.GetHashCode() ?? 0 : _error?.GetHashCode() ?? 0;
@@ -287,6 +295,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     /// <summary>
     /// Determines whether two Result instances are equal.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator ==(Result<T, TErr> left, Result<T, TErr> right)
     {
         return left.Equals(right);
@@ -295,6 +304,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     /// <summary>
     /// Determines whether two Result instances are not equal.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator !=(Result<T, TErr> left, Result<T, TErr> right)
     {
         return !left.Equals(right);
@@ -309,33 +319,33 @@ public static class ResultExtensions
     /// <summary>
     /// Flattens a nested Result.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Result<T, TErr> Flatten<T, TErr>(this Result<Result<T, TErr>, TErr> result)
     {
-        return result.AndThen(inner => inner);
+        return result.AndThen(static inner => inner);
     }
 
     /// <summary>
     /// Transposes a Result of an Option into an Option of a Result.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Option<Result<T, TErr>> Transpose<T, TErr>(this Result<Option<T>, TErr> result)
     {
         return result.Match(
-            okFunc: option => option.Match(
-                someFunc: value => Option<Result<T, TErr>>.Some(Result<T, TErr>.Ok(value)),
-                noneFunc: () => Option<Result<T, TErr>>.None()
+            okFunc: static option => option.Match(
+                someFunc: static value => Option<Result<T, TErr>>.Some(Result<T, TErr>.Ok(value)),
+                noneFunc: static () => Option<Result<T, TErr>>.None()
             ),
-            errFunc: err => Option<Result<T, TErr>>.Some(Result<T, TErr>.Err(err))
+            errFunc: static err => Option<Result<T, TErr>>.Some(Result<T, TErr>.Err(err))
         );
     }
 
     /// <summary>
     /// Executes an action if the result is Ok, allowing method chaining.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Result<T, TErr> Tap<T, TErr>(this Result<T, TErr> result, Action<T> action)
     {
-        if (action is null)
-            throw new ArgumentNullException(nameof(action));
-        
         if (result.IsOk)
             action(result.Unwrap());
         
@@ -345,11 +355,9 @@ public static class ResultExtensions
     /// <summary>
     /// Executes an action if the result is Err, allowing method chaining.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Result<T, TErr> TapErr<T, TErr>(this Result<T, TErr> result, Action<TErr> action)
     {
-        if (action is null)
-            throw new ArgumentNullException(nameof(action));
-        
         if (result.IsErr)
             action(result.UnwrapErr());
         
@@ -359,11 +367,9 @@ public static class ResultExtensions
     /// <summary>
     /// Wraps a function that may throw an exception into a Result.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Result<T, Exception> Try<T>(Func<T> func)
     {
-        if (func is null)
-            throw new ArgumentNullException(nameof(func));
-        
         try
         {
             return Result<T, Exception>.Ok(func());
@@ -379,12 +385,9 @@ public static class ResultExtensions
     /// </summary>
     public static async Task<Result<T, Exception>> TryAsync<T>(Func<Task<T>> func)
     {
-        if (func is null)
-            throw new ArgumentNullException(nameof(func));
-        
         try
         {
-            return Result<T, Exception>.Ok(await func());
+            return Result<T, Exception>.Ok(await func().ConfigureAwait(false));
         }
         catch (Exception ex)
         {
@@ -392,4 +395,3 @@ public static class ResultExtensions
         }
     }
 }
-

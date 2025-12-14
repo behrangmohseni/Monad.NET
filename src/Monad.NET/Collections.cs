@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace Monad.NET;
 
 /// <summary>
@@ -14,9 +16,6 @@ public static class MonadCollectionExtensions
     /// </summary>
     public static Option<IEnumerable<T>> Sequence<T>(this IEnumerable<Option<T>> options)
     {
-        if (options is null)
-            throw new ArgumentNullException(nameof(options));
-
         var result = new List<T>();
         
         foreach (var option in options)
@@ -39,11 +38,6 @@ public static class MonadCollectionExtensions
         this IEnumerable<T> source,
         Func<T, Option<U>> selector)
     {
-        if (source is null)
-            throw new ArgumentNullException(nameof(source));
-        if (selector is null)
-            throw new ArgumentNullException(nameof(selector));
-
         var result = new List<U>();
 
         foreach (var item in source)
@@ -64,9 +58,6 @@ public static class MonadCollectionExtensions
     /// </summary>
     public static IEnumerable<T> Choose<T>(this IEnumerable<Option<T>> options)
     {
-        if (options is null)
-            throw new ArgumentNullException(nameof(options));
-
         foreach (var option in options)
         {
             if (option.IsSome)
@@ -81,11 +72,6 @@ public static class MonadCollectionExtensions
         this IEnumerable<T> source,
         Func<T, Option<U>> selector)
     {
-        if (source is null)
-            throw new ArgumentNullException(nameof(source));
-        if (selector is null)
-            throw new ArgumentNullException(nameof(selector));
-
         foreach (var item in source)
         {
             var option = selector(item);
@@ -99,9 +85,6 @@ public static class MonadCollectionExtensions
     /// </summary>
     public static Option<T> FirstSome<T>(this IEnumerable<Option<T>> options)
     {
-        if (options is null)
-            throw new ArgumentNullException(nameof(options));
-
         foreach (var option in options)
         {
             if (option.IsSome)
@@ -123,9 +106,6 @@ public static class MonadCollectionExtensions
     public static Result<IEnumerable<T>, TErr> Sequence<T, TErr>(
         this IEnumerable<Result<T, TErr>> results)
     {
-        if (results is null)
-            throw new ArgumentNullException(nameof(results));
-
         var list = new List<T>();
 
         foreach (var result in results)
@@ -148,11 +128,6 @@ public static class MonadCollectionExtensions
         this IEnumerable<T> source,
         Func<T, Result<U, TErr>> selector)
     {
-        if (source is null)
-            throw new ArgumentNullException(nameof(source));
-        if (selector is null)
-            throw new ArgumentNullException(nameof(selector));
-
         var list = new List<U>();
 
         foreach (var item in source)
@@ -173,9 +148,6 @@ public static class MonadCollectionExtensions
     /// </summary>
     public static IEnumerable<T> CollectOk<T, TErr>(this IEnumerable<Result<T, TErr>> results)
     {
-        if (results is null)
-            throw new ArgumentNullException(nameof(results));
-
         foreach (var result in results)
         {
             if (result.IsOk)
@@ -190,9 +162,6 @@ public static class MonadCollectionExtensions
     public static IEnumerable<TErr> CollectErr<T, TErr>(
         this IEnumerable<Result<T, TErr>> results)
     {
-        if (results is null)
-            throw new ArgumentNullException(nameof(results));
-
         foreach (var result in results)
         {
             if (result.IsErr)
@@ -207,9 +176,6 @@ public static class MonadCollectionExtensions
     public static (IEnumerable<T> Oks, IEnumerable<TErr> Errors) Partition<T, TErr>(
         this IEnumerable<Result<T, TErr>> results)
     {
-        if (results is null)
-            throw new ArgumentNullException(nameof(results));
-
         var oks = new List<T>();
         var errors = new List<TErr>();
 
@@ -229,9 +195,6 @@ public static class MonadCollectionExtensions
     /// </summary>
     public static Result<T, TErr> FirstOk<T, TErr>(this IEnumerable<Result<T, TErr>> results)
     {
-        if (results is null)
-            throw new ArgumentNullException(nameof(results));
-
         Result<T, TErr>? lastErr = null;
 
         foreach (var result in results)
@@ -255,9 +218,6 @@ public static class MonadCollectionExtensions
     public static IEnumerable<TRight> CollectRights<TLeft, TRight>(
         this IEnumerable<Either<TLeft, TRight>> eithers)
     {
-        if (eithers is null)
-            throw new ArgumentNullException(nameof(eithers));
-
         foreach (var either in eithers)
         {
             if (either.IsRight)
@@ -271,9 +231,6 @@ public static class MonadCollectionExtensions
     public static IEnumerable<TLeft> CollectLefts<TLeft, TRight>(
         this IEnumerable<Either<TLeft, TRight>> eithers)
     {
-        if (eithers is null)
-            throw new ArgumentNullException(nameof(eithers));
-
         foreach (var either in eithers)
         {
             if (either.IsLeft)
@@ -288,9 +245,6 @@ public static class MonadCollectionExtensions
     public static (IEnumerable<TLeft> Lefts, IEnumerable<TRight> Rights) Partition<TLeft, TRight>(
         this IEnumerable<Either<TLeft, TRight>> eithers)
     {
-        if (eithers is null)
-            throw new ArgumentNullException(nameof(eithers));
-
         var lefts = new List<TLeft>();
         var rights = new List<TRight>();
 
@@ -315,14 +269,11 @@ public static class MonadCollectionExtensions
     public static async Task<Option<IEnumerable<T>>> SequenceAsync<T>(
         this IEnumerable<Task<Option<T>>> optionTasks)
     {
-        if (optionTasks is null)
-            throw new ArgumentNullException(nameof(optionTasks));
-
         var result = new List<T>();
 
         foreach (var task in optionTasks)
         {
-            var option = await task;
+            var option = await task.ConfigureAwait(false);
             if (option.IsNone)
                 return Option<IEnumerable<T>>.None();
 
@@ -339,16 +290,11 @@ public static class MonadCollectionExtensions
         this IEnumerable<T> source,
         Func<T, Task<Option<U>>> selector)
     {
-        if (source is null)
-            throw new ArgumentNullException(nameof(source));
-        if (selector is null)
-            throw new ArgumentNullException(nameof(selector));
-
         var result = new List<U>();
 
         foreach (var item in source)
         {
-            var option = await selector(item);
+            var option = await selector(item).ConfigureAwait(false);
             if (option.IsNone)
                 return Option<IEnumerable<U>>.None();
 
@@ -364,14 +310,11 @@ public static class MonadCollectionExtensions
     public static async Task<Result<IEnumerable<T>, TErr>> SequenceAsync<T, TErr>(
         this IEnumerable<Task<Result<T, TErr>>> resultTasks)
     {
-        if (resultTasks is null)
-            throw new ArgumentNullException(nameof(resultTasks));
-
         var list = new List<T>();
 
         foreach (var task in resultTasks)
         {
-            var result = await task;
+            var result = await task.ConfigureAwait(false);
             if (result.IsErr)
                 return Result<IEnumerable<T>, TErr>.Err(result.UnwrapErr());
 
@@ -388,16 +331,11 @@ public static class MonadCollectionExtensions
         this IEnumerable<T> source,
         Func<T, Task<Result<U, TErr>>> selector)
     {
-        if (source is null)
-            throw new ArgumentNullException(nameof(source));
-        if (selector is null)
-            throw new ArgumentNullException(nameof(selector));
-
         var list = new List<U>();
 
         foreach (var item in source)
         {
-            var result = await selector(item);
+            var result = await selector(item).ConfigureAwait(false);
             if (result.IsErr)
                 return Result<IEnumerable<U>, TErr>.Err(result.UnwrapErr());
 
@@ -409,4 +347,3 @@ public static class MonadCollectionExtensions
 
     #endregion
 }
-

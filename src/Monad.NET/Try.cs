@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace Monad.NET;
 
 /// <summary>
@@ -12,7 +14,8 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     private readonly Exception? _exception;
     private readonly bool _isSuccess;
 
-    private Try(T value, Exception exception, bool isSuccess)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private Try(T value, Exception? exception, bool isSuccess)
     {
         _value = value;
         _exception = exception;
@@ -22,31 +25,41 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     /// <summary>
     /// Returns true if the computation succeeded.
     /// </summary>
-    public bool IsSuccess => _isSuccess;
+    public bool IsSuccess
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _isSuccess;
+    }
 
     /// <summary>
     /// Returns true if the computation failed with an exception.
     /// </summary>
-    public bool IsFailure => !_isSuccess;
+    public bool IsFailure
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => !_isSuccess;
+    }
 
     /// <summary>
     /// Creates a successful Try.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Try<T> Success(T value)
     {
         if (value is null)
-            throw new ArgumentNullException(nameof(value), "Cannot create Success with null value.");
+            ThrowHelper.ThrowArgumentNull(nameof(value), "Cannot create Success with null value.");
         
-        return new Try<T>(value, null!, true);
+        return new Try<T>(value, null, true);
     }
 
     /// <summary>
     /// Creates a failed Try with an exception.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Try<T> Failure(Exception exception)
     {
         if (exception is null)
-            throw new ArgumentNullException(nameof(exception));
+            ThrowHelper.ThrowArgumentNull(nameof(exception));
         
         return new Try<T>(default!, exception, false);
     }
@@ -54,11 +67,9 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     /// <summary>
     /// Executes a function and captures any exception.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Try<T> Of(Func<T> func)
     {
-        if (func is null)
-            throw new ArgumentNullException(nameof(func));
-
         try
         {
             return Success(func());
@@ -74,12 +85,9 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     /// </summary>
     public static async Task<Try<T>> OfAsync(Func<Task<T>> func)
     {
-        if (func is null)
-            throw new ArgumentNullException(nameof(func));
-
         try
         {
-            return Success(await func());
+            return Success(await func().ConfigureAwait(false));
         }
         catch (Exception ex)
         {
@@ -91,10 +99,11 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     /// Returns the value if successful.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if failed</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T Get()
     {
         if (!_isSuccess)
-            throw new InvalidOperationException($"Cannot get value from failed Try: {_exception!.Message}", _exception);
+            ThrowHelper.ThrowInvalidOperation($"Cannot get value from failed Try: {_exception!.Message}");
         
         return _value!;
     }
@@ -103,10 +112,11 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     /// Returns the exception if failed.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if successful</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Exception GetException()
     {
         if (_isSuccess)
-            throw new InvalidOperationException("Cannot get exception from successful Try");
+            ThrowHelper.ThrowInvalidOperation("Cannot get exception from successful Try");
         
         return _exception!;
     }
@@ -114,6 +124,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     /// <summary>
     /// Returns the value if successful, otherwise returns the default value.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T GetOrElse(T defaultValue)
     {
         return _isSuccess ? _value! : defaultValue;
@@ -122,33 +133,27 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     /// <summary>
     /// Returns the value if successful, otherwise computes a default.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T GetOrElse(Func<T> defaultFunc)
     {
-        if (defaultFunc is null)
-            throw new ArgumentNullException(nameof(defaultFunc));
-        
         return _isSuccess ? _value! : defaultFunc();
     }
 
     /// <summary>
     /// Returns the value if successful, otherwise computes from the exception.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T GetOrElse(Func<Exception, T> recovery)
     {
-        if (recovery is null)
-            throw new ArgumentNullException(nameof(recovery));
-        
         return _isSuccess ? _value! : recovery(_exception!);
     }
 
     /// <summary>
     /// Maps the value if successful.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Try<U> Map<U>(Func<T, U> mapper)
     {
-        if (mapper is null)
-            throw new ArgumentNullException(nameof(mapper));
-        
         if (!_isSuccess)
             return Try<U>.Failure(_exception!);
 
@@ -165,11 +170,9 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     /// <summary>
     /// Chains another Try computation.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Try<U> FlatMap<U>(Func<T, Try<U>> binder)
     {
-        if (binder is null)
-            throw new ArgumentNullException(nameof(binder));
-        
         if (!_isSuccess)
             return Try<U>.Failure(_exception!);
 
@@ -186,11 +189,9 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     /// <summary>
     /// Filters the value with a predicate. Returns Failure if predicate returns false.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Try<T> Filter(Func<T, bool> predicate)
     {
-        if (predicate is null)
-            throw new ArgumentNullException(nameof(predicate));
-
         if (!_isSuccess)
             return this;
 
@@ -209,13 +210,9 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     /// <summary>
     /// Filters the value with a predicate. Returns Failure with custom message if predicate returns false.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Try<T> Filter(Func<T, bool> predicate, string errorMessage)
     {
-        if (predicate is null)
-            throw new ArgumentNullException(nameof(predicate));
-        if (errorMessage is null)
-            throw new ArgumentNullException(nameof(errorMessage));
-
         if (!_isSuccess)
             return this;
 
@@ -234,13 +231,9 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     /// <summary>
     /// Filters the value with a predicate. Returns Failure with custom exception if predicate returns false.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Try<T> Filter(Func<T, bool> predicate, Func<Exception> exceptionFactory)
     {
-        if (predicate is null)
-            throw new ArgumentNullException(nameof(predicate));
-        if (exceptionFactory is null)
-            throw new ArgumentNullException(nameof(exceptionFactory));
-
         if (!_isSuccess)
             return this;
 
@@ -259,11 +252,9 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     /// <summary>
     /// Recovers from failure by providing an alternative value.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Try<T> Recover(Func<Exception, T> recovery)
     {
-        if (recovery is null)
-            throw new ArgumentNullException(nameof(recovery));
-
         if (_isSuccess)
             return this;
 
@@ -280,18 +271,15 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     /// <summary>
     /// Recovers from failure by providing an alternative Try (flattening the result).
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Try<T> Recover(Func<Exception, Try<T>> recovery)
     {
-        if (recovery is null)
-            throw new ArgumentNullException(nameof(recovery));
-
         if (_isSuccess)
             return this;
 
         try
         {
-            var result = recovery(_exception!);
-            return result;
+            return recovery(_exception!);
         }
         catch (Exception ex)
         {
@@ -302,11 +290,9 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     /// <summary>
     /// Recovers from failure by providing an alternative Try.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Try<T> RecoverWith(Func<Exception, Try<T>> recovery)
     {
-        if (recovery is null)
-            throw new ArgumentNullException(nameof(recovery));
-
         if (_isSuccess)
             return this;
 
@@ -323,13 +309,9 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     /// <summary>
     /// Executes an action on success or failure.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Match(Action<T> successAction, Action<Exception> failureAction)
     {
-        if (successAction is null)
-            throw new ArgumentNullException(nameof(successAction));
-        if (failureAction is null)
-            throw new ArgumentNullException(nameof(failureAction));
-
         if (_isSuccess)
             successAction(_value!);
         else
@@ -339,19 +321,16 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     /// <summary>
     /// Pattern matches and returns a result.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public U Match<U>(Func<T, U> successFunc, Func<Exception, U> failureFunc)
     {
-        if (successFunc is null)
-            throw new ArgumentNullException(nameof(successFunc));
-        if (failureFunc is null)
-            throw new ArgumentNullException(nameof(failureFunc));
-
         return _isSuccess ? successFunc(_value!) : failureFunc(_exception!);
     }
 
     /// <summary>
     /// Converts to an Option, discarding the exception if failed.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Option<T> ToOption()
     {
         return _isSuccess ? Option<T>.Some(_value!) : Option<T>.None();
@@ -360,6 +339,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     /// <summary>
     /// Converts to a Result.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Result<T, Exception> ToResult()
     {
         return _isSuccess 
@@ -370,17 +350,16 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     /// <summary>
     /// Converts to a Result with a mapped error.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Result<T, TErr> ToResult<TErr>(Func<Exception, TErr> errorMapper)
     {
-        if (errorMapper is null)
-            throw new ArgumentNullException(nameof(errorMapper));
-
         return _isSuccess 
             ? Result<T, TErr>.Ok(_value!) 
             : Result<T, TErr>.Err(errorMapper(_exception!));
     }
 
     /// <inheritdoc />
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Equals(Try<T> other)
     {
         if (_isSuccess != other._isSuccess)
@@ -395,12 +374,14 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     }
 
     /// <inheritdoc />
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override bool Equals(object? obj)
     {
         return obj is Try<T> other && Equals(other);
     }
 
     /// <inheritdoc />
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override int GetHashCode()
     {
         return _isSuccess 
@@ -419,6 +400,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     /// <summary>
     /// Determines whether two Try instances are equal.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator ==(Try<T> left, Try<T> right)
     {
         return left.Equals(right);
@@ -427,6 +409,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     /// <summary>
     /// Determines whether two Try instances are not equal.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator !=(Try<T> left, Try<T> right)
     {
         return !left.Equals(right);
@@ -441,11 +424,9 @@ public static class TryExtensions
     /// <summary>
     /// Executes an action on success, allowing method chaining.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Try<T> Tap<T>(this Try<T> @try, Action<T> action)
     {
-        if (action is null)
-            throw new ArgumentNullException(nameof(action));
-
         if (@try.IsSuccess)
         {
             try
@@ -464,11 +445,9 @@ public static class TryExtensions
     /// <summary>
     /// Executes an action on failure, allowing method chaining.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Try<T> TapFailure<T>(this Try<T> @try, Action<Exception> action)
     {
-        if (action is null)
-            throw new ArgumentNullException(nameof(action));
-
         if (@try.IsFailure)
             action(@try.GetException());
 
@@ -478,19 +457,21 @@ public static class TryExtensions
     /// <summary>
     /// Flattens a nested Try.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Try<T> Flatten<T>(this Try<Try<T>> @try)
     {
-        return @try.FlatMap(inner => inner);
+        return @try.FlatMap(static inner => inner);
     }
 
     /// <summary>
     /// Converts a Result to a Try.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Try<T> ToTry<T>(this Result<T, Exception> result)
     {
         return result.Match(
-            okFunc: value => Try<T>.Success(value),
-            errFunc: ex => Try<T>.Failure(ex)
+            okFunc: static value => Try<T>.Success(value),
+            errFunc: static ex => Try<T>.Failure(ex)
         );
     }
 
@@ -499,15 +480,12 @@ public static class TryExtensions
     /// </summary>
     public static async Task<Try<U>> MapAsync<T, U>(this Try<T> @try, Func<T, Task<U>> mapper)
     {
-        if (mapper is null)
-            throw new ArgumentNullException(nameof(mapper));
-
         if (!@try.IsSuccess)
             return Try<U>.Failure(@try.GetException());
 
         try
         {
-            var result = await mapper(@try.Get());
+            var result = await mapper(@try.Get()).ConfigureAwait(false);
             return Try<U>.Success(result);
         }
         catch (Exception ex)
@@ -521,15 +499,12 @@ public static class TryExtensions
     /// </summary>
     public static async Task<Try<U>> FlatMapAsync<T, U>(this Try<T> @try, Func<T, Task<Try<U>>> binder)
     {
-        if (binder is null)
-            throw new ArgumentNullException(nameof(binder));
-
         if (!@try.IsSuccess)
             return Try<U>.Failure(@try.GetException());
 
         try
         {
-            return await binder(@try.Get());
+            return await binder(@try.Get()).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -537,4 +512,3 @@ public static class TryExtensions
         }
     }
 }
-
