@@ -255,8 +255,8 @@ public class ResultAsyncTests
             .AndThenAsync(async x =>
             {
                 await Task.Delay(1);
-                return x > 15 
-                    ? Result<int, string>.Ok(x) 
+                return x > 15
+                    ? Result<int, string>.Ok(x)
                     : Result<int, string>.Err("too small");
             })
             .TapAsync(async x =>

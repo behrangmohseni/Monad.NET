@@ -17,12 +17,12 @@ public static class MonadCollectionExtensions
     public static Option<IEnumerable<T>> Sequence<T>(this IEnumerable<Option<T>> options)
     {
         var result = new List<T>();
-        
+
         foreach (var option in options)
         {
             if (option.IsNone)
                 return Option<IEnumerable<T>>.None();
-            
+
             result.Add(option.Unwrap());
         }
 
@@ -201,7 +201,7 @@ public static class MonadCollectionExtensions
         {
             if (result.IsOk)
                 return result;
-            
+
             lastErr = result;
         }
 

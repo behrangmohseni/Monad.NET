@@ -8,7 +8,7 @@ public class OptionTests
     public void Some_CreatesOptionWithValue()
     {
         var option = Option<int>.Some(42);
-        
+
         Assert.True(option.IsSome);
         Assert.False(option.IsNone);
         Assert.Equal(42, option.Unwrap());
@@ -18,7 +18,7 @@ public class OptionTests
     public void None_CreatesEmptyOption()
     {
         var option = Option<int>.None();
-        
+
         Assert.False(option.IsSome);
         Assert.True(option.IsNone);
     }
@@ -33,7 +33,7 @@ public class OptionTests
     public void Unwrap_OnNone_ThrowsException()
     {
         var option = Option<int>.None();
-        
+
         Assert.Throws<InvalidOperationException>(() => option.Unwrap());
     }
 
@@ -41,7 +41,7 @@ public class OptionTests
     public void Expect_OnNone_ThrowsWithMessage()
     {
         var option = Option<int>.None();
-        
+
         var exception = Assert.Throws<InvalidOperationException>(
             () => option.Expect("Expected a value"));
         Assert.Contains("Expected a value", exception.Message);
@@ -51,7 +51,7 @@ public class OptionTests
     public void UnwrapOr_OnSome_ReturnsValue()
     {
         var option = Option<int>.Some(42);
-        
+
         Assert.Equal(42, option.UnwrapOr(0));
     }
 
@@ -59,7 +59,7 @@ public class OptionTests
     public void UnwrapOr_OnNone_ReturnsDefault()
     {
         var option = Option<int>.None();
-        
+
         Assert.Equal(0, option.UnwrapOr(0));
     }
 
@@ -67,7 +67,7 @@ public class OptionTests
     public void UnwrapOrElse_OnSome_ReturnsValue()
     {
         var option = Option<int>.Some(42);
-        
+
         Assert.Equal(42, option.UnwrapOrElse(() => 0));
     }
 
@@ -75,7 +75,7 @@ public class OptionTests
     public void UnwrapOrElse_OnNone_ExecutesFunction()
     {
         var option = Option<int>.None();
-        
+
         Assert.Equal(100, option.UnwrapOrElse(() => 100));
     }
 
@@ -84,7 +84,7 @@ public class OptionTests
     {
         var option = Option<int>.Some(42);
         var mapped = option.Map(x => x * 2);
-        
+
         Assert.True(mapped.IsSome);
         Assert.Equal(84, mapped.Unwrap());
     }
@@ -94,7 +94,7 @@ public class OptionTests
     {
         var option = Option<int>.None();
         var mapped = option.Map(x => x * 2);
-        
+
         Assert.True(mapped.IsNone);
     }
 
@@ -103,7 +103,7 @@ public class OptionTests
     {
         var option = Option<int>.Some(42);
         var filtered = option.Filter(x => x > 40);
-        
+
         Assert.True(filtered.IsSome);
         Assert.Equal(42, filtered.Unwrap());
     }
@@ -113,7 +113,7 @@ public class OptionTests
     {
         var option = Option<int>.Some(42);
         var filtered = option.Filter(x => x < 40);
-        
+
         Assert.True(filtered.IsNone);
     }
 
@@ -122,7 +122,7 @@ public class OptionTests
     {
         var option = Option<int>.Some(42);
         var result = option.AndThen(x => Option<string>.Some(x.ToString()));
-        
+
         Assert.True(result.IsSome);
         Assert.Equal("42", result.Unwrap());
     }
@@ -132,7 +132,7 @@ public class OptionTests
     {
         var option = Option<int>.None();
         var result = option.AndThen(x => Option<string>.Some(x.ToString()));
-        
+
         Assert.True(result.IsNone);
     }
 
@@ -142,7 +142,7 @@ public class OptionTests
         var option1 = Option<int>.Some(1);
         var option2 = Option<int>.Some(2);
         var result = option1.Or(option2);
-        
+
         Assert.Equal(1, result.Unwrap());
     }
 
@@ -152,7 +152,7 @@ public class OptionTests
         var option1 = Option<int>.None();
         var option2 = Option<int>.Some(2);
         var result = option1.Or(option2);
-        
+
         Assert.Equal(2, result.Unwrap());
     }
 
@@ -162,7 +162,7 @@ public class OptionTests
         var option1 = Option<int>.Some(1);
         var option2 = Option<int>.None();
         var result = option1.Xor(option2);
-        
+
         Assert.Equal(1, result.Unwrap());
     }
 
@@ -172,7 +172,7 @@ public class OptionTests
         var option1 = Option<int>.Some(1);
         var option2 = Option<int>.Some(2);
         var result = option1.Xor(option2);
-        
+
         Assert.True(result.IsNone);
     }
 
@@ -181,12 +181,12 @@ public class OptionTests
     {
         var option = Option<int>.Some(42);
         var executed = false;
-        
+
         option.Match(
             someAction: x => executed = true,
             noneAction: () => executed = false
         );
-        
+
         Assert.True(executed);
     }
 
@@ -195,12 +195,12 @@ public class OptionTests
     {
         var option = Option<int>.None();
         var executed = false;
-        
+
         option.Match(
             someAction: x => executed = true,
             noneAction: () => executed = false
         );
-        
+
         Assert.False(executed);
     }
 
@@ -212,7 +212,7 @@ public class OptionTests
             someFunc: x => x.ToString(),
             noneFunc: () => "none"
         );
-        
+
         Assert.Equal("42", result);
     }
 
@@ -221,7 +221,7 @@ public class OptionTests
     {
         var option = Option<int>.Some(42);
         var result = option.OkOr("error");
-        
+
         Assert.True(result.IsOk);
         Assert.Equal(42, result.Unwrap());
     }
@@ -231,7 +231,7 @@ public class OptionTests
     {
         var option = Option<int>.None();
         var result = option.OkOr("error");
-        
+
         Assert.True(result.IsErr);
         Assert.Equal("error", result.UnwrapErr());
     }
@@ -241,7 +241,7 @@ public class OptionTests
     {
         int? value = 42;
         var option = value.ToOption();
-        
+
         Assert.True(option.IsSome);
         Assert.Equal(42, option.Unwrap());
     }
@@ -251,7 +251,7 @@ public class OptionTests
     {
         int? value = null;
         var option = value.ToOption();
-        
+
         Assert.True(option.IsNone);
     }
 
@@ -260,7 +260,7 @@ public class OptionTests
     {
         string? value = "hello";
         var option = value.ToOption();
-        
+
         Assert.True(option.IsSome);
         Assert.Equal("hello", option.Unwrap());
     }
@@ -270,7 +270,7 @@ public class OptionTests
     {
         string? value = null;
         var option = value.ToOption();
-        
+
         Assert.True(option.IsNone);
     }
 
@@ -279,7 +279,7 @@ public class OptionTests
     {
         var nested = Option<Option<int>>.Some(Option<int>.Some(42));
         var flattened = nested.Flatten();
-        
+
         Assert.True(flattened.IsSome);
         Assert.Equal(42, flattened.Unwrap());
     }
@@ -289,7 +289,7 @@ public class OptionTests
     {
         var nested = Option<Option<int>>.Some(Option<int>.None());
         var flattened = nested.Flatten();
-        
+
         Assert.True(flattened.IsNone);
     }
 
@@ -298,7 +298,7 @@ public class OptionTests
     {
         var option1 = Option<int>.Some(42);
         var option2 = Option<int>.Some(42);
-        
+
         Assert.Equal(option1, option2);
         Assert.True(option1 == option2);
         Assert.False(option1 != option2);
@@ -309,7 +309,7 @@ public class OptionTests
     {
         var option1 = Option<int>.None();
         var option2 = Option<int>.None();
-        
+
         Assert.Equal(option1, option2);
         Assert.True(option1 == option2);
     }
@@ -319,7 +319,7 @@ public class OptionTests
     {
         var option1 = Option<int>.Some(42);
         var option2 = Option<int>.None();
-        
+
         Assert.NotEqual(option1, option2);
         Assert.True(option1 != option2);
     }
@@ -328,7 +328,7 @@ public class OptionTests
     public void ToString_OnSome_ReturnsFormattedString()
     {
         var option = Option<int>.Some(42);
-        
+
         Assert.Equal("Some(42)", option.ToString());
     }
 
@@ -336,7 +336,7 @@ public class OptionTests
     public void ToString_OnNone_ReturnsNone()
     {
         var option = Option<int>.None();
-        
+
         Assert.Equal("None", option.ToString());
     }
 
@@ -344,7 +344,7 @@ public class OptionTests
     public void ImplicitConversion_FromValue_CreatesSome()
     {
         Option<int> option = 42;
-        
+
         Assert.True(option.IsSome);
         Assert.Equal(42, option.Unwrap());
     }

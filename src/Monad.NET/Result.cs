@@ -48,7 +48,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     {
         if (value is null)
             ThrowHelper.ThrowArgumentNull(nameof(value), "Cannot create Ok with null value.");
-        
+
         return new Result<T, TErr>(value, default!, true);
     }
 
@@ -60,7 +60,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     {
         if (error is null)
             ThrowHelper.ThrowArgumentNull(nameof(error), "Cannot create Err with null error.");
-        
+
         return new Result<T, TErr>(default!, error, false);
     }
 
@@ -74,7 +74,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     {
         if (!_isOk)
             ThrowHelper.ThrowInvalidOperation($"{message}: {_error}");
-        
+
         return _value!;
     }
 
@@ -88,7 +88,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     {
         if (_isOk)
             ThrowHelper.ThrowInvalidOperation($"{message}: {_value}");
-        
+
         return _error!;
     }
 
@@ -101,7 +101,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     {
         if (!_isOk)
             ThrowHelper.ThrowInvalidOperation($"Called Unwrap on an Err value: {_error}");
-        
+
         return _value!;
     }
 
@@ -114,7 +114,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     {
         if (_isOk)
             ThrowHelper.ThrowInvalidOperation($"Called UnwrapErr on an Ok value: {_value}");
-        
+
         return _error!;
     }
 
@@ -265,10 +265,10 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     {
         if (_isOk != other._isOk)
             return false;
-        
+
         if (_isOk)
             return EqualityComparer<T>.Default.Equals(_value, other._value);
-        
+
         return EqualityComparer<TErr>.Default.Equals(_error, other._error);
     }
 
@@ -348,7 +348,7 @@ public static class ResultExtensions
     {
         if (result.IsOk)
             action(result.Unwrap());
-        
+
         return result;
     }
 
@@ -360,7 +360,7 @@ public static class ResultExtensions
     {
         if (result.IsErr)
             action(result.UnwrapErr());
-        
+
         return result;
     }
 

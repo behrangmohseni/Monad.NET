@@ -37,7 +37,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     {
         if (value is null)
             throw new ArgumentNullException(nameof(value), "Cannot create Valid with null value.");
-        
+
         return new Validation<T, TErr>(value, Array.Empty<TErr>(), true);
     }
 
@@ -48,7 +48,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     {
         if (error is null)
             throw new ArgumentNullException(nameof(error), "Cannot create Invalid with null error.");
-        
+
         return new Validation<T, TErr>(default!, new[] { error }, false);
     }
 
@@ -59,11 +59,11 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     {
         if (errors is null)
             throw new ArgumentNullException(nameof(errors));
-        
+
         var errorList = errors.ToList();
         if (errorList.Count == 0)
             throw new ArgumentException("Must provide at least one error.", nameof(errors));
-        
+
         return new Validation<T, TErr>(default!, errorList, false);
     }
 
@@ -75,7 +75,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     {
         if (!_isValid)
             throw new InvalidOperationException($"Called Unwrap on Invalid validation with errors: {string.Join(", ", _errors!)}");
-        
+
         return _value!;
     }
 
@@ -87,7 +87,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     {
         if (_isValid)
             throw new InvalidOperationException("Called UnwrapErrors on Valid validation");
-        
+
         return _errors!;
     }
 
@@ -106,9 +106,9 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     {
         if (mapper is null)
             throw new ArgumentNullException(nameof(mapper));
-        
-        return _isValid 
-            ? Validation<U, TErr>.Valid(mapper(_value!)) 
+
+        return _isValid
+            ? Validation<U, TErr>.Valid(mapper(_value!))
             : Validation<U, TErr>.Invalid(_errors!);
     }
 
@@ -119,9 +119,9 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     {
         if (mapper is null)
             throw new ArgumentNullException(nameof(mapper));
-        
-        return _isValid 
-            ? Validation<T, F>.Valid(_value!) 
+
+        return _isValid
+            ? Validation<T, F>.Valid(_value!)
             : Validation<T, F>.Invalid(_errors!.Select(mapper).ToList());
     }
 
@@ -138,15 +138,15 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
 
         if (_isValid && other.IsValid)
             return Validation<U, TErr>.Valid(combiner(_value!, other._value!));
-        
+
         if (!_isValid && !other.IsValid)
         {
             var allErrors = _errors!.Concat(other._errors!).ToList();
             return Validation<U, TErr>.Invalid(allErrors);
         }
-        
-        return _isValid 
-            ? Validation<U, TErr>.Invalid(other._errors!) 
+
+        return _isValid
+            ? Validation<U, TErr>.Invalid(other._errors!)
             : Validation<U, TErr>.Invalid(_errors!);
     }
 
@@ -158,13 +158,13 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     {
         if (_isValid && other.IsValid)
             return other; // Return the last valid value
-        
+
         if (!_isValid && !other.IsValid)
         {
             var allErrors = _errors!.Concat(other._errors!).ToList();
             return Validation<T, TErr>.Invalid(allErrors);
         }
-        
+
         return _isValid ? other : this;
     }
 
@@ -177,7 +177,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     {
         if (binder is null)
             throw new ArgumentNullException(nameof(binder));
-        
+
         return _isValid ? binder(_value!) : Validation<U, TErr>.Invalid(_errors!);
     }
 
@@ -190,7 +190,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
             throw new ArgumentNullException(nameof(validAction));
         if (invalidAction is null)
             throw new ArgumentNullException(nameof(invalidAction));
-        
+
         if (_isValid)
             validAction(_value!);
         else
@@ -206,7 +206,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
             throw new ArgumentNullException(nameof(validFunc));
         if (invalidFunc is null)
             throw new ArgumentNullException(nameof(invalidFunc));
-        
+
         return _isValid ? validFunc(_value!) : invalidFunc(_errors!);
     }
 
@@ -216,8 +216,8 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     /// </summary>
     public Result<T, TErr> ToResult()
     {
-        return _isValid 
-            ? Result<T, TErr>.Ok(_value!) 
+        return _isValid
+            ? Result<T, TErr>.Ok(_value!)
             : Result<T, TErr>.Err(_errors![0]);
     }
 
@@ -228,9 +228,9 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     {
         if (combineErrors is null)
             throw new ArgumentNullException(nameof(combineErrors));
-        
-        return _isValid 
-            ? Result<T, TErr>.Ok(_value!) 
+
+        return _isValid
+            ? Result<T, TErr>.Ok(_value!)
             : Result<T, TErr>.Err(combineErrors(_errors!));
     }
 
@@ -248,13 +248,13 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     {
         if (_isValid != other._isValid)
             return false;
-        
+
         if (_isValid)
             return EqualityComparer<T>.Default.Equals(_value, other._value);
-        
+
         if (_errors!.Count != other._errors!.Count)
             return false;
-        
+
         return _errors.SequenceEqual(other._errors);
     }
 
@@ -269,7 +269,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     {
         if (_isValid)
             return HashCode.Combine(_isValid, _value);
-        
+
         var hash = new HashCode();
         hash.Add(_isValid);
         foreach (var error in _errors!)
@@ -280,8 +280,8 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     /// <inheritdoc />
     public override string ToString()
     {
-        return _isValid 
-            ? $"Valid({_value})" 
+        return _isValid
+            ? $"Valid({_value})"
             : $"Invalid([{string.Join(", ", _errors!)}])";
     }
 
@@ -346,10 +346,10 @@ public static class ValidationExtensions
     {
         if (action is null)
             throw new ArgumentNullException(nameof(action));
-        
+
         if (validation.IsValid)
             action(validation.Unwrap());
-        
+
         return validation;
     }
 
@@ -362,10 +362,10 @@ public static class ValidationExtensions
     {
         if (action is null)
             throw new ArgumentNullException(nameof(action));
-        
+
         if (validation.IsInvalid)
             action(validation.UnwrapErrors());
-        
+
         return validation;
     }
 

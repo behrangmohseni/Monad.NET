@@ -45,7 +45,7 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     {
         if (value is null)
             throw new ArgumentNullException(nameof(value), "Cannot create Some with null value. Use None instead.");
-        
+
         return new Option<T>(value, true);
     }
 
@@ -65,7 +65,7 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     {
         if (!_isSome)
             ThrowHelper.ThrowInvalidOperation(message);
-        
+
         return _value!;
     }
 
@@ -78,7 +78,7 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     {
         if (!_isSome)
             ThrowHelper.ThrowInvalidOperation("Called Unwrap on a None value");
-        
+
         return _value!;
     }
 
@@ -194,7 +194,7 @@ public readonly struct Option<T> : IEquatable<Option<T>>
             return this;
         if (!_isSome && optionB._isSome)
             return optionB;
-        
+
         return None();
     }
 
@@ -243,10 +243,10 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     {
         if (_isSome != other._isSome)
             return false;
-        
+
         if (!_isSome)
             return true;
-        
+
         return EqualityComparer<T>.Default.Equals(_value, other._value);
     }
 
