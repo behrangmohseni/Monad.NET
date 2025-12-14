@@ -19,7 +19,7 @@ Install-Package Monad.NET
 Or add directly to your `.csproj`:
 
 ```xml
-<PackageReference Include="Monad.NET" Version="1.0.0-alpha.1" />
+<PackageReference Include="Monad.NET" />
 ```
 
 **Supported Frameworks:** .NET 6.0, 7.0, 8.0, 9.0, 10.0+
@@ -37,7 +37,7 @@ using Monad.NET;
 ```csharp
 // Instead of null checks
 string? name = GetUserName();
-if (name != null)
+if (name is not null)
 {
     Console.WriteLine(name.ToUpper());
 }

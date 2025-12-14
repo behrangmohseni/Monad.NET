@@ -5,7 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0-alpha.1] - 2024-12-02
+## [1.0.0-alpha.3] - 2025-12-14
+
+### Changed
+
+- Improved documentation with real-world examples
+- Added "Which Monad Should I Use?" quick reference table
+- Added Performance section with struct-based design details
+- Added comprehensive FAQ section
+- Updated code examples to use modern C# patterns (`is not null`)
+- Removed version numbers from installation instructions for easier updates
+
+### Fixed
+
+- Corrected CHANGELOG date
+
+---
+
+## [1.0.0-alpha.2] - 2025-12-14
+
+### Changed
+
+- Minor documentation updates
+
+---
+
+## [1.0.0-alpha.1] - 2025-12-14
 
 ### Added
 

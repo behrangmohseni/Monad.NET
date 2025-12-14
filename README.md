@@ -2,6 +2,7 @@
 
 [![NuGet](https://img.shields.io/nuget/v/Monad.NET.svg)](https://www.nuget.org/packages/Monad.NET/)
 [![NuGet Downloads](https://img.shields.io/nuget/dt/Monad.NET.svg)](https://www.nuget.org/packages/Monad.NET/)
+[![Build](https://github.com/behrangmohseni/Monad.NET/actions/workflows/ci.yml/badge.svg)](https://github.com/behrangmohseni/Monad.NET/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-6.0%2B-512BD4.svg)](https://dotnet.microsoft.com/)
 
@@ -40,6 +41,9 @@ var result = user.ToOption()
   - [Writer\<W, T\>](#writerw-t)
   - [Reader\<R, A\>](#readerr-a)
 - [Advanced Usage](#advanced-usage)
+- [Real-World Examples](#real-world-examples)
+- [Performance](#performance)
+- [FAQ](#faq)
 - [API Reference](#api-reference)
 - [Contributing](#contributing)
 - [License](#license)
@@ -54,7 +58,7 @@ Modern .NET applications demand reliability. Yet we continue to fight the same b
 
 | Problem             | Traditional Approach       | Monad.NET Solution                     |
 |---------------------|----------------------------|----------------------------------------|
-| Null references | `if (x != null)` checks scattered everywhere | `Option<T>` makes absence explicit and composable |
+| Null references | `if (x is not null)` checks scattered everywhere | `Option<T>` makes absence explicit and composable |
 | Error handling | Try-catch blocks, exceptions as control flow | `Result<T, E>` treats errors as data |
 | Validation | Return on first error, lose context | `Validation<T, E>` accumulates all errors |
 | Async state | Boolean flags (`isLoading`, `hasError`) | `RemoteData<T, E>` models all four states |
@@ -67,6 +71,20 @@ Modern .NET applications demand reliability. Yet we continue to fight the same b
 3. **Immutability by default** — All types are immutable and thread-safe
 4. **Zero dependencies** — Only the .NET runtime, nothing else
 
+### Which Monad Should I Use?
+
+| Scenario | Use This |
+|----------|----------|
+| A value might be missing | `Option<T>` |
+| An operation can fail with an error | `Result<T, E>` |
+| Need to show ALL validation errors | `Validation<T, E>` |
+| Wrapping code that throws exceptions | `Try<T>` |
+| UI state for async data loading | `RemoteData<T, E>` |
+| A list must have at least one item | `NonEmptyList<T>` |
+| Need to accumulate logs/traces | `Writer<W, T>` |
+| Dependency injection without DI container | `Reader<R, A>` |
+| Return one of two different types | `Either<L, R>` |
+
 ---
 
 ## Installation
@@ -74,17 +92,17 @@ Modern .NET applications demand reliability. Yet we continue to fight the same b
 Requires **.NET 6.0** or later.
 
 ```bash
-dotnet add package Monad.NET --version 1.0.0-alpha.1
+dotnet add package Monad.NET
 ```
 
 **Package Manager Console:**
 ```powershell
-Install-Package Monad.NET -Version 1.0.0-alpha.1
+Install-Package Monad.NET
 ```
 
 **PackageReference:**
 ```xml
-<PackageReference Include="Monad.NET" Version="1.0.0-alpha.1" />
+<PackageReference Include="Monad.NET" />
 ```
 
 ---
@@ -480,6 +498,320 @@ var (successes, failures) = results.Partition();
 
 // Choose: Filter and unwrap
 var values = options.Choose();  // Only the Some values
+```
+
+---
+
+## Real-World Examples
+
+### API Response Handling
+
+```csharp
+public async Task<Result<UserDto, ApiError>> GetUserProfileAsync(int userId)
+{
+    // Chain multiple API calls with automatic error propagation
+    return await _httpClient.GetUserAsync(userId)
+        .AndThenAsync(user => _httpClient.GetUserPreferencesAsync(user.Id))
+        .MapAsync(prefs => new UserDto(user, prefs))
+        .TapAsync(dto => _cache.SetAsync($"user:{userId}", dto))
+        .TapErrAsync(err => _logger.LogError("Failed to get user {Id}: {Error}", userId, err));
+}
+
+// Usage in controller
+[HttpGet("{id}")]
+public async Task<IActionResult> GetUser(int id)
+{
+    return await GetUserProfileAsync(id).Match(
+        ok: user => Ok(user),
+        err: error => error.Code switch
+        {
+            "NOT_FOUND" => NotFound(),
+            "UNAUTHORIZED" => Unauthorized(),
+            _ => StatusCode(500, error.Message)
+        }
+    );
+}
+```
+
+### Form Validation Pipeline
+
+```csharp
+public record CreateUserRequest(string Name, string Email, int Age);
+
+public Validation<User, ValidationError> ValidateCreateUser(CreateUserRequest request)
+{
+    return ValidateName(request.Name)
+        .Apply(ValidateEmail(request.Email), (name, email) => (name, email))
+        .Apply(ValidateAge(request.Age), (partial, age) => 
+            new User(partial.name, partial.email, age));
+}
+
+Validation<string, ValidationError> ValidateName(string name)
+{
+    if (string.IsNullOrWhiteSpace(name))
+        return Validation<string, ValidationError>.Invalid(
+            new ValidationError("Name", "Name is required"));
+    
+    if (name.Length < 2)
+        return Validation<string, ValidationError>.Invalid(
+            new ValidationError("Name", "Name must be at least 2 characters"));
+    
+    return Validation<string, ValidationError>.Valid(name);
+}
+
+// Returns ALL validation errors at once
+var result = ValidateCreateUser(request);
+result.Match(
+    valid: user => SaveUser(user),
+    invalid: errors => BadRequest(new { Errors = errors })
+);
+```
+
+### Configuration with Reader Monad
+
+```csharp
+public record AppConfig(string ConnectionString, string ApiKey, int MaxRetries);
+
+// Build composable configuration-dependent operations
+var getUsers = Reader<AppConfig, Task<List<User>>>.From(async config =>
+{
+    using var conn = new SqlConnection(config.ConnectionString);
+    return await conn.QueryAsync<User>("SELECT * FROM Users").ToListAsync();
+});
+
+var enrichWithApi = Reader<AppConfig, Func<User, Task<UserWithDetails>>>.From(config =>
+    async user =>
+    {
+        var client = new ApiClient(config.ApiKey);
+        var details = await client.GetDetailsAsync(user.Id);
+        return new UserWithDetails(user, details);
+    });
+
+// Compose and run
+var workflow = getUsers.FlatMap(users =>
+    Reader<AppConfig, Task<List<UserWithDetails>>>.From(async config =>
+    {
+        var enricher = enrichWithApi.Run(config);
+        return await Task.WhenAll(users.Select(enricher));
+    }));
+
+var config = new AppConfig("Server=...", "api-key-123", 3);
+var enrichedUsers = await workflow.Run(config);
+```
+
+### Blazor Component with RemoteData
+
+```csharp
+@page "/users/{Id:int}"
+
+<div class="user-profile">
+    @_userData.Match(
+        notAsked: () => @<button @onclick="LoadUser">Load Profile</button>,
+        loading: () => @<div class="skeleton-loader">
+            <div class="skeleton-avatar"></div>
+            <div class="skeleton-text"></div>
+        </div>,
+        success: user => @<article class="profile-card">
+            <img src="@user.AvatarUrl" alt="@user.Name" />
+            <h2>@user.Name</h2>
+            <p>@user.Email</p>
+            <span class="badge">@user.Role</span>
+        </article>,
+        failure: error => @<div class="error-state">
+            <p>@error.Message</p>
+            <button @onclick="LoadUser">Retry</button>
+        </div>
+    )
+</div>
+
+@code {
+    [Parameter] public int Id { get; set; }
+    
+    private RemoteData<User, ApiError> _userData = RemoteData<User, ApiError>.NotAsked();
+    
+    private async Task LoadUser()
+    {
+        _userData = RemoteData<User, ApiError>.Loading();
+        StateHasChanged();
+        
+        try
+        {
+            var user = await _userService.GetUserAsync(Id);
+            _userData = RemoteData<User, ApiError>.Success(user);
+        }
+        catch (ApiException ex)
+        {
+            _userData = RemoteData<User, ApiError>.Failure(ex.Error);
+        }
+        
+        StateHasChanged();
+    }
+}
+```
+
+### Data Pipeline with Try
+
+```csharp
+public Try<ProcessedData> ProcessDataPipeline(string rawInput)
+{
+    return Try<string>.Of(() => ValidateInput(rawInput))
+        .FlatMap(input => Try<ParsedData>.Of(() => JsonSerializer.Deserialize<ParsedData>(input)!))
+        .FlatMap(parsed => Try<EnrichedData>.Of(() => EnrichWithExternalData(parsed)))
+        .FlatMap(enriched => Try<ProcessedData>.Of(() => ApplyBusinessRules(enriched)))
+        .Recover(ex => ex switch
+        {
+            JsonException => new ProcessedData { Error = "Invalid JSON format" },
+            ValidationException ve => new ProcessedData { Error = ve.Message },
+            _ => throw ex  // Re-throw unexpected exceptions
+        });
+}
+
+// Usage
+var result = ProcessDataPipeline(userInput);
+result.Match(
+    success: data => Console.WriteLine($"Processed: {data}"),
+    failure: ex => Console.WriteLine($"Pipeline failed: {ex.Message}")
+);
+```
+
+### NonEmptyList for Business Rules
+
+```csharp
+// Ensure at least one admin exists
+public Result<NonEmptyList<User>, BusinessError> GetSystemAdmins()
+{
+    var admins = _userRepository.GetAll()
+        .Where(u => u.Role == Role.Admin)
+        .ToList();
+    
+    return NonEmptyList<User>.FromEnumerable(admins)
+        .OkOr(BusinessError.NoAdminsConfigured);
+}
+
+// Safe aggregation without null checks
+public decimal CalculateAverageOrderValue(NonEmptyList<Order> orders)
+{
+    // Reduce is always safe — list is guaranteed non-empty
+    var total = orders.Reduce((acc, order) => 
+        new Order { Total = acc.Total + order.Total }).Total;
+    
+    return total / orders.Count;
+}
+```
+
+---
+
+## Performance
+
+Monad.NET is designed for correctness and safety first, but performance is still a priority:
+
+| Aspect | Details |
+|--------|---------|
+| **Struct-based** | `Option<T>`, `Result<T,E>`, `Try<T>`, etc. are `readonly struct` — no heap allocations |
+| **No boxing** | Generic implementations avoid boxing value types |
+| **Lazy evaluation** | `UnwrapOrElse`, `OrElse` use `Func<>` for deferred computation |
+| **Zero allocations** | Most operations on value types are allocation-free |
+
+### When to Consider Alternatives
+
+- **Hot paths with millions of iterations** — The abstraction has minimal overhead, but raw `if` statements may be faster in extreme cases
+- **Interop with existing code** — If your codebase heavily uses exceptions, gradual adoption is recommended
+
+### Benchmarks
+
+For typical use cases, the overhead is negligible (nanoseconds). The safety guarantees and code clarity typically outweigh any micro-optimization concerns.
+
+---
+
+## FAQ
+
+### Can I use Monad.NET with Entity Framework?
+
+Yes! Use `Option<T>` for optional relationships and `Result<T, E>` for operations that might fail:
+
+```csharp
+public async Task<Result<User, DbError>> GetUserAsync(int id)
+{
+    try
+    {
+        var user = await _context.Users.FindAsync(id);
+        return user is not null
+            ? Result<User, DbError>.Ok(user)
+            : Result<User, DbError>.Err(DbError.NotFound);
+    }
+    catch (Exception ex)
+    {
+        return Result<User, DbError>.Err(DbError.ConnectionFailed(ex.Message));
+    }
+}
+```
+
+### Can I use Monad.NET with ASP.NET Core?
+
+Absolutely. It works well with minimal APIs and controllers:
+
+```csharp
+app.MapGet("/users/{id}", async (int id, UserService service) =>
+{
+    return await service.GetUserAsync(id)
+        .Match(
+            ok: user => Results.Ok(user),
+            err: error => error switch
+            {
+                DbError.NotFound => Results.NotFound(),
+                _ => Results.Problem(error.Message)
+            }
+        );
+});
+```
+
+### How do I convert between monad types?
+
+Each type provides conversion methods:
+
+```csharp
+// Option → Result
+Option<int>.Some(42).OkOr("No value");  // Ok(42)
+Option<int>.None().OkOr("No value");    // Err("No value")
+
+// Result → Option
+Result<int, string>.Ok(42).Ok();        // Some(42)
+Result<int, string>.Err("oops").Ok();   // None
+
+// Try → Result
+Try<int>.Of(() => int.Parse("42")).ToResult(ex => ex.Message);
+
+// Validation → Result
+validation.ToResult();  // Errors become IReadOnlyList<E>
+```
+
+### Is Monad.NET thread-safe?
+
+Yes. All types are immutable `readonly struct` with no shared mutable state.
+
+### What's the difference between `Result` and `Either`?
+
+- **`Result<T, E>`** — Semantically means success or failure. Right-biased (operations work on `Ok`).
+- **`Either<L, R>`** — General "one of two types" with no success/failure implication. Can work on either side.
+
+Use `Result` for error handling. Use `Either` when both sides are valid outcomes (e.g., `Either<CachedValue, FreshValue>`).
+
+### What's the difference between `Result` and `Validation`?
+
+- **`Result`** — Short-circuits on first error (like `&&`)
+- **`Validation`** — Accumulates ALL errors (for showing multiple validation messages)
+
+```csharp
+// Result: stops at first error
+var result = ValidateName(name)
+    .AndThen(_ => ValidateEmail(email))   // Won't run if name fails
+    .AndThen(_ => ValidateAge(age));
+
+// Validation: collects all errors
+var validation = ValidateName(name)
+    .Apply(ValidateEmail(email), (n, e) => (n, e))
+    .Apply(ValidateAge(age), (partial, a) => new User(partial.n, partial.e, a));
+// Shows: "Name required", "Invalid email", "Age must be positive"
 ```
 
 ---
