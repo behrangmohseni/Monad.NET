@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-alpha.4] - 2025-12-14
+
+### Performance
+
+- Added `[MethodImpl(MethodImplOptions.AggressiveInlining)]` to all hot path methods
+- Added `ConfigureAwait(false)` to all async methods for library code
+- Added `ThrowHelper` pattern to keep exception paths out of hot paths
+- Used `static` lambdas to prevent closure allocations
+
+### Changed
+
+- Optimized core monad types: `Option<T>`, `Result<T,E>`, `Either<L,R>`, `Try<T>`
+- Optimized async extensions: `OptionAsync`, `ResultAsync`
+- Optimized `Collections` and `Linq` extension methods
+
+### Fixed
+
+- Fixed CI workflow to trigger on `master` branch
+- Fixed code formatting and line endings across all source files
+
+---
+
 ## [1.0.0-alpha.3] - 2025-12-14
 
 ### Changed
