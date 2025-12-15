@@ -127,6 +127,14 @@ Represents success (`Ok`) or failure (`Err`).
 |--------|-------------|
 | `Try(Func<T>)` | Captures exceptions as Err |
 | `TryAsync(Func<Task<T>>)` | Async exception capture |
+| `Combine(r1, r2)` | Combines 2 Results into tuple |
+| `Combine(r1, r2, combiner)` | Combines 2 Results with function |
+| `Combine(r1, r2, r3)` | Combines 3 Results into tuple |
+| `Combine(r1, r2, r3, combiner)` | Combines 3 Results with function |
+| `Combine(r1, r2, r3, r4)` | Combines 4 Results into tuple |
+| `Combine(r1, r2, r3, r4, combiner)` | Combines 4 Results with function |
+| `Combine(IEnumerable<Result>)` | Combines collection into list |
+| `CombineAll(IEnumerable<Result>)` | Combines ignoring values (returns Unit) |
 
 ### Async Extensions
 
