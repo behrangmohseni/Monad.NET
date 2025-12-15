@@ -5,18 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.0.0-alpha.5] - 2025-12-15
 
 ### Added
 
-- **Deconstruction support** for all monad types
-  - `Option<T>`: `var (value, isSome) = option`
-  - `Result<T, E>`: `var (value, isOk)` or `var (value, error, isOk)`
-  - `Either<L, R>`: `var (left, right, isRight)`
-  - `Try<T>`: `var (value, isSuccess)` or `var (value, exception, isSuccess)`
-  - `Validation<T, E>`: `var (value, isValid)` or `var (value, errors, isValid)`
-  - `RemoteData<T, E>`: `var (data, isSuccess)` or full state deconstruction
-  - 29 comprehensive tests
+- **State\<S, A\>** - Stateful computations without mutable variables
+  - `Pure`, `Return`, `Get`, `Put`, `Modify`, `Gets` constructors
+  - `Run`, `Eval`, `Exec` for execution
+  - `Map`, `AndThen`/`FlatMap`/`Bind` for composition
+  - `Apply`, `Zip`, `ZipWith` for combining computations
+  - `Sequence`, `Traverse`, `Replicate`, `WhileM` extensions
+  - Full LINQ query syntax support
+  - 33 comprehensive tests
 
 ---
 
@@ -165,17 +165,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 ## [Unreleased]
-
-### Added
-
-- **State\<S, A\>** - Stateful computations without mutable variables
-  - `Pure`, `Return`, `Get`, `Put`, `Modify`, `Gets` constructors
-  - `Run`, `Eval`, `Exec` for execution
-  - `Map`, `AndThen`/`FlatMap`/`Bind` for composition
-  - `Apply`, `Zip`, `ZipWith` for combining computations
-  - `Sequence`, `Traverse`, `Replicate`, `WhileM` extensions
-  - Full LINQ query syntax support
-  - 33 comprehensive tests
 
 ### Planned
 - ASP.NET Core integration helpers
