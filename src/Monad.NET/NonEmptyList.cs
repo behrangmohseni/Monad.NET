@@ -422,6 +422,16 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     {
         return !(left == right);
     }
+
+    /// <summary>
+    /// Implicit conversion from T to NonEmptyList&lt;T&gt; (single element).
+    /// Allows: NonEmptyList&lt;int&gt; list = 42;
+    /// </summary>
+    /// <param name="value">The single element value.</param>
+    public static implicit operator NonEmptyList<T>(T value)
+    {
+        return Of(value);
+    }
 }
 
 /// <summary>

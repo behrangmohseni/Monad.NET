@@ -273,6 +273,17 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
     }
 
     /// <summary>
+    /// Implicit conversion from TRight to Either&lt;TLeft, TRight&gt; (Right).
+    /// Allows: Either&lt;string, int&gt; either = 42;
+    /// </summary>
+    /// <param name="value">The right value.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator Either<TLeft, TRight>(TRight value)
+    {
+        return Right(value);
+    }
+
+    /// <summary>
     /// Deconstructs the Either into its components for pattern matching.
     /// </summary>
     /// <param name="left">The Left value, or default if Right.</param>

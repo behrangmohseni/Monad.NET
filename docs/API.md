@@ -79,6 +79,12 @@ Represents an optional value - either `Some(value)` or `None`.
 | `FilterAsync(Func<T, Task<bool>>)` | Async filter |
 | `MatchAsync<U>(someFunc, noneFunc)` | Async pattern match |
 
+### Operators
+
+| Operator | Description |
+|----------|-------------|
+| `implicit operator Option<T>(T value)` | Converts value to `Some`, null to `None` |
+
 ---
 
 ## Result\<T, E\>
@@ -146,6 +152,12 @@ Represents success (`Ok`) or failure (`Err`).
 | `AndThenAsync<U>(Func<T, Task<Result<U, E>>>)` | Async chain |
 | `TapAsync(Func<T, Task>)` | Async side effect |
 
+### Operators
+
+| Operator | Description |
+|----------|-------------|
+| `implicit operator Result<T, E>(T value)` | Converts value to `Ok` |
+
 ---
 
 ## Either\<L, R\>
@@ -181,6 +193,12 @@ Represents a value of one of two types.
 | `ToResult()` | `Result<R, L>` | Converts to Result |
 | `ToOption()` | `Option<R>` | Right to Some, Left to None |
 | `Deconstruct(out L?, out R?, out bool)` | `void` | Deconstructs to `(left, right, isRight)` |
+
+### Operators
+
+| Operator | Description |
+|----------|-------------|
+| `implicit operator Either<L, R>(R value)` | Converts value to `Right` |
 
 ---
 
@@ -219,6 +237,12 @@ Accumulates errors instead of short-circuiting.
 | `ToOption()` | `Option<T>` | Valid to Some |
 | `Deconstruct(out T?, out bool)` | `void` | Deconstructs to `(value, isValid)` |
 | `Deconstruct(out T?, out IReadOnlyList<E>, out bool)` | `void` | Deconstructs to `(value, errors, isValid)` |
+
+### Operators
+
+| Operator | Description |
+|----------|-------------|
+| `implicit operator Validation<T, E>(T value)` | Converts value to `Valid` |
 
 ---
 
@@ -265,6 +289,13 @@ Captures exceptions as values.
 | `Deconstruct(out T?, out bool)` | `void` | Deconstructs to `(value, isSuccess)` |
 | `Deconstruct(out T?, out Exception?, out bool)` | `void` | Deconstructs to `(value, exception, isSuccess)` |
 
+### Operators
+
+| Operator | Description |
+|----------|-------------|
+| `implicit operator Try<T>(T value)` | Converts value to `Success` |
+| `implicit operator Try<T>(Exception ex)` | Converts exception to `Failure` |
+
 ---
 
 ## RemoteData\<T, E\>
@@ -307,6 +338,12 @@ Tracks async data loading states.
 | `Deconstruct(out T?, out bool)` | `void` | Deconstructs to `(data, isSuccess)` |
 | `Deconstruct(out T?, out E?, out bool, out bool, out bool, out bool)` | `void` | Full state deconstruction |
 
+### Operators
+
+| Operator | Description |
+|----------|-------------|
+| `implicit operator RemoteData<T, E>(T data)` | Converts value to `Success` |
+
 ---
 
 ## NonEmptyList\<T\>
@@ -348,6 +385,12 @@ List guaranteed to have at least one element.
 | `ToArray()` | `T[]` | Converts to array |
 | `Tap(Action<T>)` | `NonEmptyList<T>` | Executes action for each element |
 | `TapIndexed(Action<T, int>)` | `NonEmptyList<T>` | Executes action with index for each element |
+
+### Operators
+
+| Operator | Description |
+|----------|-------------|
+| `implicit operator NonEmptyList<T>(T value)` | Converts value to single-element list |
 
 ---
 
