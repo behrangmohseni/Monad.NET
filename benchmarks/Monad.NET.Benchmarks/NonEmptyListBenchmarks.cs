@@ -45,9 +45,9 @@ public class NonEmptyListBenchmarks
     }
 
     [Benchmark]
-    public IEnumerable<int> Tail()
+    public int Tail()
     {
-        return _medium.Tail;
+        return _medium.Tail.Count();
     }
 
     [Benchmark]
