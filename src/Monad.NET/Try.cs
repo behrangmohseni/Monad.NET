@@ -149,6 +149,46 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     }
 
     /// <summary>
+    /// Tries to get the contained value using the familiar C# TryGet pattern.
+    /// </summary>
+    /// <param name="value">When this method returns, contains the value if successful; otherwise, the default value.</param>
+    /// <returns>True if the Try is successful; otherwise, false.</returns>
+    /// <example>
+    /// <code>
+    /// if (tryResult.TryGet(out var value))
+    /// {
+    ///     Console.WriteLine($"Success: {value}");
+    /// }
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool TryGet(out T? value)
+    {
+        value = _value;
+        return _isSuccess;
+    }
+
+    /// <summary>
+    /// Tries to get the contained exception using the familiar C# TryGet pattern.
+    /// </summary>
+    /// <param name="exception">When this method returns, contains the exception if failed; otherwise, null.</param>
+    /// <returns>True if the Try is a failure; otherwise, false.</returns>
+    /// <example>
+    /// <code>
+    /// if (tryResult.TryGetException(out var ex))
+    /// {
+    ///     Console.WriteLine($"Failed: {ex.Message}");
+    /// }
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool TryGetException(out Exception? exception)
+    {
+        exception = _exception;
+        return !_isSuccess;
+    }
+
+    /// <summary>
     /// Maps the value if successful.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

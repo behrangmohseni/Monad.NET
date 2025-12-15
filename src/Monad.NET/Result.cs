@@ -146,6 +146,46 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     }
 
     /// <summary>
+    /// Tries to get the contained Ok value using the familiar C# TryGet pattern.
+    /// </summary>
+    /// <param name="value">When this method returns, contains the Ok value if successful; otherwise, the default value.</param>
+    /// <returns>True if the Result is Ok; otherwise, false.</returns>
+    /// <example>
+    /// <code>
+    /// if (result.TryGet(out var value))
+    /// {
+    ///     Console.WriteLine($"Success: {value}");
+    /// }
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool TryGet(out T? value)
+    {
+        value = _value;
+        return _isOk;
+    }
+
+    /// <summary>
+    /// Tries to get the contained Err value using the familiar C# TryGet pattern.
+    /// </summary>
+    /// <param name="error">When this method returns, contains the Err value if failed; otherwise, the default value.</param>
+    /// <returns>True if the Result is Err; otherwise, false.</returns>
+    /// <example>
+    /// <code>
+    /// if (result.TryGetError(out var error))
+    /// {
+    ///     Console.WriteLine($"Error: {error}");
+    /// }
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool TryGetError(out TErr? error)
+    {
+        error = _error;
+        return !_isOk;
+    }
+
+    /// <summary>
     /// Maps a Result&lt;T, TErr&gt; to Result&lt;U, TErr&gt; by applying a function to a contained Ok value.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
