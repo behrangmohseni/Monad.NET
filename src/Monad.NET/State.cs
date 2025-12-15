@@ -231,6 +231,58 @@ public readonly struct State<TState, T>
     }
 
     /// <summary>
+    /// Executes an action with the computed value without modifying the state, allowing method chaining.
+    /// </summary>
+    /// <param name="action">The action to execute with the computed value.</param>
+    /// <returns>A new State computation that executes the action.</returns>
+    /// <example>
+    /// <code>
+    /// counter.Tap(x => Console.WriteLine($"Current: {x}"))
+    ///        .Map(x => x * 2);
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public State<TState, T> Tap(Action<T> action)
+    {
+        if (action is null)
+            throw new ArgumentNullException(nameof(action));
+
+        var run = _run;
+        return new State<TState, T>(state =>
+        {
+            var result = run(state);
+            action(result.Value);
+            return result;
+        });
+    }
+
+    /// <summary>
+    /// Executes an action with the current state without modifying the computation, allowing method chaining.
+    /// </summary>
+    /// <param name="action">The action to execute with the current state.</param>
+    /// <returns>A new State computation that executes the action.</returns>
+    /// <example>
+    /// <code>
+    /// counter.TapState(s => Console.WriteLine($"State: {s}"))
+    ///        .Map(x => x * 2);
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public State<TState, T> TapState(Action<TState> action)
+    {
+        if (action is null)
+            throw new ArgumentNullException(nameof(action));
+
+        var run = _run;
+        return new State<TState, T>(state =>
+        {
+            var result = run(state);
+            action(result.State);
+            return result;
+        });
+    }
+
+    /// <summary>
     /// Chains this computation with another that depends on the result.
     /// </summary>
     /// <typeparam name="U">The type of the new value.</typeparam>
