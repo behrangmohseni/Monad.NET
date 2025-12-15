@@ -178,6 +178,37 @@ var result = await Option<int>.Some(42)
     .MapAsync(async x => await ProcessAsync(x));
 ```
 
+### Implicit Conversions
+
+All monads support implicit conversion from values for cleaner code:
+
+```csharp
+// Instead of explicit factory methods
+Result<int, string> result = Result<int, string>.Ok(42);
+
+// Use implicit conversion
+Result<int, string> result = 42;  // Implicitly Ok
+
+// Works great in method returns
+Result<int, string> Validate(int value)
+{
+    if (value < 0)
+        return Result<int, string>.Err("Must be positive");
+    return value;  // Implicit Ok!
+}
+
+// Try supports both value and exception
+Try<int> success = 42;  // Implicit Success
+Try<int> failure = new Exception("oops");  // Implicit Failure
+
+// All monads support this pattern
+Option<int> opt = 42;              // Some(42)
+Either<string, int> either = 42;   // Right(42)
+Validation<int, string> valid = 42; // Valid(42)
+NonEmptyList<int> list = 42;       // [42]
+RemoteData<int, string> data = 42; // Success(42)
+```
+
 ## Next Steps
 
 - Read the full [README](../README.md) for detailed documentation

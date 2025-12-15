@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Implicit operators** for cleaner syntax across all monads
+  - `Option<T>`: `Option<int> x = 42;` (value → Some, null → None)
+  - `Result<T, E>`: `Result<int, string> r = 42;` (value → Ok)
+  - `Either<L, R>`: `Either<string, int> e = 42;` (value → Right)
+  - `Try<T>`: `Try<int> t = 42;` or `Try<int> t = new Exception("err");`
+  - `Validation<T, E>`: `Validation<int, string> v = 42;` (value → Valid)
+  - `NonEmptyList<T>`: `NonEmptyList<int> l = 42;` (value → single-element list)
+  - `RemoteData<T, E>`: `RemoteData<int, string> d = 42;` (value → Success)
+
+---
+
 ## [1.0.0-alpha.6] - 2025-12-15
 
 ### Added
