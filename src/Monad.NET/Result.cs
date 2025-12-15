@@ -473,4 +473,183 @@ public static class ResultExtensions
             return Result<T, Exception>.Err(ex);
         }
     }
+
+    /// <summary>
+    /// Combines two Results into a single Result containing a tuple.
+    /// Returns the first error encountered if any Result is Err.
+    /// </summary>
+    /// <example>
+    /// <code>
+    /// var combined = Result.Combine(
+    ///     GetUser(id),
+    ///     GetOrder(orderId)
+    /// ); // Result&lt;(User, Order), Error&gt;
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Result<(T1, T2), TErr> Combine<T1, T2, TErr>(
+        Result<T1, TErr> first,
+        Result<T2, TErr> second)
+    {
+        if (first.IsErr)
+            return Result<(T1, T2), TErr>.Err(first.UnwrapErr());
+        if (second.IsErr)
+            return Result<(T1, T2), TErr>.Err(second.UnwrapErr());
+        return Result<(T1, T2), TErr>.Ok((first.Unwrap(), second.Unwrap()));
+    }
+
+    /// <summary>
+    /// Combines two Results using a combiner function.
+    /// Returns the first error encountered if any Result is Err.
+    /// </summary>
+    /// <example>
+    /// <code>
+    /// var combined = Result.Combine(
+    ///     GetUser(id),
+    ///     GetOrder(orderId),
+    ///     (user, order) => new UserOrder(user, order)
+    /// );
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Result<TResult, TErr> Combine<T1, T2, TErr, TResult>(
+        Result<T1, TErr> first,
+        Result<T2, TErr> second,
+        Func<T1, T2, TResult> combiner)
+    {
+        if (first.IsErr)
+            return Result<TResult, TErr>.Err(first.UnwrapErr());
+        if (second.IsErr)
+            return Result<TResult, TErr>.Err(second.UnwrapErr());
+        return Result<TResult, TErr>.Ok(combiner(first.Unwrap(), second.Unwrap()));
+    }
+
+    /// <summary>
+    /// Combines three Results into a single Result containing a tuple.
+    /// Returns the first error encountered if any Result is Err.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Result<(T1, T2, T3), TErr> Combine<T1, T2, T3, TErr>(
+        Result<T1, TErr> first,
+        Result<T2, TErr> second,
+        Result<T3, TErr> third)
+    {
+        if (first.IsErr)
+            return Result<(T1, T2, T3), TErr>.Err(first.UnwrapErr());
+        if (second.IsErr)
+            return Result<(T1, T2, T3), TErr>.Err(second.UnwrapErr());
+        if (third.IsErr)
+            return Result<(T1, T2, T3), TErr>.Err(third.UnwrapErr());
+        return Result<(T1, T2, T3), TErr>.Ok((first.Unwrap(), second.Unwrap(), third.Unwrap()));
+    }
+
+    /// <summary>
+    /// Combines three Results using a combiner function.
+    /// Returns the first error encountered if any Result is Err.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Result<TResult, TErr> Combine<T1, T2, T3, TErr, TResult>(
+        Result<T1, TErr> first,
+        Result<T2, TErr> second,
+        Result<T3, TErr> third,
+        Func<T1, T2, T3, TResult> combiner)
+    {
+        if (first.IsErr)
+            return Result<TResult, TErr>.Err(first.UnwrapErr());
+        if (second.IsErr)
+            return Result<TResult, TErr>.Err(second.UnwrapErr());
+        if (third.IsErr)
+            return Result<TResult, TErr>.Err(third.UnwrapErr());
+        return Result<TResult, TErr>.Ok(combiner(first.Unwrap(), second.Unwrap(), third.Unwrap()));
+    }
+
+    /// <summary>
+    /// Combines four Results into a single Result containing a tuple.
+    /// Returns the first error encountered if any Result is Err.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Result<(T1, T2, T3, T4), TErr> Combine<T1, T2, T3, T4, TErr>(
+        Result<T1, TErr> first,
+        Result<T2, TErr> second,
+        Result<T3, TErr> third,
+        Result<T4, TErr> fourth)
+    {
+        if (first.IsErr)
+            return Result<(T1, T2, T3, T4), TErr>.Err(first.UnwrapErr());
+        if (second.IsErr)
+            return Result<(T1, T2, T3, T4), TErr>.Err(second.UnwrapErr());
+        if (third.IsErr)
+            return Result<(T1, T2, T3, T4), TErr>.Err(third.UnwrapErr());
+        if (fourth.IsErr)
+            return Result<(T1, T2, T3, T4), TErr>.Err(fourth.UnwrapErr());
+        return Result<(T1, T2, T3, T4), TErr>.Ok((first.Unwrap(), second.Unwrap(), third.Unwrap(), fourth.Unwrap()));
+    }
+
+    /// <summary>
+    /// Combines four Results using a combiner function.
+    /// Returns the first error encountered if any Result is Err.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Result<TResult, TErr> Combine<T1, T2, T3, T4, TErr, TResult>(
+        Result<T1, TErr> first,
+        Result<T2, TErr> second,
+        Result<T3, TErr> third,
+        Result<T4, TErr> fourth,
+        Func<T1, T2, T3, T4, TResult> combiner)
+    {
+        if (first.IsErr)
+            return Result<TResult, TErr>.Err(first.UnwrapErr());
+        if (second.IsErr)
+            return Result<TResult, TErr>.Err(second.UnwrapErr());
+        if (third.IsErr)
+            return Result<TResult, TErr>.Err(third.UnwrapErr());
+        if (fourth.IsErr)
+            return Result<TResult, TErr>.Err(fourth.UnwrapErr());
+        return Result<TResult, TErr>.Ok(combiner(first.Unwrap(), second.Unwrap(), third.Unwrap(), fourth.Unwrap()));
+    }
+
+    /// <summary>
+    /// Combines a collection of Results into a single Result containing a list.
+    /// Returns the first error encountered if any Result is Err.
+    /// </summary>
+    /// <example>
+    /// <code>
+    /// var userIds = new[] { 1, 2, 3 };
+    /// var usersResult = Result.Combine(userIds.Select(GetUser));
+    /// // Result&lt;IReadOnlyList&lt;User&gt;, Error&gt;
+    /// </code>
+    /// </example>
+    public static Result<IReadOnlyList<T>, TErr> Combine<T, TErr>(IEnumerable<Result<T, TErr>> results)
+    {
+        var list = new List<T>();
+        foreach (var result in results)
+        {
+            if (result.IsErr)
+                return Result<IReadOnlyList<T>, TErr>.Err(result.UnwrapErr());
+            list.Add(result.Unwrap());
+        }
+        return Result<IReadOnlyList<T>, TErr>.Ok(list);
+    }
+
+    /// <summary>
+    /// Combines a collection of Results into a single Result, ignoring the values.
+    /// Useful when you only care about success/failure, not the values.
+    /// Returns the first error encountered if any Result is Err.
+    /// </summary>
+    /// <example>
+    /// <code>
+    /// var validations = new[] { ValidateA(), ValidateB(), ValidateC() };
+    /// var allValid = Result.CombineAll(validations);
+    /// // Result&lt;Unit, Error&gt;
+    /// </code>
+    /// </example>
+    public static Result<Unit, TErr> CombineAll<T, TErr>(IEnumerable<Result<T, TErr>> results)
+    {
+        foreach (var result in results)
+        {
+            if (result.IsErr)
+                return Result<Unit, TErr>.Err(result.UnwrapErr());
+        }
+        return Result<Unit, TErr>.Ok(Unit.Value);
+    }
 }

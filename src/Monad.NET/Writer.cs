@@ -194,9 +194,14 @@ public readonly struct Writer<TLog, T> : IEquatable<Writer<TLog, T>>
 public readonly struct Unit : IEquatable<Unit>
 {
     /// <summary>
-    /// The default Unit value.
+    /// The singleton Unit value.
     /// </summary>
-    public static readonly Unit Default = new();
+    public static readonly Unit Value = default;
+
+    /// <summary>
+    /// The default Unit value (alias for Value).
+    /// </summary>
+    public static readonly Unit Default = default;
 
     /// <inheritdoc />
     public bool Equals(Unit other) => true;

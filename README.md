@@ -242,6 +242,21 @@ if (err.TryGetError(out var error))
 {
     Console.WriteLine($"Error: {error}");
 }
+
+// Combine multiple results
+var combined = ResultExtensions.Combine(
+    GetUser(userId),
+    GetOrder(orderId),
+    (user, order) => new UserOrder(user, order)
+);
+
+// Or combine into tuples
+var tuple = ResultExtensions.Combine(result1, result2, result3);
+// → Result<(T1, T2, T3), Error>
+
+// Batch operations
+var allResults = ResultExtensions.Combine(ids.Select(GetById));
+// → Result<IReadOnlyList<T>, Error>
 ```
 
 **When to use:** Operations that can fail with meaningful error information.
