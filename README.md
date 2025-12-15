@@ -675,6 +675,46 @@ var (successes, failures) = results.Partition();
 var values = options.Choose();  // Only the Some values
 ```
 
+### Async Streams (IAsyncEnumerable)
+
+Full support for async streams with monad-aware operations:
+
+```csharp
+// Filter and unwrap Some values from an async stream
+IAsyncEnumerable<Option<User>> userStream = GetUserStreamAsync();
+await foreach (var user in userStream.ChooseAsync())
+{
+    Console.WriteLine(user.Name);  // Only Some values
+}
+
+// Safe first element from async stream
+var firstUser = await userStream.FirstOrNoneAsync();
+firstUser.Match(
+    someFunc: u => Console.WriteLine($"Found: {u.Name}"),
+    noneFunc: () => Console.WriteLine("No users")
+);
+
+// Collect only successful results
+IAsyncEnumerable<Result<Order, Error>> orderStream = ProcessOrdersAsync();
+await foreach (var order in orderStream.CollectOkAsync())
+{
+    await SaveAsync(order);
+}
+
+// Partition results into successes and failures
+var (orders, errors) = await orderStream.PartitionAsync();
+
+// Sequence: Convert stream of Options to Option of list
+var allUsers = await userStream.SequenceAsync();  // Option<IReadOnlyList<User>>
+
+// General async stream operations
+var result = await dataStream
+    .WhereAsync(async x => await IsValidAsync(x))
+    .SelectAsync(async x => await TransformAsync(x))
+    .TapAsync(async x => await LogAsync(x))
+    .ToListAsync();
+```
+
 ### Deconstruction & Pattern Matching
 
 All monads support C# deconstruction for clean pattern matching:

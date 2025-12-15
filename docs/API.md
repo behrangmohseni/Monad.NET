@@ -20,6 +20,7 @@ Complete API documentation for Monad.NET.
 - [Writer\<W, T\>](#writerw-t)
 - [Reader\<R, A\>](#readerr-a)
 - [State\<S, A\>](#states-a)
+- [Async Streams](#async-streams-iasyncenumerable)
 - [Source Generators](#source-generators)
 - [Entity Framework Core](#entity-framework-core)
 
@@ -558,6 +559,53 @@ var result = from x in option
              where x > 0
              select x;
 ```
+
+---
+
+## Async Streams (IAsyncEnumerable)
+
+Extension methods for working with `IAsyncEnumerable<T>` and monad types.
+
+### Option Extensions
+
+| Method | Description |
+|--------|-------------|
+| `ChooseAsync()` | Filters to Some values and unwraps |
+| `ChooseAsync(selector)` | Maps with sync selector, filters and unwraps |
+| `ChooseAsync(asyncSelector)` | Maps with async selector, filters and unwraps |
+| `FirstOrNoneAsync()` | First element or None |
+| `FirstOrNoneAsync(predicate)` | First matching element or None |
+| `LastOrNoneAsync()` | Last element or None |
+| `SequenceAsync()` | `IAsyncEnumerable<Option<T>>` → `Task<Option<IReadOnlyList<T>>>` |
+
+### Result Extensions
+
+| Method | Description |
+|--------|-------------|
+| `CollectOkAsync()` | Filters to Ok values and unwraps |
+| `CollectErrAsync()` | Filters to Err values and unwraps |
+| `PartitionAsync()` | Separates into (oks, errs) tuple |
+| `SequenceAsync()` | `IAsyncEnumerable<Result<T,E>>` → `Task<Result<IReadOnlyList<T>,E>>` |
+
+### Try Extensions
+
+| Method | Description |
+|--------|-------------|
+| `CollectSuccessAsync()` | Filters to Success values and unwraps |
+| `CollectFailureAsync()` | Filters to Failure exceptions |
+
+### General Extensions
+
+| Method | Description |
+|--------|-------------|
+| `SelectAsync(asyncSelector)` | Async map operation |
+| `WhereAsync(asyncPredicate)` | Async filter operation |
+| `TapAsync(asyncAction)` | Async side effect |
+| `ToListAsync()` | Converts to `Task<List<T>>` |
+| `CountAsync()` | Counts elements |
+| `AnyAsync(predicate)` | Checks if any match predicate |
+| `AllAsync(predicate)` | Checks if all match predicate |
+| `AggregateAsync(seed, accumulator)` | Reduces to single value |
 
 ---
 
