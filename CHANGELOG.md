@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Async streams support** (`IAsyncEnumerable<T>` extensions)
+  - `ChooseAsync` - Filter and unwrap Option values from async streams
+  - `FirstOrNoneAsync`, `LastOrNoneAsync` - Safe element access
+  - `SequenceAsync` - Convert async stream of Options/Results to single Option/Result
+  - `CollectOkAsync`, `CollectErrAsync` - Filter Result streams
+  - `PartitionAsync` - Separate Ok and Err values
+  - `CollectSuccessAsync`, `CollectFailureAsync` - Filter Try streams
+  - `SelectAsync`, `WhereAsync`, `TapAsync` - General async stream operations
+  - `AnyAsync`, `AllAsync`, `AggregateAsync`, `CountAsync`, `ToListAsync`
+  - 28 comprehensive tests
+
 - **Monad.NET.SourceGenerators** - New source generator package for discriminated unions
   - `[Union]` attribute for marking abstract partial records/classes
   - Auto-generates `Match<TResult>` method for pattern matching with return values
