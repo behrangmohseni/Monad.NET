@@ -60,6 +60,7 @@ Represents an optional value - either `Some(value)` or `None`.
 | `OkOr<E>(E error)` | `Result<T, E>` | Converts to Result |
 | `OkOrElse<E>(Func<E>)` | `Result<T, E>` | Converts to Result with lazy error |
 | `Tap(Action<T>)` | `Option<T>` | Executes action if Some |
+| `TapNone(Action)` | `Option<T>` | Executes action if None |
 | `Deconstruct(out T?, out bool)` | `void` | Deconstructs to `(value, isSome)` |
 
 ### Extension Methods
@@ -345,6 +346,8 @@ List guaranteed to have at least one element.
 | `Reverse()` | `NonEmptyList<T>` | Reverses order |
 | `ToList()` | `List<T>` | Converts to List |
 | `ToArray()` | `T[]` | Converts to array |
+| `Tap(Action<T>)` | `NonEmptyList<T>` | Executes action for each element |
+| `TapIndexed(Action<T, int>)` | `NonEmptyList<T>` | Executes action with index for each element |
 
 ---
 
@@ -375,6 +378,8 @@ Computations with accumulated output.
 | `FlatMap<U>(binder, combine)` | `Writer<W, U>` | Chains with log combination |
 | `BiMap<W2, U>(logMapper, valueMapper)` | `Writer<W2, U>` | Transforms both |
 | `Match<U>(Func<T, W, U>)` | `U` | Pattern matching |
+| `Tap(Action<T>)` | `Writer<W, T>` | Executes action with value |
+| `TapLog(Action<W>)` | `Writer<W, T>` | Executes action with log |
 
 ---
 
@@ -399,6 +404,8 @@ Computations depending on environment.
 | `Map<B>(Func<A, B>)` | `Reader<R, B>` | Transforms result |
 | `FlatMap<B>(Func<A, Reader<R, B>>)` | `Reader<R, B>` | Chains operations |
 | `WithEnvironment<R2>(Func<R2, R>)` | `Reader<R2, A>` | Transforms environment |
+| `Tap(Action<A>)` | `Reader<R, A>` | Executes action with result |
+| `TapEnv(Action<R>)` | `Reader<R, A>` | Executes action with environment |
 
 ---
 
@@ -444,6 +451,8 @@ Stateful computations that thread state through operations.
 | `ZipWith<U, V>(State<S, U>, Func<A, U, V>)` | `State<S, V>` | Combines with function |
 | `As<U>(U value)` | `State<S, U>` | Replaces value |
 | `Void()` | `State<S, Unit>` | Discards value |
+| `Tap(Action<A>)` | `State<S, A>` | Executes action with value |
+| `TapState(Action<S>)` | `State<S, A>` | Executes action with state |
 
 ### Extension Methods
 

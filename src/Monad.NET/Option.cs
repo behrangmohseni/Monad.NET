@@ -240,6 +240,44 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     }
 
     /// <summary>
+    /// Executes an action if the Option is Some, allowing method chaining.
+    /// </summary>
+    /// <param name="action">The action to execute with the contained value.</param>
+    /// <returns>The original Option unchanged.</returns>
+    /// <example>
+    /// <code>
+    /// option.Tap(x => Console.WriteLine($"Value: {x}"))
+    ///       .Map(x => x * 2);
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Option<T> Tap(Action<T> action)
+    {
+        if (_isSome)
+            action(_value!);
+        return this;
+    }
+
+    /// <summary>
+    /// Executes an action if the Option is None, allowing method chaining.
+    /// </summary>
+    /// <param name="action">The action to execute when None.</param>
+    /// <returns>The original Option unchanged.</returns>
+    /// <example>
+    /// <code>
+    /// option.TapNone(() => Console.WriteLine("No value found"))
+    ///       .UnwrapOr(defaultValue);
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Option<T> TapNone(Action action)
+    {
+        if (!_isSome)
+            action();
+        return this;
+    }
+
+    /// <summary>
     /// Converts this Option to a Result, mapping Some(v) to Ok(v) and None to Err(err).
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

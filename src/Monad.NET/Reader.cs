@@ -77,6 +77,53 @@ public sealed class Reader<R, A>
     }
 
     /// <summary>
+    /// Executes an action with the computed value without modifying the result, allowing method chaining.
+    /// </summary>
+    /// <param name="action">The action to execute with the computed value.</param>
+    /// <returns>A new Reader that executes the action.</returns>
+    /// <example>
+    /// <code>
+    /// reader.Tap(x => Console.WriteLine($"Value: {x}"))
+    ///       .Map(x => x.ToUpper());
+    /// </code>
+    /// </example>
+    public Reader<R, A> Tap(Action<A> action)
+    {
+        if (action is null)
+            throw new ArgumentNullException(nameof(action));
+
+        return new Reader<R, A>(env =>
+        {
+            var result = _run(env);
+            action(result);
+            return result;
+        });
+    }
+
+    /// <summary>
+    /// Executes an action with the environment without modifying the result, allowing method chaining.
+    /// </summary>
+    /// <param name="action">The action to execute with the environment.</param>
+    /// <returns>A new Reader that executes the action.</returns>
+    /// <example>
+    /// <code>
+    /// reader.TapEnv(env => Console.WriteLine($"Environment: {env}"))
+    ///       .Map(x => x.ToUpper());
+    /// </code>
+    /// </example>
+    public Reader<R, A> TapEnv(Action<R> action)
+    {
+        if (action is null)
+            throw new ArgumentNullException(nameof(action));
+
+        return new Reader<R, A>(env =>
+        {
+            action(env);
+            return _run(env);
+        });
+    }
+
+    /// <summary>
     /// Chains Reader computations.
     /// This is the monadic bind operation.
     /// </summary>

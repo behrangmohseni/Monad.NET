@@ -136,6 +136,51 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     }
 
     /// <summary>
+    /// Executes an action for each element in the list, allowing method chaining.
+    /// </summary>
+    /// <param name="action">The action to execute for each element.</param>
+    /// <returns>The original NonEmptyList unchanged.</returns>
+    /// <example>
+    /// <code>
+    /// list.Tap(x => Console.WriteLine(x))
+    ///     .Map(x => x * 2);
+    /// </code>
+    /// </example>
+    public NonEmptyList<T> Tap(Action<T> action)
+    {
+        if (action is null)
+            throw new ArgumentNullException(nameof(action));
+
+        action(_head);
+        foreach (var item in _tail)
+            action(item);
+        return this;
+    }
+
+    /// <summary>
+    /// Executes an action for each element with its index in the list, allowing method chaining.
+    /// </summary>
+    /// <param name="action">The action to execute for each element with its index.</param>
+    /// <returns>The original NonEmptyList unchanged.</returns>
+    /// <example>
+    /// <code>
+    /// list.TapIndexed((x, i) => Console.WriteLine($"{i}: {x}"))
+    ///     .Map(x => x * 2);
+    /// </code>
+    /// </example>
+    public NonEmptyList<T> TapIndexed(Action<T, int> action)
+    {
+        if (action is null)
+            throw new ArgumentNullException(nameof(action));
+
+        action(_head, 0);
+        var index = 1;
+        foreach (var item in _tail)
+            action(item, index++);
+        return this;
+    }
+
+    /// <summary>
     /// Applies a function that returns a NonEmptyList to each element and flattens the result.
     /// </summary>
     public NonEmptyList<U> FlatMap<U>(Func<T, NonEmptyList<U>> binder)

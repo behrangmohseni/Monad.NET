@@ -77,6 +77,46 @@ public readonly struct Writer<TLog, T> : IEquatable<Writer<TLog, T>>
     }
 
     /// <summary>
+    /// Executes an action with the computed value without modifying the result, allowing method chaining.
+    /// </summary>
+    /// <param name="action">The action to execute with the computed value.</param>
+    /// <returns>The original Writer unchanged.</returns>
+    /// <example>
+    /// <code>
+    /// writer.Tap(x => Console.WriteLine($"Value: {x}"))
+    ///       .Map(x => x * 2);
+    /// </code>
+    /// </example>
+    public Writer<TLog, T> Tap(Action<T> action)
+    {
+        if (action is null)
+            throw new ArgumentNullException(nameof(action));
+
+        action(_value);
+        return this;
+    }
+
+    /// <summary>
+    /// Executes an action with the log without modifying the result, allowing method chaining.
+    /// </summary>
+    /// <param name="action">The action to execute with the log.</param>
+    /// <returns>The original Writer unchanged.</returns>
+    /// <example>
+    /// <code>
+    /// writer.TapLog(log => Console.WriteLine($"Log: {log}"))
+    ///       .Map(x => x * 2);
+    /// </code>
+    /// </example>
+    public Writer<TLog, T> TapLog(Action<TLog> action)
+    {
+        if (action is null)
+            throw new ArgumentNullException(nameof(action));
+
+        action(_log);
+        return this;
+    }
+
+    /// <summary>
     /// Chains Writer computations, combining their logs.
     /// Requires a function to combine logs (append operation).
     /// </summary>
