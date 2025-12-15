@@ -43,6 +43,7 @@ var result = user.ToOption()
   - [Reader\<R, A\>](#readerr-a)
   - [State\<S, A\>](#states-a)
 - [Advanced Usage](#advanced-usage)
+- [ASP.NET Core Integration](#aspnet-core-integration)
 - [Real-World Examples](#real-world-examples)
 - [Performance](#performance)
 - [FAQ](#faq)
@@ -107,6 +108,16 @@ Install-Package Monad.NET
 ```xml
 <PackageReference Include="Monad.NET" />
 ```
+
+### ASP.NET Core Integration (Optional)
+
+For ASP.NET Core projects, install the integration package:
+
+```bash
+dotnet add package Monad.NET.AspNetCore
+```
+
+This adds `IActionResult` extensions, middleware, and `ValidationProblemDetails` support.
 
 ---
 
@@ -771,6 +782,91 @@ public decimal CalculateAverageOrderValue(NonEmptyList<Order> orders)
     return total / orders.Count;
 }
 ```
+
+---
+
+## ASP.NET Core Integration
+
+The `Monad.NET.AspNetCore` package provides seamless integration with ASP.NET Core:
+
+```bash
+dotnet add package Monad.NET.AspNetCore
+```
+
+### IActionResult Extensions
+
+Convert monad types directly to HTTP responses:
+
+```csharp
+using Monad.NET;
+using Monad.NET.AspNetCore;
+
+[ApiController]
+[Route("api/[controller]")]
+public class UsersController : ControllerBase
+{
+    // Option → 200 OK or 404 Not Found
+    [HttpGet("{id}")]
+    public IActionResult GetUser(int id)
+    {
+        return _userService.FindUser(id)
+            .ToActionResult("User not found");
+    }
+
+    // Result → 200 OK or error status code
+    [HttpPost]
+    public IActionResult CreateUser(CreateUserRequest request)
+    {
+        return _userService.CreateUser(request)
+            .ToCreatedResult($"/api/users/{request.Id}");
+    }
+
+    // Validation → 422 with RFC 7807 ValidationProblemDetails
+    [HttpPut("{id}")]
+    public IActionResult UpdateUser(int id, UpdateUserRequest request)
+    {
+        return ValidateRequest(request)
+            .ToValidationProblemResult();
+    }
+
+    // Async support
+    [HttpGet("{id}/profile")]
+    public async Task<IActionResult> GetProfile(int id)
+    {
+        return await _userService.GetProfileAsync(id)
+            .ToActionResultAsync();
+    }
+}
+```
+
+### Exception Handling Middleware
+
+Catch unhandled exceptions and return consistent Result-style responses:
+
+```csharp
+var app = builder.Build();
+
+app.UseResultExceptionHandler(options =>
+{
+    options.IncludeExceptionDetails = app.Environment.IsDevelopment();
+});
+
+app.MapControllers();
+```
+
+### Available Extensions
+
+| Monad | Method | Success | Failure |
+|-------|--------|---------|---------|
+| `Option<T>` | `ToActionResult()` | 200 OK | 404 Not Found |
+| `Result<T,E>` | `ToActionResult()` | 200 OK | Custom status code |
+| `Result<T,E>` | `ToCreatedResult(location)` | 201 Created | Custom status code |
+| `Result<T,E>` | `ToNoContentResult()` | 204 No Content | Custom status code |
+| `Validation<T,E>` | `ToValidationProblemResult()` | 200 OK | 422 with ValidationProblemDetails |
+| `Either<L,R>` | `ToActionResult()` | 200 OK (Right) | Custom status code (Left) |
+| `Try<T>` | `ToActionResult()` | 200 OK | 500 Internal Server Error |
+
+All extensions have async variants (`ToActionResultAsync`).
 
 ---
 
