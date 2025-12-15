@@ -17,6 +17,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Works with nested record and class types
   - 14 comprehensive tests
 
+- **Monad.NET.EntityFrameworkCore** - New EF Core integration package
+  - `OptionValueConverter<T>` for reference type Option properties
+  - `OptionStructValueConverter<T>` for value type Option properties
+  - Query extensions: `FirstOrNone`, `SingleOrNone`, `ElementAtOrNone`, `LastOrNone`
+  - Async variants: `FirstOrNoneAsync`, `SingleOrNoneAsync`, etc.
+  - Model builder extensions for automatic Option configuration
+  - 25 comprehensive tests
+
 ---
 
 ## [1.0.0-alpha.7] - 2025-12-15

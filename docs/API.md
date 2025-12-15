@@ -20,6 +20,8 @@ Complete API documentation for Monad.NET.
 - [Writer\<W, T\>](#writerw-t)
 - [Reader\<R, A\>](#readerr-a)
 - [State\<S, A\>](#states-a)
+- [Source Generators](#source-generators)
+- [Entity Framework Core](#entity-framework-core)
 
 ---
 
@@ -555,4 +557,146 @@ var result = from x in option1
 var result = from x in option
              where x > 0
              select x;
+```
+
+---
+
+## Source Generators
+
+The `Monad.NET.SourceGenerators` package provides compile-time code generation for discriminated unions.
+
+### Installation
+
+```bash
+dotnet add package Monad.NET.SourceGenerators
+```
+
+### UnionAttribute
+
+Marks a type for source generation of `Match` methods.
+
+| Requirement | Description |
+|-------------|-------------|
+| `abstract` | Type must be abstract |
+| `partial` | Type must be partial |
+| Nested types | Cases must inherit from parent type |
+
+### Generated Methods
+
+| Method | Return Type | Description |
+|--------|-------------|-------------|
+| `Match<TResult>(case1, case2, ...)` | `TResult` | Pattern match with return value |
+| `Match(case1, case2, ...)` | `void` | Pattern match with side effects |
+
+### Example
+
+```csharp
+using Monad.NET;
+
+[Union]
+public abstract partial record Shape
+{
+    public partial record Circle(double Radius) : Shape;
+    public partial record Rectangle(double Width, double Height) : Shape;
+    public partial record Triangle(double Base, double Height) : Shape;
+}
+
+// Generated Match method
+var area = shape.Match(
+    circle: c => Math.PI * c.Radius * c.Radius,
+    rectangle: r => r.Width * r.Height,
+    triangle: t => 0.5 * t.Base * t.Height
+);
+
+// Void version for side effects
+shape.Match(
+    circle: c => Console.WriteLine($"Circle: {c.Radius}"),
+    rectangle: r => Console.WriteLine($"Rectangle: {r.Width}x{r.Height}"),
+    triangle: t => Console.WriteLine($"Triangle: {t.Base}x{t.Height}")
+);
+```
+
+---
+
+## Entity Framework Core
+
+The `Monad.NET.EntityFrameworkCore` package provides EF Core integration for `Option<T>`.
+
+### Installation
+
+```bash
+dotnet add package Monad.NET.EntityFrameworkCore
+```
+
+### Value Converters
+
+| Converter | Description |
+|-----------|-------------|
+| `OptionValueConverter<T>` | Converts `Option<T>` for reference types |
+| `OptionStructValueConverter<T>` | Converts `Option<T>` for value types |
+
+### Usage
+
+```csharp
+public class User
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = "";
+    public Option<string> Email { get; set; }
+    public Option<int> Age { get; set; }
+}
+
+// In DbContext.OnModelCreating
+modelBuilder.Entity<User>(entity =>
+{
+    entity.Property(e => e.Email)
+        .HasConversion(new OptionValueConverter<string>());
+
+    entity.Property(e => e.Age)
+        .HasConversion(new OptionStructValueConverter<int>());
+});
+```
+
+### Query Extensions
+
+| Method | Description |
+|--------|-------------|
+| `FirstOrNone()` | Returns first element or `None` |
+| `FirstOrNone(predicate)` | Returns first matching element or `None` |
+| `SingleOrNone()` | Returns single element or `None` (throws if multiple) |
+| `SingleOrNone(predicate)` | Returns single matching element or `None` |
+| `ElementAtOrNone(index)` | Returns element at index or `None` |
+| `LastOrNone()` | Returns last element or `None` |
+| `LastOrNone(predicate)` | Returns last matching element or `None` |
+
+### Async Query Extensions
+
+| Method | Description |
+|--------|-------------|
+| `FirstOrNoneAsync()` | Async first element or `None` |
+| `FirstOrNoneAsync(predicate)` | Async first matching element or `None` |
+| `SingleOrNoneAsync()` | Async single element or `None` |
+| `SingleOrNoneAsync(predicate)` | Async single matching element or `None` |
+| `ElementAtOrNoneAsync(index)` | Async element at index or `None` |
+| `LastOrNoneAsync()` | Async last element or `None` |
+| `LastOrNoneAsync(predicate)` | Async last matching element or `None` |
+
+### Example
+
+```csharp
+// Sync query
+var user = context.Users.FirstOrNone(u => u.Id == id);
+user.Match(
+    someFunc: u => Console.WriteLine($"Found: {u.Name}"),
+    noneFunc: () => Console.WriteLine("Not found")
+);
+
+// Async query
+var user = await context.Users.FirstOrNoneAsync(u => u.Email.IsSome);
+
+// Safe chaining
+var email = await context.Users
+    .FirstOrNoneAsync(u => u.Id == id)
+    .Map(u => u.Email)
+    .Flatten();
 ```

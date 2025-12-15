@@ -45,6 +45,7 @@ var result = user.ToOption()
 - [Advanced Usage](#advanced-usage)
 - [Source Generators](#source-generators)
 - [ASP.NET Core Integration](#aspnet-core-integration)
+- [Entity Framework Core Integration](#entity-framework-core-integration)
 - [Real-World Examples](#real-world-examples)
 - [Performance](#performance)
 - [FAQ](#faq)
@@ -129,6 +130,16 @@ dotnet add package Monad.NET.SourceGenerators
 ```
 
 This generates `Match` methods for your custom union types, ensuring all cases are handled at compile time.
+
+### Entity Framework Core Integration (Optional)
+
+For EF Core support with `Option<T>` properties and query extensions:
+
+```bash
+dotnet add package Monad.NET.EntityFrameworkCore
+```
+
+This adds value converters, query extensions like `FirstOrNone()`, and model configuration helpers.
 
 ---
 
@@ -1149,6 +1160,75 @@ app.MapControllers();
 | `Try<T>` | `ToActionResult()` | 200 OK | 500 Internal Server Error |
 
 All extensions have async variants (`ToActionResultAsync`).
+
+---
+
+## Entity Framework Core Integration
+
+The `Monad.NET.EntityFrameworkCore` package provides seamless integration with EF Core:
+
+```bash
+dotnet add package Monad.NET.EntityFrameworkCore
+```
+
+### Value Converters
+
+Use `Option<T>` as entity properties with automatic conversion to nullable database columns:
+
+```csharp
+public class User
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = "";
+    public Option<string> Email { get; set; }    // Stored as nullable varchar
+    public Option<int> Age { get; set; }         // Stored as nullable int
+}
+
+// In DbContext
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    modelBuilder.Entity<User>(entity =>
+    {
+        entity.Property(e => e.Email)
+            .HasConversion(new OptionValueConverter<string>());
+
+        entity.Property(e => e.Age)
+            .HasConversion(new OptionStructValueConverter<int>());
+    });
+}
+```
+
+### Query Extensions
+
+Safely query data with Option-returning methods:
+
+```csharp
+// Returns Option<User> instead of throwing or returning null
+var user = await context.Users.FirstOrNoneAsync(u => u.Name == "John");
+
+user.Match(
+    some: u => Console.WriteLine($"Found: {u.Name}"),
+    none: () => Console.WriteLine("User not found")
+);
+
+// Other query extensions
+await context.Users.SingleOrNoneAsync(u => u.Id == id);
+await context.Users.ElementAtOrNoneAsync(0);
+await context.Users.LastOrNoneAsync(u => u.IsActive);
+```
+
+### Available Extensions
+
+| Method | Description |
+|--------|-------------|
+| `FirstOrNone()` | First element or None |
+| `FirstOrNoneAsync()` | Async variant |
+| `SingleOrNone()` | Single element or None (throws if multiple) |
+| `SingleOrNoneAsync()` | Async variant |
+| `ElementAtOrNone(index)` | Element at index or None |
+| `ElementAtOrNoneAsync(index)` | Async variant |
+| `LastOrNone()` | Last element or None |
+| `LastOrNoneAsync()` | Async variant |
 
 ---
 
