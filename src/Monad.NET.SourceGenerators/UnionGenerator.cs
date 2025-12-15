@@ -48,13 +48,16 @@ public class UnionGenerator : IIncrementalGenerator
     private static UnionInfo? GetUnionInfo(GeneratorAttributeSyntaxContext context)
     {
         var symbol = context.TargetSymbol as INamedTypeSymbol;
-        if (symbol is null) return null;
+        if (symbol is null)
+            return null;
 
         // Must be abstract and partial
-        if (!symbol.IsAbstract) return null;
+        if (!symbol.IsAbstract)
+            return null;
 
         var syntax = context.TargetNode as TypeDeclarationSyntax;
-        if (syntax is null) return null;
+        if (syntax is null)
+            return null;
 
         if (!syntax.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword)))
             return null;
@@ -71,7 +74,8 @@ public class UnionGenerator : IIncrementalGenerator
             }
         }
 
-        if (cases.Count == 0) return null;
+        if (cases.Count == 0)
+            return null;
 
         var ns = symbol.ContainingNamespace.IsGlobalNamespace
             ? null
