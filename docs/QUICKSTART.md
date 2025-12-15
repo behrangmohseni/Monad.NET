@@ -129,6 +129,23 @@ var ui = userData.Match(
 );
 ```
 
+### State - Thread State Through Computations
+
+```csharp
+// Counter without mutable variables
+var increment = State<int, Unit>.Modify(s => s + 1);
+var getCount = State<int, int>.Get();
+
+var computation = 
+    from _ in increment
+    from __ in increment
+    from count in getCount
+    select count;
+
+var (value, finalState) = computation.Run(0);
+// value = 2, finalState = 2
+```
+
 ## Common Patterns
 
 ### Railway-Oriented Programming
