@@ -43,6 +43,7 @@ var result = user.ToOption()
   - [Reader\<R, A\>](#readerr-a)
   - [State\<S, A\>](#states-a)
 - [Advanced Usage](#advanced-usage)
+- [Source Generators](#source-generators)
 - [ASP.NET Core Integration](#aspnet-core-integration)
 - [Real-World Examples](#real-world-examples)
 - [Performance](#performance)
@@ -118,6 +119,16 @@ dotnet add package Monad.NET.AspNetCore
 ```
 
 This adds `IActionResult` extensions, middleware, and `ValidationProblemDetails` support.
+
+### Source Generators (Optional)
+
+For compile-time discriminated union support with exhaustive pattern matching:
+
+```bash
+dotnet add package Monad.NET.SourceGenerators
+```
+
+This generates `Match` methods for your custom union types, ensuring all cases are handled at compile time.
 
 ---
 
@@ -933,6 +944,126 @@ public decimal CalculateAverageOrderValue(NonEmptyList<Order> orders)
     return total / orders.Count;
 }
 ```
+
+---
+
+## Source Generators
+
+The `Monad.NET.SourceGenerators` package provides compile-time code generation for discriminated unions, reducing boilerplate and ensuring exhaustive pattern matching:
+
+```bash
+dotnet add package Monad.NET.SourceGenerators
+```
+
+### Creating Discriminated Unions
+
+Mark your abstract record or class with `[Union]` and the generator creates `Match` methods automatically:
+
+```csharp
+using Monad.NET;
+
+[Union]
+public abstract partial record Shape
+{
+    public partial record Circle(double Radius) : Shape;
+    public partial record Rectangle(double Width, double Height) : Shape;
+    public partial record Triangle(double Base, double Height) : Shape;
+}
+```
+
+### Generated Match Methods
+
+The generator creates both returning and void Match methods:
+
+```csharp
+// Pattern matching with return value
+Shape shape = new Shape.Circle(5.0);
+
+var area = shape.Match(
+    circle: c => Math.PI * c.Radius * c.Radius,
+    rectangle: r => r.Width * r.Height,
+    triangle: t => 0.5 * t.Base * t.Height
+);
+
+// Pattern matching with side effects
+shape.Match(
+    circle: c => Console.WriteLine($"Circle: r={c.Radius}"),
+    rectangle: r => Console.WriteLine($"Rectangle: {r.Width}x{r.Height}"),
+    triangle: t => Console.WriteLine($"Triangle: b={t.Base}, h={t.Height}")
+);
+```
+
+### Real-World Examples
+
+**Domain Events:**
+
+```csharp
+[Union]
+public abstract partial record DomainEvent
+{
+    public partial record UserRegistered(Guid UserId, string Email) : DomainEvent;
+    public partial record OrderPlaced(Guid OrderId, decimal Total) : DomainEvent;
+    public partial record PaymentReceived(Guid PaymentId, decimal Amount) : DomainEvent;
+}
+
+// Exhaustive handling - compiler ensures all cases are covered
+void HandleEvent(DomainEvent evt) => evt.Match(
+    userRegistered: e => SendWelcomeEmail(e.Email),
+    orderPlaced: e => NotifyWarehouse(e.OrderId),
+    paymentReceived: e => UpdateLedger(e.PaymentId, e.Amount)
+);
+```
+
+**Expression Trees:**
+
+```csharp
+[Union]
+public abstract partial record Expr
+{
+    public partial record Literal(int Value) : Expr;
+    public partial record Add(Expr Left, Expr Right) : Expr;
+    public partial record Multiply(Expr Left, Expr Right) : Expr;
+}
+
+int Evaluate(Expr expr) => expr.Match(
+    literal: l => l.Value,
+    add: a => Evaluate(a.Left) + Evaluate(a.Right),
+    multiply: m => Evaluate(m.Left) * Evaluate(m.Right)
+);
+
+// (2 + 3) * 4 = 20
+var expr = new Expr.Multiply(
+    new Expr.Add(new Expr.Literal(2), new Expr.Literal(3)),
+    new Expr.Literal(4)
+);
+var result = Evaluate(expr); // 20
+```
+
+**HTTP Responses:**
+
+```csharp
+[Union]
+public abstract partial record ApiResponse<T>
+{
+    public partial record Success(T Data) : ApiResponse<T>;
+    public partial record NotFound(string Message) : ApiResponse<T>;
+    public partial record ValidationError(IReadOnlyList<string> Errors) : ApiResponse<T>;
+    public partial record ServerError(Exception Ex) : ApiResponse<T>;
+}
+
+IActionResult ToActionResult<T>(ApiResponse<T> response) => response.Match(
+    success: s => new OkObjectResult(s.Data),
+    notFound: n => new NotFoundObjectResult(n.Message),
+    validationError: v => new BadRequestObjectResult(v.Errors),
+    serverError: e => new ObjectResult(e.Ex.Message) { StatusCode = 500 }
+);
+```
+
+### Requirements
+
+- Types must be `abstract` and `partial`
+- Nested types must inherit from the parent type
+- Works with both `record` and `class` types
 
 ---
 
