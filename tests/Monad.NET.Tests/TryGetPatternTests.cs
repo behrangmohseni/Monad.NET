@@ -241,8 +241,8 @@ public class TryGetPatternTests
     {
         // Simulating dictionary-like usage
         Option<string> GetConfig(string key) =>
-            key == "api_url" 
-                ? Option<string>.Some("https://api.example.com") 
+            key == "api_url"
+                ? Option<string>.Some("https://api.example.com")
                 : Option<string>.None();
 
         // Familiar dictionary TryGetValue pattern
