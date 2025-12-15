@@ -110,6 +110,26 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     }
 
     /// <summary>
+    /// Tries to get the contained value using the familiar C# TryGet pattern.
+    /// </summary>
+    /// <param name="value">When this method returns, contains the value if Some; otherwise, the default value.</param>
+    /// <returns>True if the Option contains a value; otherwise, false.</returns>
+    /// <example>
+    /// <code>
+    /// if (option.TryGet(out var value))
+    /// {
+    ///     Console.WriteLine($"Got: {value}");
+    /// }
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool TryGet(out T? value)
+    {
+        value = _value;
+        return _isSome;
+    }
+
+    /// <summary>
     /// Maps an Option&lt;T&gt; to Option&lt;U&gt; by applying a function to a contained value.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

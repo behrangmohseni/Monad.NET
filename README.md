@@ -191,6 +191,12 @@ var chained = some.AndThen(x => LookupValue(x));       // Chains Option-returnin
 var value = some.UnwrapOr(0);                          // 42
 var computed = none.UnwrapOrElse(() => ComputeDefault()); // Lazy evaluation
 
+// TryGet pattern (familiar C# idiom)
+if (some.TryGet(out var result))
+{
+    Console.WriteLine($"Got: {result}");               // Prints: Got: 42
+}
+
 // Pattern matching
 var message = some.Match(
     some: v => $"Found: {v}",
@@ -226,6 +232,16 @@ var pipeline = ParseInput(raw)
 // Recovery strategies
 var recovered = err.OrElse(e => FallbackStrategy(e));
 var withDefault = err.UnwrapOr(defaultValue);
+
+// TryGet pattern (familiar C# idiom)
+if (ok.TryGet(out var value))
+{
+    Console.WriteLine($"Success: {value}");
+}
+if (err.TryGetError(out var error))
+{
+    Console.WriteLine($"Error: {error}");
+}
 ```
 
 **When to use:** Operations that can fail with meaningful error information.
@@ -321,6 +337,16 @@ var positive = Try<int>.Of(() => int.Parse(input))
 // Conversion
 var asResult = result.ToResult(ex => ex.Message);
 var asOption = result.ToOption();  // Success → Some, Failure → None
+
+// TryGet pattern (familiar C# idiom)
+if (result.TryGet(out var value))
+{
+    Console.WriteLine($"Parsed: {value}");
+}
+if (result.TryGetException(out var ex))
+{
+    Console.WriteLine($"Exception: {ex.Message}");
+}
 ```
 
 **When to use:** Interfacing with code that throws exceptions, parsing, I/O operations.

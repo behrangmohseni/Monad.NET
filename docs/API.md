@@ -49,6 +49,7 @@ Represents an optional value - either `Some(value)` or `None`.
 | `Expect(string message)` | `T` | Gets value or throws with message |
 | `UnwrapOr(T default)` | `T` | Gets value or returns default |
 | `UnwrapOrElse(Func<T>)` | `T` | Gets value or computes default |
+| `TryGet(out T? value)` | `bool` | C#-style TryGet pattern |
 | `Map<U>(Func<T, U>)` | `Option<U>` | Transforms the value |
 | `Filter(Func<T, bool>)` | `Option<T>` | Filters by predicate |
 | `AndThen<U>(Func<T, Option<U>>)` | `Option<U>` | Chains operations (flatMap) |
@@ -106,6 +107,8 @@ Represents success (`Ok`) or failure (`Err`).
 | `Expect(string)` | `T` | Gets value or throws with message |
 | `UnwrapOr(T)` | `T` | Gets value or returns default |
 | `UnwrapOrElse(Func<E, T>)` | `T` | Gets value or computes from error |
+| `TryGet(out T? value)` | `bool` | C#-style TryGet pattern |
+| `TryGetError(out E? error)` | `bool` | C#-style TryGet for error |
 | `Map<U>(Func<T, U>)` | `Result<U, E>` | Transforms the Ok value |
 | `MapErr<F>(Func<E, F>)` | `Result<T, F>` | Transforms the Err value |
 | `AndThen<U>(Func<T, Result<U, E>>)` | `Result<U, E>` | Chains operations |
@@ -239,6 +242,8 @@ Captures exceptions as values.
 | `GetOrElse(T)` | `T` | Gets value or default |
 | `GetOrElse(Func<T>)` | `T` | Gets value or computes |
 | `GetOrElse(Func<Exception, T>)` | `T` | Gets value or computes from exception |
+| `TryGet(out T? value)` | `bool` | C#-style TryGet pattern |
+| `TryGetException(out Exception? ex)` | `bool` | C#-style TryGet for exception |
 | `Map<U>(Func<T, U>)` | `Try<U>` | Transforms value |
 | `FlatMap<U>(Func<T, Try<U>>)` | `Try<U>` | Chains operations |
 | `Filter(predicate)` | `Try<T>` | Filters by predicate |
