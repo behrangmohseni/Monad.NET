@@ -178,6 +178,64 @@ var result = await Option<int>.Some(42)
     .MapAsync(async x => await ProcessAsync(x));
 ```
 
+## Source Generators
+
+Create type-safe discriminated unions with auto-generated `Match` methods:
+
+```bash
+dotnet add package Monad.NET.SourceGenerators
+```
+
+```csharp
+using Monad.NET;
+
+[Union]
+public abstract partial record PaymentMethod
+{
+    public partial record CreditCard(string Number, string Expiry) : PaymentMethod;
+    public partial record PayPal(string Email) : PaymentMethod;
+    public partial record BankTransfer(string AccountNumber) : PaymentMethod;
+}
+
+// Exhaustive pattern matching - compiler error if case is missing
+string Describe(PaymentMethod method) => method.Match(
+    creditCard: cc => $"Card ending in {cc.Number[^4..]}",
+    payPal: pp => $"PayPal: {pp.Email}",
+    bankTransfer: bt => $"Account: {bt.AccountNumber}"
+);
+```
+
+## Entity Framework Core Integration
+
+Use `Option<T>` as entity properties with seamless database mapping:
+
+```bash
+dotnet add package Monad.NET.EntityFrameworkCore
+```
+
+```csharp
+using Monad.NET;
+using Monad.NET.EntityFrameworkCore;
+
+public class User
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = "";
+    public Option<string> Email { get; set; }
+    public Option<int> Age { get; set; }
+}
+
+// Query with Option-returning methods
+var user = await context.Users.FirstOrNoneAsync(u => u.Id == id);
+user.Match(
+    someFunc: u => Console.WriteLine($"Found: {u.Name}"),
+    noneFunc: () => Console.WriteLine("User not found")
+);
+
+// Available methods: FirstOrNone, SingleOrNone, ElementAtOrNone, LastOrNone
+// All have async variants
+```
+
 ## Next Steps
 
 - Read the full [README](../README.md) for detailed documentation
