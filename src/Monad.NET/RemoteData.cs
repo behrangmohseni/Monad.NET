@@ -369,6 +369,54 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>
     {
         return !left.Equals(right);
     }
+
+    /// <summary>
+    /// Deconstructs the RemoteData into its components for pattern matching.
+    /// </summary>
+    /// <param name="data">The success data, or default if not Success.</param>
+    /// <param name="isSuccess">True if the RemoteData is in Success state.</param>
+    /// <example>
+    /// <code>
+    /// var (data, isSuccess) = remoteData;
+    /// if (isSuccess)
+    ///     Console.WriteLine($"Data: {data}");
+    /// </code>
+    /// </example>
+    public void Deconstruct(out T? data, out bool isSuccess)
+    {
+        data = _data;
+        isSuccess = _state == RemoteDataState.Success;
+    }
+
+    /// <summary>
+    /// Deconstructs the RemoteData into all its components for pattern matching.
+    /// </summary>
+    /// <param name="data">The success data, or default if not Success.</param>
+    /// <param name="error">The error, or default if not Failure.</param>
+    /// <param name="isNotAsked">True if in NotAsked state.</param>
+    /// <param name="isLoading">True if in Loading state.</param>
+    /// <param name="isSuccess">True if in Success state.</param>
+    /// <param name="isFailure">True if in Failure state.</param>
+    /// <example>
+    /// <code>
+    /// var (data, error, isNotAsked, isLoading, isSuccess, isFailure) = remoteData;
+    /// </code>
+    /// </example>
+    public void Deconstruct(
+        out T? data,
+        out TErr? error,
+        out bool isNotAsked,
+        out bool isLoading,
+        out bool isSuccess,
+        out bool isFailure)
+    {
+        data = _data;
+        error = _error;
+        isNotAsked = _state == RemoteDataState.NotAsked;
+        isLoading = _state == RemoteDataState.Loading;
+        isSuccess = _state == RemoteDataState.Success;
+        isFailure = _state == RemoteDataState.Failure;
+    }
 }
 
 /// <summary>
