@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-alpha.6] - 2025-12-15
+
+### Added
+
+- **Monad.NET.AspNetCore** - New ASP.NET Core integration package
+  - IActionResult extensions for `Option`, `Result`, `Validation`, `Either`, `Try`
+  - `ToActionResult()`, `ToCreatedResult()`, `ToNoContentResult()` extensions
+  - `ToValidationProblemResult()` for RFC 7807 ValidationProblemDetails
+  - `ResultExceptionMiddleware` for global exception handling
+  - Async support with `ToActionResultAsync()` variants
+  - 29 comprehensive tests
+
+- **Deconstruction support** for all monad types
+  - `Option<T>`: `var (value, isSome) = option`
+  - `Result<T, E>`: `var (value, isOk)` or `var (value, error, isOk)`
+  - `Either<L, R>`: `var (left, right, isRight)`
+  - `Try<T>`: `var (value, isSuccess)` or `var (value, exception, isSuccess)`
+  - `Validation<T, E>`: `var (value, isValid)` or `var (value, errors, isValid)`
+  - `RemoteData<T, E>`: `var (data, isSuccess)` or full state deconstruction
+  - 29 comprehensive tests
+
+---
+
 ## [1.0.0-alpha.5] - 2025-12-15
 
 ### Added
