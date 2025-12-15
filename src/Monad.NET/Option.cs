@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace Monad.NET;
@@ -429,18 +430,21 @@ public static class OptionExtensions
 /// </summary>
 internal static class ThrowHelper
 {
+    [DoesNotReturn]
     [MethodImpl(MethodImplOptions.NoInlining)]
     public static void ThrowInvalidOperation(string message)
     {
         throw new InvalidOperationException(message);
     }
 
+    [DoesNotReturn]
     [MethodImpl(MethodImplOptions.NoInlining)]
     public static void ThrowArgumentNull(string paramName)
     {
         throw new ArgumentNullException(paramName);
     }
 
+    [DoesNotReturn]
     [MethodImpl(MethodImplOptions.NoInlining)]
     public static void ThrowArgumentNull(string paramName, string message)
     {
