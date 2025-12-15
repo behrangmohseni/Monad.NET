@@ -8,7 +8,7 @@
     
     <!-- Package Info -->
     <PackageId>Monad.NET.EntityFrameworkCore</PackageId>
-    <PackageVersion>1.0.0-alpha.7</PackageVersion>
+    <PackageVersion>1.0.0-alpha.8</PackageVersion>
     <Authors>Behrang Mohseni</Authors>
     <Company>behrangmohseni.com</Company>
     <Product>Monad.NET.EntityFrameworkCore</Product>
