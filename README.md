@@ -197,6 +197,12 @@ if (some.TryGet(out var result))
     Console.WriteLine($"Got: {result}");               // Prints: Got: 42
 }
 
+// Side effects with Tap (logging, debugging)
+var processed = some
+    .Tap(x => Console.WriteLine($"Processing: {x}"))
+    .Map(x => x * 2)
+    .TapNone(() => Console.WriteLine("No value to process"));
+
 // Pattern matching
 var message = some.Match(
     some: v => $"Found: {v}",
@@ -429,9 +435,15 @@ var sum = list.Reduce((a, b) => a + b);          // 15 (no seed needed)
 var doubled = list.Map(x => x * 2);
 var expanded = list.FlatMap(x => NonEmptyList<int>.Of(x, x * 10));
 
+// Side effects with Tap
+list.Tap(x => Console.WriteLine(x))              // Logs each element
+    .TapIndexed((x, i) => Console.WriteLine($"{i}: {x}"));
+
 // Filter returns Option (result might be empty)
 var filtered = list.Filter(x => x > 10);         // None
 ```
+
+**Methods:** `Map`, `MapIndexed`, `FlatMap`, `Filter`, `Reduce`, `Fold`, `Tap`, `TapIndexed`
 
 **When to use:** When empty collections are invalid states (config items, selected options, etc.).
 
@@ -456,7 +468,14 @@ var computation = Writer<List<string>, int>.Tell(1, new List<string> { "Started 
 Console.WriteLine($"Result: {computation.Value}");  // 12
 Console.WriteLine($"Log: {string.Join(" → ", computation.Log)}");
 // Started with 1 → Doubled to 2 → Added 10, result: 12
+
+// Side effects with Tap
+var debugWriter = Writer<string, int>.Of(42, "init")
+    .Tap(x => Console.WriteLine($"Value: {x}"))
+    .TapLog(log => Console.WriteLine($"Log so far: {log}"));
 ```
+
+**Methods:** `Map`, `FlatMap`, `BiMap`, `Match`, `Tap`, `TapLog`
 
 **When to use:** Audit trails, computation tracing, accumulating metadata.
 
@@ -498,7 +517,14 @@ var workflow = Reader<AppServices, string>.Asks(s => s.Users)
 // Execute with environment
 var services = new AppServices(userRepo, emailService, logger);
 await sendWelcome.Run(services);
+
+// Side effects with Tap
+var debugReader = Reader<AppServices, string>.Asks(s => s.Users.GetName())
+    .Tap(name => Console.WriteLine($"Got user: {name}"))
+    .TapEnv(env => Console.WriteLine($"Using logger: {env.Logger}"));
 ```
+
+**Methods:** `Map`, `FlatMap`, `Tap`, `TapEnv`, `WithEnvironment`
 
 **When to use:** Passing configuration/services through call chains without parameter drilling.
 
@@ -564,6 +590,8 @@ var result = stackOps.Run(new List<int>());
 - `Map(f)` — Transform the value
 - `AndThen(f)` / `FlatMap(f)` / `Bind(f)` — Chain computations
 - `Zip(other)` / `ZipWith(other, f)` — Combine two state computations
+- `Tap(action)` — Execute side effect with value (logging/debugging)
+- `TapState(action)` — Execute side effect with state
 
 **Execution:**
 - `Run(initialState)` — Get both value and final state
