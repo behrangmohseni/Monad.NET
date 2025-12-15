@@ -271,6 +271,26 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
     {
         return !left.Equals(right);
     }
+
+    /// <summary>
+    /// Deconstructs the Either into its components for pattern matching.
+    /// </summary>
+    /// <param name="left">The Left value, or default if Right.</param>
+    /// <param name="right">The Right value, or default if Left.</param>
+    /// <param name="isRight">True if the Either is Right.</param>
+    /// <example>
+    /// <code>
+    /// var (left, right, isRight) = either;
+    /// Console.WriteLine(isRight ? $"Right: {right}" : $"Left: {left}");
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Deconstruct(out TLeft? left, out TRight? right, out bool isRight)
+    {
+        left = _left;
+        right = _right;
+        isRight = _isRight;
+    }
 }
 
 /// <summary>

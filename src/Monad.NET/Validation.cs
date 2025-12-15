@@ -300,6 +300,45 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     {
         return !left.Equals(right);
     }
+
+    /// <summary>
+    /// Deconstructs the Validation into its components for pattern matching.
+    /// </summary>
+    /// <param name="value">The valid value, or default if Invalid.</param>
+    /// <param name="isValid">True if the Validation is valid.</param>
+    /// <example>
+    /// <code>
+    /// var (value, isValid) = validation;
+    /// if (isValid)
+    ///     Console.WriteLine($"Valid: {value}");
+    /// </code>
+    /// </example>
+    public void Deconstruct(out T? value, out bool isValid)
+    {
+        value = _value;
+        isValid = _isValid;
+    }
+
+    /// <summary>
+    /// Deconstructs the Validation into all its components for pattern matching.
+    /// </summary>
+    /// <param name="value">The valid value, or default if Invalid.</param>
+    /// <param name="errors">The errors, or empty list if Valid.</param>
+    /// <param name="isValid">True if the Validation is valid.</param>
+    /// <example>
+    /// <code>
+    /// var (value, errors, isValid) = validation;
+    /// if (!isValid)
+    ///     foreach (var error in errors)
+    ///         Console.WriteLine($"Error: {error}");
+    /// </code>
+    /// </example>
+    public void Deconstruct(out T? value, out IReadOnlyList<TErr> errors, out bool isValid)
+    {
+        value = _value;
+        errors = _errors ?? Array.Empty<TErr>();
+        isValid = _isValid;
+    }
 }
 
 /// <summary>
