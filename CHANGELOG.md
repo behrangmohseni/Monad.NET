@@ -151,8 +151,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **State\<S, A\>** - Stateful computations without mutable variables
+  - `Pure`, `Return`, `Get`, `Put`, `Modify`, `Gets` constructors
+  - `Run`, `Eval`, `Exec` for execution
+  - `Map`, `AndThen`/`FlatMap`/`Bind` for composition
+  - `Apply`, `Zip`, `ZipWith` for combining computations
+  - `Sequence`, `Traverse`, `Replicate`, `WhileM` extensions
+  - Full LINQ query syntax support
+  - 33 comprehensive tests
+
 ### Planned
-- Performance benchmarks
 - ASP.NET Core integration helpers
 - Entity Framework extensions
 - Source generators for boilerplate reduction

@@ -41,6 +41,7 @@ var result = user.ToOption()
   - [NonEmptyList\<T\>](#nonemptylistt)
   - [Writer\<W, T\>](#writerw-t)
   - [Reader\<R, A\>](#readerr-a)
+  - [State\<S, A\>](#states-a)
 - [Advanced Usage](#advanced-usage)
 - [Real-World Examples](#real-world-examples)
 - [Performance](#performance)
@@ -84,6 +85,7 @@ Modern .NET applications demand reliability. Yet we continue to fight the same b
 | A list must have at least one item | `NonEmptyList<T>` |
 | Need to accumulate logs/traces | `Writer<W, T>` |
 | Dependency injection without DI container | `Reader<R, A>` |
+| Thread state through computations | `State<S, A>` |
 | Return one of two different types | `Either<L, R>` |
 
 ---
@@ -447,6 +449,76 @@ await sendWelcome.Run(services);
 ```
 
 **When to use:** Passing configuration/services through call chains without parameter drilling.
+
+---
+
+### State\<S, A\>
+
+Computations that thread state through a sequence of operations without mutable variables.
+
+```csharp
+// Counter example using State monad
+var increment = State<int, Unit>.Modify(s => s + 1);
+var getCount = State<int, int>.Get();
+
+// Chain operations that read/write state
+var computation = 
+    from _ in increment
+    from __ in increment
+    from ___ in increment
+    from count in getCount
+    select count;
+
+var (value, finalState) = computation.Run(0);
+// value = 3, finalState = 3
+
+// Stack example
+State<List<int>, Unit> Push(int x) => 
+    State<List<int>, Unit>.Modify(stack => new List<int>(stack) { x });
+
+State<List<int>, Option<int>> Pop() => 
+    State<List<int>, Option<int>>.Of(stack =>
+    {
+        if (stack.Count == 0)
+            return (Option<int>.None(), stack);
+        
+        var value = stack[^1];
+        var newStack = stack.Take(stack.Count - 1).ToList();
+        return (Option<int>.Some(value), newStack);
+    });
+
+// Push 1, 2, 3 then pop twice
+var stackOps = 
+    from _ in Push(1)
+    from __ in Push(2)
+    from ___ in Push(3)
+    from a in Pop()  // Returns 3
+    from b in Pop()  // Returns 2
+    select (a, b);
+
+var result = stackOps.Run(new List<int>());
+// result.Value = (Some(3), Some(2))
+// result.State = [1]
+```
+
+**Factory Methods:**
+- `State<S, A>.Pure(value)` — Return value without modifying state
+- `State<S, S>.Get()` — Get current state as the value
+- `State<S, Unit>.Put(newState)` — Replace state
+- `State<S, Unit>.Modify(f)` — Transform state using a function
+- `State<S, A>.Gets(selector)` — Extract a value from the state
+
+**Composition:**
+- `Map(f)` — Transform the value
+- `AndThen(f)` / `FlatMap(f)` / `Bind(f)` — Chain computations
+- `Zip(other)` / `ZipWith(other, f)` — Combine two state computations
+
+**Execution:**
+- `Run(initialState)` — Get both value and final state
+- `Eval(initialState)` — Get only the value (discard state)
+- `Exec(initialState)` — Get only the final state (discard value)
+
+**When to use:** Simulators, interpreters, random number generators, stack-based computations, game state, any computation that needs to pass state through without mutable variables.
 
 ---
 

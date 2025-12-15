@@ -19,6 +19,7 @@ Complete API documentation for Monad.NET.
 - [NonEmptyList\<T\>](#nonemptylistt)
 - [Writer\<W, T\>](#writerw-t)
 - [Reader\<R, A\>](#readerr-a)
+- [State\<S, A\>](#states-a)
 
 ---
 
@@ -375,6 +376,68 @@ Computations depending on environment.
 | `Map<B>(Func<A, B>)` | `Reader<R, B>` | Transforms result |
 | `FlatMap<B>(Func<A, Reader<R, B>>)` | `Reader<R, B>` | Chains operations |
 | `WithEnvironment<R2>(Func<R2, R>)` | `Reader<R2, A>` | Transforms environment |
+
+---
+
+## State\<S, A\>
+
+Stateful computations that thread state through operations.
+
+### Constructors
+
+| Method | Description |
+|--------|-------------|
+| `Pure(A value)` | Creates State that returns value without modifying state |
+| `Return(A value)` | Alias for Pure |
+| `Get()` | Creates State that returns the current state |
+| `Put(S newState)` | Creates State that replaces the state |
+| `Modify(Func<S, S>)` | Creates State that transforms the state |
+| `Gets<U>(Func<S, U>)` | Creates State that extracts a value from state |
+| `Of(Func<S, StateResult<S, A>>)` | Creates State from a function |
+| `Of(Func<S, (A, S)>)` | Creates State from a tuple-returning function |
+
+### Properties
+
+`StateResult<S, A>` is returned by `Run`:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `Value` | `A` | The computed value |
+| `State` | `S` | The resulting state |
+
+### Methods
+
+| Method | Return Type | Description |
+|--------|-------------|-------------|
+| `Run(S initialState)` | `StateResult<S, A>` | Executes with initial state |
+| `Eval(S initialState)` | `A` | Executes and returns only value |
+| `Exec(S initialState)` | `S` | Executes and returns only final state |
+| `Map<U>(Func<A, U>)` | `State<S, U>` | Transforms the value |
+| `AndThen<U>(Func<A, State<S, U>>)` | `State<S, U>` | Chains operations |
+| `FlatMap<U>(Func<A, State<S, U>>)` | `State<S, U>` | Alias for AndThen |
+| `Bind<U>(Func<A, State<S, U>>)` | `State<S, U>` | Alias for AndThen |
+| `Apply<U>(State<S, Func<A, U>>)` | `State<S, U>` | Applicative apply |
+| `Zip<U>(State<S, U>)` | `State<S, (A, U)>` | Combines two computations |
+| `ZipWith<U, V>(State<S, U>, Func<A, U, V>)` | `State<S, V>` | Combines with function |
+| `As<U>(U value)` | `State<S, U>` | Replaces value |
+| `Void()` | `State<S, Unit>` | Discards value |
+
+### Extension Methods
+
+| Method | Description |
+|--------|-------------|
+| `Flatten<S, A>(this State<S, State<S, A>>)` | Flattens nested State |
+| `Sequence<S, A>(this IEnumerable<State<S, A>>)` | Sequences collection of States |
+| `Traverse<S, T, U>(this IEnumerable<T>, Func<T, State<S, U>>)` | Map and sequence |
+| `Replicate<S, A>(this State<S, A>, int count)` | Repeats computation n times |
+| `WhileM<S, A>(this State<S, A>, Func<S, bool>)` | Repeats while condition holds |
+
+### LINQ Support
+
+| Method | Description |
+|--------|-------------|
+| `Select` | Map operation |
+| `SelectMany` | FlatMap operation |
 
 ---
 
