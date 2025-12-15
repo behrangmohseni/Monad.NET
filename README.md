@@ -688,6 +688,53 @@ if (!isValid)
 var (data, error, isNotAsked, isLoading, isSuccess, isFailure) = remoteData;
 ```
 
+### Implicit Operators
+
+Many monads support implicit conversion from values for cleaner code:
+
+```csharp
+// Option: value → Some
+Option<int> opt = 42;                     // Same as Option<int>.Some(42)
+Option<string> none = null!;              // Same as Option<string>.None()
+
+// Result: value → Ok
+Result<int, string> result = 42;          // Same as Result<int, string>.Ok(42)
+
+// Either: right value → Right
+Either<string, int> either = 42;          // Same as Either<string, int>.Right(42)
+
+// Try: value → Success, Exception → Failure
+Try<int> success = 42;                    // Same as Try<int>.Success(42)
+Try<int> failure = new Exception("oops"); // Same as Try<int>.Failure(exception)
+
+// Validation: value → Valid
+Validation<int, string> valid = 42;       // Same as Validation<int, string>.Valid(42)
+
+// NonEmptyList: single value → single-element list
+NonEmptyList<int> list = 42;              // Same as NonEmptyList<int>.Of(42)
+
+// RemoteData: value → Success
+RemoteData<int, string> data = 42;        // Same as RemoteData<int, string>.Success(42)
+```
+
+This is especially useful in method returns:
+
+```csharp
+Result<int, string> ValidatePositive(int value)
+{
+    if (value <= 0)
+        return Result<int, string>.Err("Must be positive");
+    return value;  // Implicit conversion to Ok!
+}
+
+Try<int> SafeDivide(int a, int b)
+{
+    if (b == 0)
+        return new DivideByZeroException();  // Implicit to Failure
+    return a / b;  // Implicit to Success
+}
+```
+
 ---
 
 ## Real-World Examples

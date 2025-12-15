@@ -456,6 +456,28 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     }
 
     /// <summary>
+    /// Implicit conversion from T to Try&lt;T&gt; (Success).
+    /// Allows: Try&lt;int&gt; result = 42;
+    /// </summary>
+    /// <param name="value">The success value.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator Try<T>(T value)
+    {
+        return Success(value);
+    }
+
+    /// <summary>
+    /// Implicit conversion from Exception to Try&lt;T&gt; (Failure).
+    /// Allows: Try&lt;int&gt; result = new Exception("error");
+    /// </summary>
+    /// <param name="exception">The exception.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator Try<T>(Exception exception)
+    {
+        return Failure(exception);
+    }
+
+    /// <summary>
     /// Deconstructs the Try into its components for pattern matching.
     /// </summary>
     /// <param name="value">The success value, or default if Failure.</param>

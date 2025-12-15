@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace Monad.NET;
 
 /// <summary>
@@ -368,6 +370,17 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>
     public static bool operator !=(RemoteData<T, TErr> left, RemoteData<T, TErr> right)
     {
         return !left.Equals(right);
+    }
+
+    /// <summary>
+    /// Implicit conversion from T to RemoteData&lt;T, TErr&gt; (Success).
+    /// Allows: RemoteData&lt;int, string&gt; data = 42;
+    /// </summary>
+    /// <param name="data">The success data.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator RemoteData<T, TErr>(T data)
+    {
+        return Success(data);
     }
 
     /// <summary>

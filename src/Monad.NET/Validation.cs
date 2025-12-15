@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace Monad.NET;
 
 /// <summary>
@@ -299,6 +301,17 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     public static bool operator !=(Validation<T, TErr> left, Validation<T, TErr> right)
     {
         return !left.Equals(right);
+    }
+
+    /// <summary>
+    /// Implicit conversion from T to Validation&lt;T, TErr&gt; (Valid).
+    /// Allows: Validation&lt;int, string&gt; v = 42;
+    /// </summary>
+    /// <param name="value">The valid value.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator Validation<T, TErr>(T value)
+    {
+        return Valid(value);
     }
 
     /// <summary>
