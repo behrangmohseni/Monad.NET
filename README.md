@@ -573,6 +573,41 @@ var (successes, failures) = results.Partition();
 var values = options.Choose();  // Only the Some values
 ```
 
+### Deconstruction & Pattern Matching
+
+All monads support C# deconstruction for clean pattern matching:
+
+```csharp
+// Option: var (value, isSome) = option
+var option = Option<int>.Some(42);
+var (value, isSome) = option;
+if (isSome)
+    Console.WriteLine($"Got: {value}");
+
+// Result: var (value, error, isOk) = result
+var result = Result<int, string>.Ok(100);
+var (val, err, isOk) = result;
+Console.WriteLine(isOk ? $"Success: {val}" : $"Error: {err}");
+
+// Try: var (value, exception, isSuccess) = tryResult
+var tryResult = Try<int>.Of(() => int.Parse(input));
+var (parsed, ex, success) = tryResult;
+
+// Either: var (left, right, isRight) = either
+var either = Either<string, int>.Right(42);
+var (l, r, isRight) = either;
+
+// Validation: var (value, errors, isValid) = validation
+var validation = ValidateName(name);
+var (validValue, errors, isValid) = validation;
+if (!isValid)
+    foreach (var error in errors)
+        Console.WriteLine(error);
+
+// RemoteData: full state deconstruction
+var (data, error, isNotAsked, isLoading, isSuccess, isFailure) = remoteData;
+```
+
 ---
 
 ## Real-World Examples
