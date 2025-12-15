@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-alpha.5] - 2025-12-15
+
+### Added
+
+- **State\<S, A\>** - Stateful computations without mutable variables
+  - `Pure`, `Return`, `Get`, `Put`, `Modify`, `Gets` constructors
+  - `Run`, `Eval`, `Exec` for execution
+  - `Map`, `AndThen`/`FlatMap`/`Bind` for composition
+  - `Apply`, `Zip`, `ZipWith` for combining computations
+  - `Sequence`, `Traverse`, `Replicate`, `WhileM` extensions
+  - Full LINQ query syntax support
+  - 33 comprehensive tests
+
+---
+
 ## [1.0.0-alpha.4] - 2025-12-14
 
 ### Performance
@@ -150,17 +165,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 ## [Unreleased]
-
-### Added
-
-- **State\<S, A\>** - Stateful computations without mutable variables
-  - `Pure`, `Return`, `Get`, `Put`, `Modify`, `Gets` constructors
-  - `Run`, `Eval`, `Exec` for execution
-  - `Map`, `AndThen`/`FlatMap`/`Bind` for composition
-  - `Apply`, `Zip`, `ZipWith` for combining computations
-  - `Sequence`, `Traverse`, `Replicate`, `WhileM` extensions
-  - Full LINQ query syntax support
-  - 33 comprehensive tests
 
 ### Planned
 - ASP.NET Core integration helpers
