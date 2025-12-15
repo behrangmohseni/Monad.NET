@@ -414,6 +414,45 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     {
         return !left.Equals(right);
     }
+
+    /// <summary>
+    /// Deconstructs the Try into its components for pattern matching.
+    /// </summary>
+    /// <param name="value">The success value, or default if Failure.</param>
+    /// <param name="isSuccess">True if the computation succeeded.</param>
+    /// <example>
+    /// <code>
+    /// var (value, isSuccess) = tryResult;
+    /// if (isSuccess)
+    ///     Console.WriteLine($"Got: {value}");
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Deconstruct(out T? value, out bool isSuccess)
+    {
+        value = _value;
+        isSuccess = _isSuccess;
+    }
+
+    /// <summary>
+    /// Deconstructs the Try into all its components for pattern matching.
+    /// </summary>
+    /// <param name="value">The success value, or default if Failure.</param>
+    /// <param name="exception">The exception, or null if Success.</param>
+    /// <param name="isSuccess">True if the computation succeeded.</param>
+    /// <example>
+    /// <code>
+    /// var (value, exception, isSuccess) = tryResult;
+    /// Console.WriteLine(isSuccess ? $"Value: {value}" : $"Error: {exception?.Message}");
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Deconstruct(out T? value, out Exception? exception, out bool isSuccess)
+    {
+        value = _value;
+        exception = _exception;
+        isSuccess = _isSuccess;
+    }
 }
 
 /// <summary>

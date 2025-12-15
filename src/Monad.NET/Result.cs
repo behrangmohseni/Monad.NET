@@ -309,6 +309,45 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     {
         return !left.Equals(right);
     }
+
+    /// <summary>
+    /// Deconstructs the Result into its components for pattern matching.
+    /// </summary>
+    /// <param name="value">The success value, or default if Err.</param>
+    /// <param name="isOk">True if the Result is Ok.</param>
+    /// <example>
+    /// <code>
+    /// var (value, isOk) = result;
+    /// if (isOk)
+    ///     Console.WriteLine($"Success: {value}");
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Deconstruct(out T? value, out bool isOk)
+    {
+        value = _value;
+        isOk = _isOk;
+    }
+
+    /// <summary>
+    /// Deconstructs the Result into all its components for pattern matching.
+    /// </summary>
+    /// <param name="value">The success value, or default if Err.</param>
+    /// <param name="error">The error value, or default if Ok.</param>
+    /// <param name="isOk">True if the Result is Ok.</param>
+    /// <example>
+    /// <code>
+    /// var (value, error, isOk) = result;
+    /// Console.WriteLine(isOk ? $"Value: {value}" : $"Error: {error}");
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Deconstruct(out T? value, out TErr? error, out bool isOk)
+    {
+        value = _value;
+        error = _error;
+        isOk = _isOk;
+    }
 }
 
 /// <summary>

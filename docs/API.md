@@ -59,6 +59,7 @@ Represents an optional value - either `Some(value)` or `None`.
 | `OkOr<E>(E error)` | `Result<T, E>` | Converts to Result |
 | `OkOrElse<E>(Func<E>)` | `Result<T, E>` | Converts to Result with lazy error |
 | `Tap(Action<T>)` | `Option<T>` | Executes action if Some |
+| `Deconstruct(out T?, out bool)` | `void` | Deconstructs to `(value, isSome)` |
 
 ### Extension Methods
 
@@ -114,6 +115,8 @@ Represents success (`Ok`) or failure (`Err`).
 | `TapErr(Action<E>)` | `Result<T, E>` | Executes action if Err |
 | `Ok()` | `Option<T>` | Converts Ok to Some |
 | `Err()` | `Option<E>` | Converts Err to Some |
+| `Deconstruct(out T?, out bool)` | `void` | Deconstructs to `(value, isOk)` |
+| `Deconstruct(out T?, out E?, out bool)` | `void` | Deconstructs to `(value, error, isOk)` |
 
 ### Static Methods
 
@@ -165,6 +168,7 @@ Represents a value of one of two types.
 | `Match<U>(leftFunc, rightFunc)` | `U` | Pattern matching |
 | `ToResult()` | `Result<R, L>` | Converts to Result |
 | `ToOption()` | `Option<R>` | Right to Some, Left to None |
+| `Deconstruct(out L?, out R?, out bool)` | `void` | Deconstructs to `(left, right, isRight)` |
 
 ---
 
@@ -201,6 +205,8 @@ Accumulates errors instead of short-circuiting.
 | `Match<U>(validFunc, invalidFunc)` | `U` | Pattern matching |
 | `ToResult()` | `Result<T, IReadOnlyList<E>>` | Converts to Result |
 | `ToOption()` | `Option<T>` | Valid to Some |
+| `Deconstruct(out T?, out bool)` | `void` | Deconstructs to `(value, isValid)` |
+| `Deconstruct(out T?, out IReadOnlyList<E>, out bool)` | `void` | Deconstructs to `(value, errors, isValid)` |
 
 ---
 
@@ -242,6 +248,8 @@ Captures exceptions as values.
 | `Match<U>(successFunc, failureFunc)` | `U` | Pattern matching |
 | `ToResult<E>(Func<Exception, E>)` | `Result<T, E>` | Converts to Result |
 | `ToOption()` | `Option<T>` | Success to Some |
+| `Deconstruct(out T?, out bool)` | `void` | Deconstructs to `(value, isSuccess)` |
+| `Deconstruct(out T?, out Exception?, out bool)` | `void` | Deconstructs to `(value, exception, isSuccess)` |
 
 ---
 
@@ -282,6 +290,8 @@ Tracks async data loading states.
 | `IsNotLoaded()` | `bool` | True if NotAsked or Loading |
 | `ToResult(notAskedErr, loadingErr)` | `Result<T, E>` | Converts to Result |
 | `ToOption()` | `Option<T>` | Success to Some |
+| `Deconstruct(out T?, out bool)` | `void` | Deconstructs to `(data, isSuccess)` |
+| `Deconstruct(out T?, out E?, out bool, out bool, out bool, out bool)` | `void` | Full state deconstruction |
 
 ---
 

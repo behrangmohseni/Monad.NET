@@ -289,6 +289,25 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     }
 
     /// <summary>
+    /// Deconstructs the Option into its components for pattern matching.
+    /// </summary>
+    /// <param name="value">The contained value, or default if None.</param>
+    /// <param name="isSome">True if the Option contains a value.</param>
+    /// <example>
+    /// <code>
+    /// var (value, isSome) = option;
+    /// if (isSome)
+    ///     Console.WriteLine($"Got: {value}");
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Deconstruct(out T? value, out bool isSome)
+    {
+        value = _value;
+        isSome = _isSome;
+    }
+
+    /// <summary>
     /// Implicit conversion from T to Option&lt;T&gt;.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
