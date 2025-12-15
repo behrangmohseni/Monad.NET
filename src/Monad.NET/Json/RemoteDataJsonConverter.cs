@@ -106,4 +106,3 @@ public class RemoteDataJsonConverterFactory : JsonConverterFactory
         return (JsonConverter?)Activator.CreateInstance(converterType);
     }
 }
-

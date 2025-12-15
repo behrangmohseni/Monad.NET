@@ -75,4 +75,3 @@ public class NonEmptyListJsonConverterFactory : JsonConverterFactory
         return (JsonConverter?)Activator.CreateInstance(converterType);
     }
 }
-
