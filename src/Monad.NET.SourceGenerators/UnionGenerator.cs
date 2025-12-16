@@ -125,13 +125,13 @@ public class UnionGenerator : IIncrementalGenerator
             {
                 var caseName = member.Name;
                 var camelCaseName = char.ToLowerInvariant(caseName[0]) + caseName.Substring(1);
-                
+
                 // Get constructor parameters for factory method generation
                 var primaryCtor = member.Constructors
                     .Where(c => !c.IsImplicitlyDeclared && c.Parameters.Length > 0)
                     .OrderByDescending(c => c.Parameters.Length)
                     .FirstOrDefault();
-                
+
                 var parameters = primaryCtor?.Parameters
                     .Select(p => new UnionCaseParameter(
                         p.Name,
@@ -140,8 +140,8 @@ public class UnionGenerator : IIncrementalGenerator
                     .ToImmutableArray() ?? ImmutableArray<UnionCaseParameter>.Empty;
 
                 cases.Add(new UnionCase(
-                    caseName, 
-                    member.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat), 
+                    caseName,
+                    member.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
                     camelCaseName,
                     parameters));
             }
@@ -454,10 +454,10 @@ internal sealed class UnionInfo
     public bool GenerateAsOptionMethods { get; }
 
     public UnionInfo(
-        string name, 
-        string fullTypeName, 
-        string? ns, 
-        ImmutableArray<UnionCase> cases, 
+        string name,
+        string fullTypeName,
+        string? ns,
+        ImmutableArray<UnionCase> cases,
         bool isRecord,
         bool generateFactoryMethods,
         bool generateAsOptionMethods)

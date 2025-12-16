@@ -418,7 +418,7 @@ public class UnionGeneratorTests
     }
 
     private static (ImmutableArray<Diagnostic> Diagnostics, string Output) RunGenerator(
-        string source, 
+        string source,
         bool includeMonadReference = false)
     {
         var syntaxTree = CSharpSyntaxTree.ParseText(source);
