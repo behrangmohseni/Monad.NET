@@ -16,6 +16,8 @@ public static class MonadCollectionExtensions
     /// </summary>
     public static Option<IEnumerable<T>> Sequence<T>(this IEnumerable<Option<T>> options)
     {
+        ArgumentNullException.ThrowIfNull(options);
+
         var result = new List<T>();
 
         foreach (var option in options)
@@ -38,6 +40,9 @@ public static class MonadCollectionExtensions
         this IEnumerable<T> source,
         Func<T, Option<U>> selector)
     {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(selector);
+
         var result = new List<U>();
 
         foreach (var item in source)
@@ -58,6 +63,8 @@ public static class MonadCollectionExtensions
     /// </summary>
     public static IEnumerable<T> Choose<T>(this IEnumerable<Option<T>> options)
     {
+        ArgumentNullException.ThrowIfNull(options);
+
         foreach (var option in options)
         {
             if (option.IsSome)
@@ -72,6 +79,9 @@ public static class MonadCollectionExtensions
         this IEnumerable<T> source,
         Func<T, Option<U>> selector)
     {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(selector);
+
         foreach (var item in source)
         {
             var option = selector(item);
@@ -85,6 +95,8 @@ public static class MonadCollectionExtensions
     /// </summary>
     public static Option<T> FirstSome<T>(this IEnumerable<Option<T>> options)
     {
+        ArgumentNullException.ThrowIfNull(options);
+
         foreach (var option in options)
         {
             if (option.IsSome)
@@ -106,6 +118,8 @@ public static class MonadCollectionExtensions
     public static Result<IEnumerable<T>, TErr> Sequence<T, TErr>(
         this IEnumerable<Result<T, TErr>> results)
     {
+        ArgumentNullException.ThrowIfNull(results);
+
         var list = new List<T>();
 
         foreach (var result in results)
@@ -128,6 +142,9 @@ public static class MonadCollectionExtensions
         this IEnumerable<T> source,
         Func<T, Result<U, TErr>> selector)
     {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(selector);
+
         var list = new List<U>();
 
         foreach (var item in source)
@@ -148,6 +165,8 @@ public static class MonadCollectionExtensions
     /// </summary>
     public static IEnumerable<T> CollectOk<T, TErr>(this IEnumerable<Result<T, TErr>> results)
     {
+        ArgumentNullException.ThrowIfNull(results);
+
         foreach (var result in results)
         {
             if (result.IsOk)
@@ -162,6 +181,8 @@ public static class MonadCollectionExtensions
     public static IEnumerable<TErr> CollectErr<T, TErr>(
         this IEnumerable<Result<T, TErr>> results)
     {
+        ArgumentNullException.ThrowIfNull(results);
+
         foreach (var result in results)
         {
             if (result.IsErr)
@@ -176,6 +197,8 @@ public static class MonadCollectionExtensions
     public static (IEnumerable<T> Oks, IEnumerable<TErr> Errors) Partition<T, TErr>(
         this IEnumerable<Result<T, TErr>> results)
     {
+        ArgumentNullException.ThrowIfNull(results);
+
         var oks = new List<T>();
         var errors = new List<TErr>();
 
@@ -195,6 +218,8 @@ public static class MonadCollectionExtensions
     /// </summary>
     public static Result<T, TErr> FirstOk<T, TErr>(this IEnumerable<Result<T, TErr>> results)
     {
+        ArgumentNullException.ThrowIfNull(results);
+
         Result<T, TErr>? lastErr = null;
 
         foreach (var result in results)
@@ -218,6 +243,8 @@ public static class MonadCollectionExtensions
     public static IEnumerable<TRight> CollectRights<TLeft, TRight>(
         this IEnumerable<Either<TLeft, TRight>> eithers)
     {
+        ArgumentNullException.ThrowIfNull(eithers);
+
         foreach (var either in eithers)
         {
             if (either.IsRight)
@@ -231,6 +258,8 @@ public static class MonadCollectionExtensions
     public static IEnumerable<TLeft> CollectLefts<TLeft, TRight>(
         this IEnumerable<Either<TLeft, TRight>> eithers)
     {
+        ArgumentNullException.ThrowIfNull(eithers);
+
         foreach (var either in eithers)
         {
             if (either.IsLeft)
@@ -245,6 +274,8 @@ public static class MonadCollectionExtensions
     public static (IEnumerable<TLeft> Lefts, IEnumerable<TRight> Rights) Partition<TLeft, TRight>(
         this IEnumerable<Either<TLeft, TRight>> eithers)
     {
+        ArgumentNullException.ThrowIfNull(eithers);
+
         var lefts = new List<TLeft>();
         var rights = new List<TRight>();
 
@@ -269,6 +300,8 @@ public static class MonadCollectionExtensions
     public static async Task<Option<IEnumerable<T>>> SequenceAsync<T>(
         this IEnumerable<Task<Option<T>>> optionTasks)
     {
+        ArgumentNullException.ThrowIfNull(optionTasks);
+
         var result = new List<T>();
 
         foreach (var task in optionTasks)
@@ -290,6 +323,9 @@ public static class MonadCollectionExtensions
         this IEnumerable<T> source,
         Func<T, Task<Option<U>>> selector)
     {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(selector);
+
         var result = new List<U>();
 
         foreach (var item in source)
@@ -310,6 +346,8 @@ public static class MonadCollectionExtensions
     public static async Task<Result<IEnumerable<T>, TErr>> SequenceAsync<T, TErr>(
         this IEnumerable<Task<Result<T, TErr>>> resultTasks)
     {
+        ArgumentNullException.ThrowIfNull(resultTasks);
+
         var list = new List<T>();
 
         foreach (var task in resultTasks)
@@ -331,6 +369,9 @@ public static class MonadCollectionExtensions
         this IEnumerable<T> source,
         Func<T, Task<Result<U, TErr>>> selector)
     {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(selector);
+
         var list = new List<U>();
 
         foreach (var item in source)

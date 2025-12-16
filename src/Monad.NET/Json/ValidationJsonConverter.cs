@@ -71,12 +71,12 @@ public class ValidationJsonConverter<T, E> : JsonConverter<Validation<T, E>>
         if (value.IsValid)
         {
             writer.WritePropertyName("value");
-            JsonSerializer.Serialize(writer, value.Match(v => v, _ => default!), options);
+            JsonSerializer.Serialize(writer, value.Match(static v => v, static _ => default!), options);
         }
         else
         {
             writer.WritePropertyName("errors");
-            JsonSerializer.Serialize(writer, value.Match(_ => new List<E>(), e => e.ToList()), options);
+            JsonSerializer.Serialize(writer, value.Match(static _ => new List<E>(), static e => e.ToList()), options);
         }
 
         writer.WriteEndObject();

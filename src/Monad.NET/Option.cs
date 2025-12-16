@@ -45,7 +45,7 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     public static Option<T> Some(T value)
     {
         if (value is null)
-            throw new ArgumentNullException(nameof(value), "Cannot create Some with null value. Use None instead.");
+            ThrowHelper.ThrowArgumentNull(nameof(value), "Cannot create Some with null value. Use None instead.");
 
         return new Option<T>(value, true);
     }
@@ -78,7 +78,7 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     public T Unwrap()
     {
         if (!_isSome)
-            ThrowHelper.ThrowInvalidOperation("Called Unwrap on a None value");
+            ThrowHelper.ThrowInvalidOperation("Cannot unwrap None value.");
 
         return _value!;
     }
@@ -449,5 +449,19 @@ internal static class ThrowHelper
     public static void ThrowArgumentNull(string paramName, string message)
     {
         throw new ArgumentNullException(paramName, message);
+    }
+
+    [DoesNotReturn]
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void ThrowArgumentOutOfRange(string paramName, string message)
+    {
+        throw new ArgumentOutOfRangeException(paramName, message);
+    }
+
+    [DoesNotReturn]
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void ThrowArgument(string paramName, string message)
+    {
+        throw new ArgumentException(message, paramName);
     }
 }

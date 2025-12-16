@@ -229,10 +229,10 @@ public class TryTests
     }
 
     [Fact]
-    public void Recover_WithTry_OnFailure_Recovers()
+    public void RecoverWith_OnFailure_Recovers()
     {
         var tryValue = Try<int>.Failure(new Exception("error"));
-        var recovered = tryValue.Recover(ex => Try<int>.Success(100));
+        var recovered = tryValue.RecoverWith(ex => Try<int>.Success(100));
 
         Assert.True(recovered.IsSuccess);
         Assert.Equal(100, recovered.Get());

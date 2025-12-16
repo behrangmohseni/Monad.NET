@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace Monad.NET;
 
 /// <summary>
@@ -11,18 +13,20 @@ public sealed class Reader<R, A>
 {
     private readonly Func<R, A> _run;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Reader(Func<R, A> run)
     {
-        _run = run ?? throw new ArgumentNullException(nameof(run));
+        ArgumentNullException.ThrowIfNull(run);
+        _run = run;
     }
 
     /// <summary>
     /// Creates a Reader from a function.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Reader<R, A> From(Func<R, A> func)
     {
-        if (func is null)
-            throw new ArgumentNullException(nameof(func));
+        ArgumentNullException.ThrowIfNull(func);
 
         return new Reader<R, A>(func);
     }
@@ -30,6 +34,7 @@ public sealed class Reader<R, A>
     /// <summary>
     /// Creates a Reader that returns a constant value, ignoring the environment.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Reader<R, A> Pure(A value)
     {
         return new Reader<R, A>(_ => value);
@@ -38,18 +43,19 @@ public sealed class Reader<R, A>
     /// <summary>
     /// Creates a Reader that returns the environment itself.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Reader<R, R> Ask()
     {
-        return new Reader<R, R>(env => env);
+        return new Reader<R, R>(static env => env);
     }
 
     /// <summary>
     /// Creates a Reader that extracts a value from the environment.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Reader<R, A> Asks(Func<R, A> selector)
     {
-        if (selector is null)
-            throw new ArgumentNullException(nameof(selector));
+        ArgumentNullException.ThrowIfNull(selector);
 
         return new Reader<R, A>(selector);
     }
@@ -57,10 +63,10 @@ public sealed class Reader<R, A>
     /// <summary>
     /// Runs the Reader with the provided environment.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public A Run(R environment)
     {
-        if (environment is null)
-            throw new ArgumentNullException(nameof(environment));
+        ArgumentNullException.ThrowIfNull(environment);
 
         return _run(environment);
     }
@@ -68,12 +74,13 @@ public sealed class Reader<R, A>
     /// <summary>
     /// Maps the result value.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Reader<R, B> Map<B>(Func<A, B> mapper)
     {
-        if (mapper is null)
-            throw new ArgumentNullException(nameof(mapper));
+        ArgumentNullException.ThrowIfNull(mapper);
 
-        return new Reader<R, B>(env => mapper(_run(env)));
+        var run = _run;
+        return new Reader<R, B>(env => mapper(run(env)));
     }
 
     /// <summary>
@@ -87,14 +94,15 @@ public sealed class Reader<R, A>
     ///       .Map(x => x.ToUpper());
     /// </code>
     /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Reader<R, A> Tap(Action<A> action)
     {
-        if (action is null)
-            throw new ArgumentNullException(nameof(action));
+        ArgumentNullException.ThrowIfNull(action);
 
+        var run = _run;
         return new Reader<R, A>(env =>
         {
-            var result = _run(env);
+            var result = run(env);
             action(result);
             return result;
         });
@@ -111,15 +119,16 @@ public sealed class Reader<R, A>
     ///       .Map(x => x.ToUpper());
     /// </code>
     /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Reader<R, A> TapEnv(Action<R> action)
     {
-        if (action is null)
-            throw new ArgumentNullException(nameof(action));
+        ArgumentNullException.ThrowIfNull(action);
 
+        var run = _run;
         return new Reader<R, A>(env =>
         {
             action(env);
-            return _run(env);
+            return run(env);
         });
     }
 
@@ -127,14 +136,15 @@ public sealed class Reader<R, A>
     /// Chains Reader computations.
     /// This is the monadic bind operation.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Reader<R, B> FlatMap<B>(Func<A, Reader<R, B>> binder)
     {
-        if (binder is null)
-            throw new ArgumentNullException(nameof(binder));
+        ArgumentNullException.ThrowIfNull(binder);
 
+        var run = _run;
         return new Reader<R, B>(env =>
         {
-            var a = _run(env);
+            var a = run(env);
             return binder(a).Run(env);
         });
     }
@@ -143,25 +153,27 @@ public sealed class Reader<R, A>
     /// Transforms the environment before running the computation.
     /// This allows using a Reader with a different environment type.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Reader<R2, A> WithEnvironment<R2>(Func<R2, R> transform)
     {
-        if (transform is null)
-            throw new ArgumentNullException(nameof(transform));
+        ArgumentNullException.ThrowIfNull(transform);
 
-        return new Reader<R2, A>(env2 => _run(transform(env2)));
+        var run = _run;
+        return Reader<R2, A>.From(env2 => run(transform(env2)));
     }
 
     /// <summary>
     /// Combines two Readers that depend on the same environment.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Reader<R, C> Zip<B, C>(Reader<R, B> other, Func<A, B, C> combiner)
     {
-        if (combiner is null)
-            throw new ArgumentNullException(nameof(combiner));
+        ArgumentNullException.ThrowIfNull(combiner);
 
-        return new Reader<R, C>(env =>
+        var run = _run;
+        return Reader<R, C>.From(env =>
         {
-            var a = _run(env);
+            var a = run(env);
             var b = other.Run(env);
             return combiner(a, b);
         });
@@ -176,6 +188,7 @@ public static class ReaderExtensions
     /// <summary>
     /// LINQ Select support for Reader.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Reader<R, B> Select<R, A, B>(this Reader<R, A> reader, Func<A, B> selector)
     {
         return reader.Map(selector);
@@ -184,6 +197,7 @@ public static class ReaderExtensions
     /// <summary>
     /// LINQ SelectMany support for Reader.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Reader<R, B> SelectMany<R, A, B>(
         this Reader<R, A> reader,
         Func<A, Reader<R, B>> selector)
@@ -194,13 +208,13 @@ public static class ReaderExtensions
     /// <summary>
     /// LINQ SelectMany support with result selector.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Reader<R, C> SelectMany<R, A, B, C>(
         this Reader<R, A> reader,
         Func<A, Reader<R, B>> selector,
         Func<A, B, C> resultSelector)
     {
-        if (resultSelector is null)
-            throw new ArgumentNullException(nameof(resultSelector));
+        ArgumentNullException.ThrowIfNull(resultSelector);
 
         return reader.FlatMap(a =>
             selector(a).Map(b =>
@@ -212,8 +226,7 @@ public static class ReaderExtensions
     /// </summary>
     public static Reader<R, IEnumerable<A>> Sequence<R, A>(this IEnumerable<Reader<R, A>> readers)
     {
-        if (readers is null)
-            throw new ArgumentNullException(nameof(readers));
+        ArgumentNullException.ThrowIfNull(readers);
 
         return Reader<R, IEnumerable<A>>.From(env =>
             readers.Select(reader => reader.Run(env)).ToList()
@@ -227,10 +240,8 @@ public static class ReaderExtensions
         this IEnumerable<A> items,
         Func<A, Reader<R, B>> selector)
     {
-        if (items is null)
-            throw new ArgumentNullException(nameof(items));
-        if (selector is null)
-            throw new ArgumentNullException(nameof(selector));
+        ArgumentNullException.ThrowIfNull(items);
+        ArgumentNullException.ThrowIfNull(selector);
 
         return Reader<R, IEnumerable<B>>.From(env =>
             items.Select(item => selector(item).Run(env)).ToList()
@@ -246,6 +257,7 @@ public static class Reader
     /// <summary>
     /// Creates a Reader from a function.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Reader<R, A> From<R, A>(Func<R, A> func)
     {
         return Reader<R, A>.From(func);
@@ -254,6 +266,7 @@ public static class Reader
     /// <summary>
     /// Creates a Reader that returns a constant value.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Reader<R, A> Pure<R, A>(A value)
     {
         return Reader<R, A>.Pure(value);
@@ -262,6 +275,7 @@ public static class Reader
     /// <summary>
     /// Creates a Reader that returns the environment itself.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Reader<R, R> Ask<R>()
     {
         return Reader<R, R>.Ask();
@@ -270,9 +284,9 @@ public static class Reader
     /// <summary>
     /// Creates a Reader that extracts a value from the environment.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Reader<R, A> Asks<R, A>(Func<R, A> selector)
     {
         return Reader<R, A>.Asks(selector);
     }
 }
-

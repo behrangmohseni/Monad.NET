@@ -78,7 +78,8 @@ public readonly struct State<TState, T>
 
     private State(Func<TState, StateResult<TState, T>> run)
     {
-        _run = run ?? throw new ArgumentNullException(nameof(run));
+        ArgumentNullException.ThrowIfNull(run);
+        _run = run;
     }
 
     /// <summary>
@@ -161,8 +162,7 @@ public readonly struct State<TState, T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static State<TState, Unit> Modify(Func<TState, TState> modifier)
     {
-        if (modifier is null)
-            throw new ArgumentNullException(nameof(modifier));
+        ArgumentNullException.ThrowIfNull(modifier);
 
         return new State<TState, Unit>(state => new StateResult<TState, Unit>(Unit.Default, modifier(state)));
     }
@@ -175,8 +175,7 @@ public readonly struct State<TState, T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static State<TState, U> Gets<U>(Func<TState, U> selector)
     {
-        if (selector is null)
-            throw new ArgumentNullException(nameof(selector));
+        ArgumentNullException.ThrowIfNull(selector);
 
         return new State<TState, U>(state => new StateResult<TState, U>(selector(state), state));
     }
@@ -200,8 +199,7 @@ public readonly struct State<TState, T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static State<TState, T> Of(Func<TState, (T value, TState state)> run)
     {
-        if (run is null)
-            throw new ArgumentNullException(nameof(run));
+        ArgumentNullException.ThrowIfNull(run);
 
         return new State<TState, T>(state =>
         {
@@ -219,8 +217,7 @@ public readonly struct State<TState, T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public State<TState, U> Map<U>(Func<T, U> mapper)
     {
-        if (mapper is null)
-            throw new ArgumentNullException(nameof(mapper));
+        ArgumentNullException.ThrowIfNull(mapper);
 
         var run = _run;
         return new State<TState, U>(state =>
@@ -244,8 +241,7 @@ public readonly struct State<TState, T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public State<TState, T> Tap(Action<T> action)
     {
-        if (action is null)
-            throw new ArgumentNullException(nameof(action));
+        ArgumentNullException.ThrowIfNull(action);
 
         var run = _run;
         return new State<TState, T>(state =>
@@ -270,8 +266,7 @@ public readonly struct State<TState, T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public State<TState, T> TapState(Action<TState> action)
     {
-        if (action is null)
-            throw new ArgumentNullException(nameof(action));
+        ArgumentNullException.ThrowIfNull(action);
 
         var run = _run;
         return new State<TState, T>(state =>
@@ -291,8 +286,7 @@ public readonly struct State<TState, T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public State<TState, U> AndThen<U>(Func<T, State<TState, U>> binder)
     {
-        if (binder is null)
-            throw new ArgumentNullException(nameof(binder));
+        ArgumentNullException.ThrowIfNull(binder);
 
         var run = _run;
         return new State<TState, U>(state =>
@@ -357,8 +351,7 @@ public readonly struct State<TState, T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public State<TState, V> ZipWith<U, V>(State<TState, U> other, Func<T, U, V> combiner)
     {
-        if (combiner is null)
-            throw new ArgumentNullException(nameof(combiner));
+        ArgumentNullException.ThrowIfNull(combiner);
 
         return AndThen(a => other.Map(b => combiner(a, b)));
     }
@@ -397,7 +390,7 @@ public static class StateExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static State<TState, T> Flatten<TState, T>(this State<TState, State<TState, T>> nested)
     {
-        return nested.AndThen(inner => inner);
+        return nested.AndThen(static inner => inner);
     }
 
     /// <summary>
@@ -429,8 +422,7 @@ public static class StateExtensions
         this IEnumerable<T> source,
         Func<T, State<TState, U>> func)
     {
-        if (func is null)
-            throw new ArgumentNullException(nameof(func));
+        ArgumentNullException.ThrowIfNull(func);
 
         return source.Select(func).Sequence();
     }
@@ -443,7 +435,7 @@ public static class StateExtensions
         int count)
     {
         if (count < 0)
-            throw new ArgumentOutOfRangeException(nameof(count), "Count must be non-negative.");
+            ThrowHelper.ThrowArgumentOutOfRange(nameof(count), "Count must be non-negative.");
 
         return Enumerable.Repeat(state, count).Sequence();
     }
@@ -455,8 +447,7 @@ public static class StateExtensions
         this State<TState, T> body,
         Func<TState, bool> condition)
     {
-        if (condition is null)
-            throw new ArgumentNullException(nameof(condition));
+        ArgumentNullException.ThrowIfNull(condition);
 
         return State<TState, IReadOnlyList<T>>.Of(initialState =>
         {
@@ -505,8 +496,7 @@ public static class StateExtensions
         Func<T, State<TState, U>> selector,
         Func<T, U, V> resultSelector)
     {
-        if (resultSelector is null)
-            throw new ArgumentNullException(nameof(resultSelector));
+        ArgumentNullException.ThrowIfNull(resultSelector);
 
         return state.AndThen(a => selector(a).Map(b => resultSelector(a, b)));
     }

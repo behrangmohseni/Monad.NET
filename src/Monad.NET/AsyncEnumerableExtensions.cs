@@ -20,6 +20,8 @@ public static class AsyncEnumerableExtensions
         this IAsyncEnumerable<Option<T>> source,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(source);
+
         await foreach (var option in source.WithCancellation(cancellationToken).ConfigureAwait(false))
         {
             if (option.IsSome)
@@ -44,6 +46,9 @@ public static class AsyncEnumerableExtensions
         Func<T, Option<U>> selector,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(selector);
+
         await foreach (var item in source.WithCancellation(cancellationToken).ConfigureAwait(false))
         {
             var result = selector(item);
@@ -69,6 +74,9 @@ public static class AsyncEnumerableExtensions
         Func<T, Task<Option<U>>> selector,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(selector);
+
         await foreach (var item in source.WithCancellation(cancellationToken).ConfigureAwait(false))
         {
             var result = await selector(item).ConfigureAwait(false);
@@ -91,6 +99,8 @@ public static class AsyncEnumerableExtensions
         this IAsyncEnumerable<T> source,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(source);
+
         await foreach (var item in source.WithCancellation(cancellationToken).ConfigureAwait(false))
         {
             return Option<T>.Some(item);
@@ -112,6 +122,9 @@ public static class AsyncEnumerableExtensions
         Func<T, bool> predicate,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(predicate);
+
         await foreach (var item in source.WithCancellation(cancellationToken).ConfigureAwait(false))
         {
             if (predicate(item))
@@ -134,6 +147,8 @@ public static class AsyncEnumerableExtensions
         this IAsyncEnumerable<T> source,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(source);
+
         var hasValue = false;
         T? last = default;
 
@@ -158,6 +173,8 @@ public static class AsyncEnumerableExtensions
         this IAsyncEnumerable<Option<T>> source,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(source);
+
         var results = new List<T>();
 
         await foreach (var option in source.WithCancellation(cancellationToken).ConfigureAwait(false))
@@ -188,6 +205,8 @@ public static class AsyncEnumerableExtensions
         this IAsyncEnumerable<Result<T, E>> source,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(source);
+
         await foreach (var result in source.WithCancellation(cancellationToken).ConfigureAwait(false))
         {
             if (result.IsOk)
@@ -209,6 +228,8 @@ public static class AsyncEnumerableExtensions
         this IAsyncEnumerable<Result<T, E>> source,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(source);
+
         await foreach (var result in source.WithCancellation(cancellationToken).ConfigureAwait(false))
         {
             if (result.IsErr)
@@ -230,6 +251,8 @@ public static class AsyncEnumerableExtensions
         this IAsyncEnumerable<Result<T, E>> source,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(source);
+
         var oks = new List<T>();
         var errs = new List<E>();
 
@@ -261,6 +284,8 @@ public static class AsyncEnumerableExtensions
         this IAsyncEnumerable<Result<T, E>> source,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(source);
+
         var results = new List<T>();
 
         await foreach (var result in source.WithCancellation(cancellationToken).ConfigureAwait(false))
@@ -290,6 +315,8 @@ public static class AsyncEnumerableExtensions
         this IAsyncEnumerable<Try<T>> source,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(source);
+
         await foreach (var result in source.WithCancellation(cancellationToken).ConfigureAwait(false))
         {
             if (result.IsSuccess)
@@ -310,6 +337,8 @@ public static class AsyncEnumerableExtensions
         this IAsyncEnumerable<Try<T>> source,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(source);
+
         await foreach (var result in source.WithCancellation(cancellationToken).ConfigureAwait(false))
         {
             if (result.IsFailure)
@@ -337,6 +366,9 @@ public static class AsyncEnumerableExtensions
         Func<T, Task<U>> selector,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(selector);
+
         await foreach (var item in source.WithCancellation(cancellationToken).ConfigureAwait(false))
         {
             yield return await selector(item).ConfigureAwait(false);
@@ -356,6 +388,9 @@ public static class AsyncEnumerableExtensions
         Func<T, Task<bool>> predicate,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(predicate);
+
         await foreach (var item in source.WithCancellation(cancellationToken).ConfigureAwait(false))
         {
             if (await predicate(item).ConfigureAwait(false))
@@ -378,6 +413,9 @@ public static class AsyncEnumerableExtensions
         Func<T, Task> action,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(action);
+
         await foreach (var item in source.WithCancellation(cancellationToken).ConfigureAwait(false))
         {
             await action(item).ConfigureAwait(false);
@@ -396,6 +434,8 @@ public static class AsyncEnumerableExtensions
         this IAsyncEnumerable<T> source,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(source);
+
         var list = new List<T>();
         await foreach (var item in source.WithCancellation(cancellationToken).ConfigureAwait(false))
         {
@@ -415,6 +455,8 @@ public static class AsyncEnumerableExtensions
         this IAsyncEnumerable<T> source,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(source);
+
         var count = 0;
         await foreach (var _ in source.WithCancellation(cancellationToken).ConfigureAwait(false))
         {
@@ -436,6 +478,9 @@ public static class AsyncEnumerableExtensions
         Func<T, bool> predicate,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(predicate);
+
         await foreach (var item in source.WithCancellation(cancellationToken).ConfigureAwait(false))
         {
             if (predicate(item))
@@ -459,6 +504,9 @@ public static class AsyncEnumerableExtensions
         Func<T, bool> predicate,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(predicate);
+
         await foreach (var item in source.WithCancellation(cancellationToken).ConfigureAwait(false))
         {
             if (!predicate(item))
@@ -485,6 +533,9 @@ public static class AsyncEnumerableExtensions
         Func<TAccumulate, T, TAccumulate> accumulator,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(accumulator);
+
         var result = seed;
         await foreach (var item in source.WithCancellation(cancellationToken).ConfigureAwait(false))
         {
