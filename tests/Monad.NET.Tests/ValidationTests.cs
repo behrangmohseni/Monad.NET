@@ -196,6 +196,85 @@ public class ValidationTests
     }
 
     [Fact]
+    public void Zip_BothValid_ReturnsTuple()
+    {
+        var val1 = Validation<int, string>.Valid(42);
+        var val2 = Validation<string, string>.Valid("hello");
+
+        var result = val1.Zip(val2);
+
+        Assert.True(result.IsValid);
+        Assert.Equal((42, "hello"), result.Unwrap());
+    }
+
+    [Fact]
+    public void Zip_BothInvalid_AccumulatesAllErrors()
+    {
+        var val1 = Validation<int, string>.Invalid(new[] { "error1", "error2" });
+        var val2 = Validation<string, string>.Invalid(new[] { "error3" });
+
+        var result = val1.Zip(val2);
+
+        Assert.True(result.IsInvalid);
+        Assert.Equal(3, result.UnwrapErrors().Count);
+        Assert.Contains("error1", result.UnwrapErrors());
+        Assert.Contains("error2", result.UnwrapErrors());
+        Assert.Contains("error3", result.UnwrapErrors());
+    }
+
+    [Fact]
+    public void Zip_FirstInvalid_ReturnsFirstErrors()
+    {
+        var val1 = Validation<int, string>.Invalid("error1");
+        var val2 = Validation<string, string>.Valid("hello");
+
+        var result = val1.Zip(val2);
+
+        Assert.True(result.IsInvalid);
+        Assert.Single(result.UnwrapErrors());
+        Assert.Equal("error1", result.UnwrapErrors()[0]);
+    }
+
+    [Fact]
+    public void Zip_SecondInvalid_ReturnsSecondErrors()
+    {
+        var val1 = Validation<int, string>.Valid(42);
+        var val2 = Validation<string, string>.Invalid("error2");
+
+        var result = val1.Zip(val2);
+
+        Assert.True(result.IsInvalid);
+        Assert.Single(result.UnwrapErrors());
+        Assert.Equal("error2", result.UnwrapErrors()[0]);
+    }
+
+    [Fact]
+    public void ZipWith_BothValid_ReturnsCombinedValue()
+    {
+        var val1 = Validation<int, string>.Valid(10);
+        var val2 = Validation<int, string>.Valid(20);
+
+        var result = val1.ZipWith(val2, (a, b) => a + b);
+
+        Assert.True(result.IsValid);
+        Assert.Equal(30, result.Unwrap());
+    }
+
+    [Fact]
+    public void ZipWith_BothInvalid_AccumulatesAllErrors()
+    {
+        var val1 = Validation<int, string>.Invalid("error1");
+        var val2 = Validation<int, string>.Invalid("error2");
+
+        var result = val1.ZipWith(val2, (a, b) => a + b);
+
+        Assert.True(result.IsInvalid);
+        Assert.Equal(2, result.UnwrapErrors().Count);
+        Assert.Contains("error1", result.UnwrapErrors());
+        Assert.Contains("error2", result.UnwrapErrors());
+    }
+
+    [Fact]
     public void And_BothValid_ReturnsSecond()
     {
         var val1 = Validation<int, string>.Valid(10);

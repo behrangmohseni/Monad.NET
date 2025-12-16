@@ -207,6 +207,72 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     }
 
     /// <summary>
+    /// Combines this Validation with another into a tuple.
+    /// Accumulates ALL errors from both if either/both are invalid.
+    /// </summary>
+    /// <typeparam name="U">The type of the other value.</typeparam>
+    /// <param name="other">The other Validation to combine with.</param>
+    /// <returns>A Validation containing a tuple of both values, or accumulated errors.</returns>
+    /// <example>
+    /// <code>
+    /// var nameValidation = ValidateName(name);   // Validation&lt;string, Error&gt;
+    /// var ageValidation = ValidateAge(age);      // Validation&lt;int, Error&gt;
+    /// var combined = nameValidation.Zip(ageValidation); // Validation&lt;(string, int), Error&gt;
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Validation<(T, U), TErr> Zip<U>(Validation<U, TErr> other)
+    {
+        if (_isValid && other.IsValid)
+            return Validation<(T, U), TErr>.Valid((_value!, other.Unwrap()));
+
+        if (!_isValid && !other.IsValid)
+        {
+            var allErrors = _errors!.Concat(other.UnwrapErrors()).ToList();
+            return Validation<(T, U), TErr>.Invalid(allErrors);
+        }
+
+        return _isValid
+            ? Validation<(T, U), TErr>.Invalid(other.UnwrapErrors())
+            : Validation<(T, U), TErr>.Invalid(_errors!);
+    }
+
+    /// <summary>
+    /// Combines this Validation with another using a combiner function.
+    /// Accumulates ALL errors from both if either/both are invalid.
+    /// </summary>
+    /// <typeparam name="U">The type of the other value.</typeparam>
+    /// <typeparam name="V">The type of the combined result.</typeparam>
+    /// <param name="other">The other Validation to combine with.</param>
+    /// <param name="combiner">A function to combine the values.</param>
+    /// <returns>A Validation containing the combined result, or accumulated errors.</returns>
+    /// <example>
+    /// <code>
+    /// var nameValidation = ValidateName(name);
+    /// var ageValidation = ValidateAge(age);
+    /// var person = nameValidation.ZipWith(ageValidation, (n, a) => new Person(n, a));
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Validation<V, TErr> ZipWith<U, V>(Validation<U, TErr> other, Func<T, U, V> combiner)
+    {
+        ArgumentNullException.ThrowIfNull(combiner);
+
+        if (_isValid && other.IsValid)
+            return Validation<V, TErr>.Valid(combiner(_value!, other.Unwrap()));
+
+        if (!_isValid && !other.IsValid)
+        {
+            var allErrors = _errors!.Concat(other.UnwrapErrors()).ToList();
+            return Validation<V, TErr>.Invalid(allErrors);
+        }
+
+        return _isValid
+            ? Validation<V, TErr>.Invalid(other.UnwrapErrors())
+            : Validation<V, TErr>.Invalid(_errors!);
+    }
+
+    /// <summary>
     /// Combines this validation with another, accumulating errors from both if invalid.
     /// This is useful for running multiple independent validations.
     /// </summary>

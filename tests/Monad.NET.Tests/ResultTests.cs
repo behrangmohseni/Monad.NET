@@ -166,6 +166,78 @@ public class ResultTests
     }
 
     [Fact]
+    public void Zip_BothOk_ReturnsTuple()
+    {
+        var result1 = Result<int, string>.Ok(42);
+        var result2 = Result<string, string>.Ok("hello");
+
+        var combined = result1.Zip(result2);
+
+        Assert.True(combined.IsOk);
+        Assert.Equal((42, "hello"), combined.Unwrap());
+    }
+
+    [Fact]
+    public void Zip_FirstErr_ReturnsFirstError()
+    {
+        var result1 = Result<int, string>.Err("first error");
+        var result2 = Result<string, string>.Ok("hello");
+
+        var combined = result1.Zip(result2);
+
+        Assert.True(combined.IsErr);
+        Assert.Equal("first error", combined.UnwrapErr());
+    }
+
+    [Fact]
+    public void Zip_SecondErr_ReturnsSecondError()
+    {
+        var result1 = Result<int, string>.Ok(42);
+        var result2 = Result<string, string>.Err("second error");
+
+        var combined = result1.Zip(result2);
+
+        Assert.True(combined.IsErr);
+        Assert.Equal("second error", combined.UnwrapErr());
+    }
+
+    [Fact]
+    public void ZipWith_BothOk_ReturnsCombinedValue()
+    {
+        var result1 = Result<int, string>.Ok(10);
+        var result2 = Result<int, string>.Ok(20);
+
+        var combined = result1.ZipWith(result2, (a, b) => a + b);
+
+        Assert.True(combined.IsOk);
+        Assert.Equal(30, combined.Unwrap());
+    }
+
+    [Fact]
+    public void ZipWith_FirstErr_ReturnsFirstError()
+    {
+        var result1 = Result<int, string>.Err("first error");
+        var result2 = Result<int, string>.Ok(20);
+
+        var combined = result1.ZipWith(result2, (a, b) => a + b);
+
+        Assert.True(combined.IsErr);
+        Assert.Equal("first error", combined.UnwrapErr());
+    }
+
+    [Fact]
+    public void ZipWith_SecondErr_ReturnsSecondError()
+    {
+        var result1 = Result<int, string>.Ok(10);
+        var result2 = Result<int, string>.Err("second error");
+
+        var combined = result1.ZipWith(result2, (a, b) => a + b);
+
+        Assert.True(combined.IsErr);
+        Assert.Equal("second error", combined.UnwrapErr());
+    }
+
+    [Fact]
     public void Or_BothOk_ReturnsFirst()
     {
         var result1 = Result<int, string>.Ok(1);

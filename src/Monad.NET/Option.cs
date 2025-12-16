@@ -179,6 +179,52 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     }
 
     /// <summary>
+    /// Combines this Option with another into a tuple.
+    /// Returns None if either Option is None.
+    /// </summary>
+    /// <typeparam name="U">The type of the other value.</typeparam>
+    /// <param name="other">The other Option to combine with.</param>
+    /// <returns>An Option containing a tuple of both values, or None.</returns>
+    /// <example>
+    /// <code>
+    /// var name = Option&lt;string&gt;.Some("Alice");
+    /// var age = Option&lt;int&gt;.Some(30);
+    /// var combined = name.Zip(age); // Some(("Alice", 30))
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Option<(T, U)> Zip<U>(Option<U> other)
+    {
+        return _isSome && other.IsSome
+            ? Option<(T, U)>.Some((_value!, other.Unwrap()))
+            : Option<(T, U)>.None();
+    }
+
+    /// <summary>
+    /// Combines this Option with another using a combiner function.
+    /// Returns None if either Option is None.
+    /// </summary>
+    /// <typeparam name="U">The type of the other value.</typeparam>
+    /// <typeparam name="V">The type of the combined result.</typeparam>
+    /// <param name="other">The other Option to combine with.</param>
+    /// <param name="combiner">A function to combine the values.</param>
+    /// <returns>An Option containing the combined result, or None.</returns>
+    /// <example>
+    /// <code>
+    /// var firstName = Option&lt;string&gt;.Some("Alice");
+    /// var lastName = Option&lt;string&gt;.Some("Smith");
+    /// var fullName = firstName.ZipWith(lastName, (f, l) => $"{f} {l}"); // Some("Alice Smith")
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Option<V> ZipWith<U, V>(Option<U> other, Func<T, U, V> combiner)
+    {
+        return _isSome && other.IsSome
+            ? Option<V>.Some(combiner(_value!, other.Unwrap()))
+            : Option<V>.None();
+    }
+
+    /// <summary>
     /// Returns None if the option is None, otherwise returns optionB.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -210,6 +210,81 @@ public class TryTests
     }
 
     [Fact]
+    public void Zip_BothSuccess_ReturnsTuple()
+    {
+        var try1 = Try<int>.Success(42);
+        var try2 = Try<string>.Success("hello");
+
+        var result = try1.Zip(try2);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal((42, "hello"), result.Get());
+    }
+
+    [Fact]
+    public void Zip_FirstFailure_ReturnsFirstException()
+    {
+        var exception = new Exception("first error");
+        var try1 = Try<int>.Failure(exception);
+        var try2 = Try<string>.Success("hello");
+
+        var result = try1.Zip(try2);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal(exception, result.GetException());
+    }
+
+    [Fact]
+    public void Zip_SecondFailure_ReturnsSecondException()
+    {
+        var exception = new Exception("second error");
+        var try1 = Try<int>.Success(42);
+        var try2 = Try<string>.Failure(exception);
+
+        var result = try1.Zip(try2);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal(exception, result.GetException());
+    }
+
+    [Fact]
+    public void ZipWith_BothSuccess_ReturnsCombinedValue()
+    {
+        var try1 = Try<int>.Success(10);
+        var try2 = Try<int>.Success(20);
+
+        var result = try1.ZipWith(try2, (a, b) => a + b);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(30, result.Get());
+    }
+
+    [Fact]
+    public void ZipWith_FirstFailure_ReturnsFirstException()
+    {
+        var exception = new Exception("first error");
+        var try1 = Try<int>.Failure(exception);
+        var try2 = Try<int>.Success(20);
+
+        var result = try1.ZipWith(try2, (a, b) => a + b);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal(exception, result.GetException());
+    }
+
+    [Fact]
+    public void ZipWith_CombinerThrows_ReturnsFailure()
+    {
+        var try1 = Try<int>.Success(10);
+        var try2 = Try<int>.Success(20);
+
+        var result = try1.ZipWith<int, int>(try2, (a, b) => throw new InvalidOperationException("combiner failed"));
+
+        Assert.True(result.IsFailure);
+        Assert.IsType<InvalidOperationException>(result.GetException());
+    }
+
+    [Fact]
     public void Recover_OnFailure_Recovers()
     {
         var tryValue = Try<int>.Failure(new Exception("error"));

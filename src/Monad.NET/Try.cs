@@ -227,6 +227,64 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     }
 
     /// <summary>
+    /// Combines this Try with another into a tuple.
+    /// Returns the first failure encountered if either Try failed.
+    /// </summary>
+    /// <typeparam name="U">The type of the other value.</typeparam>
+    /// <param name="other">The other Try to combine with.</param>
+    /// <returns>A Try containing a tuple of both values, or the first exception.</returns>
+    /// <example>
+    /// <code>
+    /// var parsed1 = Try&lt;int&gt;.Of(() => int.Parse("42"));
+    /// var parsed2 = Try&lt;int&gt;.Of(() => int.Parse("100"));
+    /// var combined = parsed1.Zip(parsed2); // Success((42, 100))
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Try<(T, U)> Zip<U>(Try<U> other)
+    {
+        if (!_isSuccess)
+            return Try<(T, U)>.Failure(_exception!);
+        if (!other.IsSuccess)
+            return Try<(T, U)>.Failure(other.GetException());
+        return Try<(T, U)>.Success((_value!, other.Get()));
+    }
+
+    /// <summary>
+    /// Combines this Try with another using a combiner function.
+    /// Returns the first failure encountered if either Try failed.
+    /// </summary>
+    /// <typeparam name="U">The type of the other value.</typeparam>
+    /// <typeparam name="V">The type of the combined result.</typeparam>
+    /// <param name="other">The other Try to combine with.</param>
+    /// <param name="combiner">A function to combine the values.</param>
+    /// <returns>A Try containing the combined result, or the first exception.</returns>
+    /// <example>
+    /// <code>
+    /// var x = Try&lt;int&gt;.Of(() => int.Parse("10"));
+    /// var y = Try&lt;int&gt;.Of(() => int.Parse("20"));
+    /// var sum = x.ZipWith(y, (a, b) => a + b); // Success(30)
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Try<V> ZipWith<U, V>(Try<U> other, Func<T, U, V> combiner)
+    {
+        if (!_isSuccess)
+            return Try<V>.Failure(_exception!);
+        if (!other.IsSuccess)
+            return Try<V>.Failure(other.GetException());
+
+        try
+        {
+            return Try<V>.Success(combiner(_value!, other.Get()));
+        }
+        catch (Exception ex)
+        {
+            return Try<V>.Failure(ex);
+        }
+    }
+
+    /// <summary>
     /// Filters the value with a predicate. Returns Failure if predicate returns false.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

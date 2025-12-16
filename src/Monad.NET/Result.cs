@@ -232,6 +232,56 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     }
 
     /// <summary>
+    /// Combines this Result with another into a tuple.
+    /// Returns the first error encountered if either Result is Err.
+    /// </summary>
+    /// <typeparam name="U">The type of the other value.</typeparam>
+    /// <param name="other">The other Result to combine with.</param>
+    /// <returns>A Result containing a tuple of both values, or the first error.</returns>
+    /// <example>
+    /// <code>
+    /// var user = GetUser(id);     // Result&lt;User, Error&gt;
+    /// var order = GetOrder(oid);  // Result&lt;Order, Error&gt;
+    /// var combined = user.Zip(order); // Result&lt;(User, Order), Error&gt;
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Result<(T, U), TErr> Zip<U>(Result<U, TErr> other)
+    {
+        if (!_isOk)
+            return Result<(T, U), TErr>.Err(_error!);
+        if (!other.IsOk)
+            return Result<(T, U), TErr>.Err(other.UnwrapErr());
+        return Result<(T, U), TErr>.Ok((_value!, other.Unwrap()));
+    }
+
+    /// <summary>
+    /// Combines this Result with another using a combiner function.
+    /// Returns the first error encountered if either Result is Err.
+    /// </summary>
+    /// <typeparam name="U">The type of the other value.</typeparam>
+    /// <typeparam name="V">The type of the combined result.</typeparam>
+    /// <param name="other">The other Result to combine with.</param>
+    /// <param name="combiner">A function to combine the values.</param>
+    /// <returns>A Result containing the combined result, or the first error.</returns>
+    /// <example>
+    /// <code>
+    /// var user = GetUser(id);
+    /// var order = GetOrder(oid);
+    /// var dto = user.ZipWith(order, (u, o) => new UserOrderDto(u, o));
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Result<V, TErr> ZipWith<U, V>(Result<U, TErr> other, Func<T, U, V> combiner)
+    {
+        if (!_isOk)
+            return Result<V, TErr>.Err(_error!);
+        if (!other.IsOk)
+            return Result<V, TErr>.Err(other.UnwrapErr());
+        return Result<V, TErr>.Ok(combiner(_value!, other.Unwrap()));
+    }
+
+    /// <summary>
     /// Returns resultB if the result is Ok, otherwise returns the Err value.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
