@@ -14,6 +14,9 @@ public static class MonadCollectionExtensions
     /// Returns Some if all options are Some, otherwise None.
     /// Also known as 'sequence' in Haskell.
     /// </summary>
+    /// <typeparam name="T">The type of values in the options.</typeparam>
+    /// <param name="options">The sequence of options to transpose.</param>
+    /// <returns>Some containing all values if all options are Some; otherwise None.</returns>
     public static Option<IReadOnlyList<T>> Sequence<T>(this IEnumerable<Option<T>> options)
     {
         ArgumentNullException.ThrowIfNull(options);
@@ -36,6 +39,11 @@ public static class MonadCollectionExtensions
     /// Returns Some of all values if all mappings succeed, otherwise None.
     /// Also known as 'traverse' in Haskell.
     /// </summary>
+    /// <typeparam name="T">The type of elements in the source sequence.</typeparam>
+    /// <typeparam name="U">The type of values in the resulting options.</typeparam>
+    /// <param name="source">The source sequence to traverse.</param>
+    /// <param name="selector">A function that maps each element to an Option.</param>
+    /// <returns>Some containing all mapped values if all mappings return Some; otherwise None.</returns>
     public static Option<IReadOnlyList<U>> Traverse<T, U>(
         this IEnumerable<T> source,
         Func<T, Option<U>> selector)
@@ -61,6 +69,9 @@ public static class MonadCollectionExtensions
     /// Filters and unwraps Some values from a sequence of Options.
     /// Similar to Rust's filter_map.
     /// </summary>
+    /// <typeparam name="T">The type of values in the options.</typeparam>
+    /// <param name="options">The sequence of options to filter.</param>
+    /// <returns>An enumerable containing only the unwrapped Some values.</returns>
     public static IEnumerable<T> Choose<T>(this IEnumerable<Option<T>> options)
     {
         ArgumentNullException.ThrowIfNull(options);
@@ -75,6 +86,11 @@ public static class MonadCollectionExtensions
     /// <summary>
     /// Maps and filters in one operation, keeping only Some results.
     /// </summary>
+    /// <typeparam name="T">The type of elements in the source sequence.</typeparam>
+    /// <typeparam name="U">The type of values in the resulting options.</typeparam>
+    /// <param name="source">The source sequence to process.</param>
+    /// <param name="selector">A function that maps each element to an Option.</param>
+    /// <returns>An enumerable containing only the unwrapped Some values from the mapping.</returns>
     public static IEnumerable<U> Choose<T, U>(
         this IEnumerable<T> source,
         Func<T, Option<U>> selector)
@@ -93,6 +109,9 @@ public static class MonadCollectionExtensions
     /// <summary>
     /// Returns the first Some value in the sequence, or None if all are None.
     /// </summary>
+    /// <typeparam name="T">The type of values in the options.</typeparam>
+    /// <param name="options">The sequence of options to search.</param>
+    /// <returns>The first Some option found, or None if all options are None.</returns>
     public static Option<T> FirstSome<T>(this IEnumerable<Option<T>> options)
     {
         ArgumentNullException.ThrowIfNull(options);
@@ -115,6 +134,10 @@ public static class MonadCollectionExtensions
     /// Returns Ok with all values if all results are Ok, otherwise returns the first Err.
     /// Also known as 'sequence' in Haskell.
     /// </summary>
+    /// <typeparam name="T">The type of success values in the results.</typeparam>
+    /// <typeparam name="TErr">The type of error values in the results.</typeparam>
+    /// <param name="results">The sequence of results to transpose.</param>
+    /// <returns>Ok containing all values if all results are Ok; otherwise the first Err encountered.</returns>
     public static Result<IReadOnlyList<T>, TErr> Sequence<T, TErr>(
         this IEnumerable<Result<T, TErr>> results)
     {
@@ -138,6 +161,12 @@ public static class MonadCollectionExtensions
     /// Returns Ok of all values if all mappings succeed, otherwise returns the first error.
     /// Also known as 'traverse' in Haskell.
     /// </summary>
+    /// <typeparam name="T">The type of elements in the source sequence.</typeparam>
+    /// <typeparam name="U">The type of success values in the resulting results.</typeparam>
+    /// <typeparam name="TErr">The type of error values in the resulting results.</typeparam>
+    /// <param name="source">The source sequence to traverse.</param>
+    /// <param name="selector">A function that maps each element to a Result.</param>
+    /// <returns>Ok containing all mapped values if all mappings return Ok; otherwise the first Err encountered.</returns>
     public static Result<IReadOnlyList<U>, TErr> Traverse<T, U, TErr>(
         this IEnumerable<T> source,
         Func<T, Result<U, TErr>> selector)
@@ -163,6 +192,10 @@ public static class MonadCollectionExtensions
     /// Collects all Ok values from a sequence of Results.
     /// Discards all Err values.
     /// </summary>
+    /// <typeparam name="T">The type of success values in the results.</typeparam>
+    /// <typeparam name="TErr">The type of error values in the results.</typeparam>
+    /// <param name="results">The sequence of results to collect from.</param>
+    /// <returns>An enumerable containing only the unwrapped Ok values.</returns>
     public static IEnumerable<T> CollectOk<T, TErr>(this IEnumerable<Result<T, TErr>> results)
     {
         ArgumentNullException.ThrowIfNull(results);
@@ -178,6 +211,10 @@ public static class MonadCollectionExtensions
     /// Collects all Err values from a sequence of Results.
     /// Discards all Ok values.
     /// </summary>
+    /// <typeparam name="T">The type of success values in the results.</typeparam>
+    /// <typeparam name="TErr">The type of error values in the results.</typeparam>
+    /// <param name="results">The sequence of results to collect from.</param>
+    /// <returns>An enumerable containing only the unwrapped Err values.</returns>
     public static IEnumerable<TErr> CollectErr<T, TErr>(
         this IEnumerable<Result<T, TErr>> results)
     {
@@ -192,8 +229,11 @@ public static class MonadCollectionExtensions
 
     /// <summary>
     /// Partitions a sequence of Results into Ok and Err values.
-    /// Returns a tuple of (oks, errors).
     /// </summary>
+    /// <typeparam name="T">The type of success values in the results.</typeparam>
+    /// <typeparam name="TErr">The type of error values in the results.</typeparam>
+    /// <param name="results">The sequence of results to partition.</param>
+    /// <returns>A tuple containing a list of Ok values and a list of Err values.</returns>
     public static (IReadOnlyList<T> Oks, IReadOnlyList<TErr> Errors) Partition<T, TErr>(
         this IEnumerable<Result<T, TErr>> results)
     {
@@ -215,8 +255,11 @@ public static class MonadCollectionExtensions
 
     /// <summary>
     /// Returns the first Ok value in the sequence, or the last Err if all are Err.
-    /// Throws <see cref="InvalidOperationException"/> if the sequence is empty.
     /// </summary>
+    /// <typeparam name="T">The type of success values in the results.</typeparam>
+    /// <typeparam name="TErr">The type of error values in the results.</typeparam>
+    /// <param name="results">The sequence of results to search.</param>
+    /// <returns>The first Ok result found, or the last Err result if no Ok is found.</returns>
     /// <exception cref="InvalidOperationException">Thrown when the sequence is empty.</exception>
     public static Result<T, TErr> FirstOk<T, TErr>(this IEnumerable<Result<T, TErr>> results)
     {
@@ -240,10 +283,13 @@ public static class MonadCollectionExtensions
 
     /// <summary>
     /// Returns the first Ok value in the sequence, or the last Err if all are Err.
-    /// Returns <paramref name="defaultError"/> if the sequence is empty.
+    /// Returns an Err with <paramref name="defaultError"/> if the sequence is empty.
     /// </summary>
-    /// <param name="results">The sequence of results.</param>
+    /// <typeparam name="T">The type of success values in the results.</typeparam>
+    /// <typeparam name="TErr">The type of error values in the results.</typeparam>
+    /// <param name="results">The sequence of results to search.</param>
     /// <param name="defaultError">The error to return if the sequence is empty.</param>
+    /// <returns>The first Ok result found, the last Err result, or an Err with the default error if empty.</returns>
     public static Result<T, TErr> FirstOkOrDefault<T, TErr>(
         this IEnumerable<Result<T, TErr>> results,
         TErr defaultError)
@@ -270,6 +316,10 @@ public static class MonadCollectionExtensions
     /// <summary>
     /// Collects all Right values from a sequence of Eithers.
     /// </summary>
+    /// <typeparam name="TLeft">The type of Left values in the eithers.</typeparam>
+    /// <typeparam name="TRight">The type of Right values in the eithers.</typeparam>
+    /// <param name="eithers">The sequence of eithers to collect from.</param>
+    /// <returns>An enumerable containing only the unwrapped Right values.</returns>
     public static IEnumerable<TRight> CollectRights<TLeft, TRight>(
         this IEnumerable<Either<TLeft, TRight>> eithers)
     {
@@ -285,6 +335,10 @@ public static class MonadCollectionExtensions
     /// <summary>
     /// Collects all Left values from a sequence of Eithers.
     /// </summary>
+    /// <typeparam name="TLeft">The type of Left values in the eithers.</typeparam>
+    /// <typeparam name="TRight">The type of Right values in the eithers.</typeparam>
+    /// <param name="eithers">The sequence of eithers to collect from.</param>
+    /// <returns>An enumerable containing only the unwrapped Left values.</returns>
     public static IEnumerable<TLeft> CollectLefts<TLeft, TRight>(
         this IEnumerable<Either<TLeft, TRight>> eithers)
     {
@@ -299,8 +353,11 @@ public static class MonadCollectionExtensions
 
     /// <summary>
     /// Partitions a sequence of Eithers into Left and Right values.
-    /// Returns a tuple of (lefts, rights).
     /// </summary>
+    /// <typeparam name="TLeft">The type of Left values in the eithers.</typeparam>
+    /// <typeparam name="TRight">The type of Right values in the eithers.</typeparam>
+    /// <param name="eithers">The sequence of eithers to partition.</param>
+    /// <returns>A tuple containing a list of Left values and a list of Right values.</returns>
     public static (IReadOnlyList<TLeft> Lefts, IReadOnlyList<TRight> Rights) Partition<TLeft, TRight>(
         this IEnumerable<Either<TLeft, TRight>> eithers)
     {
@@ -326,7 +383,11 @@ public static class MonadCollectionExtensions
 
     /// <summary>
     /// Async version of Sequence for Options.
+    /// Returns Some if all options are Some, otherwise None.
     /// </summary>
+    /// <typeparam name="T">The type of values in the options.</typeparam>
+    /// <param name="optionTasks">The sequence of tasks that produce options.</param>
+    /// <returns>A task containing Some with all values if all options are Some; otherwise None.</returns>
     public static async Task<Option<IReadOnlyList<T>>> SequenceAsync<T>(
         this IEnumerable<Task<Option<T>>> optionTasks)
     {
@@ -348,7 +409,13 @@ public static class MonadCollectionExtensions
 
     /// <summary>
     /// Async version of Traverse for Options.
+    /// Returns Some of all values if all mappings succeed, otherwise None.
     /// </summary>
+    /// <typeparam name="T">The type of elements in the source sequence.</typeparam>
+    /// <typeparam name="U">The type of values in the resulting options.</typeparam>
+    /// <param name="source">The source sequence to traverse.</param>
+    /// <param name="selector">An async function that maps each element to an Option.</param>
+    /// <returns>A task containing Some with all mapped values if all mappings return Some; otherwise None.</returns>
     public static async Task<Option<IReadOnlyList<U>>> TraverseAsync<T, U>(
         this IEnumerable<T> source,
         Func<T, Task<Option<U>>> selector)
@@ -372,7 +439,12 @@ public static class MonadCollectionExtensions
 
     /// <summary>
     /// Async version of Sequence for Results.
+    /// Returns Ok with all values if all results are Ok, otherwise returns the first Err.
     /// </summary>
+    /// <typeparam name="T">The type of success values in the results.</typeparam>
+    /// <typeparam name="TErr">The type of error values in the results.</typeparam>
+    /// <param name="resultTasks">The sequence of tasks that produce results.</param>
+    /// <returns>A task containing Ok with all values if all results are Ok; otherwise the first Err encountered.</returns>
     public static async Task<Result<IReadOnlyList<T>, TErr>> SequenceAsync<T, TErr>(
         this IEnumerable<Task<Result<T, TErr>>> resultTasks)
     {
@@ -394,7 +466,14 @@ public static class MonadCollectionExtensions
 
     /// <summary>
     /// Async version of Traverse for Results.
+    /// Returns Ok of all values if all mappings succeed, otherwise returns the first error.
     /// </summary>
+    /// <typeparam name="T">The type of elements in the source sequence.</typeparam>
+    /// <typeparam name="U">The type of success values in the resulting results.</typeparam>
+    /// <typeparam name="TErr">The type of error values in the resulting results.</typeparam>
+    /// <param name="source">The source sequence to traverse.</param>
+    /// <param name="selector">An async function that maps each element to a Result.</param>
+    /// <returns>A task containing Ok with all mapped values if all mappings return Ok; otherwise the first Err encountered.</returns>
     public static async Task<Result<IReadOnlyList<U>, TErr>> TraverseAsync<T, U, TErr>(
         this IEnumerable<T> source,
         Func<T, Task<Result<U, TErr>>> selector)
@@ -537,7 +616,8 @@ public static class MonadCollectionExtensions
     /// <typeparam name="T">The type of elements in the sequence.</typeparam>
     /// <param name="source">The source sequence.</param>
     /// <param name="action">The async action to execute for each element.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     /// <example>
     /// <code>
     /// await items.ForEachAsync(async x => await ProcessAsync(x));
@@ -564,7 +644,8 @@ public static class MonadCollectionExtensions
     /// <typeparam name="T">The type of elements in the sequence.</typeparam>
     /// <param name="source">The source sequence.</param>
     /// <param name="action">The async action to execute for each element and its index.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     /// <example>
     /// <code>
     /// await items.ForEachAsync(async (x, i) => await ProcessAsync(x, i));
