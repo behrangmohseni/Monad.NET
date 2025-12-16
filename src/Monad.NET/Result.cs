@@ -232,6 +232,56 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     }
 
     /// <summary>
+    /// Combines this Result with another into a tuple.
+    /// Returns the first error encountered if either Result is Err.
+    /// </summary>
+    /// <typeparam name="U">The type of the other value.</typeparam>
+    /// <param name="other">The other Result to combine with.</param>
+    /// <returns>A Result containing a tuple of both values, or the first error.</returns>
+    /// <example>
+    /// <code>
+    /// var user = GetUser(id);     // Result&lt;User, Error&gt;
+    /// var order = GetOrder(oid);  // Result&lt;Order, Error&gt;
+    /// var combined = user.Zip(order); // Result&lt;(User, Order), Error&gt;
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Result<(T, U), TErr> Zip<U>(Result<U, TErr> other)
+    {
+        if (!_isOk)
+            return Result<(T, U), TErr>.Err(_error!);
+        if (!other.IsOk)
+            return Result<(T, U), TErr>.Err(other.UnwrapErr());
+        return Result<(T, U), TErr>.Ok((_value!, other.Unwrap()));
+    }
+
+    /// <summary>
+    /// Combines this Result with another using a combiner function.
+    /// Returns the first error encountered if either Result is Err.
+    /// </summary>
+    /// <typeparam name="U">The type of the other value.</typeparam>
+    /// <typeparam name="V">The type of the combined result.</typeparam>
+    /// <param name="other">The other Result to combine with.</param>
+    /// <param name="combiner">A function to combine the values.</param>
+    /// <returns>A Result containing the combined result, or the first error.</returns>
+    /// <example>
+    /// <code>
+    /// var user = GetUser(id);
+    /// var order = GetOrder(oid);
+    /// var dto = user.ZipWith(order, (u, o) => new UserOrderDto(u, o));
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Result<V, TErr> ZipWith<U, V>(Result<U, TErr> other, Func<T, U, V> combiner)
+    {
+        if (!_isOk)
+            return Result<V, TErr>.Err(_error!);
+        if (!other.IsOk)
+            return Result<V, TErr>.Err(other.UnwrapErr());
+        return Result<V, TErr>.Ok(combiner(_value!, other.Unwrap()));
+    }
+
+    /// <summary>
     /// Returns resultB if the result is Ok, otherwise returns the Err value.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -330,6 +380,51 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     public override string ToString()
     {
         return _isOk ? $"Ok({_value})" : $"Err({_error})";
+    }
+
+    /// <summary>
+    /// Converts the Result to an enumerable sequence.
+    /// Returns a sequence containing the value if Ok, or an empty sequence if Err.
+    /// </summary>
+    /// <returns>An enumerable containing zero or one element.</returns>
+    /// <example>
+    /// <code>
+    /// var result = Result&lt;int, string&gt;.Ok(42);
+    /// foreach (var value in result.AsEnumerable())
+    ///     Console.WriteLine(value); // Prints: 42
+    ///
+    /// // Useful for flattening collections of Results
+    /// var results = new[] { Result&lt;int, string&gt;.Ok(1), Result&lt;int, string&gt;.Err("error"), Result&lt;int, string&gt;.Ok(3) };
+    /// var values = results.SelectMany(r => r.AsEnumerable()); // [1, 3]
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public IEnumerable<T> AsEnumerable()
+    {
+        if (_isOk)
+            yield return _value!;
+    }
+
+    /// <summary>
+    /// Converts the Result to an array.
+    /// Returns an array containing the value if Ok, or an empty array if Err.
+    /// </summary>
+    /// <returns>An array containing zero or one element.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T[] ToArray()
+    {
+        return _isOk ? new[] { _value! } : Array.Empty<T>();
+    }
+
+    /// <summary>
+    /// Converts the Result to a list.
+    /// Returns a list containing the value if Ok, or an empty list if Err.
+    /// </summary>
+    /// <returns>A list containing zero or one element.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public List<T> ToList()
+    {
+        return _isOk ? new List<T> { _value! } : new List<T>();
     }
 
     /// <summary>
@@ -663,4 +758,133 @@ public static class ResultExtensions
         }
         return Result<Unit, TErr>.Ok(Unit.Value);
     }
+
+    #region Async Combine
+
+    /// <summary>
+    /// Asynchronously combines two Result tasks into a single Result containing a tuple.
+    /// Returns the first error encountered if any Result is Err.
+    /// </summary>
+    /// <example>
+    /// <code>
+    /// var combined = await Result.CombineAsync(
+    ///     GetUserAsync(id),
+    ///     GetOrderAsync(orderId)
+    /// ); // Result&lt;(User, Order), Error&gt;
+    /// </code>
+    /// </example>
+    public static async Task<Result<(T1, T2), TErr>> CombineAsync<T1, T2, TErr>(
+        Task<Result<T1, TErr>> first,
+        Task<Result<T2, TErr>> second)
+    {
+        ArgumentNullException.ThrowIfNull(first);
+        ArgumentNullException.ThrowIfNull(second);
+
+        var (result1, result2) = (await first.ConfigureAwait(false), await second.ConfigureAwait(false));
+        return Combine(result1, result2);
+    }
+
+    /// <summary>
+    /// Asynchronously combines two Result tasks using a combiner function.
+    /// Returns the first error encountered if any Result is Err.
+    /// </summary>
+    /// <example>
+    /// <code>
+    /// var combined = await Result.CombineAsync(
+    ///     GetUserAsync(id),
+    ///     GetOrderAsync(orderId),
+    ///     (user, order) => new UserOrder(user, order)
+    /// );
+    /// </code>
+    /// </example>
+    public static async Task<Result<TResult, TErr>> CombineAsync<T1, T2, TErr, TResult>(
+        Task<Result<T1, TErr>> first,
+        Task<Result<T2, TErr>> second,
+        Func<T1, T2, TResult> combiner)
+    {
+        ArgumentNullException.ThrowIfNull(first);
+        ArgumentNullException.ThrowIfNull(second);
+        ArgumentNullException.ThrowIfNull(combiner);
+
+        var (result1, result2) = (await first.ConfigureAwait(false), await second.ConfigureAwait(false));
+        return Combine(result1, result2, combiner);
+    }
+
+    /// <summary>
+    /// Asynchronously combines three Result tasks into a single Result containing a tuple.
+    /// Returns the first error encountered if any Result is Err.
+    /// </summary>
+    public static async Task<Result<(T1, T2, T3), TErr>> CombineAsync<T1, T2, T3, TErr>(
+        Task<Result<T1, TErr>> first,
+        Task<Result<T2, TErr>> second,
+        Task<Result<T3, TErr>> third)
+    {
+        ArgumentNullException.ThrowIfNull(first);
+        ArgumentNullException.ThrowIfNull(second);
+        ArgumentNullException.ThrowIfNull(third);
+
+        var result1 = await first.ConfigureAwait(false);
+        var result2 = await second.ConfigureAwait(false);
+        var result3 = await third.ConfigureAwait(false);
+        return Combine(result1, result2, result3);
+    }
+
+    /// <summary>
+    /// Asynchronously combines three Result tasks using a combiner function.
+    /// Returns the first error encountered if any Result is Err.
+    /// </summary>
+    public static async Task<Result<TResult, TErr>> CombineAsync<T1, T2, T3, TErr, TResult>(
+        Task<Result<T1, TErr>> first,
+        Task<Result<T2, TErr>> second,
+        Task<Result<T3, TErr>> third,
+        Func<T1, T2, T3, TResult> combiner)
+    {
+        ArgumentNullException.ThrowIfNull(first);
+        ArgumentNullException.ThrowIfNull(second);
+        ArgumentNullException.ThrowIfNull(third);
+        ArgumentNullException.ThrowIfNull(combiner);
+
+        var result1 = await first.ConfigureAwait(false);
+        var result2 = await second.ConfigureAwait(false);
+        var result3 = await third.ConfigureAwait(false);
+        return Combine(result1, result2, result3, combiner);
+    }
+
+    /// <summary>
+    /// Asynchronously combines a collection of Result tasks into a single Result containing a list.
+    /// Returns the first error encountered if any Result is Err.
+    /// </summary>
+    /// <example>
+    /// <code>
+    /// var userIds = new[] { 1, 2, 3 };
+    /// var usersResult = await ResultExtensions.CombineAsync(
+    ///     userIds.Select(id => GetUserAsync(id))
+    /// );
+    /// // Result&lt;IReadOnlyList&lt;User&gt;, Error&gt;
+    /// </code>
+    /// </example>
+    public static async Task<Result<IReadOnlyList<T>, TErr>> CombineAsync<T, TErr>(
+        IEnumerable<Task<Result<T, TErr>>> resultTasks)
+    {
+        ArgumentNullException.ThrowIfNull(resultTasks);
+
+        var results = await Task.WhenAll(resultTasks).ConfigureAwait(false);
+        return Combine(results);
+    }
+
+    /// <summary>
+    /// Asynchronously combines a collection of Result tasks, ignoring the values.
+    /// Useful when you only care about success/failure, not the values.
+    /// Returns the first error encountered if any Result is Err.
+    /// </summary>
+    public static async Task<Result<Unit, TErr>> CombineAllAsync<T, TErr>(
+        IEnumerable<Task<Result<T, TErr>>> resultTasks)
+    {
+        ArgumentNullException.ThrowIfNull(resultTasks);
+
+        var results = await Task.WhenAll(resultTasks).ConfigureAwait(false);
+        return CombineAll(results);
+    }
+
+    #endregion
 }

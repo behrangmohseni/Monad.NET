@@ -242,45 +242,6 @@ public readonly struct Writer<TLog, T> : IEquatable<Writer<TLog, T>>
 }
 
 /// <summary>
-/// Represents a unit type (void replacement) for Writer monad.
-/// </summary>
-public readonly struct Unit : IEquatable<Unit>
-{
-    /// <summary>
-    /// The singleton Unit value.
-    /// </summary>
-    public static readonly Unit Value = default;
-
-    /// <summary>
-    /// The default Unit value (alias for Value).
-    /// </summary>
-    public static readonly Unit Default = default;
-
-    /// <inheritdoc />
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(Unit other) => true;
-    /// <inheritdoc />
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public override bool Equals(object? obj) => obj is Unit;
-    /// <inheritdoc />
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public override int GetHashCode() => 0;
-    /// <inheritdoc />
-    public override string ToString() => "()";
-
-    /// <summary>
-    /// Determines whether two Unit instances are equal (always true).
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(Unit left, Unit right) => true;
-    /// <summary>
-    /// Determines whether two Unit instances are not equal (always false).
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(Unit left, Unit right) => false;
-}
-
-/// <summary>
 /// Extension methods and helpers for Writer monad.
 /// </summary>
 public static class WriterExtensions

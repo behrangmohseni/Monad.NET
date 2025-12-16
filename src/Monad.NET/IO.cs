@@ -590,6 +590,145 @@ public readonly struct IOAsync<T>
             }
         });
     }
+
+    /// <summary>
+    /// Retries the async IO action a specified number of times on failure.
+    /// </summary>
+    /// <param name="retries">The number of times to retry (0 means no retries, just one attempt).</param>
+    /// <returns>An async IO action that retries on failure.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when retries is negative.</exception>
+    public IOAsync<T> Retry(int retries)
+    {
+        if (retries < 0)
+            ThrowHelper.ThrowArgumentOutOfRange(nameof(retries), "Retries must be non-negative.");
+
+        var effect = _effect;
+        return IOAsync<T>.Of(async () =>
+        {
+            Exception? lastException = null;
+            for (var i = 0; i <= retries; i++)
+            {
+                try
+                {
+                    return await effect().ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    lastException = ex;
+                }
+            }
+            throw lastException!;
+        });
+    }
+
+    /// <summary>
+    /// Retries the async IO action with a delay between attempts.
+    /// </summary>
+    /// <param name="retries">The number of times to retry (0 means no retries, just one attempt).</param>
+    /// <param name="delay">The delay between retry attempts.</param>
+    /// <returns>An async IO action that retries with delay on failure.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when retries is negative.</exception>
+    public IOAsync<T> RetryWithDelay(int retries, TimeSpan delay)
+    {
+        if (retries < 0)
+            ThrowHelper.ThrowArgumentOutOfRange(nameof(retries), "Retries must be non-negative.");
+
+        var effect = _effect;
+        return IOAsync<T>.Of(async () =>
+        {
+            Exception? lastException = null;
+            for (var i = 0; i <= retries; i++)
+            {
+                try
+                {
+                    return await effect().ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    lastException = ex;
+                    if (i < retries)
+                    {
+                        await Task.Delay(delay).ConfigureAwait(false);
+                    }
+                }
+            }
+            throw lastException!;
+        });
+    }
+
+    /// <summary>
+    /// Retries the async IO action with exponential backoff between attempts.
+    /// </summary>
+    /// <param name="retries">The number of times to retry (0 means no retries, just one attempt).</param>
+    /// <param name="initialDelay">The initial delay before the first retry. Subsequent delays double.</param>
+    /// <param name="maxDelay">The maximum delay between retries (optional).</param>
+    /// <returns>An async IO action that retries with exponential backoff on failure.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when retries is negative.</exception>
+    public IOAsync<T> RetryWithExponentialBackoff(int retries, TimeSpan initialDelay, TimeSpan? maxDelay = null)
+    {
+        if (retries < 0)
+            ThrowHelper.ThrowArgumentOutOfRange(nameof(retries), "Retries must be non-negative.");
+
+        var effect = _effect;
+        return IOAsync<T>.Of(async () =>
+        {
+            Exception? lastException = null;
+            var currentDelay = initialDelay;
+            for (var i = 0; i <= retries; i++)
+            {
+                try
+                {
+                    return await effect().ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    lastException = ex;
+                    if (i < retries)
+                    {
+                        await Task.Delay(currentDelay).ConfigureAwait(false);
+                        currentDelay = TimeSpan.FromTicks(currentDelay.Ticks * 2);
+                        if (maxDelay.HasValue && currentDelay > maxDelay.Value)
+                        {
+                            currentDelay = maxDelay.Value;
+                        }
+                    }
+                }
+            }
+            throw lastException!;
+        });
+    }
+
+    /// <summary>
+    /// Retries the async IO action while a condition is true.
+    /// </summary>
+    /// <param name="shouldRetry">A function that determines if a retry should be attempted based on the exception and attempt number.</param>
+    /// <param name="maxRetries">The maximum number of retries (optional, defaults to int.MaxValue).</param>
+    /// <returns>An async IO action that retries while the condition is met.</returns>
+    public IOAsync<T> RetryWhile(Func<Exception, int, bool> shouldRetry, int maxRetries = int.MaxValue)
+    {
+        ArgumentNullException.ThrowIfNull(shouldRetry);
+
+        var effect = _effect;
+        return IOAsync<T>.Of(async () =>
+        {
+            var attempt = 0;
+            while (true)
+            {
+                try
+                {
+                    return await effect().ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    if (attempt >= maxRetries || !shouldRetry(ex, attempt))
+                    {
+                        throw;
+                    }
+                    attempt++;
+                }
+            }
+        });
+    }
 }
 
 /// <summary>

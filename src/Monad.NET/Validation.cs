@@ -115,6 +115,47 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     }
 
     /// <summary>
+    /// Tries to get the contained valid value using the familiar C# TryGet pattern.
+    /// </summary>
+    /// <param name="value">When this method returns, contains the valid value if present; otherwise, the default value.</param>
+    /// <returns>True if the Validation is valid; otherwise, false.</returns>
+    /// <example>
+    /// <code>
+    /// if (validation.TryGet(out var value))
+    /// {
+    ///     Console.WriteLine($"Valid: {value}");
+    /// }
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool TryGet(out T? value)
+    {
+        value = _value;
+        return _isValid;
+    }
+
+    /// <summary>
+    /// Tries to get the contained errors using the familiar C# TryGet pattern.
+    /// </summary>
+    /// <param name="errors">When this method returns, contains the errors if invalid; otherwise, an empty list.</param>
+    /// <returns>True if the Validation is invalid; otherwise, false.</returns>
+    /// <example>
+    /// <code>
+    /// if (validation.TryGetErrors(out var errors))
+    /// {
+    ///     foreach (var error in errors)
+    ///         Console.WriteLine($"Error: {error}");
+    /// }
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool TryGetErrors(out IReadOnlyList<TErr> errors)
+    {
+        errors = _errors ?? Array.Empty<TErr>();
+        return !_isValid;
+    }
+
+    /// <summary>
     /// Maps the valid value if it exists.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -163,6 +204,72 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
         return _isValid
             ? Validation<U, TErr>.Invalid(other._errors!)
             : Validation<U, TErr>.Invalid(_errors!);
+    }
+
+    /// <summary>
+    /// Combines this Validation with another into a tuple.
+    /// Accumulates ALL errors from both if either/both are invalid.
+    /// </summary>
+    /// <typeparam name="U">The type of the other value.</typeparam>
+    /// <param name="other">The other Validation to combine with.</param>
+    /// <returns>A Validation containing a tuple of both values, or accumulated errors.</returns>
+    /// <example>
+    /// <code>
+    /// var nameValidation = ValidateName(name);   // Validation&lt;string, Error&gt;
+    /// var ageValidation = ValidateAge(age);      // Validation&lt;int, Error&gt;
+    /// var combined = nameValidation.Zip(ageValidation); // Validation&lt;(string, int), Error&gt;
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Validation<(T, U), TErr> Zip<U>(Validation<U, TErr> other)
+    {
+        if (_isValid && other.IsValid)
+            return Validation<(T, U), TErr>.Valid((_value!, other.Unwrap()));
+
+        if (!_isValid && !other.IsValid)
+        {
+            var allErrors = _errors!.Concat(other.UnwrapErrors()).ToList();
+            return Validation<(T, U), TErr>.Invalid(allErrors);
+        }
+
+        return _isValid
+            ? Validation<(T, U), TErr>.Invalid(other.UnwrapErrors())
+            : Validation<(T, U), TErr>.Invalid(_errors!);
+    }
+
+    /// <summary>
+    /// Combines this Validation with another using a combiner function.
+    /// Accumulates ALL errors from both if either/both are invalid.
+    /// </summary>
+    /// <typeparam name="U">The type of the other value.</typeparam>
+    /// <typeparam name="V">The type of the combined result.</typeparam>
+    /// <param name="other">The other Validation to combine with.</param>
+    /// <param name="combiner">A function to combine the values.</param>
+    /// <returns>A Validation containing the combined result, or accumulated errors.</returns>
+    /// <example>
+    /// <code>
+    /// var nameValidation = ValidateName(name);
+    /// var ageValidation = ValidateAge(age);
+    /// var person = nameValidation.ZipWith(ageValidation, (n, a) => new Person(n, a));
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Validation<V, TErr> ZipWith<U, V>(Validation<U, TErr> other, Func<T, U, V> combiner)
+    {
+        ArgumentNullException.ThrowIfNull(combiner);
+
+        if (_isValid && other.IsValid)
+            return Validation<V, TErr>.Valid(combiner(_value!, other.Unwrap()));
+
+        if (!_isValid && !other.IsValid)
+        {
+            var allErrors = _errors!.Concat(other.UnwrapErrors()).ToList();
+            return Validation<V, TErr>.Invalid(allErrors);
+        }
+
+        return _isValid
+            ? Validation<V, TErr>.Invalid(other.UnwrapErrors())
+            : Validation<V, TErr>.Invalid(_errors!);
     }
 
     /// <summary>
@@ -442,6 +549,15 @@ public static class ValidationExtensions
     }
 
     /// <summary>
+    /// Executes an action if the validation is invalid, allowing method chaining.
+    /// Alias for <see cref="TapErrors{T, TErr}"/> with a more concise name.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Validation<T, TErr> TapInvalid<T, TErr>(
+        this Validation<T, TErr> validation,
+        Action<IReadOnlyList<TErr>> action) => validation.TapErrors(action);
+
+    /// <summary>
     /// Converts a Result to a Validation.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -452,4 +568,221 @@ public static class ValidationExtensions
             errFunc: static err => Validation<T, TErr>.Invalid(err)
         );
     }
+
+    #region Async Operations
+
+    /// <summary>
+    /// Asynchronously combines two Validation tasks using applicative functor semantics.
+    /// If both are valid, applies the combiner function. If either/both are invalid, accumulates ALL errors.
+    /// </summary>
+    /// <example>
+    /// <code>
+    /// var result = await ValidationExtensions.ApplyAsync(
+    ///     ValidateUserAsync(user),
+    ///     ValidateAddressAsync(address),
+    ///     (u, a) => new ValidatedUserWithAddress(u, a)
+    /// );
+    /// </code>
+    /// </example>
+    public static async Task<Validation<U, TErr>> ApplyAsync<T, TIntermediate, U, TErr>(
+        Task<Validation<T, TErr>> firstTask,
+        Task<Validation<TIntermediate, TErr>> secondTask,
+        Func<T, TIntermediate, U> combiner)
+    {
+        ArgumentNullException.ThrowIfNull(firstTask);
+        ArgumentNullException.ThrowIfNull(secondTask);
+        ArgumentNullException.ThrowIfNull(combiner);
+
+        var result1 = await firstTask.ConfigureAwait(false);
+        var result2 = await secondTask.ConfigureAwait(false);
+        return result1.Apply(result2, combiner);
+    }
+
+    /// <summary>
+    /// Asynchronously zips two Validation tasks into a single Validation containing a tuple.
+    /// Accumulates ALL errors from both if either/both are invalid.
+    /// </summary>
+    /// <example>
+    /// <code>
+    /// var combined = await ValidationExtensions.ZipAsync(
+    ///     ValidateNameAsync(name),
+    ///     ValidateAgeAsync(age)
+    /// ); // Task&lt;Validation&lt;(string, int), Error&gt;&gt;
+    /// </code>
+    /// </example>
+    public static async Task<Validation<(T, U), TErr>> ZipAsync<T, U, TErr>(
+        Task<Validation<T, TErr>> firstTask,
+        Task<Validation<U, TErr>> secondTask)
+    {
+        ArgumentNullException.ThrowIfNull(firstTask);
+        ArgumentNullException.ThrowIfNull(secondTask);
+
+        var result1 = await firstTask.ConfigureAwait(false);
+        var result2 = await secondTask.ConfigureAwait(false);
+        return result1.Zip(result2);
+    }
+
+    /// <summary>
+    /// Asynchronously zips two Validation tasks using a combiner function.
+    /// Accumulates ALL errors from both if either/both are invalid.
+    /// </summary>
+    /// <example>
+    /// <code>
+    /// var person = await ValidationExtensions.ZipWithAsync(
+    ///     ValidateNameAsync(name),
+    ///     ValidateAgeAsync(age),
+    ///     (n, a) => new Person(n, a)
+    /// );
+    /// </code>
+    /// </example>
+    public static async Task<Validation<V, TErr>> ZipWithAsync<T, U, V, TErr>(
+        Task<Validation<T, TErr>> firstTask,
+        Task<Validation<U, TErr>> secondTask,
+        Func<T, U, V> combiner)
+    {
+        ArgumentNullException.ThrowIfNull(firstTask);
+        ArgumentNullException.ThrowIfNull(secondTask);
+        ArgumentNullException.ThrowIfNull(combiner);
+
+        var result1 = await firstTask.ConfigureAwait(false);
+        var result2 = await secondTask.ConfigureAwait(false);
+        return result1.ZipWith(result2, combiner);
+    }
+
+    /// <summary>
+    /// Asynchronously zips three Validation tasks into a single Validation containing a tuple.
+    /// Accumulates ALL errors from all if any are invalid.
+    /// </summary>
+    public static async Task<Validation<(T1, T2, T3), TErr>> ZipAsync<T1, T2, T3, TErr>(
+        Task<Validation<T1, TErr>> first,
+        Task<Validation<T2, TErr>> second,
+        Task<Validation<T3, TErr>> third)
+    {
+        ArgumentNullException.ThrowIfNull(first);
+        ArgumentNullException.ThrowIfNull(second);
+        ArgumentNullException.ThrowIfNull(third);
+
+        var result1 = await first.ConfigureAwait(false);
+        var result2 = await second.ConfigureAwait(false);
+        var result3 = await third.ConfigureAwait(false);
+
+        // Accumulate all errors
+        var allErrors = new List<TErr>();
+        if (result1.IsInvalid)
+            allErrors.AddRange(result1.UnwrapErrors());
+        if (result2.IsInvalid)
+            allErrors.AddRange(result2.UnwrapErrors());
+        if (result3.IsInvalid)
+            allErrors.AddRange(result3.UnwrapErrors());
+
+        if (allErrors.Count > 0)
+            return Validation<(T1, T2, T3), TErr>.Invalid(allErrors);
+
+        return Validation<(T1, T2, T3), TErr>.Valid((
+            result1.Unwrap(),
+            result2.Unwrap(),
+            result3.Unwrap()
+        ));
+    }
+
+    /// <summary>
+    /// Asynchronously combines a collection of Validation tasks into a single Validation.
+    /// Accumulates ALL errors from all if any are invalid.
+    /// </summary>
+    /// <example>
+    /// <code>
+    /// var items = new[] { item1, item2, item3 };
+    /// var allValidated = await items
+    ///     .Select(item => ValidateItemAsync(item))
+    ///     .CombineAsync();
+    /// </code>
+    /// </example>
+    public static async Task<Validation<IReadOnlyList<T>, TErr>> CombineAsync<T, TErr>(
+        this IEnumerable<Task<Validation<T, TErr>>> validationTasks)
+    {
+        ArgumentNullException.ThrowIfNull(validationTasks);
+
+        var validations = await Task.WhenAll(validationTasks).ConfigureAwait(false);
+
+        var allErrors = new List<TErr>();
+        var values = new List<T>();
+
+        foreach (var validation in validations)
+        {
+            if (validation.IsValid)
+                values.Add(validation.Unwrap());
+            else
+                allErrors.AddRange(validation.UnwrapErrors());
+        }
+
+        return allErrors.Count == 0
+            ? Validation<IReadOnlyList<T>, TErr>.Valid(values)
+            : Validation<IReadOnlyList<T>, TErr>.Invalid(allErrors);
+    }
+
+    /// <summary>
+    /// Asynchronously executes an action if the validation task results in a valid value.
+    /// </summary>
+    public static async Task<Validation<T, TErr>> TapAsync<T, TErr>(
+        this Task<Validation<T, TErr>> validationTask,
+        Func<T, Task> action)
+    {
+        ArgumentNullException.ThrowIfNull(validationTask);
+        ArgumentNullException.ThrowIfNull(action);
+
+        var validation = await validationTask.ConfigureAwait(false);
+        if (validation.IsValid)
+            await action(validation.Unwrap()).ConfigureAwait(false);
+
+        return validation;
+    }
+
+    /// <summary>
+    /// Asynchronously executes an action if the validation task results in errors.
+    /// </summary>
+    public static async Task<Validation<T, TErr>> TapErrorsAsync<T, TErr>(
+        this Task<Validation<T, TErr>> validationTask,
+        Func<IReadOnlyList<TErr>, Task> action)
+    {
+        ArgumentNullException.ThrowIfNull(validationTask);
+        ArgumentNullException.ThrowIfNull(action);
+
+        var validation = await validationTask.ConfigureAwait(false);
+        if (validation.IsInvalid)
+            await action(validation.UnwrapErrors()).ConfigureAwait(false);
+
+        return validation;
+    }
+
+    /// <summary>
+    /// Asynchronously maps the valid value using an async function.
+    /// </summary>
+    public static async Task<Validation<U, TErr>> MapAsync<T, U, TErr>(
+        this Validation<T, TErr> validation,
+        Func<T, Task<U>> mapper)
+    {
+        ArgumentNullException.ThrowIfNull(mapper);
+
+        if (validation.IsInvalid)
+            return Validation<U, TErr>.Invalid(validation.UnwrapErrors());
+
+        var result = await mapper(validation.Unwrap()).ConfigureAwait(false);
+        return Validation<U, TErr>.Valid(result);
+    }
+
+    /// <summary>
+    /// Asynchronously maps the valid value from a validation task using an async function.
+    /// </summary>
+    public static async Task<Validation<U, TErr>> MapAsync<T, U, TErr>(
+        this Task<Validation<T, TErr>> validationTask,
+        Func<T, Task<U>> mapper)
+    {
+        ArgumentNullException.ThrowIfNull(validationTask);
+        ArgumentNullException.ThrowIfNull(mapper);
+
+        var validation = await validationTask.ConfigureAwait(false);
+        return await validation.MapAsync(mapper).ConfigureAwait(false);
+    }
+
+    #endregion
 }

@@ -179,6 +179,52 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     }
 
     /// <summary>
+    /// Combines this Option with another into a tuple.
+    /// Returns None if either Option is None.
+    /// </summary>
+    /// <typeparam name="U">The type of the other value.</typeparam>
+    /// <param name="other">The other Option to combine with.</param>
+    /// <returns>An Option containing a tuple of both values, or None.</returns>
+    /// <example>
+    /// <code>
+    /// var name = Option&lt;string&gt;.Some("Alice");
+    /// var age = Option&lt;int&gt;.Some(30);
+    /// var combined = name.Zip(age); // Some(("Alice", 30))
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Option<(T, U)> Zip<U>(Option<U> other)
+    {
+        return _isSome && other.IsSome
+            ? Option<(T, U)>.Some((_value!, other.Unwrap()))
+            : Option<(T, U)>.None();
+    }
+
+    /// <summary>
+    /// Combines this Option with another using a combiner function.
+    /// Returns None if either Option is None.
+    /// </summary>
+    /// <typeparam name="U">The type of the other value.</typeparam>
+    /// <typeparam name="V">The type of the combined result.</typeparam>
+    /// <param name="other">The other Option to combine with.</param>
+    /// <param name="combiner">A function to combine the values.</param>
+    /// <returns>An Option containing the combined result, or None.</returns>
+    /// <example>
+    /// <code>
+    /// var firstName = Option&lt;string&gt;.Some("Alice");
+    /// var lastName = Option&lt;string&gt;.Some("Smith");
+    /// var fullName = firstName.ZipWith(lastName, (f, l) => $"{f} {l}"); // Some("Alice Smith")
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Option<V> ZipWith<U, V>(Option<U> other, Func<T, U, V> combiner)
+    {
+        return _isSome && other.IsSome
+            ? Option<V>.Some(combiner(_value!, other.Unwrap()))
+            : Option<V>.None();
+    }
+
+    /// <summary>
     /// Returns None if the option is None, otherwise returns optionB.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -294,6 +340,51 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     public Result<T, TErr> OkOrElse<TErr>(Func<TErr> errFunc)
     {
         return _isSome ? Result<T, TErr>.Ok(_value!) : Result<T, TErr>.Err(errFunc());
+    }
+
+    /// <summary>
+    /// Converts the Option to an enumerable sequence.
+    /// Returns a sequence containing the value if Some, or an empty sequence if None.
+    /// </summary>
+    /// <returns>An enumerable containing zero or one element.</returns>
+    /// <example>
+    /// <code>
+    /// var option = Option&lt;int&gt;.Some(42);
+    /// foreach (var value in option.AsEnumerable())
+    ///     Console.WriteLine(value); // Prints: 42
+    ///
+    /// // Useful for flattening collections of Options
+    /// var options = new[] { Option&lt;int&gt;.Some(1), Option&lt;int&gt;.None(), Option&lt;int&gt;.Some(3) };
+    /// var values = options.SelectMany(o => o.AsEnumerable()); // [1, 3]
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public IEnumerable<T> AsEnumerable()
+    {
+        if (_isSome)
+            yield return _value!;
+    }
+
+    /// <summary>
+    /// Converts the Option to an array.
+    /// Returns an array containing the value if Some, or an empty array if None.
+    /// </summary>
+    /// <returns>An array containing zero or one element.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T[] ToArray()
+    {
+        return _isSome ? new[] { _value! } : Array.Empty<T>();
+    }
+
+    /// <summary>
+    /// Converts the Option to a list.
+    /// Returns a list containing the value if Some, or an empty list if None.
+    /// </summary>
+    /// <returns>A list containing zero or one element.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public List<T> ToList()
+    {
+        return _isSome ? new List<T> { _value! } : new List<T>();
     }
 
     /// <inheritdoc />

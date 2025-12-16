@@ -101,6 +101,52 @@ public class ValidationTests
     }
 
     [Fact]
+    public void TryGet_OnValid_ReturnsTrueAndValue()
+    {
+        var validation = Validation<int, string>.Valid(42);
+
+        var result = validation.TryGet(out var value);
+
+        Assert.True(result);
+        Assert.Equal(42, value);
+    }
+
+    [Fact]
+    public void TryGet_OnInvalid_ReturnsFalse()
+    {
+        var validation = Validation<int, string>.Invalid("error");
+
+        var result = validation.TryGet(out var value);
+
+        Assert.False(result);
+        Assert.Equal(default, value);
+    }
+
+    [Fact]
+    public void TryGetErrors_OnInvalid_ReturnsTrueAndErrors()
+    {
+        var validation = Validation<int, string>.Invalid(new[] { "error1", "error2" });
+
+        var result = validation.TryGetErrors(out var errors);
+
+        Assert.True(result);
+        Assert.Equal(2, errors.Count);
+        Assert.Equal("error1", errors[0]);
+        Assert.Equal("error2", errors[1]);
+    }
+
+    [Fact]
+    public void TryGetErrors_OnValid_ReturnsFalseAndEmptyList()
+    {
+        var validation = Validation<int, string>.Valid(42);
+
+        var result = validation.TryGetErrors(out var errors);
+
+        Assert.False(result);
+        Assert.Empty(errors);
+    }
+
+    [Fact]
     public void MapErrors_OnInvalid_TransformsErrors()
     {
         var validation = Validation<int, string>.Invalid(new[] { "error1", "error2" });
@@ -147,6 +193,85 @@ public class ValidationTests
         Assert.True(result.IsInvalid);
         Assert.Single(result.UnwrapErrors());
         Assert.Equal("error1", result.UnwrapErrors()[0]);
+    }
+
+    [Fact]
+    public void Zip_BothValid_ReturnsTuple()
+    {
+        var val1 = Validation<int, string>.Valid(42);
+        var val2 = Validation<string, string>.Valid("hello");
+
+        var result = val1.Zip(val2);
+
+        Assert.True(result.IsValid);
+        Assert.Equal((42, "hello"), result.Unwrap());
+    }
+
+    [Fact]
+    public void Zip_BothInvalid_AccumulatesAllErrors()
+    {
+        var val1 = Validation<int, string>.Invalid(new[] { "error1", "error2" });
+        var val2 = Validation<string, string>.Invalid(new[] { "error3" });
+
+        var result = val1.Zip(val2);
+
+        Assert.True(result.IsInvalid);
+        Assert.Equal(3, result.UnwrapErrors().Count);
+        Assert.Contains("error1", result.UnwrapErrors());
+        Assert.Contains("error2", result.UnwrapErrors());
+        Assert.Contains("error3", result.UnwrapErrors());
+    }
+
+    [Fact]
+    public void Zip_FirstInvalid_ReturnsFirstErrors()
+    {
+        var val1 = Validation<int, string>.Invalid("error1");
+        var val2 = Validation<string, string>.Valid("hello");
+
+        var result = val1.Zip(val2);
+
+        Assert.True(result.IsInvalid);
+        Assert.Single(result.UnwrapErrors());
+        Assert.Equal("error1", result.UnwrapErrors()[0]);
+    }
+
+    [Fact]
+    public void Zip_SecondInvalid_ReturnsSecondErrors()
+    {
+        var val1 = Validation<int, string>.Valid(42);
+        var val2 = Validation<string, string>.Invalid("error2");
+
+        var result = val1.Zip(val2);
+
+        Assert.True(result.IsInvalid);
+        Assert.Single(result.UnwrapErrors());
+        Assert.Equal("error2", result.UnwrapErrors()[0]);
+    }
+
+    [Fact]
+    public void ZipWith_BothValid_ReturnsCombinedValue()
+    {
+        var val1 = Validation<int, string>.Valid(10);
+        var val2 = Validation<int, string>.Valid(20);
+
+        var result = val1.ZipWith(val2, (a, b) => a + b);
+
+        Assert.True(result.IsValid);
+        Assert.Equal(30, result.Unwrap());
+    }
+
+    [Fact]
+    public void ZipWith_BothInvalid_AccumulatesAllErrors()
+    {
+        var val1 = Validation<int, string>.Invalid("error1");
+        var val2 = Validation<int, string>.Invalid("error2");
+
+        var result = val1.ZipWith(val2, (a, b) => a + b);
+
+        Assert.True(result.IsInvalid);
+        Assert.Equal(2, result.UnwrapErrors().Count);
+        Assert.Contains("error1", result.UnwrapErrors());
+        Assert.Contains("error2", result.UnwrapErrors());
     }
 
     [Fact]
@@ -353,6 +478,30 @@ public class ValidationTests
 
         Assert.True(executed);
         Assert.True(result.IsInvalid);
+    }
+
+    [Fact]
+    public void TapInvalid_OnInvalid_ExecutesAction()
+    {
+        var validation = Validation<int, string>.Invalid("error");
+        var executed = false;
+
+        var result = validation.TapInvalid(errors => executed = true);
+
+        Assert.True(executed);
+        Assert.True(result.IsInvalid);
+    }
+
+    [Fact]
+    public void TapInvalid_OnValid_DoesNotExecuteAction()
+    {
+        var validation = Validation<int, string>.Valid(42);
+        var executed = false;
+
+        var result = validation.TapInvalid(errors => executed = true);
+
+        Assert.False(executed);
+        Assert.True(result.IsValid);
     }
 
     [Fact]

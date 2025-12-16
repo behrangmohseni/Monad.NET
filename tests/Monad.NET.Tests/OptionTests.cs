@@ -137,6 +137,74 @@ public class OptionTests
     }
 
     [Fact]
+    public void Zip_BothSome_ReturnsTuple()
+    {
+        var option1 = Option<int>.Some(42);
+        var option2 = Option<string>.Some("hello");
+
+        var result = option1.Zip(option2);
+
+        Assert.True(result.IsSome);
+        Assert.Equal((42, "hello"), result.Unwrap());
+    }
+
+    [Fact]
+    public void Zip_FirstNone_ReturnsNone()
+    {
+        var option1 = Option<int>.None();
+        var option2 = Option<string>.Some("hello");
+
+        var result = option1.Zip(option2);
+
+        Assert.True(result.IsNone);
+    }
+
+    [Fact]
+    public void Zip_SecondNone_ReturnsNone()
+    {
+        var option1 = Option<int>.Some(42);
+        var option2 = Option<string>.None();
+
+        var result = option1.Zip(option2);
+
+        Assert.True(result.IsNone);
+    }
+
+    [Fact]
+    public void ZipWith_BothSome_ReturnsCombinedValue()
+    {
+        var option1 = Option<int>.Some(10);
+        var option2 = Option<int>.Some(20);
+
+        var result = option1.ZipWith(option2, (a, b) => a + b);
+
+        Assert.True(result.IsSome);
+        Assert.Equal(30, result.Unwrap());
+    }
+
+    [Fact]
+    public void ZipWith_FirstNone_ReturnsNone()
+    {
+        var option1 = Option<int>.None();
+        var option2 = Option<int>.Some(20);
+
+        var result = option1.ZipWith(option2, (a, b) => a + b);
+
+        Assert.True(result.IsNone);
+    }
+
+    [Fact]
+    public void ZipWith_SecondNone_ReturnsNone()
+    {
+        var option1 = Option<int>.Some(10);
+        var option2 = Option<int>.None();
+
+        var result = option1.ZipWith(option2, (a, b) => a + b);
+
+        Assert.True(result.IsNone);
+    }
+
+    [Fact]
     public void Or_BothSome_ReturnsFirst()
     {
         var option1 = Option<int>.Some(1);
