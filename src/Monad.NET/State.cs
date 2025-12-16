@@ -7,21 +7,30 @@ namespace Monad.NET;
 /// </summary>
 /// <typeparam name="TState">The type of the state.</typeparam>
 /// <typeparam name="T">The type of the value.</typeparam>
-public readonly struct StateResult<TState, T>
+public readonly struct StateResult<TState, T> : IEquatable<StateResult<TState, T>>
 {
     /// <summary>
     /// Gets the computed value.
     /// </summary>
-    public T Value { get; }
+    public T Value
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get;
+    }
 
     /// <summary>
     /// Gets the resulting state.
     /// </summary>
-    public TState State { get; }
+    public TState State
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get;
+    }
 
     /// <summary>
     /// Creates a new state result.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public StateResult(T value, TState state)
     {
         Value = value;
@@ -31,10 +40,57 @@ public readonly struct StateResult<TState, T>
     /// <summary>
     /// Deconstructs the state result into its components.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Deconstruct(out T value, out TState state)
     {
         value = Value;
         state = State;
+    }
+
+    /// <inheritdoc />
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool Equals(StateResult<TState, T> other)
+    {
+        return EqualityComparer<T>.Default.Equals(Value, other.Value)
+            && EqualityComparer<TState>.Default.Equals(State, other.State);
+    }
+
+    /// <inheritdoc />
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public override bool Equals(object? obj)
+    {
+        return obj is StateResult<TState, T> other && Equals(other);
+    }
+
+    /// <inheritdoc />
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Value, State);
+    }
+
+    /// <inheritdoc />
+    public override string ToString()
+    {
+        return $"StateResult(Value: {Value}, State: {State})";
+    }
+
+    /// <summary>
+    /// Determines whether two StateResult instances are equal.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator ==(StateResult<TState, T> left, StateResult<TState, T> right)
+    {
+        return left.Equals(right);
+    }
+
+    /// <summary>
+    /// Determines whether two StateResult instances are not equal.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator !=(StateResult<TState, T> left, StateResult<TState, T> right)
+    {
+        return !left.Equals(right);
     }
 }
 

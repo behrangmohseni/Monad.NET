@@ -4,6 +4,110 @@ namespace Monad.NET.Tests;
 
 public class StateTests
 {
+    #region StateResult Tests
+
+    [Fact]
+    public void StateResult_Equals_SameValueAndState_ReturnsTrue()
+    {
+        var result1 = new StateResult<int, string>("hello", 42);
+        var result2 = new StateResult<int, string>("hello", 42);
+
+        Assert.True(result1.Equals(result2));
+        Assert.True(result1 == result2);
+        Assert.False(result1 != result2);
+    }
+
+    [Fact]
+    public void StateResult_Equals_DifferentValue_ReturnsFalse()
+    {
+        var result1 = new StateResult<int, string>("hello", 42);
+        var result2 = new StateResult<int, string>("world", 42);
+
+        Assert.False(result1.Equals(result2));
+        Assert.False(result1 == result2);
+        Assert.True(result1 != result2);
+    }
+
+    [Fact]
+    public void StateResult_Equals_DifferentState_ReturnsFalse()
+    {
+        var result1 = new StateResult<int, string>("hello", 42);
+        var result2 = new StateResult<int, string>("hello", 100);
+
+        Assert.False(result1.Equals(result2));
+        Assert.False(result1 == result2);
+        Assert.True(result1 != result2);
+    }
+
+    [Fact]
+    public void StateResult_Equals_Object_ReturnsCorrectly()
+    {
+        var result = new StateResult<int, string>("hello", 42);
+
+        Assert.True(result.Equals((object)new StateResult<int, string>("hello", 42)));
+        Assert.False(result.Equals((object)"not a state result"));
+        Assert.False(result.Equals(null));
+    }
+
+    [Fact]
+    public void StateResult_GetHashCode_SameForEqualValues()
+    {
+        var result1 = new StateResult<int, string>("hello", 42);
+        var result2 = new StateResult<int, string>("hello", 42);
+
+        Assert.Equal(result1.GetHashCode(), result2.GetHashCode());
+    }
+
+    [Fact]
+    public void StateResult_ToString_FormatsCorrectly()
+    {
+        var result = new StateResult<int, string>("hello", 42);
+
+        var str = result.ToString();
+
+        Assert.Contains("hello", str);
+        Assert.Contains("42", str);
+        Assert.Contains("StateResult", str);
+    }
+
+    [Fact]
+    public void StateResult_CanBeUsedInDictionary()
+    {
+        var result = new StateResult<int, string>("hello", 42);
+        var dict = new Dictionary<StateResult<int, string>, string>
+        {
+            [result] = "test"
+        };
+
+        Assert.Equal("test", dict[new StateResult<int, string>("hello", 42)]);
+    }
+
+    [Fact]
+    public void StateResult_CanBeUsedInHashSet()
+    {
+        var set = new HashSet<StateResult<int, string>>
+        {
+            new("hello", 42),
+            new("hello", 42), // duplicate
+            new("world", 100)
+        };
+
+        Assert.Equal(2, set.Count);
+    }
+
+    [Fact]
+    public void StateResult_Deconstruct_ExtractsComponents()
+    {
+        var result = new StateResult<int, string>("hello", 42);
+
+        var (value, state) = result;
+
+        Assert.Equal("hello", value);
+        Assert.Equal(42, state);
+    }
+
+    #endregion
+
     #region Creation Tests
 
     [Fact]
