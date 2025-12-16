@@ -15,6 +15,9 @@ public static class ResultAsyncExtensions
         this Task<Result<T, TErr>> resultTask,
         Func<T, Task<U>> mapper)
     {
+        ArgumentNullException.ThrowIfNull(resultTask);
+        ArgumentNullException.ThrowIfNull(mapper);
+
         var result = await resultTask.ConfigureAwait(false);
         if (!result.IsOk)
             return Result<U, TErr>.Err(result.UnwrapErr());
@@ -31,6 +34,9 @@ public static class ResultAsyncExtensions
         this Task<Result<T, TErr>> resultTask,
         Func<T, U> mapper)
     {
+        ArgumentNullException.ThrowIfNull(resultTask);
+        ArgumentNullException.ThrowIfNull(mapper);
+
         var result = await resultTask.ConfigureAwait(false);
         return result.Map(mapper);
     }
@@ -43,6 +49,9 @@ public static class ResultAsyncExtensions
         this Task<Result<T, TErr>> resultTask,
         Func<TErr, Task<F>> mapper)
     {
+        ArgumentNullException.ThrowIfNull(resultTask);
+        ArgumentNullException.ThrowIfNull(mapper);
+
         var result = await resultTask.ConfigureAwait(false);
         if (result.IsOk)
             return Result<T, F>.Ok(result.Unwrap());
@@ -59,6 +68,9 @@ public static class ResultAsyncExtensions
         this Task<Result<T, TErr>> resultTask,
         Func<TErr, F> mapper)
     {
+        ArgumentNullException.ThrowIfNull(resultTask);
+        ArgumentNullException.ThrowIfNull(mapper);
+
         var result = await resultTask.ConfigureAwait(false);
         return result.MapErr(mapper);
     }
@@ -71,6 +83,9 @@ public static class ResultAsyncExtensions
         this Task<Result<T, TErr>> resultTask,
         Func<T, Task<Result<U, TErr>>> binder)
     {
+        ArgumentNullException.ThrowIfNull(resultTask);
+        ArgumentNullException.ThrowIfNull(binder);
+
         var result = await resultTask.ConfigureAwait(false);
         if (!result.IsOk)
             return Result<U, TErr>.Err(result.UnwrapErr());
@@ -86,6 +101,9 @@ public static class ResultAsyncExtensions
         this Task<Result<T, TErr>> resultTask,
         Func<T, Result<U, TErr>> binder)
     {
+        ArgumentNullException.ThrowIfNull(resultTask);
+        ArgumentNullException.ThrowIfNull(binder);
+
         var result = await resultTask.ConfigureAwait(false);
         return result.AndThen(binder);
     }
@@ -98,6 +116,9 @@ public static class ResultAsyncExtensions
         this Task<Result<T, TErr>> resultTask,
         Func<TErr, Task<Result<T, F>>> op)
     {
+        ArgumentNullException.ThrowIfNull(resultTask);
+        ArgumentNullException.ThrowIfNull(op);
+
         var result = await resultTask.ConfigureAwait(false);
         if (result.IsOk)
             return Result<T, F>.Ok(result.Unwrap());
@@ -113,6 +134,9 @@ public static class ResultAsyncExtensions
         this Task<Result<T, TErr>> resultTask,
         Func<TErr, Task<T>> op)
     {
+        ArgumentNullException.ThrowIfNull(resultTask);
+        ArgumentNullException.ThrowIfNull(op);
+
         var result = await resultTask.ConfigureAwait(false);
         if (result.IsOk)
             return result.Unwrap();
@@ -129,6 +153,10 @@ public static class ResultAsyncExtensions
         Func<T, Task<U>> okFunc,
         Func<TErr, Task<U>> errFunc)
     {
+        ArgumentNullException.ThrowIfNull(resultTask);
+        ArgumentNullException.ThrowIfNull(okFunc);
+        ArgumentNullException.ThrowIfNull(errFunc);
+
         var result = await resultTask.ConfigureAwait(false);
         if (result.IsOk)
             return await okFunc(result.Unwrap()).ConfigureAwait(false);
@@ -145,6 +173,10 @@ public static class ResultAsyncExtensions
         Func<T, U> okFunc,
         Func<TErr, U> errFunc)
     {
+        ArgumentNullException.ThrowIfNull(resultTask);
+        ArgumentNullException.ThrowIfNull(okFunc);
+        ArgumentNullException.ThrowIfNull(errFunc);
+
         var result = await resultTask.ConfigureAwait(false);
         return result.Match(okFunc, errFunc);
     }
@@ -157,6 +189,9 @@ public static class ResultAsyncExtensions
         this Task<Result<T, TErr>> resultTask,
         Func<T, Task> action)
     {
+        ArgumentNullException.ThrowIfNull(resultTask);
+        ArgumentNullException.ThrowIfNull(action);
+
         var result = await resultTask.ConfigureAwait(false);
         if (result.IsOk)
             await action(result.Unwrap()).ConfigureAwait(false);
@@ -172,6 +207,9 @@ public static class ResultAsyncExtensions
         this Task<Result<T, TErr>> resultTask,
         Func<TErr, Task> action)
     {
+        ArgumentNullException.ThrowIfNull(resultTask);
+        ArgumentNullException.ThrowIfNull(action);
+
         var result = await resultTask.ConfigureAwait(false);
         if (result.IsErr)
             await action(result.UnwrapErr()).ConfigureAwait(false);
@@ -187,6 +225,8 @@ public static class ResultAsyncExtensions
         this Result<T, TErr> result,
         Func<T, Task<U>> mapper)
     {
+        ArgumentNullException.ThrowIfNull(mapper);
+
         if (!result.IsOk)
             return Result<U, TErr>.Err(result.UnwrapErr());
 
@@ -202,6 +242,8 @@ public static class ResultAsyncExtensions
         this Result<T, TErr> result,
         Func<T, Task<Result<U, TErr>>> binder)
     {
+        ArgumentNullException.ThrowIfNull(binder);
+
         if (!result.IsOk)
             return Result<U, TErr>.Err(result.UnwrapErr());
 
@@ -216,6 +258,8 @@ public static class ResultAsyncExtensions
         this Result<T, TErr> result,
         Func<TErr, Task<Result<T, F>>> op)
     {
+        ArgumentNullException.ThrowIfNull(op);
+
         if (result.IsOk)
             return Result<T, F>.Ok(result.Unwrap());
 
@@ -230,6 +274,8 @@ public static class ResultAsyncExtensions
         this Result<T, TErr> result,
         Func<T, Task> action)
     {
+        ArgumentNullException.ThrowIfNull(action);
+
         if (result.IsOk)
             await action(result.Unwrap()).ConfigureAwait(false);
 

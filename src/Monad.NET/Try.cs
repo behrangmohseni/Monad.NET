@@ -103,7 +103,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     public T Get()
     {
         if (!_isSuccess)
-            ThrowHelper.ThrowInvalidOperation($"Cannot get value from failed Try: {_exception!.Message}");
+            ThrowHelper.ThrowInvalidOperation($"Cannot unwrap failed Try. Exception: {_exception!.Message}");
 
         return _value!;
     }
@@ -116,7 +116,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     public Exception GetException()
     {
         if (_isSuccess)
-            ThrowHelper.ThrowInvalidOperation("Cannot get exception from successful Try");
+            ThrowHelper.ThrowInvalidOperation("Cannot unwrap exception from successful Try.");
 
         return _exception!;
     }
@@ -309,26 +309,8 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     }
 
     /// <summary>
-    /// Recovers from failure by providing an alternative Try (flattening the result).
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Try<T> Recover(Func<Exception, Try<T>> recovery)
-    {
-        if (_isSuccess)
-            return this;
-
-        try
-        {
-            return recovery(_exception!);
-        }
-        catch (Exception ex)
-        {
-            return Failure(ex);
-        }
-    }
-
-    /// <summary>
     /// Recovers from failure by providing an alternative Try.
+    /// Also known as RecoverWith for consistency with other monads.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Try<T> RecoverWith(Func<Exception, Try<T>> recovery)

@@ -100,7 +100,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     public T Unwrap()
     {
         if (!_isOk)
-            ThrowHelper.ThrowInvalidOperation($"Called Unwrap on an Err value: {_error}");
+            ThrowHelper.ThrowInvalidOperation($"Cannot unwrap Err value. Error: {_error}");
 
         return _value!;
     }
@@ -113,7 +113,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     public TErr UnwrapErr()
     {
         if (_isOk)
-            ThrowHelper.ThrowInvalidOperation($"Called UnwrapErr on an Ok value: {_value}");
+            ThrowHelper.ThrowInvalidOperation($"Cannot unwrap error on Ok value. Value: {_value}");
 
         return _error!;
     }

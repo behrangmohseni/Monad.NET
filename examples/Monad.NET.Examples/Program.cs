@@ -391,7 +391,7 @@ public class Program
         Console.WriteLine($"   Recovered: {recovered}");
 
         var recoveredWithTry = Try<int>.Of(() => int.Parse("invalid"))
-            .Recover(ex => Try<int>.Success(-1));
+            .RecoverWith(ex => Try<int>.Success(-1));
         Console.WriteLine($"   Recovered with Try: {recoveredWithTry}");
 
         // GetOrElse

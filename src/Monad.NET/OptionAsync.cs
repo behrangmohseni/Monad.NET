@@ -15,6 +15,9 @@ public static class OptionAsyncExtensions
         this Task<Option<T>> optionTask,
         Func<T, Task<U>> mapper)
     {
+        ArgumentNullException.ThrowIfNull(optionTask);
+        ArgumentNullException.ThrowIfNull(mapper);
+
         var option = await optionTask.ConfigureAwait(false);
         if (!option.IsSome)
             return Option<U>.None();
@@ -31,6 +34,9 @@ public static class OptionAsyncExtensions
         this Task<Option<T>> optionTask,
         Func<T, U> mapper)
     {
+        ArgumentNullException.ThrowIfNull(optionTask);
+        ArgumentNullException.ThrowIfNull(mapper);
+
         var option = await optionTask.ConfigureAwait(false);
         return option.Map(mapper);
     }
@@ -43,6 +49,9 @@ public static class OptionAsyncExtensions
         this Task<Option<T>> optionTask,
         Func<T, Task<bool>> predicate)
     {
+        ArgumentNullException.ThrowIfNull(optionTask);
+        ArgumentNullException.ThrowIfNull(predicate);
+
         var option = await optionTask.ConfigureAwait(false);
         if (!option.IsSome)
             return Option<T>.None();
@@ -60,6 +69,9 @@ public static class OptionAsyncExtensions
         this Task<Option<T>> optionTask,
         Func<T, bool> predicate)
     {
+        ArgumentNullException.ThrowIfNull(optionTask);
+        ArgumentNullException.ThrowIfNull(predicate);
+
         var option = await optionTask.ConfigureAwait(false);
         return option.Filter(predicate);
     }
@@ -72,6 +84,9 @@ public static class OptionAsyncExtensions
         this Task<Option<T>> optionTask,
         Func<T, Task<Option<U>>> binder)
     {
+        ArgumentNullException.ThrowIfNull(optionTask);
+        ArgumentNullException.ThrowIfNull(binder);
+
         var option = await optionTask.ConfigureAwait(false);
         if (!option.IsSome)
             return Option<U>.None();
@@ -87,6 +102,9 @@ public static class OptionAsyncExtensions
         this Task<Option<T>> optionTask,
         Func<T, Option<U>> binder)
     {
+        ArgumentNullException.ThrowIfNull(optionTask);
+        ArgumentNullException.ThrowIfNull(binder);
+
         var option = await optionTask.ConfigureAwait(false);
         return option.AndThen(binder);
     }
@@ -99,6 +117,9 @@ public static class OptionAsyncExtensions
         this Task<Option<T>> optionTask,
         Func<Task<T>> defaultFunc)
     {
+        ArgumentNullException.ThrowIfNull(optionTask);
+        ArgumentNullException.ThrowIfNull(defaultFunc);
+
         var option = await optionTask.ConfigureAwait(false);
         if (option.IsSome)
             return option.Unwrap();
@@ -115,6 +136,10 @@ public static class OptionAsyncExtensions
         Func<T, Task<U>> someFunc,
         Func<Task<U>> noneFunc)
     {
+        ArgumentNullException.ThrowIfNull(optionTask);
+        ArgumentNullException.ThrowIfNull(someFunc);
+        ArgumentNullException.ThrowIfNull(noneFunc);
+
         var option = await optionTask.ConfigureAwait(false);
         if (option.IsSome)
             return await someFunc(option.Unwrap()).ConfigureAwait(false);
@@ -131,6 +156,10 @@ public static class OptionAsyncExtensions
         Func<T, U> someFunc,
         Func<U> noneFunc)
     {
+        ArgumentNullException.ThrowIfNull(optionTask);
+        ArgumentNullException.ThrowIfNull(someFunc);
+        ArgumentNullException.ThrowIfNull(noneFunc);
+
         var option = await optionTask.ConfigureAwait(false);
         return option.Match(someFunc, noneFunc);
     }
@@ -143,6 +172,9 @@ public static class OptionAsyncExtensions
         this Task<Option<T>> optionTask,
         Func<T, Task> action)
     {
+        ArgumentNullException.ThrowIfNull(optionTask);
+        ArgumentNullException.ThrowIfNull(action);
+
         var option = await optionTask.ConfigureAwait(false);
         if (option.IsSome)
             await action(option.Unwrap()).ConfigureAwait(false);
@@ -158,6 +190,9 @@ public static class OptionAsyncExtensions
         this Task<Option<T>> optionTask,
         Func<Task<TErr>> errFunc)
     {
+        ArgumentNullException.ThrowIfNull(optionTask);
+        ArgumentNullException.ThrowIfNull(errFunc);
+
         var option = await optionTask.ConfigureAwait(false);
         if (option.IsSome)
             return Result<T, TErr>.Ok(option.Unwrap());
@@ -173,6 +208,8 @@ public static class OptionAsyncExtensions
         this Option<T> option,
         Func<T, Task<U>> mapper)
     {
+        ArgumentNullException.ThrowIfNull(mapper);
+
         if (!option.IsSome)
             return Option<U>.None();
 
@@ -188,6 +225,8 @@ public static class OptionAsyncExtensions
         this Option<T> option,
         Func<T, Task<Option<U>>> binder)
     {
+        ArgumentNullException.ThrowIfNull(binder);
+
         if (!option.IsSome)
             return Option<U>.None();
 
@@ -202,6 +241,8 @@ public static class OptionAsyncExtensions
         this Option<T> option,
         Func<T, Task<bool>> predicate)
     {
+        ArgumentNullException.ThrowIfNull(predicate);
+
         if (!option.IsSome)
             return Option<T>.None();
 

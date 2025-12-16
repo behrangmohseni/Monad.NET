@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Runtime.CompilerServices;
 
 namespace Monad.NET;
 
@@ -13,33 +14,48 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     private readonly T _head;
     private readonly IReadOnlyList<T> _tail;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private NonEmptyList(T head, IReadOnlyList<T> tail)
     {
-        _head = head ?? throw new ArgumentNullException(nameof(head));
+        ArgumentNullException.ThrowIfNull(head);
+        _head = head;
         _tail = tail ?? Array.Empty<T>();
     }
 
     /// <summary>
     /// Gets the first element. Always exists!
     /// </summary>
-    public T Head => _head;
+    public T Head
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _head;
+    }
 
     /// <summary>
     /// Gets the remaining elements after the head.
     /// Returns an empty list if this is a single-element list.
     /// </summary>
-    public IReadOnlyList<T> Tail => _tail;
+    public IReadOnlyList<T> Tail
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _tail;
+    }
 
     /// <summary>
     /// Gets the number of elements in the list. Always >= 1.
     /// </summary>
-    public int Count => 1 + _tail.Count;
+    public int Count
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => 1 + _tail.Count;
+    }
 
     /// <summary>
     /// Gets the element at the specified index.
     /// </summary>
     public T this[int index]
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
             if (index < 0 || index >= Count)
@@ -52,10 +68,11 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     /// <summary>
     /// Creates a NonEmptyList with a single element.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static NonEmptyList<T> Of(T head)
     {
         if (head is null)
-            throw new ArgumentNullException(nameof(head), "Cannot create NonEmptyList with null head");
+            ThrowHelper.ThrowArgumentNull(nameof(head), "Cannot create NonEmptyList with null head.");
 
         return new NonEmptyList<T>(head, Array.Empty<T>());
     }
@@ -63,10 +80,11 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     /// <summary>
     /// Creates a NonEmptyList with multiple elements.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static NonEmptyList<T> Of(T head, params T[] tail)
     {
         if (head is null)
-            throw new ArgumentNullException(nameof(head), "Cannot create NonEmptyList with null head");
+            ThrowHelper.ThrowArgumentNull(nameof(head), "Cannot create NonEmptyList with null head.");
 
         return new NonEmptyList<T>(head, tail ?? Array.Empty<T>());
     }
@@ -77,8 +95,7 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     /// </summary>
     public static Option<NonEmptyList<T>> FromEnumerable(IEnumerable<T> items)
     {
-        if (items is null)
-            throw new ArgumentNullException(nameof(items));
+        ArgumentNullException.ThrowIfNull(items);
 
         var list = items.ToList();
         return list.Count == 0
@@ -92,8 +109,7 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     /// </summary>
     public static Result<NonEmptyList<T>, TErr> FromEnumerable<TErr>(IEnumerable<T> items, TErr errorIfEmpty)
     {
-        if (items is null)
-            throw new ArgumentNullException(nameof(items));
+        ArgumentNullException.ThrowIfNull(items);
 
         var list = items.ToList();
         return list.Count == 0
@@ -104,6 +120,7 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     /// <summary>
     /// Gets the last element in the list.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T Last()
     {
         return _tail.Count > 0 ? _tail[_tail.Count - 1] : _head;
@@ -112,10 +129,10 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     /// <summary>
     /// Maps each element to a new value.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public NonEmptyList<U> Map<U>(Func<T, U> mapper)
     {
-        if (mapper is null)
-            throw new ArgumentNullException(nameof(mapper));
+        ArgumentNullException.ThrowIfNull(mapper);
 
         var newHead = mapper(_head);
         var newTail = _tail.Select(mapper).ToList();
@@ -125,10 +142,10 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     /// <summary>
     /// Maps each element with its index.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public NonEmptyList<U> MapIndexed<U>(Func<T, int, U> mapper)
     {
-        if (mapper is null)
-            throw new ArgumentNullException(nameof(mapper));
+        ArgumentNullException.ThrowIfNull(mapper);
 
         var newHead = mapper(_head, 0);
         var newTail = _tail.Select((item, index) => mapper(item, index + 1)).ToList();
@@ -146,10 +163,10 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     ///     .Map(x => x * 2);
     /// </code>
     /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public NonEmptyList<T> Tap(Action<T> action)
     {
-        if (action is null)
-            throw new ArgumentNullException(nameof(action));
+        ArgumentNullException.ThrowIfNull(action);
 
         action(_head);
         foreach (var item in _tail)
@@ -168,10 +185,10 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     ///     .Map(x => x * 2);
     /// </code>
     /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public NonEmptyList<T> TapIndexed(Action<T, int> action)
     {
-        if (action is null)
-            throw new ArgumentNullException(nameof(action));
+        ArgumentNullException.ThrowIfNull(action);
 
         action(_head, 0);
         var index = 1;
@@ -185,8 +202,7 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     /// </summary>
     public NonEmptyList<U> FlatMap<U>(Func<T, NonEmptyList<U>> binder)
     {
-        if (binder is null)
-            throw new ArgumentNullException(nameof(binder));
+        ArgumentNullException.ThrowIfNull(binder);
 
         var firstList = binder(_head);
         var allItems = new List<U> { firstList.Head };
@@ -207,8 +223,7 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     /// </summary>
     public Option<NonEmptyList<T>> Filter(Func<T, bool> predicate)
     {
-        if (predicate is null)
-            throw new ArgumentNullException(nameof(predicate));
+        ArgumentNullException.ThrowIfNull(predicate);
 
         var filtered = this.Where(predicate).ToList();
         return filtered.Count == 0
@@ -219,10 +234,10 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     /// <summary>
     /// Adds an element to the end of the list.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public NonEmptyList<T> Append(T item)
     {
-        if (item is null)
-            throw new ArgumentNullException(nameof(item));
+        ArgumentNullException.ThrowIfNull(item);
 
         var newTail = _tail.Append(item).ToList();
         return new NonEmptyList<T>(_head, newTail);
@@ -231,10 +246,10 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     /// <summary>
     /// Adds an element to the beginning of the list.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public NonEmptyList<T> Prepend(T item)
     {
-        if (item is null)
-            throw new ArgumentNullException(nameof(item));
+        ArgumentNullException.ThrowIfNull(item);
 
         var newTail = new List<T> { _head };
         newTail.AddRange(_tail);
@@ -244,10 +259,10 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     /// <summary>
     /// Concatenates two NonEmptyLists.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public NonEmptyList<T> Concat(NonEmptyList<T> other)
     {
-        if (other is null)
-            throw new ArgumentNullException(nameof(other));
+        ArgumentNullException.ThrowIfNull(other);
 
         var newTail = new List<T>(_tail);
         newTail.Add(other.Head);
@@ -259,10 +274,10 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     /// Reduces the list to a single value using the provided function.
     /// Since the list is non-empty, no initial value is needed!
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T Reduce(Func<T, T, T> reducer)
     {
-        if (reducer is null)
-            throw new ArgumentNullException(nameof(reducer));
+        ArgumentNullException.ThrowIfNull(reducer);
 
         var result = _head;
         foreach (var item in _tail)
@@ -274,10 +289,10 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     /// <summary>
     /// Folds the list from the left with an initial value.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public U Fold<U>(U initial, Func<U, T, U> folder)
     {
-        if (folder is null)
-            throw new ArgumentNullException(nameof(folder));
+        ArgumentNullException.ThrowIfNull(folder);
 
         var result = folder(initial, _head);
         foreach (var item in _tail)
@@ -317,8 +332,7 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     /// </summary>
     public NonEmptyList<T> SortBy<TKey>(Func<T, TKey> keySelector)
     {
-        if (keySelector is null)
-            throw new ArgumentNullException(nameof(keySelector));
+        ArgumentNullException.ThrowIfNull(keySelector);
 
         var allItems = new List<T> { _head };
         allItems.AddRange(_tail);
@@ -346,6 +360,7 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     /// <summary>
     /// Converts to a regular list.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public List<T> ToList()
     {
         var list = new List<T> { _head };
@@ -356,6 +371,7 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     /// <summary>
     /// Converts to an array.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T[] ToArray()
     {
         return ToList().ToArray();
@@ -372,6 +388,7 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     /// <inheritdoc />
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Equals(NonEmptyList<T>? other)
     {
         if (other is null)
@@ -385,6 +402,7 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     }
 
     /// <inheritdoc />
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override bool Equals(object? obj)
     {
         return obj is NonEmptyList<T> other && Equals(other);
@@ -408,6 +426,7 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     /// <summary>
     /// Determines whether two NonEmptyList instances are equal.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator ==(NonEmptyList<T>? left, NonEmptyList<T>? right)
     {
         if (left is null)
@@ -418,6 +437,7 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     /// <summary>
     /// Determines whether two NonEmptyList instances are not equal.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator !=(NonEmptyList<T>? left, NonEmptyList<T>? right)
     {
         return !(left == right);
@@ -428,6 +448,7 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     /// Allows: NonEmptyList&lt;int&gt; list = 42;
     /// </summary>
     /// <param name="value">The single element value.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator NonEmptyList<T>(T value)
     {
         return Of(value);
@@ -443,16 +464,15 @@ public static class NonEmptyListExtensions
     /// Zips two NonEmptyLists together.
     /// Result length is the minimum of the two lists.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static NonEmptyList<(T1, T2)> Zip<T1, T2>(
         this NonEmptyList<T1> first,
         NonEmptyList<T2> second)
     {
-        if (first is null)
-            throw new ArgumentNullException(nameof(first));
-        if (second is null)
-            throw new ArgumentNullException(nameof(second));
+        ArgumentNullException.ThrowIfNull(first);
+        ArgumentNullException.ThrowIfNull(second);
 
-        var zipped = first.Zip(second, (a, b) => (a, b)).ToList();
+        var zipped = first.Zip(second, static (a, b) => (a, b)).ToList();
         return NonEmptyList<(T1, T2)>.Of(zipped[0], zipped.Skip(1).ToArray());
     }
 
@@ -463,10 +483,8 @@ public static class NonEmptyListExtensions
         this NonEmptyList<T> list,
         Func<T, TKey> keySelector) where TKey : notnull
     {
-        if (list is null)
-            throw new ArgumentNullException(nameof(list));
-        if (keySelector is null)
-            throw new ArgumentNullException(nameof(keySelector));
+        ArgumentNullException.ThrowIfNull(list);
+        ArgumentNullException.ThrowIfNull(keySelector);
 
         var groupedList = list.ToList().GroupBy(keySelector);
         var groupsList = new List<(TKey, NonEmptyList<T>)>();
@@ -484,10 +502,10 @@ public static class NonEmptyListExtensions
     /// <summary>
     /// Finds the maximum element. Always succeeds because list is non-empty!
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T Max<T>(this NonEmptyList<T> list)
     {
-        if (list is null)
-            throw new ArgumentNullException(nameof(list));
+        ArgumentNullException.ThrowIfNull(list);
 
         if (typeof(IComparable<T>).IsAssignableFrom(typeof(T)))
         {
@@ -500,10 +518,10 @@ public static class NonEmptyListExtensions
     /// <summary>
     /// Finds the minimum element. Always succeeds because list is non-empty!
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T Min<T>(this NonEmptyList<T> list)
     {
-        if (list is null)
-            throw new ArgumentNullException(nameof(list));
+        ArgumentNullException.ThrowIfNull(list);
 
         if (typeof(IComparable<T>).IsAssignableFrom(typeof(T)))
         {
