@@ -9,7 +9,7 @@
     
     <!-- Package Metadata -->
     <PackageId>Monad.NET.AspNetCore</PackageId>
-    <Version>1.0.0-alpha.8</Version>
+    <Version>1.0.0-alpha.9</Version>
     <Authors>Behrang Mohseni</Authors>
     <Company>Behrang Mohseni</Company>
     <Product>Monad.NET.AspNetCore</Product>
