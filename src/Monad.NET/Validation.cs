@@ -15,6 +15,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     private readonly IReadOnlyList<TErr>? _errors;
     private readonly bool _isValid;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Validation(T value, IReadOnlyList<TErr> errors, bool isValid)
     {
         _value = value;
@@ -25,20 +26,29 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     /// <summary>
     /// Returns true if the validation is valid (no errors).
     /// </summary>
-    public bool IsValid => _isValid;
+    public bool IsValid
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _isValid;
+    }
 
     /// <summary>
     /// Returns true if the validation is invalid (has errors).
     /// </summary>
-    public bool IsInvalid => !_isValid;
+    public bool IsInvalid
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => !_isValid;
+    }
 
     /// <summary>
     /// Creates a valid validation with the specified value.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Validation<T, TErr> Valid(T value)
     {
         if (value is null)
-            throw new ArgumentNullException(nameof(value), "Cannot create Valid with null value.");
+            ThrowHelper.ThrowArgumentNull(nameof(value), "Cannot create Valid with null value.");
 
         return new Validation<T, TErr>(value, Array.Empty<TErr>(), true);
     }
@@ -46,10 +56,11 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     /// <summary>
     /// Creates an invalid validation with a single error.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Validation<T, TErr> Invalid(TErr error)
     {
         if (error is null)
-            throw new ArgumentNullException(nameof(error), "Cannot create Invalid with null error.");
+            ThrowHelper.ThrowArgumentNull(nameof(error), "Cannot create Invalid with null error.");
 
         return new Validation<T, TErr>(default!, new[] { error }, false);
     }
@@ -59,12 +70,11 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     /// </summary>
     public static Validation<T, TErr> Invalid(IEnumerable<TErr> errors)
     {
-        if (errors is null)
-            throw new ArgumentNullException(nameof(errors));
+        ArgumentNullException.ThrowIfNull(errors);
 
         var errorList = errors.ToList();
         if (errorList.Count == 0)
-            throw new ArgumentException("Must provide at least one error.", nameof(errors));
+            ThrowHelper.ThrowArgument(nameof(errors), "Must provide at least one error.");
 
         return new Validation<T, TErr>(default!, errorList, false);
     }
@@ -73,10 +83,11 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     /// Returns the valid value.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the validation is invalid</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T Unwrap()
     {
         if (!_isValid)
-            throw new InvalidOperationException($"Called Unwrap on Invalid validation with errors: {string.Join(", ", _errors!)}");
+            ThrowHelper.ThrowInvalidOperation($"Cannot unwrap Invalid validation. Errors: {string.Join(", ", _errors!)}");
 
         return _value!;
     }
@@ -85,10 +96,11 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     /// Returns the errors.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the validation is valid</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public IReadOnlyList<TErr> UnwrapErrors()
     {
         if (_isValid)
-            throw new InvalidOperationException("Called UnwrapErrors on Valid validation");
+            ThrowHelper.ThrowInvalidOperation("Cannot unwrap errors on Valid validation.");
 
         return _errors!;
     }
@@ -96,6 +108,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     /// <summary>
     /// Returns the valid value or a default value.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T UnwrapOr(T defaultValue)
     {
         return _isValid ? _value! : defaultValue;
@@ -104,10 +117,10 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     /// <summary>
     /// Maps the valid value if it exists.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Validation<U, TErr> Map<U>(Func<T, U> mapper)
     {
-        if (mapper is null)
-            throw new ArgumentNullException(nameof(mapper));
+        ArgumentNullException.ThrowIfNull(mapper);
 
         return _isValid
             ? Validation<U, TErr>.Valid(mapper(_value!))
@@ -117,10 +130,10 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     /// <summary>
     /// Maps the errors if they exist.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Validation<T, F> MapErrors<F>(Func<TErr, F> mapper)
     {
-        if (mapper is null)
-            throw new ArgumentNullException(nameof(mapper));
+        ArgumentNullException.ThrowIfNull(mapper);
 
         return _isValid
             ? Validation<T, F>.Valid(_value!)
@@ -131,12 +144,12 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     /// Combines two validations using applicative functor semantics.
     /// If both are valid, applies the function. If either/both are invalid, accumulates ALL errors.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Validation<U, TErr> Apply<TIntermediate, U>(
         Validation<TIntermediate, TErr> other,
         Func<T, TIntermediate, U> combiner)
     {
-        if (combiner is null)
-            throw new ArgumentNullException(nameof(combiner));
+        ArgumentNullException.ThrowIfNull(combiner);
 
         if (_isValid && other.IsValid)
             return Validation<U, TErr>.Valid(combiner(_value!, other._value!));
@@ -156,6 +169,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     /// Combines this validation with another, accumulating errors from both if invalid.
     /// This is useful for running multiple independent validations.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Validation<T, TErr> And(Validation<T, TErr> other)
     {
         if (_isValid && other.IsValid)
@@ -175,10 +189,10 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     /// If this is valid, applies the function (which may return invalid).
     /// Note: This does NOT accumulate errors like And() - it short-circuits like Result.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Validation<U, TErr> AndThen<U>(Func<T, Validation<U, TErr>> binder)
     {
-        if (binder is null)
-            throw new ArgumentNullException(nameof(binder));
+        ArgumentNullException.ThrowIfNull(binder);
 
         return _isValid ? binder(_value!) : Validation<U, TErr>.Invalid(_errors!);
     }
@@ -186,12 +200,11 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     /// <summary>
     /// Pattern matches on the validation.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Match(Action<T> validAction, Action<IReadOnlyList<TErr>> invalidAction)
     {
-        if (validAction is null)
-            throw new ArgumentNullException(nameof(validAction));
-        if (invalidAction is null)
-            throw new ArgumentNullException(nameof(invalidAction));
+        ArgumentNullException.ThrowIfNull(validAction);
+        ArgumentNullException.ThrowIfNull(invalidAction);
 
         if (_isValid)
             validAction(_value!);
@@ -202,12 +215,11 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     /// <summary>
     /// Pattern matches on the validation and returns a result.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public U Match<U>(Func<T, U> validFunc, Func<IReadOnlyList<TErr>, U> invalidFunc)
     {
-        if (validFunc is null)
-            throw new ArgumentNullException(nameof(validFunc));
-        if (invalidFunc is null)
-            throw new ArgumentNullException(nameof(invalidFunc));
+        ArgumentNullException.ThrowIfNull(validFunc);
+        ArgumentNullException.ThrowIfNull(invalidFunc);
 
         return _isValid ? validFunc(_value!) : invalidFunc(_errors!);
     }
@@ -216,6 +228,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     /// Converts this Validation to a Result.
     /// If invalid with multiple errors, only the first error is used.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Result<T, TErr> ToResult()
     {
         return _isValid
@@ -226,10 +239,10 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     /// <summary>
     /// Converts this Validation to a Result with a combined error.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Result<T, TErr> ToResult(Func<IReadOnlyList<TErr>, TErr> combineErrors)
     {
-        if (combineErrors is null)
-            throw new ArgumentNullException(nameof(combineErrors));
+        ArgumentNullException.ThrowIfNull(combineErrors);
 
         return _isValid
             ? Result<T, TErr>.Ok(_value!)
@@ -240,12 +253,14 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     /// Converts this Validation to an Option.
     /// Discards error information if invalid.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Option<T> ToOption()
     {
         return _isValid ? Option<T>.Some(_value!) : Option<T>.None();
     }
 
     /// <inheritdoc />
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Equals(Validation<T, TErr> other)
     {
         if (_isValid != other._isValid)
@@ -261,12 +276,14 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     }
 
     /// <inheritdoc />
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override bool Equals(object? obj)
     {
         return obj is Validation<T, TErr> other && Equals(other);
     }
 
     /// <inheritdoc />
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override int GetHashCode()
     {
         if (_isValid)
@@ -290,6 +307,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     /// <summary>
     /// Determines whether two Validation instances are equal.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator ==(Validation<T, TErr> left, Validation<T, TErr> right)
     {
         return left.Equals(right);
@@ -298,6 +316,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     /// <summary>
     /// Determines whether two Validation instances are not equal.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool operator !=(Validation<T, TErr> left, Validation<T, TErr> right)
     {
         return !left.Equals(right);
@@ -326,6 +345,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     ///     Console.WriteLine($"Valid: {value}");
     /// </code>
     /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Deconstruct(out T? value, out bool isValid)
     {
         value = _value;
@@ -346,6 +366,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     ///         Console.WriteLine($"Error: {error}");
     /// </code>
     /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Deconstruct(out T? value, out IReadOnlyList<TErr> errors, out bool isValid)
     {
         value = _value;
@@ -366,12 +387,11 @@ public static class ValidationExtensions
     public static Validation<T, TErr> Combine<T, TErr>(
         this IEnumerable<Validation<T, TErr>> validations)
     {
-        if (validations is null)
-            throw new ArgumentNullException(nameof(validations));
+        ArgumentNullException.ThrowIfNull(validations);
 
         var validationList = validations.ToList();
         if (validationList.Count == 0)
-            throw new ArgumentException("Must provide at least one validation.", nameof(validations));
+            ThrowHelper.ThrowArgument(nameof(validations), "Must provide at least one validation.");
 
         var allErrors = new List<TErr>();
         T? lastValue = default;
@@ -392,12 +412,12 @@ public static class ValidationExtensions
     /// <summary>
     /// Executes an action if the validation is valid, allowing method chaining.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Validation<T, TErr> Tap<T, TErr>(
         this Validation<T, TErr> validation,
         Action<T> action)
     {
-        if (action is null)
-            throw new ArgumentNullException(nameof(action));
+        ArgumentNullException.ThrowIfNull(action);
 
         if (validation.IsValid)
             action(validation.Unwrap());
@@ -408,12 +428,12 @@ public static class ValidationExtensions
     /// <summary>
     /// Executes an action if the validation is invalid, allowing method chaining.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Validation<T, TErr> TapErrors<T, TErr>(
         this Validation<T, TErr> validation,
         Action<IReadOnlyList<TErr>> action)
     {
-        if (action is null)
-            throw new ArgumentNullException(nameof(action));
+        ArgumentNullException.ThrowIfNull(action);
 
         if (validation.IsInvalid)
             action(validation.UnwrapErrors());
@@ -424,12 +444,12 @@ public static class ValidationExtensions
     /// <summary>
     /// Converts a Result to a Validation.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Validation<T, TErr> ToValidation<T, TErr>(this Result<T, TErr> result)
     {
         return result.Match(
-            okFunc: value => Validation<T, TErr>.Valid(value),
-            errFunc: err => Validation<T, TErr>.Invalid(err)
+            okFunc: static value => Validation<T, TErr>.Valid(value),
+            errFunc: static err => Validation<T, TErr>.Invalid(err)
         );
     }
 }
-

@@ -73,7 +73,7 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
     public TRight UnwrapRight()
     {
         if (!_isRight)
-            ThrowHelper.ThrowInvalidOperation($"Called UnwrapRight on a Left value: {_left}");
+            ThrowHelper.ThrowInvalidOperation($"Cannot unwrap Right on Left value. Left: {_left}");
 
         return _right!;
     }
@@ -86,7 +86,7 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
     public TLeft UnwrapLeft()
     {
         if (_isRight)
-            ThrowHelper.ThrowInvalidOperation($"Called UnwrapLeft on a Right value: {_right}");
+            ThrowHelper.ThrowInvalidOperation($"Cannot unwrap Left on Right value. Right: {_right}");
 
         return _left!;
     }

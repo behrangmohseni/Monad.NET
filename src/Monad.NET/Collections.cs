@@ -10,23 +10,25 @@ public static class MonadCollectionExtensions
     #region Option Collections
 
     /// <summary>
-    /// Transposes an IEnumerable&lt;Option&lt;T&gt;&gt; to Option&lt;IEnumerable&lt;T&gt;&gt;.
+    /// Transposes an IEnumerable&lt;Option&lt;T&gt;&gt; to Option&lt;IReadOnlyList&lt;T&gt;&gt;.
     /// Returns Some if all options are Some, otherwise None.
     /// Also known as 'sequence' in Haskell.
     /// </summary>
-    public static Option<IEnumerable<T>> Sequence<T>(this IEnumerable<Option<T>> options)
+    public static Option<IReadOnlyList<T>> Sequence<T>(this IEnumerable<Option<T>> options)
     {
+        ArgumentNullException.ThrowIfNull(options);
+
         var result = new List<T>();
 
         foreach (var option in options)
         {
             if (option.IsNone)
-                return Option<IEnumerable<T>>.None();
+                return Option<IReadOnlyList<T>>.None();
 
             result.Add(option.Unwrap());
         }
 
-        return Option<IEnumerable<T>>.Some(result);
+        return Option<IReadOnlyList<T>>.Some(result);
     }
 
     /// <summary>
@@ -34,22 +36,25 @@ public static class MonadCollectionExtensions
     /// Returns Some of all values if all mappings succeed, otherwise None.
     /// Also known as 'traverse' in Haskell.
     /// </summary>
-    public static Option<IEnumerable<U>> Traverse<T, U>(
+    public static Option<IReadOnlyList<U>> Traverse<T, U>(
         this IEnumerable<T> source,
         Func<T, Option<U>> selector)
     {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(selector);
+
         var result = new List<U>();
 
         foreach (var item in source)
         {
             var option = selector(item);
             if (option.IsNone)
-                return Option<IEnumerable<U>>.None();
+                return Option<IReadOnlyList<U>>.None();
 
             result.Add(option.Unwrap());
         }
 
-        return Option<IEnumerable<U>>.Some(result);
+        return Option<IReadOnlyList<U>>.Some(result);
     }
 
     /// <summary>
@@ -58,6 +63,8 @@ public static class MonadCollectionExtensions
     /// </summary>
     public static IEnumerable<T> Choose<T>(this IEnumerable<Option<T>> options)
     {
+        ArgumentNullException.ThrowIfNull(options);
+
         foreach (var option in options)
         {
             if (option.IsSome)
@@ -72,6 +79,9 @@ public static class MonadCollectionExtensions
         this IEnumerable<T> source,
         Func<T, Option<U>> selector)
     {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(selector);
+
         foreach (var item in source)
         {
             var option = selector(item);
@@ -85,6 +95,8 @@ public static class MonadCollectionExtensions
     /// </summary>
     public static Option<T> FirstSome<T>(this IEnumerable<Option<T>> options)
     {
+        ArgumentNullException.ThrowIfNull(options);
+
         foreach (var option in options)
         {
             if (option.IsSome)
@@ -99,24 +111,26 @@ public static class MonadCollectionExtensions
     #region Result Collections
 
     /// <summary>
-    /// Transposes an IEnumerable&lt;Result&lt;T, E&gt;&gt; to Result&lt;IEnumerable&lt;T&gt;, E&gt;.
+    /// Transposes an IEnumerable&lt;Result&lt;T, E&gt;&gt; to Result&lt;IReadOnlyList&lt;T&gt;, E&gt;.
     /// Returns Ok with all values if all results are Ok, otherwise returns the first Err.
     /// Also known as 'sequence' in Haskell.
     /// </summary>
-    public static Result<IEnumerable<T>, TErr> Sequence<T, TErr>(
+    public static Result<IReadOnlyList<T>, TErr> Sequence<T, TErr>(
         this IEnumerable<Result<T, TErr>> results)
     {
+        ArgumentNullException.ThrowIfNull(results);
+
         var list = new List<T>();
 
         foreach (var result in results)
         {
             if (result.IsErr)
-                return Result<IEnumerable<T>, TErr>.Err(result.UnwrapErr());
+                return Result<IReadOnlyList<T>, TErr>.Err(result.UnwrapErr());
 
             list.Add(result.Unwrap());
         }
 
-        return Result<IEnumerable<T>, TErr>.Ok(list);
+        return Result<IReadOnlyList<T>, TErr>.Ok(list);
     }
 
     /// <summary>
@@ -124,22 +138,25 @@ public static class MonadCollectionExtensions
     /// Returns Ok of all values if all mappings succeed, otherwise returns the first error.
     /// Also known as 'traverse' in Haskell.
     /// </summary>
-    public static Result<IEnumerable<U>, TErr> Traverse<T, U, TErr>(
+    public static Result<IReadOnlyList<U>, TErr> Traverse<T, U, TErr>(
         this IEnumerable<T> source,
         Func<T, Result<U, TErr>> selector)
     {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(selector);
+
         var list = new List<U>();
 
         foreach (var item in source)
         {
             var result = selector(item);
             if (result.IsErr)
-                return Result<IEnumerable<U>, TErr>.Err(result.UnwrapErr());
+                return Result<IReadOnlyList<U>, TErr>.Err(result.UnwrapErr());
 
             list.Add(result.Unwrap());
         }
 
-        return Result<IEnumerable<U>, TErr>.Ok(list);
+        return Result<IReadOnlyList<U>, TErr>.Ok(list);
     }
 
     /// <summary>
@@ -148,6 +165,8 @@ public static class MonadCollectionExtensions
     /// </summary>
     public static IEnumerable<T> CollectOk<T, TErr>(this IEnumerable<Result<T, TErr>> results)
     {
+        ArgumentNullException.ThrowIfNull(results);
+
         foreach (var result in results)
         {
             if (result.IsOk)
@@ -162,6 +181,8 @@ public static class MonadCollectionExtensions
     public static IEnumerable<TErr> CollectErr<T, TErr>(
         this IEnumerable<Result<T, TErr>> results)
     {
+        ArgumentNullException.ThrowIfNull(results);
+
         foreach (var result in results)
         {
             if (result.IsErr)
@@ -173,9 +194,11 @@ public static class MonadCollectionExtensions
     /// Partitions a sequence of Results into Ok and Err values.
     /// Returns a tuple of (oks, errors).
     /// </summary>
-    public static (IEnumerable<T> Oks, IEnumerable<TErr> Errors) Partition<T, TErr>(
+    public static (IReadOnlyList<T> Oks, IReadOnlyList<TErr> Errors) Partition<T, TErr>(
         this IEnumerable<Result<T, TErr>> results)
     {
+        ArgumentNullException.ThrowIfNull(results);
+
         var oks = new List<T>();
         var errors = new List<TErr>();
 
@@ -192,9 +215,13 @@ public static class MonadCollectionExtensions
 
     /// <summary>
     /// Returns the first Ok value in the sequence, or the last Err if all are Err.
+    /// Throws <see cref="InvalidOperationException"/> if the sequence is empty.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when the sequence is empty.</exception>
     public static Result<T, TErr> FirstOk<T, TErr>(this IEnumerable<Result<T, TErr>> results)
     {
+        ArgumentNullException.ThrowIfNull(results);
+
         Result<T, TErr>? lastErr = null;
 
         foreach (var result in results)
@@ -205,7 +232,35 @@ public static class MonadCollectionExtensions
             lastErr = result;
         }
 
-        return lastErr ?? Result<T, TErr>.Err(default(TErr)!);
+        if (lastErr is null)
+            ThrowHelper.ThrowInvalidOperation("Sequence contains no elements.");
+
+        return lastErr.Value;
+    }
+
+    /// <summary>
+    /// Returns the first Ok value in the sequence, or the last Err if all are Err.
+    /// Returns <paramref name="defaultError"/> if the sequence is empty.
+    /// </summary>
+    /// <param name="results">The sequence of results.</param>
+    /// <param name="defaultError">The error to return if the sequence is empty.</param>
+    public static Result<T, TErr> FirstOkOrDefault<T, TErr>(
+        this IEnumerable<Result<T, TErr>> results,
+        TErr defaultError)
+    {
+        ArgumentNullException.ThrowIfNull(results);
+
+        Result<T, TErr>? lastErr = null;
+
+        foreach (var result in results)
+        {
+            if (result.IsOk)
+                return result;
+
+            lastErr = result;
+        }
+
+        return lastErr ?? Result<T, TErr>.Err(defaultError);
     }
 
     #endregion
@@ -218,6 +273,8 @@ public static class MonadCollectionExtensions
     public static IEnumerable<TRight> CollectRights<TLeft, TRight>(
         this IEnumerable<Either<TLeft, TRight>> eithers)
     {
+        ArgumentNullException.ThrowIfNull(eithers);
+
         foreach (var either in eithers)
         {
             if (either.IsRight)
@@ -231,6 +288,8 @@ public static class MonadCollectionExtensions
     public static IEnumerable<TLeft> CollectLefts<TLeft, TRight>(
         this IEnumerable<Either<TLeft, TRight>> eithers)
     {
+        ArgumentNullException.ThrowIfNull(eithers);
+
         foreach (var either in eithers)
         {
             if (either.IsLeft)
@@ -242,9 +301,11 @@ public static class MonadCollectionExtensions
     /// Partitions a sequence of Eithers into Left and Right values.
     /// Returns a tuple of (lefts, rights).
     /// </summary>
-    public static (IEnumerable<TLeft> Lefts, IEnumerable<TRight> Rights) Partition<TLeft, TRight>(
+    public static (IReadOnlyList<TLeft> Lefts, IReadOnlyList<TRight> Rights) Partition<TLeft, TRight>(
         this IEnumerable<Either<TLeft, TRight>> eithers)
     {
+        ArgumentNullException.ThrowIfNull(eithers);
+
         var lefts = new List<TLeft>();
         var rights = new List<TRight>();
 
@@ -266,83 +327,93 @@ public static class MonadCollectionExtensions
     /// <summary>
     /// Async version of Sequence for Options.
     /// </summary>
-    public static async Task<Option<IEnumerable<T>>> SequenceAsync<T>(
+    public static async Task<Option<IReadOnlyList<T>>> SequenceAsync<T>(
         this IEnumerable<Task<Option<T>>> optionTasks)
     {
+        ArgumentNullException.ThrowIfNull(optionTasks);
+
         var result = new List<T>();
 
         foreach (var task in optionTasks)
         {
             var option = await task.ConfigureAwait(false);
             if (option.IsNone)
-                return Option<IEnumerable<T>>.None();
+                return Option<IReadOnlyList<T>>.None();
 
             result.Add(option.Unwrap());
         }
 
-        return Option<IEnumerable<T>>.Some(result);
+        return Option<IReadOnlyList<T>>.Some(result);
     }
 
     /// <summary>
     /// Async version of Traverse for Options.
     /// </summary>
-    public static async Task<Option<IEnumerable<U>>> TraverseAsync<T, U>(
+    public static async Task<Option<IReadOnlyList<U>>> TraverseAsync<T, U>(
         this IEnumerable<T> source,
         Func<T, Task<Option<U>>> selector)
     {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(selector);
+
         var result = new List<U>();
 
         foreach (var item in source)
         {
             var option = await selector(item).ConfigureAwait(false);
             if (option.IsNone)
-                return Option<IEnumerable<U>>.None();
+                return Option<IReadOnlyList<U>>.None();
 
             result.Add(option.Unwrap());
         }
 
-        return Option<IEnumerable<U>>.Some(result);
+        return Option<IReadOnlyList<U>>.Some(result);
     }
 
     /// <summary>
     /// Async version of Sequence for Results.
     /// </summary>
-    public static async Task<Result<IEnumerable<T>, TErr>> SequenceAsync<T, TErr>(
+    public static async Task<Result<IReadOnlyList<T>, TErr>> SequenceAsync<T, TErr>(
         this IEnumerable<Task<Result<T, TErr>>> resultTasks)
     {
+        ArgumentNullException.ThrowIfNull(resultTasks);
+
         var list = new List<T>();
 
         foreach (var task in resultTasks)
         {
             var result = await task.ConfigureAwait(false);
             if (result.IsErr)
-                return Result<IEnumerable<T>, TErr>.Err(result.UnwrapErr());
+                return Result<IReadOnlyList<T>, TErr>.Err(result.UnwrapErr());
 
             list.Add(result.Unwrap());
         }
 
-        return Result<IEnumerable<T>, TErr>.Ok(list);
+        return Result<IReadOnlyList<T>, TErr>.Ok(list);
     }
 
     /// <summary>
     /// Async version of Traverse for Results.
     /// </summary>
-    public static async Task<Result<IEnumerable<U>, TErr>> TraverseAsync<T, U, TErr>(
+    public static async Task<Result<IReadOnlyList<U>, TErr>> TraverseAsync<T, U, TErr>(
         this IEnumerable<T> source,
         Func<T, Task<Result<U, TErr>>> selector)
     {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(selector);
+
         var list = new List<U>();
 
         foreach (var item in source)
         {
             var result = await selector(item).ConfigureAwait(false);
             if (result.IsErr)
-                return Result<IEnumerable<U>, TErr>.Err(result.UnwrapErr());
+                return Result<IReadOnlyList<U>, TErr>.Err(result.UnwrapErr());
 
             list.Add(result.Unwrap());
         }
 
-        return Result<IEnumerable<U>, TErr>.Ok(list);
+        return Result<IReadOnlyList<U>, TErr>.Ok(list);
     }
 
     #endregion

@@ -71,12 +71,12 @@ public class EitherJsonConverter<L, R> : JsonConverter<Either<L, R>>
         if (value.IsRight)
         {
             writer.WritePropertyName("right");
-            JsonSerializer.Serialize(writer, value.Match(l => default(R)!, r => r), options);
+            JsonSerializer.Serialize(writer, value.Match(static l => default(R)!, static r => r), options);
         }
         else
         {
             writer.WritePropertyName("left");
-            JsonSerializer.Serialize(writer, value.Match(l => l, r => default(L)!), options);
+            JsonSerializer.Serialize(writer, value.Match(static l => l, static r => default(L)!), options);
         }
 
         writer.WriteEndObject();

@@ -75,7 +75,7 @@ public class TryJsonConverter<T> : JsonConverter<Try<T>>
         }
         else
         {
-            writer.WriteString("error", value.Match(_ => string.Empty, ex => ex.Message));
+            writer.WriteString("error", value.Match(static _ => string.Empty, static ex => ex.Message));
         }
 
         writer.WriteEndObject();
