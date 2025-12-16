@@ -42,6 +42,7 @@ var result = user.ToOption()
   - [Writer\<W, T\>](#writerw-t)
   - [Reader\<R, A\>](#readerr-a)
   - [State\<S, A\>](#states-a)
+  - [IO\<T\>](#iot)
 - [Advanced Usage](#advanced-usage)
 - [Source Generators](#source-generators)
 - [ASP.NET Core Integration](#aspnet-core-integration)
@@ -89,6 +90,7 @@ Modern .NET applications demand reliability. Yet we continue to fight the same b
 | Need to accumulate logs/traces | `Writer<W, T>` |
 | Dependency injection without DI container | `Reader<R, A>` |
 | Thread state through computations | `State<S, A>` |
+| Defer side effects for pure code | `IO<T>` |
 | Return one of two different types | `Either<L, R>` |
 
 ---
@@ -621,6 +623,100 @@ var result = stackOps.Run(new List<int>());
 - `Exec(initialState)` — Get only the final state (discard value)
 
 **When to use:** Simulators, interpreters, random number generators, stack-based computations, game state, any computation that needs to pass state through without mutable variables.
+
+---
+
+### IO\<T\>
+
+Defers side effects, making code purely functional until explicitly executed.
+
+```csharp
+// Describe computations without executing them
+var readLine = IO<string>.Of(() => Console.ReadLine()!);
+IO<Unit> WriteLine(string msg) => 
+    IO<Unit>.Of(() => { Console.WriteLine(msg); return Unit.Default; });
+
+// Compose a program
+var program = 
+    from _ in WriteLine("What is your name?")
+    from name in readLine
+    from __ in WriteLine($"Hello, {name}!")
+    select Unit.Default;
+
+// Nothing happens until Run() is called
+program.Run();
+
+// Built-in helpers
+var time = IO.Now().Run();              // Get current time
+var guid = IO.NewGuid().Run();          // Generate GUID
+var random = IO.Random(1, 100).Run();   // Random number
+var env = IO.GetEnvironmentVariable("PATH").Run(); // Option<string>
+
+// Error handling with Attempt
+var riskyOp = IO<int>.Of(() => int.Parse("not a number"))
+    .Attempt();  // IO<Try<int>>
+
+var result = riskyOp.Run();
+result.Match(
+    success: n => Console.WriteLine($"Parsed: {n}"),
+    failure: ex => Console.WriteLine($"Error: {ex.Message}")
+);
+
+// Retry with fallback
+var resilient = IO<string>.Of(() => CallExternalApi())
+    .Retry(3)                           // Retry up to 3 times
+    .OrElse("fallback value");          // Fallback on failure
+
+// Async version
+var asyncOp = IOAsync<int>.Of(async () => 
+{
+    await Task.Delay(100);
+    return 42;
+});
+
+var value = await asyncOp.RunAsync();
+
+// Parallel execution
+var (a, b) = IO.Parallel(
+    IO.Of(() => ComputeA()),
+    IO.Of(() => ComputeB())
+).Run();
+
+// Race - first to complete wins
+var fastest = IO.Race(
+    IO.Of(() => SlowOperation()),
+    IO.Of(() => FastOperation())
+).Run();
+```
+
+**Factory Methods:**
+- `IO<T>.Of(effect)` — Create from effect function
+- `IO<T>.Pure(value)` / `Return(value)` — Create with pure value
+- `IO<T>.Delay(effect)` — Alias for `Of`, emphasizes laziness
+- `IO.Execute(action)` — Execute action, return Unit
+
+**Composition:**
+- `Map(f)` — Transform the result
+- `AndThen(f)` / `FlatMap(f)` / `Bind(f)` — Chain IO operations
+- `Tap(action)` — Execute side effect, keep value
+- `Apply(ioFunc)` — Apply function in IO to value
+- `Zip(other)` / `ZipWith(other, f)` — Combine two IOs
+
+**Execution:**
+- `Run()` — Execute synchronously
+- `RunAsync(ct)` — Execute asynchronously
+
+**Error Handling:**
+- `Attempt()` — Returns `IO<Try<T>>` (captures exceptions)
+- `OrElse(fallback)` — Use fallback on exception
+- `Retry(n)` — Retry n times on failure
+- `RetryWithDelay(n, delay)` — Retry with delay (returns `IOAsync<T>`)
+
+**Utility:**
+- `Replicate(n)` — Repeat effect n times, collect results
+- `ToAsync()` — Convert to `IOAsync<T>`
+
+**When to use:** Deferring side effects, functional core/imperative shell pattern, testable IO operations, building DSLs, composing effectful computations.
 
 ---
 

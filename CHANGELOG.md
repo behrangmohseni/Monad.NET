@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **IO\<T\> monad** - Defer side effects for pure functional code
+  - `IO<T>.Of`, `Pure`, `Return`, `Delay` for constructing IO actions
+  - `Run`, `RunAsync` to execute effects
+  - `Map`, `AndThen`/`FlatMap`/`Bind` for composition
+  - `Tap`, `Apply`, `Zip`, `ZipWith` for combining operations
+  - `Attempt` to capture exceptions as `Try<T>`
+  - `OrElse` for fallback on failure
+  - `Retry`, `RetryWithDelay` for resilience
+  - `Replicate` to repeat effects
+  - `ToAsync` to convert to async IO
+  - `IOAsync<T>` for native async operations
+  - `IO.Parallel`, `IO.Race` for concurrent execution
+  - Built-in helpers: `IO.WriteLine`, `IO.ReadLine`, `IO.Now`, `IO.Random`, etc.
+  - Full LINQ query syntax support
+  - 78 comprehensive tests
+
+---
+
 ## [1.0.0-alpha.8] - 2025-12-15
 
 ### Added

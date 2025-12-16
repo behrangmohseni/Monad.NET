@@ -20,6 +20,7 @@ Complete API documentation for Monad.NET.
 - [Writer\<W, T\>](#writerw-t)
 - [Reader\<R, A\>](#readerr-a)
 - [State\<S, A\>](#states-a)
+- [IO\<T\>](#iot)
 - [Async Streams](#async-streams-iasyncenumerable)
 - [Source Generators](#source-generators)
 - [Entity Framework Core](#entity-framework-core)
@@ -558,6 +559,121 @@ var result = from x in option1
 var result = from x in option
              where x > 0
              select x;
+```
+
+---
+
+## IO\<T\>
+
+Defers side effects for pure functional code.
+
+### Constructors
+
+| Method | Description |
+|--------|-------------|
+| `IO<T>.Of(Func<T> effect)` | Creates IO from effect function |
+| `IO<T>.Pure(T value)` | Creates IO with pure value (no side effects) |
+| `IO<T>.Return(T value)` | Alias for `Pure` |
+| `IO<T>.Delay(Func<T> effect)` | Alias for `Of`, emphasizes lazy evaluation |
+
+### Static Helpers (IO class)
+
+| Method | Description |
+|--------|-------------|
+| `IO.Of<T>(effect)` | Create IO from effect |
+| `IO.Pure<T>(value)` | Create pure IO |
+| `IO.Execute(action)` | Execute action, return `IO<Unit>` |
+| `IO.WriteLine(msg)` | Write to console |
+| `IO.ReadLine()` | Read line from console (`IO<string?>`) |
+| `IO.Now()` | Get current time (`IO<DateTime>`) |
+| `IO.UtcNow()` | Get current UTC time |
+| `IO.NewGuid()` | Generate new GUID (`IO<Guid>`) |
+| `IO.Random()` | Random integer (`IO<int>`) |
+| `IO.Random(min, max)` | Random integer in range |
+| `IO.GetEnvironmentVariable(name)` | Get env var (`IO<Option<string>>`) |
+| `IO.Parallel(io1, io2)` | Run IOs in parallel |
+| `IO.Parallel(io1, io2, io3)` | Run three IOs in parallel |
+| `IO.Parallel(ios)` | Run collection of IOs in parallel |
+| `IO.Race(io1, io2)` | Return first completed IO |
+
+### Methods
+
+| Method | Return Type | Description |
+|--------|-------------|-------------|
+| `Run()` | `T` | Execute the IO and return result |
+| `RunAsync(ct)` | `Task<T>` | Execute asynchronously |
+| `Map(f)` | `IO<U>` | Transform the result |
+| `AndThen(f)` | `IO<U>` | Chain with another IO |
+| `FlatMap(f)` | `IO<U>` | Alias for `AndThen` |
+| `Bind(f)` | `IO<U>` | Alias for `AndThen` |
+| `Tap(action)` | `IO<T>` | Execute side effect, keep value |
+| `Apply(ioFunc)` | `IO<U>` | Apply function in IO to value |
+| `Zip(other)` | `IO<(T, U)>` | Combine with another IO |
+| `ZipWith(other, f)` | `IO<V>` | Combine using function |
+| `As(value)` | `IO<U>` | Replace result with value |
+| `Void()` | `IO<Unit>` | Replace result with Unit |
+| `Attempt()` | `IO<Try<T>>` | Capture exceptions as Try |
+| `ToAsync()` | `IOAsync<T>` | Convert to async IO |
+| `OrElse(fallback)` | `IO<T>` | Use fallback IO on exception |
+| `OrElse(value)` | `IO<T>` | Use fallback value on exception |
+| `Replicate(n)` | `IO<IReadOnlyList<T>>` | Repeat effect n times |
+| `Retry(n)` | `IO<T>` | Retry on failure up to n times |
+| `RetryWithDelay(n, delay)` | `IOAsync<T>` | Retry with delay between attempts |
+
+### IOAsync\<T\>
+
+Async version of IO for native async operations.
+
+| Method | Return Type | Description |
+|--------|-------------|-------------|
+| `IOAsync<T>.Of(effect)` | `IOAsync<T>` | Create from async effect |
+| `IOAsync<T>.Pure(value)` | `IOAsync<T>` | Create with pure value |
+| `IOAsync<T>.FromIO(io)` | `IOAsync<T>` | Convert from sync IO |
+| `RunAsync(ct)` | `Task<T>` | Execute the async IO |
+| `Map(f)` | `IOAsync<U>` | Transform result |
+| `MapAsync(f)` | `IOAsync<U>` | Transform with async function |
+| `AndThen(f)` | `IOAsync<U>` | Chain with another async IO |
+| `FlatMap(f)` | `IOAsync<U>` | Alias for `AndThen` |
+| `Tap(action)` | `IOAsync<T>` | Execute side effect |
+| `TapAsync(action)` | `IOAsync<T>` | Execute async side effect |
+| `Zip(other)` | `IOAsync<(T, U)>` | Combine with another async IO |
+| `Void()` | `IOAsync<Unit>` | Replace result with Unit |
+| `Attempt()` | `IOAsync<Try<T>>` | Capture exceptions as Try |
+| `OrElse(fallback)` | `IOAsync<T>` | Use fallback on exception |
+
+### Static Helpers (IOAsync class)
+
+| Method | Description |
+|--------|-------------|
+| `IOAsync.Of<T>(effect)` | Create async IO from effect |
+| `IOAsync.Pure<T>(value)` | Create pure async IO |
+| `IOAsync.FromIO<T>(io)` | Convert from sync IO |
+| `IOAsync.Execute(action)` | Execute async action |
+| `IOAsync.Delay(timespan)` | Delay for specified duration |
+| `IOAsync.Parallel(io1, io2)` | Run in parallel |
+| `IOAsync.Parallel(ios)` | Run collection in parallel |
+| `IOAsync.Race(io1, io2)` | First to complete wins |
+
+### Extension Methods
+
+| Method | Description |
+|--------|-------------|
+| `Flatten()` | Unwrap nested `IO<IO<T>>` or `IOAsync<IOAsync<T>>` |
+| `Sequence()` | `IEnumerable<IO<T>>` → `IO<IReadOnlyList<T>>` |
+| `Traverse(f)` | Map and sequence in one operation |
+| `Select(f)` | LINQ query support |
+| `SelectMany(f)` | LINQ query support |
+
+### LINQ Support
+
+```csharp
+var program = 
+    from _1 in IO.WriteLine("Enter your name:")
+    from name in IO.ReadLine()
+    from _2 in IO.WriteLine($"Hello, {name}!")
+    select Unit.Default;
+
+program.Run();
 ```
 
 ---
