@@ -713,4 +713,133 @@ public static class ResultExtensions
         }
         return Result<Unit, TErr>.Ok(Unit.Value);
     }
+
+    #region Async Combine
+
+    /// <summary>
+    /// Asynchronously combines two Result tasks into a single Result containing a tuple.
+    /// Returns the first error encountered if any Result is Err.
+    /// </summary>
+    /// <example>
+    /// <code>
+    /// var combined = await Result.CombineAsync(
+    ///     GetUserAsync(id),
+    ///     GetOrderAsync(orderId)
+    /// ); // Result&lt;(User, Order), Error&gt;
+    /// </code>
+    /// </example>
+    public static async Task<Result<(T1, T2), TErr>> CombineAsync<T1, T2, TErr>(
+        Task<Result<T1, TErr>> first,
+        Task<Result<T2, TErr>> second)
+    {
+        ArgumentNullException.ThrowIfNull(first);
+        ArgumentNullException.ThrowIfNull(second);
+
+        var (result1, result2) = (await first.ConfigureAwait(false), await second.ConfigureAwait(false));
+        return Combine(result1, result2);
+    }
+
+    /// <summary>
+    /// Asynchronously combines two Result tasks using a combiner function.
+    /// Returns the first error encountered if any Result is Err.
+    /// </summary>
+    /// <example>
+    /// <code>
+    /// var combined = await Result.CombineAsync(
+    ///     GetUserAsync(id),
+    ///     GetOrderAsync(orderId),
+    ///     (user, order) => new UserOrder(user, order)
+    /// );
+    /// </code>
+    /// </example>
+    public static async Task<Result<TResult, TErr>> CombineAsync<T1, T2, TErr, TResult>(
+        Task<Result<T1, TErr>> first,
+        Task<Result<T2, TErr>> second,
+        Func<T1, T2, TResult> combiner)
+    {
+        ArgumentNullException.ThrowIfNull(first);
+        ArgumentNullException.ThrowIfNull(second);
+        ArgumentNullException.ThrowIfNull(combiner);
+
+        var (result1, result2) = (await first.ConfigureAwait(false), await second.ConfigureAwait(false));
+        return Combine(result1, result2, combiner);
+    }
+
+    /// <summary>
+    /// Asynchronously combines three Result tasks into a single Result containing a tuple.
+    /// Returns the first error encountered if any Result is Err.
+    /// </summary>
+    public static async Task<Result<(T1, T2, T3), TErr>> CombineAsync<T1, T2, T3, TErr>(
+        Task<Result<T1, TErr>> first,
+        Task<Result<T2, TErr>> second,
+        Task<Result<T3, TErr>> third)
+    {
+        ArgumentNullException.ThrowIfNull(first);
+        ArgumentNullException.ThrowIfNull(second);
+        ArgumentNullException.ThrowIfNull(third);
+
+        var result1 = await first.ConfigureAwait(false);
+        var result2 = await second.ConfigureAwait(false);
+        var result3 = await third.ConfigureAwait(false);
+        return Combine(result1, result2, result3);
+    }
+
+    /// <summary>
+    /// Asynchronously combines three Result tasks using a combiner function.
+    /// Returns the first error encountered if any Result is Err.
+    /// </summary>
+    public static async Task<Result<TResult, TErr>> CombineAsync<T1, T2, T3, TErr, TResult>(
+        Task<Result<T1, TErr>> first,
+        Task<Result<T2, TErr>> second,
+        Task<Result<T3, TErr>> third,
+        Func<T1, T2, T3, TResult> combiner)
+    {
+        ArgumentNullException.ThrowIfNull(first);
+        ArgumentNullException.ThrowIfNull(second);
+        ArgumentNullException.ThrowIfNull(third);
+        ArgumentNullException.ThrowIfNull(combiner);
+
+        var result1 = await first.ConfigureAwait(false);
+        var result2 = await second.ConfigureAwait(false);
+        var result3 = await third.ConfigureAwait(false);
+        return Combine(result1, result2, result3, combiner);
+    }
+
+    /// <summary>
+    /// Asynchronously combines a collection of Result tasks into a single Result containing a list.
+    /// Returns the first error encountered if any Result is Err.
+    /// </summary>
+    /// <example>
+    /// <code>
+    /// var userIds = new[] { 1, 2, 3 };
+    /// var usersResult = await ResultExtensions.CombineAsync(
+    ///     userIds.Select(id => GetUserAsync(id))
+    /// );
+    /// // Result&lt;IReadOnlyList&lt;User&gt;, Error&gt;
+    /// </code>
+    /// </example>
+    public static async Task<Result<IReadOnlyList<T>, TErr>> CombineAsync<T, TErr>(
+        IEnumerable<Task<Result<T, TErr>>> resultTasks)
+    {
+        ArgumentNullException.ThrowIfNull(resultTasks);
+
+        var results = await Task.WhenAll(resultTasks).ConfigureAwait(false);
+        return Combine(results);
+    }
+
+    /// <summary>
+    /// Asynchronously combines a collection of Result tasks, ignoring the values.
+    /// Useful when you only care about success/failure, not the values.
+    /// Returns the first error encountered if any Result is Err.
+    /// </summary>
+    public static async Task<Result<Unit, TErr>> CombineAllAsync<T, TErr>(
+        IEnumerable<Task<Result<T, TErr>>> resultTasks)
+    {
+        ArgumentNullException.ThrowIfNull(resultTasks);
+
+        var results = await Task.WhenAll(resultTasks).ConfigureAwait(false);
+        return CombineAll(results);
+    }
+
+    #endregion
 }

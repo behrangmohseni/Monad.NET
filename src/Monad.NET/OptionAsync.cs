@@ -259,4 +259,79 @@ public static class OptionAsyncExtensions
     {
         return Task.FromResult(option);
     }
+
+    /// <summary>
+    /// Executes an async action if the option is None, allowing method chaining.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async Task<Option<T>> TapNoneAsync<T>(
+        this Task<Option<T>> optionTask,
+        Func<Task> action)
+    {
+        ArgumentNullException.ThrowIfNull(optionTask);
+        ArgumentNullException.ThrowIfNull(action);
+
+        var option = await optionTask.ConfigureAwait(false);
+        if (option.IsNone)
+            await action().ConfigureAwait(false);
+
+        return option;
+    }
+
+    /// <summary>
+    /// Asynchronously zips two Option tasks into a single Option containing a tuple.
+    /// If both are Some, returns Some((T, U)). Otherwise, returns None.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async Task<Option<(T, U)>> ZipAsync<T, U>(
+        Task<Option<T>> firstTask,
+        Task<Option<U>> secondTask)
+    {
+        ArgumentNullException.ThrowIfNull(firstTask);
+        ArgumentNullException.ThrowIfNull(secondTask);
+
+        var result1 = await firstTask.ConfigureAwait(false);
+        var result2 = await secondTask.ConfigureAwait(false);
+        return result1.IsSome && result2.IsSome
+            ? Option<(T, U)>.Some((result1.Unwrap(), result2.Unwrap()))
+            : Option<(T, U)>.None();
+    }
+
+    /// <summary>
+    /// Asynchronously zips two Option tasks using a combiner function.
+    /// If both are Some, applies the combiner. Otherwise, returns None.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async Task<Option<V>> ZipWithAsync<T, U, V>(
+        Task<Option<T>> firstTask,
+        Task<Option<U>> secondTask,
+        Func<T, U, V> combiner)
+    {
+        ArgumentNullException.ThrowIfNull(firstTask);
+        ArgumentNullException.ThrowIfNull(secondTask);
+        ArgumentNullException.ThrowIfNull(combiner);
+
+        var result1 = await firstTask.ConfigureAwait(false);
+        var result2 = await secondTask.ConfigureAwait(false);
+        return result1.IsSome && result2.IsSome
+            ? Option<V>.Some(combiner(result1.Unwrap(), result2.Unwrap()))
+            : Option<V>.None();
+    }
+
+    /// <summary>
+    /// Returns the first Some option from a collection of Option tasks, or None if all are None.
+    /// </summary>
+    public static async Task<Option<T>> FirstSomeAsync<T>(
+        this IEnumerable<Task<Option<T>>> optionTasks)
+    {
+        ArgumentNullException.ThrowIfNull(optionTasks);
+
+        foreach (var task in optionTasks)
+        {
+            var option = await task.ConfigureAwait(false);
+            if (option.IsSome)
+                return option;
+        }
+        return Option<T>.None();
+    }
 }
