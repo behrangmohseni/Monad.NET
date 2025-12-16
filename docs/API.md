@@ -737,7 +737,7 @@ dotnet add package Monad.NET.SourceGenerators
 
 ### UnionAttribute
 
-Marks a type for source generation of `Match` methods.
+Marks a type for source generation.
 
 | Requirement | Description |
 |-------------|-------------|
@@ -745,12 +745,22 @@ Marks a type for source generation of `Match` methods.
 | `partial` | Type must be partial |
 | Nested types | Cases must inherit from parent type |
 
-### Generated Methods
+| Property | Default | Description |
+|----------|---------|-------------|
+| `GenerateFactoryMethods` | `true` | Generate `New{Case}()` factory methods |
+| `GenerateAsOptionMethods` | `true` | Generate `As{Case}()` methods (requires Monad.NET) |
 
-| Method | Return Type | Description |
+### Generated Members
+
+| Member | Return Type | Description |
 |--------|-------------|-------------|
-| `Match<TResult>(case1, case2, ...)` | `TResult` | Pattern match with return value |
-| `Match(case1, case2, ...)` | `void` | Pattern match with side effects |
+| `Match<TResult>(...)` | `TResult` | Pattern match with return value |
+| `Match(...)` | `void` | Pattern match with side effects |
+| `Is{Case}` | `bool` | Property to check if union is a specific case |
+| `As{Case}()` | `Option<CaseType>` | Safely cast to a specific case |
+| `Map(...)` | `UnionType` | Transform each case |
+| `Tap(...)` | `UnionType` | Execute side effect per case (nullable handlers) |
+| `New{Case}(...)` | `CaseType` | Factory method for case construction |
 
 ### Example
 
@@ -765,19 +775,37 @@ public abstract partial record Shape
     public partial record Triangle(double Base, double Height) : Shape;
 }
 
-// Generated Match method
+Shape shape = new Shape.Circle(5.0);
+
+// Match with return value - exhaustive
 var area = shape.Match(
     circle: c => Math.PI * c.Radius * c.Radius,
     rectangle: r => r.Width * r.Height,
     triangle: t => 0.5 * t.Base * t.Height
 );
 
-// Void version for side effects
-shape.Match(
-    circle: c => Console.WriteLine($"Circle: {c.Radius}"),
-    rectangle: r => Console.WriteLine($"Rectangle: {r.Width}x{r.Height}"),
-    triangle: t => Console.WriteLine($"Triangle: {t.Base}x{t.Height}")
+// Is{Case} properties
+if (shape.IsCircle)
+    Console.WriteLine("It's a circle!");
+
+// As{Case}() - safe casting
+var radius = shape.AsCircle()
+    .Map(c => c.Radius)
+    .UnwrapOr(0);
+
+// Map - transform
+var doubled = shape.Map(
+    circle: c => new Shape.Circle(c.Radius * 2),
+    rectangle: r => new Shape.Rectangle(r.Width * 2, r.Height * 2),
+    triangle: t => new Shape.Triangle(t.Base * 2, t.Height * 2)
 );
+
+// Tap - side effects (nulls are skipped)
+shape.Tap(circle: c => Console.WriteLine($"Circle: {c.Radius}"));
+
+// Factory methods
+var circle = Shape.NewCircle(5.0);
+var rect = Shape.NewRectangle(4.0, 5.0);
 ```
 
 ---
