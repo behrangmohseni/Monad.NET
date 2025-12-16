@@ -356,6 +356,30 @@ public class ValidationTests
     }
 
     [Fact]
+    public void TapInvalid_OnInvalid_ExecutesAction()
+    {
+        var validation = Validation<int, string>.Invalid("error");
+        var executed = false;
+
+        var result = validation.TapInvalid(errors => executed = true);
+
+        Assert.True(executed);
+        Assert.True(result.IsInvalid);
+    }
+
+    [Fact]
+    public void TapInvalid_OnValid_DoesNotExecuteAction()
+    {
+        var validation = Validation<int, string>.Valid(42);
+        var executed = false;
+
+        var result = validation.TapInvalid(errors => executed = true);
+
+        Assert.False(executed);
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
     public void ToValidation_FromOk_ReturnsValid()
     {
         var result = Result<int, string>.Ok(42);

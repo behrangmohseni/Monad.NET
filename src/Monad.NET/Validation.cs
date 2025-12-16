@@ -442,6 +442,15 @@ public static class ValidationExtensions
     }
 
     /// <summary>
+    /// Executes an action if the validation is invalid, allowing method chaining.
+    /// Alias for <see cref="TapErrors{T, TErr}"/> with a more concise name.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Validation<T, TErr> TapInvalid<T, TErr>(
+        this Validation<T, TErr> validation,
+        Action<IReadOnlyList<TErr>> action) => validation.TapErrors(action);
+
+    /// <summary>
     /// Converts a Result to a Validation.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
