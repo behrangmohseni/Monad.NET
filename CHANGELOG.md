@@ -9,6 +9,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.0-alpha.10] - 2025-12-16
+
+### Changed
+
+- **Code quality improvements** - Standardized patterns across the library
+  - Use `ArgumentNullException.ThrowIfNull` for .NET 6+ (modern idiom)
+  - Added null checks to all extension method parameters
+  - Standardized error messages with consistent "Cannot..." patterns
+  - Added `[MethodImpl(AggressiveInlining)]` to hot-path methods
+  - Added `static` keyword to lambdas that don't capture outer variables
+  - Optimized source generator `StringBuilder` usage for better performance
+
+- **Collection method return types** - Standardized to `IReadOnlyList<T>`
+  - `Sequence` methods now return `Option<IReadOnlyList<T>>` / `Result<IReadOnlyList<T>, E>`
+  - `Traverse` methods now return `Option<IReadOnlyList<U>>` / `Result<IReadOnlyList<U>, E>`
+  - `Partition` methods now return `(IReadOnlyList<T>, IReadOnlyList<E>)`
+  - Consistent with async variants and provides `Count`/indexer access
+
+- **Source generator data classes converted to records**
+  - `UnionInfo`, `UnionCase`, `UnionCaseParameter` now use record syntax
+  - Added `IsExternalInit` polyfill for netstandard2.0 support
+
+### Fixed
+
+- `FirstOk` now throws `InvalidOperationException` on empty sequences (like LINQ's `First()`)
+- Added `FirstOkOrDefault(defaultError)` for safe empty sequence handling
+
+### Removed
+
+- Duplicate `Recover(Func<Exception, Try<T>>)` method - use `RecoverWith` instead
+
+---
+
 ## [1.0.0-alpha.9] - 2025-12-16
 
 ### Added
