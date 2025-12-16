@@ -1,3 +1,4 @@
+using Monad.NET;
 using Xunit;
 
 namespace Monad.NET.SourceGenerators.Tests;
@@ -105,6 +106,137 @@ public class UnionIntegrationTests
             add: a => Evaluate(a.Left) + Evaluate(a.Right),
             multiply: m => Evaluate(m.Left) * Evaluate(m.Right));
     }
+
+    #region Is{Case} Property Tests
+
+    [Fact]
+    public void IsCase_WithCircle_ReturnsCorrectValues()
+    {
+        Shape shape = new Shape.Circle(5.0);
+
+        Assert.True(shape.IsCircle);
+        Assert.False(shape.IsRectangle);
+        Assert.False(shape.IsTriangle);
+    }
+
+    [Fact]
+    public void IsCase_WithRectangle_ReturnsCorrectValues()
+    {
+        Shape shape = new Shape.Rectangle(4.0, 5.0);
+
+        Assert.False(shape.IsCircle);
+        Assert.True(shape.IsRectangle);
+        Assert.False(shape.IsTriangle);
+    }
+
+    #endregion
+
+    #region As{Case}() Method Tests
+
+    [Fact]
+    public void AsCase_WithMatchingCase_ReturnsSome()
+    {
+        Shape shape = new Shape.Circle(5.0);
+
+        var result = shape.AsCircle();
+
+        Assert.True(result.IsSome);
+        Assert.Equal(5.0, result.Unwrap().Radius);
+    }
+
+    [Fact]
+    public void AsCase_WithNonMatchingCase_ReturnsNone()
+    {
+        Shape shape = new Shape.Circle(5.0);
+
+        var result = shape.AsRectangle();
+
+        Assert.True(result.IsNone);
+    }
+
+    [Fact]
+    public void AsCase_CanBeUsedInPipeline()
+    {
+        Shape shape = new Shape.Circle(5.0);
+
+        var area = shape.AsCircle()
+            .Map(c => Math.PI * c.Radius * c.Radius)
+            .UnwrapOr(0);
+
+        Assert.Equal(Math.PI * 25, area);
+    }
+
+    #endregion
+
+    #region Map Method Tests
+
+    [Fact]
+    public void Map_TransformsCase()
+    {
+        Shape shape = new Shape.Circle(5.0);
+
+        var doubled = shape.Map(
+            circle: c => new Shape.Circle(c.Radius * 2),
+            rectangle: r => new Shape.Rectangle(r.Width * 2, r.Height * 2),
+            triangle: t => new Shape.Triangle(t.Base * 2, t.Height * 2));
+
+        Assert.True(doubled.IsCircle);
+        Assert.Equal(10.0, doubled.AsCircle().Unwrap().Radius);
+    }
+
+    #endregion
+
+    #region Tap Method Tests
+
+    [Fact]
+    public void Tap_ExecutesSideEffect()
+    {
+        Shape shape = new Shape.Circle(5.0);
+        double? capturedRadius = null;
+
+        var result = shape.Tap(
+            circle: c => capturedRadius = c.Radius);
+
+        Assert.Same(shape, result);
+        Assert.Equal(5.0, capturedRadius);
+    }
+
+    [Fact]
+    public void Tap_OnlyExecutesMatchingCase()
+    {
+        Shape shape = new Shape.Circle(5.0);
+        bool rectangleExecuted = false;
+
+        shape.Tap(
+            rectangle: _ => rectangleExecuted = true);
+
+        Assert.False(rectangleExecuted);
+    }
+
+    #endregion
+
+    #region Factory Method Tests
+
+    [Fact]
+    public void NewFactoryMethod_CreatesInstance()
+    {
+        var circle = Shape.NewCircle(5.0);
+        var rectangle = Shape.NewRectangle(4.0, 5.0);
+        var triangle = Shape.NewTriangle(6.0, 4.0);
+
+        Assert.IsType<Shape.Circle>(circle);
+        Assert.Equal(5.0, circle.Radius);
+
+        Assert.IsType<Shape.Rectangle>(rectangle);
+        Assert.Equal(4.0, rectangle.Width);
+        Assert.Equal(5.0, rectangle.Height);
+
+        Assert.IsType<Shape.Triangle>(triangle);
+        Assert.Equal(6.0, triangle.Base);
+        Assert.Equal(4.0, triangle.Height);
+    }
+
+    #endregion
 }
 
 // Test union types - these get Match methods generated

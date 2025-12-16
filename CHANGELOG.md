@@ -25,6 +25,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Full LINQ query syntax support
   - 78 comprehensive tests
 
+- **Enhanced discriminated union source generator**
+  - `Is{Case}` properties for checking union case type
+  - `As{Case}()` methods returning `Option<CaseType>` for safe casting
+  - `Map()` method for transforming union cases
+  - `Tap()` method for side effects with optional handlers per case
+  - `New{Case}()` factory methods for case construction
+  - Configurable via `[Union(GenerateFactoryMethods = true, GenerateAsOptionMethods = true)]`
+  - 12 new integration tests
+
 ---
 
 ## [1.0.0-alpha.8] - 2025-12-15

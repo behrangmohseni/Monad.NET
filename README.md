@@ -1118,26 +1118,60 @@ public abstract partial record Shape
 }
 ```
 
-### Generated Match Methods
+### Generated Methods
 
-The generator creates both returning and void Match methods:
+The generator creates comprehensive utility methods for your union types:
 
 ```csharp
-// Pattern matching with return value
 Shape shape = new Shape.Circle(5.0);
 
+// Match with return value - exhaustive pattern matching
 var area = shape.Match(
     circle: c => Math.PI * c.Radius * c.Radius,
     rectangle: r => r.Width * r.Height,
     triangle: t => 0.5 * t.Base * t.Height
 );
 
-// Pattern matching with side effects
+// Match with side effects
 shape.Match(
     circle: c => Console.WriteLine($"Circle: r={c.Radius}"),
     rectangle: r => Console.WriteLine($"Rectangle: {r.Width}x{r.Height}"),
     triangle: t => Console.WriteLine($"Triangle: b={t.Base}, h={t.Height}")
 );
+
+// Is{Case} properties - type checking
+if (shape.IsCircle)
+    Console.WriteLine("It's a circle!");
+
+// As{Case}() methods - safe casting (returns Option<T>)
+var circleArea = shape.AsCircle()
+    .Map(c => Math.PI * c.Radius * c.Radius)
+    .UnwrapOr(0);
+
+// Map - transform cases
+var doubled = shape.Map(
+    circle: c => new Shape.Circle(c.Radius * 2),
+    rectangle: r => new Shape.Rectangle(r.Width * 2, r.Height * 2),
+    triangle: t => new Shape.Triangle(t.Base * 2, t.Height * 2)
+);
+
+// Tap - side effects (null handlers are skipped)
+shape.Tap(circle: c => Console.WriteLine($"Logging circle: {c.Radius}"));
+
+// Factory methods - cleaner construction
+var circle = Shape.NewCircle(5.0);
+var rect = Shape.NewRectangle(4.0, 5.0);
+```
+
+### Attribute Options
+
+```csharp
+// Customize generated code
+[Union(
+    GenerateFactoryMethods = true,      // Generate New{Case}() methods (default: true)
+    GenerateAsOptionMethods = true      // Generate As{Case}() methods (default: true, requires Monad.NET)
+)]
+public abstract partial record MyUnion { ... }
 ```
 
 ### Real-World Examples

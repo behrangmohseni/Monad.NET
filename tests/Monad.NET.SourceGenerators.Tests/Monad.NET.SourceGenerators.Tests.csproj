@@ -24,6 +24,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Reference Monad.NET for Option<T> support -->
+    <ProjectReference Include="..\..\src\Monad.NET\Monad.NET.csproj" />
+    
     <!-- Reference for unit testing the generator directly -->
     <ProjectReference Include="..\..\src\Monad.NET.SourceGenerators\Monad.NET.SourceGenerators.csproj" 
                       ReferenceOutputAssembly="true" />
