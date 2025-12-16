@@ -383,6 +383,51 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     }
 
     /// <summary>
+    /// Converts the Result to an enumerable sequence.
+    /// Returns a sequence containing the value if Ok, or an empty sequence if Err.
+    /// </summary>
+    /// <returns>An enumerable containing zero or one element.</returns>
+    /// <example>
+    /// <code>
+    /// var result = Result&lt;int, string&gt;.Ok(42);
+    /// foreach (var value in result.AsEnumerable())
+    ///     Console.WriteLine(value); // Prints: 42
+    ///
+    /// // Useful for flattening collections of Results
+    /// var results = new[] { Result&lt;int, string&gt;.Ok(1), Result&lt;int, string&gt;.Err("error"), Result&lt;int, string&gt;.Ok(3) };
+    /// var values = results.SelectMany(r => r.AsEnumerable()); // [1, 3]
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public IEnumerable<T> AsEnumerable()
+    {
+        if (_isOk)
+            yield return _value!;
+    }
+
+    /// <summary>
+    /// Converts the Result to an array.
+    /// Returns an array containing the value if Ok, or an empty array if Err.
+    /// </summary>
+    /// <returns>An array containing zero or one element.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T[] ToArray()
+    {
+        return _isOk ? new[] { _value! } : Array.Empty<T>();
+    }
+
+    /// <summary>
+    /// Converts the Result to a list.
+    /// Returns a list containing the value if Ok, or an empty list if Err.
+    /// </summary>
+    /// <returns>A list containing zero or one element.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public List<T> ToList()
+    {
+        return _isOk ? new List<T> { _value! } : new List<T>();
+    }
+
+    /// <summary>
     /// Determines whether two Result instances are equal.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

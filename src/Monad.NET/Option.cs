@@ -342,6 +342,51 @@ public readonly struct Option<T> : IEquatable<Option<T>>
         return _isSome ? Result<T, TErr>.Ok(_value!) : Result<T, TErr>.Err(errFunc());
     }
 
+    /// <summary>
+    /// Converts the Option to an enumerable sequence.
+    /// Returns a sequence containing the value if Some, or an empty sequence if None.
+    /// </summary>
+    /// <returns>An enumerable containing zero or one element.</returns>
+    /// <example>
+    /// <code>
+    /// var option = Option&lt;int&gt;.Some(42);
+    /// foreach (var value in option.AsEnumerable())
+    ///     Console.WriteLine(value); // Prints: 42
+    ///
+    /// // Useful for flattening collections of Options
+    /// var options = new[] { Option&lt;int&gt;.Some(1), Option&lt;int&gt;.None(), Option&lt;int&gt;.Some(3) };
+    /// var values = options.SelectMany(o => o.AsEnumerable()); // [1, 3]
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public IEnumerable<T> AsEnumerable()
+    {
+        if (_isSome)
+            yield return _value!;
+    }
+
+    /// <summary>
+    /// Converts the Option to an array.
+    /// Returns an array containing the value if Some, or an empty array if None.
+    /// </summary>
+    /// <returns>An array containing zero or one element.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T[] ToArray()
+    {
+        return _isSome ? new[] { _value! } : Array.Empty<T>();
+    }
+
+    /// <summary>
+    /// Converts the Option to a list.
+    /// Returns a list containing the value if Some, or an empty list if None.
+    /// </summary>
+    /// <returns>A list containing zero or one element.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public List<T> ToList()
+    {
+        return _isSome ? new List<T> { _value! } : new List<T>();
+    }
+
     /// <inheritdoc />
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Equals(Option<T> other)
