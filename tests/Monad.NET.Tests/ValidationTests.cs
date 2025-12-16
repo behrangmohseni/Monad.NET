@@ -101,6 +101,52 @@ public class ValidationTests
     }
 
     [Fact]
+    public void TryGet_OnValid_ReturnsTrueAndValue()
+    {
+        var validation = Validation<int, string>.Valid(42);
+
+        var result = validation.TryGet(out var value);
+
+        Assert.True(result);
+        Assert.Equal(42, value);
+    }
+
+    [Fact]
+    public void TryGet_OnInvalid_ReturnsFalse()
+    {
+        var validation = Validation<int, string>.Invalid("error");
+
+        var result = validation.TryGet(out var value);
+
+        Assert.False(result);
+        Assert.Equal(default, value);
+    }
+
+    [Fact]
+    public void TryGetErrors_OnInvalid_ReturnsTrueAndErrors()
+    {
+        var validation = Validation<int, string>.Invalid(new[] { "error1", "error2" });
+
+        var result = validation.TryGetErrors(out var errors);
+
+        Assert.True(result);
+        Assert.Equal(2, errors.Count);
+        Assert.Equal("error1", errors[0]);
+        Assert.Equal("error2", errors[1]);
+    }
+
+    [Fact]
+    public void TryGetErrors_OnValid_ReturnsFalseAndEmptyList()
+    {
+        var validation = Validation<int, string>.Valid(42);
+
+        var result = validation.TryGetErrors(out var errors);
+
+        Assert.False(result);
+        Assert.Empty(errors);
+    }
+
+    [Fact]
     public void MapErrors_OnInvalid_TransformsErrors()
     {
         var validation = Validation<int, string>.Invalid(new[] { "error1", "error2" });

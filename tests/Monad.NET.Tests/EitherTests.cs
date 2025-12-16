@@ -85,6 +85,50 @@ public class EitherTests
     }
 
     [Fact]
+    public void TryGetRight_OnRight_ReturnsTrueAndValue()
+    {
+        var either = Either<string, int>.Right(42);
+
+        var result = either.TryGetRight(out var value);
+
+        Assert.True(result);
+        Assert.Equal(42, value);
+    }
+
+    [Fact]
+    public void TryGetRight_OnLeft_ReturnsFalse()
+    {
+        var either = Either<string, int>.Left("error");
+
+        var result = either.TryGetRight(out var value);
+
+        Assert.False(result);
+        Assert.Equal(default, value);
+    }
+
+    [Fact]
+    public void TryGetLeft_OnLeft_ReturnsTrueAndValue()
+    {
+        var either = Either<string, int>.Left("error");
+
+        var result = either.TryGetLeft(out var value);
+
+        Assert.True(result);
+        Assert.Equal("error", value);
+    }
+
+    [Fact]
+    public void TryGetLeft_OnRight_ReturnsFalse()
+    {
+        var either = Either<string, int>.Right(42);
+
+        var result = either.TryGetLeft(out var value);
+
+        Assert.False(result);
+        Assert.Equal(default, value);
+    }
+
+    [Fact]
     public void MapRight_OnRight_TransformsValue()
     {
         var either = Either<string, int>.Right(42);

@@ -115,6 +115,47 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     }
 
     /// <summary>
+    /// Tries to get the contained valid value using the familiar C# TryGet pattern.
+    /// </summary>
+    /// <param name="value">When this method returns, contains the valid value if present; otherwise, the default value.</param>
+    /// <returns>True if the Validation is valid; otherwise, false.</returns>
+    /// <example>
+    /// <code>
+    /// if (validation.TryGet(out var value))
+    /// {
+    ///     Console.WriteLine($"Valid: {value}");
+    /// }
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool TryGet(out T? value)
+    {
+        value = _value;
+        return _isValid;
+    }
+
+    /// <summary>
+    /// Tries to get the contained errors using the familiar C# TryGet pattern.
+    /// </summary>
+    /// <param name="errors">When this method returns, contains the errors if invalid; otherwise, an empty list.</param>
+    /// <returns>True if the Validation is invalid; otherwise, false.</returns>
+    /// <example>
+    /// <code>
+    /// if (validation.TryGetErrors(out var errors))
+    /// {
+    ///     foreach (var error in errors)
+    ///         Console.WriteLine($"Error: {error}");
+    /// }
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool TryGetErrors(out IReadOnlyList<TErr> errors)
+    {
+        errors = _errors ?? Array.Empty<TErr>();
+        return !_isValid;
+    }
+
+    /// <summary>
     /// Maps the valid value if it exists.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

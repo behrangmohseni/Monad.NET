@@ -110,6 +110,46 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
     }
 
     /// <summary>
+    /// Tries to get the contained Right value using the familiar C# TryGet pattern.
+    /// </summary>
+    /// <param name="value">When this method returns, contains the Right value if present; otherwise, the default value.</param>
+    /// <returns>True if the Either is Right; otherwise, false.</returns>
+    /// <example>
+    /// <code>
+    /// if (either.TryGetRight(out var value))
+    /// {
+    ///     Console.WriteLine($"Right: {value}");
+    /// }
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool TryGetRight(out TRight? value)
+    {
+        value = _right;
+        return _isRight;
+    }
+
+    /// <summary>
+    /// Tries to get the contained Left value using the familiar C# TryGet pattern.
+    /// </summary>
+    /// <param name="value">When this method returns, contains the Left value if present; otherwise, the default value.</param>
+    /// <returns>True if the Either is Left; otherwise, false.</returns>
+    /// <example>
+    /// <code>
+    /// if (either.TryGetLeft(out var value))
+    /// {
+    ///     Console.WriteLine($"Left: {value}");
+    /// }
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool TryGetLeft(out TLeft? value)
+    {
+        value = _left;
+        return !_isRight;
+    }
+
+    /// <summary>
     /// Maps the Right value if it exists.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

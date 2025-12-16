@@ -99,6 +99,44 @@ public class RemoteDataExtendedTests
     }
 
     [Fact]
+    public void TryGet_OnSuccess_ReturnsTrueAndData()
+    {
+        var data = RemoteData<int, string>.Success(42);
+
+        var result = data.TryGet(out var value);
+
+        Assert.True(result);
+        Assert.Equal(42, value);
+    }
+
+    [Fact]
+    public void TryGet_OnOtherStates_ReturnsFalse()
+    {
+        Assert.False(RemoteData<int, string>.NotAsked().TryGet(out _));
+        Assert.False(RemoteData<int, string>.Loading().TryGet(out _));
+        Assert.False(RemoteData<int, string>.Failure("err").TryGet(out _));
+    }
+
+    [Fact]
+    public void TryGetError_OnFailure_ReturnsTrueAndError()
+    {
+        var data = RemoteData<int, string>.Failure("error");
+
+        var result = data.TryGetError(out var error);
+
+        Assert.True(result);
+        Assert.Equal("error", error);
+    }
+
+    [Fact]
+    public void TryGetError_OnOtherStates_ReturnsFalse()
+    {
+        Assert.False(RemoteData<int, string>.NotAsked().TryGetError(out _));
+        Assert.False(RemoteData<int, string>.Loading().TryGetError(out _));
+        Assert.False(RemoteData<int, string>.Success(42).TryGetError(out _));
+    }
+
+    [Fact]
     public void Map_TransformsSuccessValue()
     {
         var data = RemoteData<int, string>.Success(10);

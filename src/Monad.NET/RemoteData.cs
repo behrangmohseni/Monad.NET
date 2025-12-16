@@ -159,6 +159,46 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>
     }
 
     /// <summary>
+    /// Tries to get the contained data using the familiar C# TryGet pattern.
+    /// </summary>
+    /// <param name="data">When this method returns, contains the data if Success; otherwise, the default value.</param>
+    /// <returns>True if the RemoteData is in Success state; otherwise, false.</returns>
+    /// <example>
+    /// <code>
+    /// if (remoteData.TryGet(out var data))
+    /// {
+    ///     Console.WriteLine($"Data: {data}");
+    /// }
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool TryGet(out T? data)
+    {
+        data = _data;
+        return _state == RemoteDataState.Success;
+    }
+
+    /// <summary>
+    /// Tries to get the contained error using the familiar C# TryGet pattern.
+    /// </summary>
+    /// <param name="error">When this method returns, contains the error if Failure; otherwise, the default value.</param>
+    /// <returns>True if the RemoteData is in Failure state; otherwise, false.</returns>
+    /// <example>
+    /// <code>
+    /// if (remoteData.TryGetError(out var error))
+    /// {
+    ///     Console.WriteLine($"Error: {error}");
+    /// }
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool TryGetError(out TErr? error)
+    {
+        error = _error;
+        return _state == RemoteDataState.Failure;
+    }
+
+    /// <summary>
     /// Maps the data if successful.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
