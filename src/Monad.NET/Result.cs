@@ -146,6 +146,102 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     }
 
     /// <summary>
+    /// Returns the contained Ok value, or throws an <see cref="InvalidOperationException"/> if Err.
+    /// This is an alias for <see cref="Unwrap"/> with more explicit C# naming.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is Err</exception>
+    /// <example>
+    /// <code>
+    /// var result = Result&lt;int, string&gt;.Ok(42);
+    /// var value = result.GetOrThrow(); // 42
+    /// 
+    /// var error = Result&lt;int, string&gt;.Err("failed");
+    /// error.GetOrThrow(); // throws InvalidOperationException
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T GetOrThrow()
+    {
+        if (!_isOk)
+            ThrowHelper.ThrowInvalidOperation($"Result is Err. Cannot get value. Error: {_error}");
+
+        return _value!;
+    }
+
+    /// <summary>
+    /// Returns the contained Ok value, or throws an <see cref="InvalidOperationException"/> 
+    /// with the specified message if Err.
+    /// This is an alias for <see cref="Expect"/> with more explicit C# naming.
+    /// </summary>
+    /// <param name="message">The exception message if Err</param>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is Err</exception>
+    /// <example>
+    /// <code>
+    /// var result = Result&lt;int, string&gt;.Ok(42);
+    /// var value = result.GetOrThrow("Expected success"); // 42
+    /// 
+    /// var error = Result&lt;int, string&gt;.Err("failed");
+    /// error.GetOrThrow("Operation must succeed"); // throws with "Operation must succeed: failed"
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T GetOrThrow(string message)
+    {
+        if (!_isOk)
+            ThrowHelper.ThrowInvalidOperation($"{message}: {_error}");
+
+        return _value!;
+    }
+
+    /// <summary>
+    /// Returns the contained Err value, or throws an <see cref="InvalidOperationException"/> if Ok.
+    /// This is an alias for <see cref="UnwrapErr"/> with more explicit C# naming.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is Ok</exception>
+    /// <example>
+    /// <code>
+    /// var error = Result&lt;int, string&gt;.Err("failed");
+    /// var err = error.GetErrorOrThrow(); // "failed"
+    /// 
+    /// var success = Result&lt;int, string&gt;.Ok(42);
+    /// success.GetErrorOrThrow(); // throws InvalidOperationException
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public TErr GetErrorOrThrow()
+    {
+        if (_isOk)
+            ThrowHelper.ThrowInvalidOperation($"Result is Ok. Cannot get error. Value: {_value}");
+
+        return _error!;
+    }
+
+    /// <summary>
+    /// Returns the contained Err value, or throws an <see cref="InvalidOperationException"/> 
+    /// with the specified message if Ok.
+    /// This is an alias for <see cref="ExpectErr"/> with more explicit C# naming.
+    /// </summary>
+    /// <param name="message">The exception message if Ok</param>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is Ok</exception>
+    /// <example>
+    /// <code>
+    /// var error = Result&lt;int, string&gt;.Err("failed");
+    /// var err = error.GetErrorOrThrow("Expected failure"); // "failed"
+    /// 
+    /// var success = Result&lt;int, string&gt;.Ok(42);
+    /// success.GetErrorOrThrow("Should have failed"); // throws with "Should have failed: 42"
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public TErr GetErrorOrThrow(string message)
+    {
+        if (_isOk)
+            ThrowHelper.ThrowInvalidOperation($"{message}: {_value}");
+
+        return _error!;
+    }
+
+    /// <summary>
     /// Tries to get the contained Ok value using the familiar C# TryGet pattern.
     /// </summary>
     /// <param name="value">When this method returns, contains the Ok value if successful; otherwise, the default value.</param>

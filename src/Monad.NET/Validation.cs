@@ -115,6 +115,150 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     }
 
     /// <summary>
+    /// Returns the valid value with a custom error message if invalid.
+    /// Similar to Rust's expect() method.
+    /// </summary>
+    /// <param name="message">The error message if invalid</param>
+    /// <exception cref="InvalidOperationException">Thrown if the validation is invalid</exception>
+    /// <example>
+    /// <code>
+    /// var valid = Validation&lt;int, string&gt;.Valid(42);
+    /// var value = valid.Expect("Expected a value"); // 42
+    /// 
+    /// var invalid = Validation&lt;int, string&gt;.Invalid("error");
+    /// invalid.Expect("Must be valid"); // throws with "Must be valid: error"
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T Expect(string message)
+    {
+        if (!_isValid)
+            ThrowHelper.ThrowInvalidOperation($"{message}: {string.Join(", ", _errors!)}");
+
+        return _value!;
+    }
+
+    /// <summary>
+    /// Returns the errors with a custom error message if valid.
+    /// Similar to Rust's expect_err() method.
+    /// </summary>
+    /// <param name="message">The error message if valid</param>
+    /// <exception cref="InvalidOperationException">Thrown if the validation is valid</exception>
+    /// <example>
+    /// <code>
+    /// var invalid = Validation&lt;int, string&gt;.Invalid("error");
+    /// var errors = invalid.ExpectErrors("Expected errors"); // ["error"]
+    /// 
+    /// var valid = Validation&lt;int, string&gt;.Valid(42);
+    /// valid.ExpectErrors("Should be invalid"); // throws with "Should be invalid: 42"
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public IReadOnlyList<TErr> ExpectErrors(string message)
+    {
+        if (_isValid)
+            ThrowHelper.ThrowInvalidOperation($"{message}: {_value}");
+
+        return _errors!;
+    }
+
+    /// <summary>
+    /// Returns the valid value, or throws an <see cref="InvalidOperationException"/> if invalid.
+    /// This is an alias for <see cref="Unwrap"/> with more explicit C# naming.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the validation is invalid</exception>
+    /// <example>
+    /// <code>
+    /// var valid = Validation&lt;int, string&gt;.Valid(42);
+    /// var value = valid.GetOrThrow(); // 42
+    /// 
+    /// var invalid = Validation&lt;int, string&gt;.Invalid("error");
+    /// invalid.GetOrThrow(); // throws InvalidOperationException
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T GetOrThrow()
+    {
+        if (!_isValid)
+            ThrowHelper.ThrowInvalidOperation($"Validation is Invalid. Cannot get value. Errors: {string.Join(", ", _errors!)}");
+
+        return _value!;
+    }
+
+    /// <summary>
+    /// Returns the valid value, or throws an <see cref="InvalidOperationException"/> 
+    /// with the specified message if invalid.
+    /// This is an alias for <see cref="Expect"/> with more explicit C# naming.
+    /// </summary>
+    /// <param name="message">The exception message if invalid</param>
+    /// <exception cref="InvalidOperationException">Thrown if the validation is invalid</exception>
+    /// <example>
+    /// <code>
+    /// var valid = Validation&lt;int, string&gt;.Valid(42);
+    /// var value = valid.GetOrThrow("Expected success"); // 42
+    /// 
+    /// var invalid = Validation&lt;int, string&gt;.Invalid("error");
+    /// invalid.GetOrThrow("Must be valid"); // throws with "Must be valid: error"
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T GetOrThrow(string message)
+    {
+        if (!_isValid)
+            ThrowHelper.ThrowInvalidOperation($"{message}: {string.Join(", ", _errors!)}");
+
+        return _value!;
+    }
+
+    /// <summary>
+    /// Returns the errors, or throws an <see cref="InvalidOperationException"/> if valid.
+    /// This is an alias for <see cref="UnwrapErrors"/> with more explicit C# naming.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the validation is valid</exception>
+    /// <example>
+    /// <code>
+    /// var invalid = Validation&lt;int, string&gt;.Invalid("error");
+    /// var errors = invalid.GetErrorsOrThrow(); // ["error"]
+    /// 
+    /// var valid = Validation&lt;int, string&gt;.Valid(42);
+    /// valid.GetErrorsOrThrow(); // throws InvalidOperationException
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public IReadOnlyList<TErr> GetErrorsOrThrow()
+    {
+        if (_isValid)
+            ThrowHelper.ThrowInvalidOperation($"Validation is Valid. Cannot get errors. Value: {_value}");
+
+        return _errors!;
+    }
+
+    /// <summary>
+    /// Returns the errors, or throws an <see cref="InvalidOperationException"/> 
+    /// with the specified message if valid.
+    /// This is an alias for <see cref="ExpectErrors"/> with more explicit C# naming.
+    /// </summary>
+    /// <param name="message">The exception message if valid</param>
+    /// <exception cref="InvalidOperationException">Thrown if the validation is valid</exception>
+    /// <example>
+    /// <code>
+    /// var invalid = Validation&lt;int, string&gt;.Invalid("error");
+    /// var errors = invalid.GetErrorsOrThrow("Expected errors"); // ["error"]
+    /// 
+    /// var valid = Validation&lt;int, string&gt;.Valid(42);
+    /// valid.GetErrorsOrThrow("Should be invalid"); // throws with "Should be invalid: 42"
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public IReadOnlyList<TErr> GetErrorsOrThrow(string message)
+    {
+        if (_isValid)
+            ThrowHelper.ThrowInvalidOperation($"{message}: {_value}");
+
+        return _errors!;
+    }
+
+    /// <summary>
     /// Tries to get the contained valid value using the familiar C# TryGet pattern.
     /// </summary>
     /// <param name="value">When this method returns, contains the valid value if present; otherwise, the default value.</param>

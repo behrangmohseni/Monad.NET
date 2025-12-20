@@ -111,6 +111,54 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     }
 
     /// <summary>
+    /// Returns the contained Some value, or throws an <see cref="InvalidOperationException"/> if None.
+    /// This is an alias for <see cref="Unwrap"/> with more explicit C# naming.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the value is None</exception>
+    /// <example>
+    /// <code>
+    /// var option = Option&lt;int&gt;.Some(42);
+    /// var value = option.GetOrThrow(); // 42
+    /// 
+    /// var none = Option&lt;int&gt;.None();
+    /// none.GetOrThrow(); // throws InvalidOperationException
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T GetOrThrow()
+    {
+        if (!_isSome)
+            ThrowHelper.ThrowInvalidOperation("Option is None. Cannot get value from None.");
+
+        return _value!;
+    }
+
+    /// <summary>
+    /// Returns the contained Some value, or throws an <see cref="InvalidOperationException"/> 
+    /// with the specified message if None.
+    /// This is an alias for <see cref="Expect"/> with more explicit C# naming.
+    /// </summary>
+    /// <param name="message">The exception message if None</param>
+    /// <exception cref="InvalidOperationException">Thrown if the value is None</exception>
+    /// <example>
+    /// <code>
+    /// var option = Option&lt;int&gt;.Some(42);
+    /// var value = option.GetOrThrow("Expected a value"); // 42
+    /// 
+    /// var none = Option&lt;int&gt;.None();
+    /// none.GetOrThrow("Config value required"); // throws with "Config value required"
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T GetOrThrow(string message)
+    {
+        if (!_isSome)
+            ThrowHelper.ThrowInvalidOperation(message);
+
+        return _value!;
+    }
+
+    /// <summary>
     /// Tries to get the contained value using the familiar C# TryGet pattern.
     /// </summary>
     /// <param name="value">When this method returns, contains the value if Some; otherwise, the default value.</param>
