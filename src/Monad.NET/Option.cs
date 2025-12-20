@@ -632,6 +632,484 @@ public static class OptionExtensions
             ? Option<TTarget>.Some(target)
             : Option<TTarget>.None());
     }
+
+    #region String Conversions
+
+    /// <summary>
+    /// Converts a string to an Option, returning None if the string is null or empty.
+    /// </summary>
+    /// <param name="value">The string value to convert.</param>
+    /// <returns>Some containing the string if not null or empty; otherwise None.</returns>
+    /// <example>
+    /// <code>
+    /// "hello".ToOptionNotEmpty();  // Some("hello")
+    /// "".ToOptionNotEmpty();       // None
+    /// ((string?)null).ToOptionNotEmpty(); // None
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Option<string> ToOptionNotEmpty(this string? value)
+    {
+        return string.IsNullOrEmpty(value)
+            ? Option<string>.None()
+            : Option<string>.Some(value);
+    }
+
+    /// <summary>
+    /// Converts a string to an Option, returning None if the string is null, empty, or whitespace.
+    /// </summary>
+    /// <param name="value">The string value to convert.</param>
+    /// <returns>Some containing the string if not null, empty, or whitespace; otherwise None.</returns>
+    /// <example>
+    /// <code>
+    /// "hello".ToOptionNotWhiteSpace();  // Some("hello")
+    /// "   ".ToOptionNotWhiteSpace();    // None
+    /// "".ToOptionNotWhiteSpace();       // None
+    /// ((string?)null).ToOptionNotWhiteSpace(); // None
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Option<string> ToOptionNotWhiteSpace(this string? value)
+    {
+        return string.IsNullOrWhiteSpace(value)
+            ? Option<string>.None()
+            : Option<string>.Some(value);
+    }
+
+    /// <summary>
+    /// Converts a string to an Option with the string trimmed, returning None if the result is empty.
+    /// </summary>
+    /// <param name="value">The string value to convert.</param>
+    /// <returns>Some containing the trimmed string if not empty after trimming; otherwise None.</returns>
+    /// <example>
+    /// <code>
+    /// "  hello  ".ToOptionTrimmed();  // Some("hello")
+    /// "   ".ToOptionTrimmed();        // None
+    /// "".ToOptionTrimmed();           // None
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Option<string> ToOptionTrimmed(this string? value)
+    {
+        if (value is null)
+            return Option<string>.None();
+
+        var trimmed = value.Trim();
+        return trimmed.Length == 0
+            ? Option<string>.None()
+            : Option<string>.Some(trimmed);
+    }
+
+    #endregion
+
+    #region Parse Conversions
+
+    /// <summary>
+    /// Attempts to parse a string as an integer.
+    /// Returns Some if parsing succeeds; otherwise None.
+    /// </summary>
+    /// <param name="value">The string to parse.</param>
+    /// <returns>Some containing the parsed integer if successful; otherwise None.</returns>
+    /// <example>
+    /// <code>
+    /// "42".ParseInt();      // Some(42)
+    /// "invalid".ParseInt(); // None
+    /// "".ParseInt();        // None
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Option<int> ParseInt(this string? value)
+    {
+        return int.TryParse(value, out var result)
+            ? Option<int>.Some(result)
+            : Option<int>.None();
+    }
+
+    /// <summary>
+    /// Attempts to parse a string as a long integer.
+    /// Returns Some if parsing succeeds; otherwise None.
+    /// </summary>
+    /// <param name="value">The string to parse.</param>
+    /// <returns>Some containing the parsed long if successful; otherwise None.</returns>
+    /// <example>
+    /// <code>
+    /// "9223372036854775807".ParseLong(); // Some(9223372036854775807)
+    /// "invalid".ParseLong();              // None
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Option<long> ParseLong(this string? value)
+    {
+        return long.TryParse(value, out var result)
+            ? Option<long>.Some(result)
+            : Option<long>.None();
+    }
+
+    /// <summary>
+    /// Attempts to parse a string as a double.
+    /// Returns Some if parsing succeeds; otherwise None.
+    /// </summary>
+    /// <param name="value">The string to parse.</param>
+    /// <returns>Some containing the parsed double if successful; otherwise None.</returns>
+    /// <example>
+    /// <code>
+    /// "3.14".ParseDouble();    // Some(3.14)
+    /// "invalid".ParseDouble(); // None
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Option<double> ParseDouble(this string? value)
+    {
+        return double.TryParse(value, out var result)
+            ? Option<double>.Some(result)
+            : Option<double>.None();
+    }
+
+    /// <summary>
+    /// Attempts to parse a string as a decimal.
+    /// Returns Some if parsing succeeds; otherwise None.
+    /// </summary>
+    /// <param name="value">The string to parse.</param>
+    /// <returns>Some containing the parsed decimal if successful; otherwise None.</returns>
+    /// <example>
+    /// <code>
+    /// "123.45".ParseDecimal(); // Some(123.45m)
+    /// "invalid".ParseDecimal(); // None
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Option<decimal> ParseDecimal(this string? value)
+    {
+        return decimal.TryParse(value, out var result)
+            ? Option<decimal>.Some(result)
+            : Option<decimal>.None();
+    }
+
+    /// <summary>
+    /// Attempts to parse a string as a boolean.
+    /// Returns Some if parsing succeeds; otherwise None.
+    /// </summary>
+    /// <param name="value">The string to parse.</param>
+    /// <returns>Some containing the parsed boolean if successful; otherwise None.</returns>
+    /// <example>
+    /// <code>
+    /// "true".ParseBool();    // Some(true)
+    /// "false".ParseBool();   // Some(false)
+    /// "yes".ParseBool();     // None (only "true"/"false" are valid)
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Option<bool> ParseBool(this string? value)
+    {
+        return bool.TryParse(value, out var result)
+            ? Option<bool>.Some(result)
+            : Option<bool>.None();
+    }
+
+    /// <summary>
+    /// Attempts to parse a string as a GUID.
+    /// Returns Some if parsing succeeds; otherwise None.
+    /// </summary>
+    /// <param name="value">The string to parse.</param>
+    /// <returns>Some containing the parsed GUID if successful; otherwise None.</returns>
+    /// <example>
+    /// <code>
+    /// "550e8400-e29b-41d4-a716-446655440000".ParseGuid(); // Some(Guid)
+    /// "invalid".ParseGuid();                               // None
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Option<Guid> ParseGuid(this string? value)
+    {
+        return Guid.TryParse(value, out var result)
+            ? Option<Guid>.Some(result)
+            : Option<Guid>.None();
+    }
+
+    /// <summary>
+    /// Attempts to parse a string as a DateTime.
+    /// Returns Some if parsing succeeds; otherwise None.
+    /// </summary>
+    /// <param name="value">The string to parse.</param>
+    /// <returns>Some containing the parsed DateTime if successful; otherwise None.</returns>
+    /// <example>
+    /// <code>
+    /// "2024-01-15".ParseDateTime();    // Some(DateTime)
+    /// "invalid".ParseDateTime();        // None
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Option<DateTime> ParseDateTime(this string? value)
+    {
+        return DateTime.TryParse(value, out var result)
+            ? Option<DateTime>.Some(result)
+            : Option<DateTime>.None();
+    }
+
+    /// <summary>
+    /// Attempts to parse a string as a DateTimeOffset.
+    /// Returns Some if parsing succeeds; otherwise None.
+    /// </summary>
+    /// <param name="value">The string to parse.</param>
+    /// <returns>Some containing the parsed DateTimeOffset if successful; otherwise None.</returns>
+    /// <example>
+    /// <code>
+    /// "2024-01-15T10:30:00+00:00".ParseDateTimeOffset(); // Some(DateTimeOffset)
+    /// "invalid".ParseDateTimeOffset();                    // None
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Option<DateTimeOffset> ParseDateTimeOffset(this string? value)
+    {
+        return DateTimeOffset.TryParse(value, out var result)
+            ? Option<DateTimeOffset>.Some(result)
+            : Option<DateTimeOffset>.None();
+    }
+
+    /// <summary>
+    /// Attempts to parse a string as a TimeSpan.
+    /// Returns Some if parsing succeeds; otherwise None.
+    /// </summary>
+    /// <param name="value">The string to parse.</param>
+    /// <returns>Some containing the parsed TimeSpan if successful; otherwise None.</returns>
+    /// <example>
+    /// <code>
+    /// "01:30:00".ParseTimeSpan(); // Some(TimeSpan of 1.5 hours)
+    /// "invalid".ParseTimeSpan();  // None
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Option<TimeSpan> ParseTimeSpan(this string? value)
+    {
+        return TimeSpan.TryParse(value, out var result)
+            ? Option<TimeSpan>.Some(result)
+            : Option<TimeSpan>.None();
+    }
+
+    /// <summary>
+    /// Attempts to parse a string as an enum value.
+    /// Returns Some if parsing succeeds; otherwise None.
+    /// </summary>
+    /// <typeparam name="TEnum">The enum type to parse to.</typeparam>
+    /// <param name="value">The string to parse.</param>
+    /// <param name="ignoreCase">Whether to ignore case when parsing. Default is true.</param>
+    /// <returns>Some containing the parsed enum if successful; otherwise None.</returns>
+    /// <example>
+    /// <code>
+    /// "Monday".ParseEnum&lt;DayOfWeek&gt;();     // Some(DayOfWeek.Monday)
+    /// "monday".ParseEnum&lt;DayOfWeek&gt;();     // Some(DayOfWeek.Monday) (case insensitive)
+    /// "invalid".ParseEnum&lt;DayOfWeek&gt;();    // None
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Option<TEnum> ParseEnum<TEnum>(this string? value, bool ignoreCase = true)
+        where TEnum : struct, Enum
+    {
+        return Enum.TryParse<TEnum>(value, ignoreCase, out var result)
+            ? Option<TEnum>.Some(result)
+            : Option<TEnum>.None();
+    }
+
+    #endregion
+
+    #region Dictionary/Collection Lookups
+
+    /// <summary>
+    /// Attempts to get a value from a dictionary by key.
+    /// Returns Some if the key exists; otherwise None.
+    /// Works with Dictionary, ImmutableDictionary, and other dictionary types.
+    /// </summary>
+    /// <typeparam name="TKey">The type of the dictionary keys.</typeparam>
+    /// <typeparam name="TValue">The type of the dictionary values.</typeparam>
+    /// <param name="dictionary">The dictionary to search.</param>
+    /// <param name="key">The key to look up.</param>
+    /// <returns>Some containing the value if the key exists; otherwise None.</returns>
+    /// <example>
+    /// <code>
+    /// var dict = new Dictionary&lt;string, int&gt; { ["a"] = 1, ["b"] = 2 };
+    /// dict.GetOption("a"); // Some(1)
+    /// dict.GetOption("c"); // None
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Option<TValue> GetOption<TKey, TValue>(
+        this IReadOnlyDictionary<TKey, TValue> dictionary,
+        TKey key)
+    {
+        ArgumentNullException.ThrowIfNull(dictionary);
+
+        return dictionary.TryGetValue(key, out var value)
+            ? Option<TValue>.Some(value!)
+            : Option<TValue>.None();
+    }
+
+    /// <summary>
+    /// Returns the first element of a sequence, or None if the sequence is empty.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the sequence.</typeparam>
+    /// <param name="source">The sequence to get the first element from.</param>
+    /// <returns>Some containing the first element if the sequence is not empty; otherwise None.</returns>
+    /// <example>
+    /// <code>
+    /// new[] { 1, 2, 3 }.FirstOption();      // Some(1)
+    /// Array.Empty&lt;int&gt;().FirstOption();    // None
+    /// </code>
+    /// </example>
+    public static Option<T> FirstOption<T>(this IEnumerable<T> source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        if (source is IList<T> list)
+        {
+            return list.Count > 0
+                ? Option<T>.Some(list[0])
+                : Option<T>.None();
+        }
+
+        using var enumerator = source.GetEnumerator();
+        return enumerator.MoveNext()
+            ? Option<T>.Some(enumerator.Current)
+            : Option<T>.None();
+    }
+
+    /// <summary>
+    /// Returns the first element of a sequence that matches the predicate, or None if no match is found.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the sequence.</typeparam>
+    /// <param name="source">The sequence to search.</param>
+    /// <param name="predicate">The condition to match.</param>
+    /// <returns>Some containing the first matching element; otherwise None.</returns>
+    /// <example>
+    /// <code>
+    /// new[] { 1, 2, 3 }.FirstOption(x => x > 1);  // Some(2)
+    /// new[] { 1, 2, 3 }.FirstOption(x => x > 10); // None
+    /// </code>
+    /// </example>
+    public static Option<T> FirstOption<T>(this IEnumerable<T> source, Func<T, bool> predicate)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(predicate);
+
+        foreach (var item in source)
+        {
+            if (predicate(item))
+                return Option<T>.Some(item);
+        }
+
+        return Option<T>.None();
+    }
+
+    /// <summary>
+    /// Returns the last element of a sequence, or None if the sequence is empty.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the sequence.</typeparam>
+    /// <param name="source">The sequence to get the last element from.</param>
+    /// <returns>Some containing the last element if the sequence is not empty; otherwise None.</returns>
+    /// <example>
+    /// <code>
+    /// new[] { 1, 2, 3 }.LastOption();      // Some(3)
+    /// Array.Empty&lt;int&gt;().LastOption();    // None
+    /// </code>
+    /// </example>
+    public static Option<T> LastOption<T>(this IEnumerable<T> source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        if (source is IList<T> list)
+        {
+            return list.Count > 0
+                ? Option<T>.Some(list[list.Count - 1])
+                : Option<T>.None();
+        }
+
+        using var enumerator = source.GetEnumerator();
+        if (!enumerator.MoveNext())
+            return Option<T>.None();
+
+        var last = enumerator.Current;
+        while (enumerator.MoveNext())
+        {
+            last = enumerator.Current;
+        }
+
+        return Option<T>.Some(last);
+    }
+
+    /// <summary>
+    /// Returns the single element of a sequence, or None if the sequence is empty or has more than one element.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the sequence.</typeparam>
+    /// <param name="source">The sequence to get the single element from.</param>
+    /// <returns>Some containing the element if exactly one exists; otherwise None.</returns>
+    /// <example>
+    /// <code>
+    /// new[] { 42 }.SingleOption();         // Some(42)
+    /// new[] { 1, 2 }.SingleOption();       // None (more than one)
+    /// Array.Empty&lt;int&gt;().SingleOption();  // None (empty)
+    /// </code>
+    /// </example>
+    public static Option<T> SingleOption<T>(this IEnumerable<T> source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        if (source is IList<T> list)
+        {
+            return list.Count == 1
+                ? Option<T>.Some(list[0])
+                : Option<T>.None();
+        }
+
+        using var enumerator = source.GetEnumerator();
+        if (!enumerator.MoveNext())
+            return Option<T>.None();
+
+        var single = enumerator.Current;
+        if (enumerator.MoveNext())
+            return Option<T>.None(); // More than one element
+
+        return Option<T>.Some(single);
+    }
+
+    /// <summary>
+    /// Returns the element at the specified index, or None if the index is out of range.
+    /// </summary>
+    /// <typeparam name="T">The type of elements in the sequence.</typeparam>
+    /// <param name="source">The sequence to index into.</param>
+    /// <param name="index">The zero-based index of the element to get.</param>
+    /// <returns>Some containing the element at the index; otherwise None.</returns>
+    /// <example>
+    /// <code>
+    /// new[] { 1, 2, 3 }.ElementAtOption(1);  // Some(2)
+    /// new[] { 1, 2, 3 }.ElementAtOption(10); // None
+    /// new[] { 1, 2, 3 }.ElementAtOption(-1); // None
+    /// </code>
+    /// </example>
+    public static Option<T> ElementAtOption<T>(this IEnumerable<T> source, int index)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        if (index < 0)
+            return Option<T>.None();
+
+        if (source is IList<T> list)
+        {
+            return index < list.Count
+                ? Option<T>.Some(list[index])
+                : Option<T>.None();
+        }
+
+        var currentIndex = 0;
+        foreach (var item in source)
+        {
+            if (currentIndex == index)
+                return Option<T>.Some(item);
+            currentIndex++;
+        }
+
+        return Option<T>.None();
+    }
+
+    #endregion
 }
 
 /// <summary>
