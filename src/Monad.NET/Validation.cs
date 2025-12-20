@@ -156,6 +156,44 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     }
 
     /// <summary>
+    /// Returns true if the Validation is Valid and contains the specified value.
+    /// Uses the default equality comparer for type T.
+    /// </summary>
+    /// <param name="value">The value to check for.</param>
+    /// <returns>True if the Validation is Valid and contains the specified value; otherwise, false.</returns>
+    /// <example>
+    /// <code>
+    /// var validation = Validation&lt;int, string&gt;.Valid(42);
+    /// validation.Contains(42); // true
+    /// validation.Contains(0);  // false
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool Contains(T value)
+    {
+        return _isValid && EqualityComparer<T>.Default.Equals(_value, value);
+    }
+
+    /// <summary>
+    /// Returns true if the Validation is Valid and the predicate returns true for the contained value.
+    /// </summary>
+    /// <param name="predicate">The predicate to test the value against.</param>
+    /// <returns>True if the Validation is Valid and the predicate returns true; otherwise, false.</returns>
+    /// <example>
+    /// <code>
+    /// var validation = Validation&lt;int, string&gt;.Valid(42);
+    /// validation.Exists(x => x > 40); // true
+    /// validation.Exists(x => x > 50); // false
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool Exists(Func<T, bool> predicate)
+    {
+        ArgumentNullException.ThrowIfNull(predicate);
+        return _isValid && predicate(_value!);
+    }
+
+    /// <summary>
     /// Maps the valid value if it exists.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

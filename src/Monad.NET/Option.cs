@@ -131,6 +131,46 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     }
 
     /// <summary>
+    /// Returns true if the Option is Some and contains the specified value.
+    /// Uses the default equality comparer for type T.
+    /// </summary>
+    /// <param name="value">The value to check for.</param>
+    /// <returns>True if the Option is Some and contains the specified value; otherwise, false.</returns>
+    /// <example>
+    /// <code>
+    /// var option = Option&lt;int&gt;.Some(42);
+    /// option.Contains(42); // true
+    /// option.Contains(0);  // false
+    /// Option&lt;int&gt;.None().Contains(42); // false
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool Contains(T value)
+    {
+        return _isSome && EqualityComparer<T>.Default.Equals(_value, value);
+    }
+
+    /// <summary>
+    /// Returns true if the Option is Some and the predicate returns true for the contained value.
+    /// </summary>
+    /// <param name="predicate">The predicate to test the value against.</param>
+    /// <returns>True if the Option is Some and the predicate returns true; otherwise, false.</returns>
+    /// <example>
+    /// <code>
+    /// var option = Option&lt;int&gt;.Some(42);
+    /// option.Exists(x => x > 40); // true
+    /// option.Exists(x => x > 50); // false
+    /// Option&lt;int&gt;.None().Exists(x => x > 0); // false
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool Exists(Func<T, bool> predicate)
+    {
+        ArgumentNullException.ThrowIfNull(predicate);
+        return _isSome && predicate(_value!);
+    }
+
+    /// <summary>
     /// Maps an Option&lt;T&gt; to Option&lt;U&gt; by applying a function to a contained value.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

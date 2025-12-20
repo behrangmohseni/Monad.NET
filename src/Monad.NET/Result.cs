@@ -186,6 +186,85 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     }
 
     /// <summary>
+    /// Returns true if the Result is Ok and contains the specified value.
+    /// Uses the default equality comparer for type T.
+    /// </summary>
+    /// <param name="value">The value to check for.</param>
+    /// <returns>True if the Result is Ok and contains the specified value; otherwise, false.</returns>
+    /// <example>
+    /// <code>
+    /// var result = Result&lt;int, string&gt;.Ok(42);
+    /// result.Contains(42); // true
+    /// result.Contains(0);  // false
+    /// Result&lt;int, string&gt;.Err("error").Contains(42); // false
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool Contains(T value)
+    {
+        return _isOk && EqualityComparer<T>.Default.Equals(_value, value);
+    }
+
+    /// <summary>
+    /// Returns true if the Result is Err and contains the specified error.
+    /// Uses the default equality comparer for type TErr.
+    /// </summary>
+    /// <param name="error">The error to check for.</param>
+    /// <returns>True if the Result is Err and contains the specified error; otherwise, false.</returns>
+    /// <example>
+    /// <code>
+    /// var result = Result&lt;int, string&gt;.Err("not found");
+    /// result.ContainsError("not found"); // true
+    /// result.ContainsError("other");     // false
+    /// Result&lt;int, string&gt;.Ok(42).ContainsError("not found"); // false
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool ContainsError(TErr error)
+    {
+        return !_isOk && EqualityComparer<TErr>.Default.Equals(_error, error);
+    }
+
+    /// <summary>
+    /// Returns true if the Result is Ok and the predicate returns true for the contained value.
+    /// </summary>
+    /// <param name="predicate">The predicate to test the value against.</param>
+    /// <returns>True if the Result is Ok and the predicate returns true; otherwise, false.</returns>
+    /// <example>
+    /// <code>
+    /// var result = Result&lt;int, string&gt;.Ok(42);
+    /// result.Exists(x => x > 40); // true
+    /// result.Exists(x => x > 50); // false
+    /// Result&lt;int, string&gt;.Err("error").Exists(x => x > 0); // false
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool Exists(Func<T, bool> predicate)
+    {
+        ArgumentNullException.ThrowIfNull(predicate);
+        return _isOk && predicate(_value!);
+    }
+
+    /// <summary>
+    /// Returns true if the Result is Err and the predicate returns true for the contained error.
+    /// </summary>
+    /// <param name="predicate">The predicate to test the error against.</param>
+    /// <returns>True if the Result is Err and the predicate returns true; otherwise, false.</returns>
+    /// <example>
+    /// <code>
+    /// var result = Result&lt;int, string&gt;.Err("not found");
+    /// result.ExistsError(e => e.Contains("not")); // true
+    /// result.ExistsError(e => e.Contains("xyz")); // false
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool ExistsError(Func<TErr, bool> predicate)
+    {
+        ArgumentNullException.ThrowIfNull(predicate);
+        return !_isOk && predicate(_error!);
+    }
+
+    /// <summary>
     /// Maps a Result&lt;T, TErr&gt; to Result&lt;U, TErr&gt; by applying a function to a contained Ok value.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

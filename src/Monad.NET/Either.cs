@@ -150,6 +150,82 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
     }
 
     /// <summary>
+    /// Returns true if the Either is Right and contains the specified value.
+    /// Uses the default equality comparer for type TRight.
+    /// </summary>
+    /// <param name="value">The value to check for.</param>
+    /// <returns>True if the Either is Right and contains the specified value; otherwise, false.</returns>
+    /// <example>
+    /// <code>
+    /// var either = Either&lt;string, int&gt;.Right(42);
+    /// either.ContainsRight(42); // true
+    /// either.ContainsRight(0);  // false
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool ContainsRight(TRight value)
+    {
+        return _isRight && EqualityComparer<TRight>.Default.Equals(_right, value);
+    }
+
+    /// <summary>
+    /// Returns true if the Either is Left and contains the specified value.
+    /// Uses the default equality comparer for type TLeft.
+    /// </summary>
+    /// <param name="value">The value to check for.</param>
+    /// <returns>True if the Either is Left and contains the specified value; otherwise, false.</returns>
+    /// <example>
+    /// <code>
+    /// var either = Either&lt;string, int&gt;.Left("error");
+    /// either.ContainsLeft("error"); // true
+    /// either.ContainsLeft("other"); // false
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool ContainsLeft(TLeft value)
+    {
+        return !_isRight && EqualityComparer<TLeft>.Default.Equals(_left, value);
+    }
+
+    /// <summary>
+    /// Returns true if the Either is Right and the predicate returns true for the contained value.
+    /// </summary>
+    /// <param name="predicate">The predicate to test the value against.</param>
+    /// <returns>True if the Either is Right and the predicate returns true; otherwise, false.</returns>
+    /// <example>
+    /// <code>
+    /// var either = Either&lt;string, int&gt;.Right(42);
+    /// either.ExistsRight(x => x > 40); // true
+    /// either.ExistsRight(x => x > 50); // false
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool ExistsRight(Func<TRight, bool> predicate)
+    {
+        ArgumentNullException.ThrowIfNull(predicate);
+        return _isRight && predicate(_right!);
+    }
+
+    /// <summary>
+    /// Returns true if the Either is Left and the predicate returns true for the contained value.
+    /// </summary>
+    /// <param name="predicate">The predicate to test the value against.</param>
+    /// <returns>True if the Either is Left and the predicate returns true; otherwise, false.</returns>
+    /// <example>
+    /// <code>
+    /// var either = Either&lt;string, int&gt;.Left("error");
+    /// either.ExistsLeft(e => e.Contains("err")); // true
+    /// either.ExistsLeft(e => e.Contains("xyz")); // false
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool ExistsLeft(Func<TLeft, bool> predicate)
+    {
+        ArgumentNullException.ThrowIfNull(predicate);
+        return !_isRight && predicate(_left!);
+    }
+
+    /// <summary>
     /// Maps the Right value if it exists.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

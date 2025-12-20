@@ -189,6 +189,44 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     }
 
     /// <summary>
+    /// Returns true if the Try is Success and contains the specified value.
+    /// Uses the default equality comparer for type T.
+    /// </summary>
+    /// <param name="value">The value to check for.</param>
+    /// <returns>True if the Try is Success and contains the specified value; otherwise, false.</returns>
+    /// <example>
+    /// <code>
+    /// var result = Try&lt;int&gt;.Success(42);
+    /// result.Contains(42); // true
+    /// result.Contains(0);  // false
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool Contains(T value)
+    {
+        return _isSuccess && EqualityComparer<T>.Default.Equals(_value, value);
+    }
+
+    /// <summary>
+    /// Returns true if the Try is Success and the predicate returns true for the contained value.
+    /// </summary>
+    /// <param name="predicate">The predicate to test the value against.</param>
+    /// <returns>True if the Try is Success and the predicate returns true; otherwise, false.</returns>
+    /// <example>
+    /// <code>
+    /// var result = Try&lt;int&gt;.Success(42);
+    /// result.Exists(x => x > 40); // true
+    /// result.Exists(x => x > 50); // false
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool Exists(Func<T, bool> predicate)
+    {
+        ArgumentNullException.ThrowIfNull(predicate);
+        return _isSuccess && predicate(_value!);
+    }
+
+    /// <summary>
     /// Maps the value if successful.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
