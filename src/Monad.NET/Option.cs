@@ -553,6 +553,85 @@ public static class OptionExtensions
             noneFunc: static () => Result<Option<T>, TErr>.Ok(Option<T>.None())
         );
     }
+
+    /// <summary>
+    /// Attempts to cast the contained value to the specified type.
+    /// Returns Some if the Option is Some and the value is of type TTarget; otherwise None.
+    /// This is the Option equivalent of LINQ's OfType for single values.
+    /// </summary>
+    /// <typeparam name="TSource">The source type of the Option.</typeparam>
+    /// <typeparam name="TTarget">The target type to cast to.</typeparam>
+    /// <param name="option">The source Option.</param>
+    /// <returns>Some containing the cast value if successful; otherwise None.</returns>
+    /// <example>
+    /// <code>
+    /// Option&lt;object&gt; objOption = Option&lt;object&gt;.Some("hello");
+    /// Option&lt;string&gt; strOption = objOption.OfType&lt;object, string&gt;(); // Some("hello")
+    /// Option&lt;int&gt; intOption = objOption.OfType&lt;object, int&gt;();       // None
+    /// 
+    /// // With base/derived types
+    /// Option&lt;Animal&gt; animal = Option&lt;Animal&gt;.Some(new Dog());
+    /// Option&lt;Dog&gt; dog = animal.OfType&lt;Animal, Dog&gt;();               // Some(Dog)
+    /// Option&lt;Cat&gt; cat = animal.OfType&lt;Animal, Cat&gt;();               // None
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Option<TTarget> OfType<TSource, TTarget>(this Option<TSource> option)
+        where TTarget : class
+    {
+        return option.AndThen(value => value is TTarget target
+            ? Option<TTarget>.Some(target)
+            : Option<TTarget>.None());
+    }
+
+    /// <summary>
+    /// Attempts to cast the contained value to the specified value type.
+    /// Returns Some if the Option is Some and the value is of type TTarget; otherwise None.
+    /// </summary>
+    /// <typeparam name="TSource">The source type of the Option.</typeparam>
+    /// <typeparam name="TTarget">The target value type to cast to.</typeparam>
+    /// <param name="option">The source Option.</param>
+    /// <returns>Some containing the cast value if successful; otherwise None.</returns>
+    /// <example>
+    /// <code>
+    /// Option&lt;object&gt; objOption = Option&lt;object&gt;.Some(42);
+    /// Option&lt;int&gt; intOption = objOption.OfTypeValue&lt;object, int&gt;(); // Some(42)
+    /// Option&lt;string&gt; strOption = objOption.OfType&lt;object, string&gt;(); // None
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Option<TTarget> OfTypeValue<TSource, TTarget>(this Option<TSource> option)
+        where TTarget : struct
+    {
+        return option.AndThen(value => value is TTarget target
+            ? Option<TTarget>.Some(target)
+            : Option<TTarget>.None());
+    }
+
+    /// <summary>
+    /// Attempts to cast the contained value to the specified type using a type parameter.
+    /// Returns Some if the Option is Some and the value can be cast to TTarget; otherwise None.
+    /// Works with both reference types and value types.
+    /// </summary>
+    /// <typeparam name="TTarget">The target type to cast to.</typeparam>
+    /// <param name="option">The source Option containing an object.</param>
+    /// <returns>Some containing the cast value if successful; otherwise None.</returns>
+    /// <example>
+    /// <code>
+    /// Option&lt;object&gt; objOption = Option&lt;object&gt;.Some("hello");
+    /// Option&lt;string&gt; strOption = objOption.OfType&lt;string&gt;(); // Some("hello")
+    /// 
+    /// Option&lt;object&gt; numOption = Option&lt;object&gt;.Some(42);
+    /// Option&lt;int&gt; intOption = numOption.OfType&lt;int&gt;();        // Some(42)
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Option<TTarget> OfType<TTarget>(this Option<object> option)
+    {
+        return option.AndThen(value => value is TTarget target
+            ? Option<TTarget>.Some(target)
+            : Option<TTarget>.None());
+    }
 }
 
 /// <summary>
