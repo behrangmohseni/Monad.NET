@@ -109,6 +109,172 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     }
 
     /// <summary>
+    /// Returns the value if successful. Alias for <see cref="Get"/> for consistency with other monads.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if failed</exception>
+    /// <example>
+    /// <code>
+    /// var result = Try&lt;int&gt;.Success(42);
+    /// var value = result.Unwrap(); // 42
+    /// 
+    /// var failure = Try&lt;int&gt;.Failure(new Exception("error"));
+    /// failure.Unwrap(); // throws InvalidOperationException
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T Unwrap()
+    {
+        if (!_isSuccess)
+            ThrowHelper.ThrowInvalidOperation($"Cannot unwrap failed Try. Exception: {_exception!.Message}");
+
+        return _value!;
+    }
+
+    /// <summary>
+    /// Returns the value if successful, with a custom error message if failed.
+    /// Similar to Rust's expect() method.
+    /// </summary>
+    /// <param name="message">The error message if failed</param>
+    /// <exception cref="InvalidOperationException">Thrown if failed</exception>
+    /// <example>
+    /// <code>
+    /// var result = Try&lt;int&gt;.Success(42);
+    /// var value = result.Expect("Expected a value"); // 42
+    /// 
+    /// var failure = Try&lt;int&gt;.Failure(new Exception("error"));
+    /// failure.Expect("Must succeed"); // throws with "Must succeed: error"
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T Expect(string message)
+    {
+        if (!_isSuccess)
+            ThrowHelper.ThrowInvalidOperation($"{message}: {_exception!.Message}");
+
+        return _value!;
+    }
+
+    /// <summary>
+    /// Returns the exception if failed, with a custom error message if successful.
+    /// Similar to Rust's expect_err() method.
+    /// </summary>
+    /// <param name="message">The error message if successful</param>
+    /// <exception cref="InvalidOperationException">Thrown if successful</exception>
+    /// <example>
+    /// <code>
+    /// var failure = Try&lt;int&gt;.Failure(new Exception("error"));
+    /// var ex = failure.ExpectFailure("Expected failure"); // Exception
+    /// 
+    /// var success = Try&lt;int&gt;.Success(42);
+    /// success.ExpectFailure("Should have failed"); // throws with "Should have failed: 42"
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Exception ExpectFailure(string message)
+    {
+        if (_isSuccess)
+            ThrowHelper.ThrowInvalidOperation($"{message}: {_value}");
+
+        return _exception!;
+    }
+
+    /// <summary>
+    /// Returns the value if successful, or throws an <see cref="InvalidOperationException"/> if failed.
+    /// This is an alias for <see cref="Get"/> with more explicit C# naming.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if failed</exception>
+    /// <example>
+    /// <code>
+    /// var result = Try&lt;int&gt;.Success(42);
+    /// var value = result.GetOrThrow(); // 42
+    /// 
+    /// var failure = Try&lt;int&gt;.Failure(new Exception("error"));
+    /// failure.GetOrThrow(); // throws InvalidOperationException
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T GetOrThrow()
+    {
+        if (!_isSuccess)
+            ThrowHelper.ThrowInvalidOperation($"Try is Failure. Cannot get value. Exception: {_exception!.Message}");
+
+        return _value!;
+    }
+
+    /// <summary>
+    /// Returns the value if successful, or throws an <see cref="InvalidOperationException"/> 
+    /// with the specified message if failed.
+    /// This is an alias for <see cref="Expect"/> with more explicit C# naming.
+    /// </summary>
+    /// <param name="message">The exception message if failed</param>
+    /// <exception cref="InvalidOperationException">Thrown if failed</exception>
+    /// <example>
+    /// <code>
+    /// var result = Try&lt;int&gt;.Success(42);
+    /// var value = result.GetOrThrow("Expected success"); // 42
+    /// 
+    /// var failure = Try&lt;int&gt;.Failure(new Exception("error"));
+    /// failure.GetOrThrow("Operation must succeed"); // throws with "Operation must succeed: error"
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T GetOrThrow(string message)
+    {
+        if (!_isSuccess)
+            ThrowHelper.ThrowInvalidOperation($"{message}: {_exception!.Message}");
+
+        return _value!;
+    }
+
+    /// <summary>
+    /// Returns the exception if failed, or throws an <see cref="InvalidOperationException"/> if successful.
+    /// This is an alias for <see cref="GetException"/> with more explicit C# naming.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if successful</exception>
+    /// <example>
+    /// <code>
+    /// var failure = Try&lt;int&gt;.Failure(new Exception("error"));
+    /// var ex = failure.GetExceptionOrThrow(); // Exception
+    /// 
+    /// var success = Try&lt;int&gt;.Success(42);
+    /// success.GetExceptionOrThrow(); // throws InvalidOperationException
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Exception GetExceptionOrThrow()
+    {
+        if (_isSuccess)
+            ThrowHelper.ThrowInvalidOperation($"Try is Success. Cannot get exception. Value: {_value}");
+
+        return _exception!;
+    }
+
+    /// <summary>
+    /// Returns the exception if failed, or throws an <see cref="InvalidOperationException"/> 
+    /// with the specified message if successful.
+    /// This is an alias for <see cref="ExpectFailure"/> with more explicit C# naming.
+    /// </summary>
+    /// <param name="message">The exception message if successful</param>
+    /// <exception cref="InvalidOperationException">Thrown if successful</exception>
+    /// <example>
+    /// <code>
+    /// var failure = Try&lt;int&gt;.Failure(new Exception("error"));
+    /// var ex = failure.GetExceptionOrThrow("Expected failure"); // Exception
+    /// 
+    /// var success = Try&lt;int&gt;.Success(42);
+    /// success.GetExceptionOrThrow("Should have failed"); // throws with "Should have failed: 42"
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Exception GetExceptionOrThrow(string message)
+    {
+        if (_isSuccess)
+            ThrowHelper.ThrowInvalidOperation($"{message}: {_value}");
+
+        return _exception!;
+    }
+
+    /// <summary>
     /// Returns the exception if failed.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if successful</exception>

@@ -92,6 +92,150 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
     }
 
     /// <summary>
+    /// Returns the contained Right value with a custom error message if Left.
+    /// Similar to Rust's expect() method.
+    /// </summary>
+    /// <param name="message">The error message if the value is Left</param>
+    /// <exception cref="InvalidOperationException">Thrown if the value is Left</exception>
+    /// <example>
+    /// <code>
+    /// var either = Either&lt;string, int&gt;.Right(42);
+    /// var value = either.ExpectRight("Expected a Right value"); // 42
+    /// 
+    /// var left = Either&lt;string, int&gt;.Left("error");
+    /// left.ExpectRight("Must have value"); // throws with "Must have value: error"
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public TRight ExpectRight(string message)
+    {
+        if (!_isRight)
+            ThrowHelper.ThrowInvalidOperation($"{message}: {_left}");
+
+        return _right!;
+    }
+
+    /// <summary>
+    /// Returns the contained Left value with a custom error message if Right.
+    /// Similar to Rust's expect() method.
+    /// </summary>
+    /// <param name="message">The error message if the value is Right</param>
+    /// <exception cref="InvalidOperationException">Thrown if the value is Right</exception>
+    /// <example>
+    /// <code>
+    /// var either = Either&lt;string, int&gt;.Left("error");
+    /// var value = either.ExpectLeft("Expected a Left value"); // "error"
+    /// 
+    /// var right = Either&lt;string, int&gt;.Right(42);
+    /// right.ExpectLeft("Must be error"); // throws with "Must be error: 42"
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public TLeft ExpectLeft(string message)
+    {
+        if (_isRight)
+            ThrowHelper.ThrowInvalidOperation($"{message}: {_right}");
+
+        return _left!;
+    }
+
+    /// <summary>
+    /// Returns the contained Right value, or throws an <see cref="InvalidOperationException"/> if Left.
+    /// This is an alias for <see cref="UnwrapRight"/> with more explicit C# naming.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the value is Left</exception>
+    /// <example>
+    /// <code>
+    /// var either = Either&lt;string, int&gt;.Right(42);
+    /// var value = either.GetRightOrThrow(); // 42
+    /// 
+    /// var left = Either&lt;string, int&gt;.Left("error");
+    /// left.GetRightOrThrow(); // throws InvalidOperationException
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public TRight GetRightOrThrow()
+    {
+        if (!_isRight)
+            ThrowHelper.ThrowInvalidOperation($"Either is Left. Cannot get Right value. Left: {_left}");
+
+        return _right!;
+    }
+
+    /// <summary>
+    /// Returns the contained Right value, or throws an <see cref="InvalidOperationException"/> 
+    /// with the specified message if Left.
+    /// This is an alias for <see cref="ExpectRight"/> with more explicit C# naming.
+    /// </summary>
+    /// <param name="message">The exception message if Left</param>
+    /// <exception cref="InvalidOperationException">Thrown if the value is Left</exception>
+    /// <example>
+    /// <code>
+    /// var either = Either&lt;string, int&gt;.Right(42);
+    /// var value = either.GetRightOrThrow("Expected success"); // 42
+    /// 
+    /// var left = Either&lt;string, int&gt;.Left("error");
+    /// left.GetRightOrThrow("Operation must succeed"); // throws with "Operation must succeed: error"
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public TRight GetRightOrThrow(string message)
+    {
+        if (!_isRight)
+            ThrowHelper.ThrowInvalidOperation($"{message}: {_left}");
+
+        return _right!;
+    }
+
+    /// <summary>
+    /// Returns the contained Left value, or throws an <see cref="InvalidOperationException"/> if Right.
+    /// This is an alias for <see cref="UnwrapLeft"/> with more explicit C# naming.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the value is Right</exception>
+    /// <example>
+    /// <code>
+    /// var either = Either&lt;string, int&gt;.Left("error");
+    /// var value = either.GetLeftOrThrow(); // "error"
+    /// 
+    /// var right = Either&lt;string, int&gt;.Right(42);
+    /// right.GetLeftOrThrow(); // throws InvalidOperationException
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public TLeft GetLeftOrThrow()
+    {
+        if (_isRight)
+            ThrowHelper.ThrowInvalidOperation($"Either is Right. Cannot get Left value. Right: {_right}");
+
+        return _left!;
+    }
+
+    /// <summary>
+    /// Returns the contained Left value, or throws an <see cref="InvalidOperationException"/> 
+    /// with the specified message if Right.
+    /// This is an alias for <see cref="ExpectLeft"/> with more explicit C# naming.
+    /// </summary>
+    /// <param name="message">The exception message if Right</param>
+    /// <exception cref="InvalidOperationException">Thrown if the value is Right</exception>
+    /// <example>
+    /// <code>
+    /// var either = Either&lt;string, int&gt;.Left("error");
+    /// var value = either.GetLeftOrThrow("Expected error"); // "error"
+    /// 
+    /// var right = Either&lt;string, int&gt;.Right(42);
+    /// right.GetLeftOrThrow("Should have failed"); // throws with "Should have failed: 42"
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public TLeft GetLeftOrThrow(string message)
+    {
+        if (_isRight)
+            ThrowHelper.ThrowInvalidOperation($"{message}: {_right}");
+
+        return _left!;
+    }
+
+    /// <summary>
     /// Returns the Right value or a default value.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
