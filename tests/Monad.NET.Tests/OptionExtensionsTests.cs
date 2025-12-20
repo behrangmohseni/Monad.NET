@@ -4,6 +4,139 @@ namespace Monad.NET.Tests;
 
 public class OptionExtensionsTests
 {
+    #region When/Unless Guards
+
+    [Fact]
+    public void When_WithTrueConditionAndFactory_ReturnsSome()
+    {
+        var result = OptionExtensions.When(true, () => 42);
+
+        Assert.True(result.IsSome);
+        Assert.Equal(42, result.Unwrap());
+    }
+
+    [Fact]
+    public void When_WithFalseConditionAndFactory_ReturnsNone()
+    {
+        var result = OptionExtensions.When(false, () => 42);
+
+        Assert.True(result.IsNone);
+    }
+
+    [Fact]
+    public void When_WithFalseCondition_DoesNotInvokeFactory()
+    {
+        var factoryInvoked = false;
+        var result = OptionExtensions.When(false, () =>
+        {
+            factoryInvoked = true;
+            return 42;
+        });
+
+        Assert.True(result.IsNone);
+        Assert.False(factoryInvoked);
+    }
+
+    [Fact]
+    public void When_WithTrueConditionAndValue_ReturnsSome()
+    {
+        var result = OptionExtensions.When(true, "hello");
+
+        Assert.True(result.IsSome);
+        Assert.Equal("hello", result.Unwrap());
+    }
+
+    [Fact]
+    public void When_WithFalseConditionAndValue_ReturnsNone()
+    {
+        var result = OptionExtensions.When(false, "hello");
+
+        Assert.True(result.IsNone);
+    }
+
+    [Fact]
+    public void When_WithNullFactory_ThrowsArgumentNullException()
+    {
+        Assert.Throws<ArgumentNullException>(() => OptionExtensions.When<int>(true, (Func<int>)null!));
+    }
+
+    [Fact]
+    public void Unless_WithFalseConditionAndFactory_ReturnsSome()
+    {
+        var result = OptionExtensions.Unless(false, () => 42);
+
+        Assert.True(result.IsSome);
+        Assert.Equal(42, result.Unwrap());
+    }
+
+    [Fact]
+    public void Unless_WithTrueConditionAndFactory_ReturnsNone()
+    {
+        var result = OptionExtensions.Unless(true, () => 42);
+
+        Assert.True(result.IsNone);
+    }
+
+    [Fact]
+    public void Unless_WithTrueCondition_DoesNotInvokeFactory()
+    {
+        var factoryInvoked = false;
+        var result = OptionExtensions.Unless(true, () =>
+        {
+            factoryInvoked = true;
+            return 42;
+        });
+
+        Assert.True(result.IsNone);
+        Assert.False(factoryInvoked);
+    }
+
+    [Fact]
+    public void Unless_WithFalseConditionAndValue_ReturnsSome()
+    {
+        var result = OptionExtensions.Unless(false, "hello");
+
+        Assert.True(result.IsSome);
+        Assert.Equal("hello", result.Unwrap());
+    }
+
+    [Fact]
+    public void Unless_WithTrueConditionAndValue_ReturnsNone()
+    {
+        var result = OptionExtensions.Unless(true, "hello");
+
+        Assert.True(result.IsNone);
+    }
+
+    [Fact]
+    public void When_RealWorldExample_ConditionalDiscount()
+    {
+        var orderTotal = 150m;
+        var discount = OptionExtensions.When(orderTotal > 100, () => 0.1m);
+
+        Assert.True(discount.IsSome);
+        Assert.Equal(0.1m, discount.Unwrap());
+
+        var noDiscount = OptionExtensions.When(orderTotal < 100, () => 0.1m);
+        Assert.True(noDiscount.IsNone);
+    }
+
+    [Fact]
+    public void Unless_RealWorldExample_FallbackValue()
+    {
+        var cacheHasValue = false;
+        var fallback = OptionExtensions.Unless(cacheHasValue, () => "loaded from db");
+
+        Assert.True(fallback.IsSome);
+        Assert.Equal("loaded from db", fallback.Unwrap());
+
+        cacheHasValue = true;
+        var noFallback = OptionExtensions.Unless(cacheHasValue, () => "loaded from db");
+        Assert.True(noFallback.IsNone);
+    }
+
+    #endregion
+
     #region ToOption Extension
 
     [Fact]

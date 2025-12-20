@@ -560,6 +560,97 @@ public readonly struct Option<T> : IEquatable<Option<T>>
 /// </summary>
 public static class OptionExtensions
 {
+    #region When/Unless Guards
+
+    /// <summary>
+    /// Creates an Option based on a condition. Returns Some containing the factory result if the condition is true,
+    /// otherwise returns None.
+    /// </summary>
+    /// <typeparam name="T">The type of the value.</typeparam>
+    /// <param name="condition">The condition to evaluate.</param>
+    /// <param name="factory">The factory function to create the value if condition is true.</param>
+    /// <returns>Some containing the factory result if condition is true; otherwise None.</returns>
+    /// <example>
+    /// <code>
+    /// var result = OptionExtensions.When(user.IsAdmin, () => new AdminPanel());
+    /// // Some(AdminPanel) if user is admin, None otherwise
+    /// 
+    /// var discount = OptionExtensions.When(order.Total > 100, () => 0.1m);
+    /// // Some(0.1m) if order total > 100, None otherwise
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Option<T> When<T>(bool condition, Func<T> factory)
+    {
+        ArgumentNullException.ThrowIfNull(factory);
+        return condition ? Option<T>.Some(factory()) : Option<T>.None();
+    }
+
+    /// <summary>
+    /// Creates an Option based on a condition. Returns Some containing the value if the condition is true,
+    /// otherwise returns None.
+    /// </summary>
+    /// <typeparam name="T">The type of the value.</typeparam>
+    /// <param name="condition">The condition to evaluate.</param>
+    /// <param name="value">The value to wrap if condition is true.</param>
+    /// <returns>Some containing the value if condition is true; otherwise None.</returns>
+    /// <example>
+    /// <code>
+    /// var result = OptionExtensions.When(isEnabled, defaultConfig);
+    /// // Some(defaultConfig) if isEnabled, None otherwise
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Option<T> When<T>(bool condition, T value)
+    {
+        return condition ? Option<T>.Some(value) : Option<T>.None();
+    }
+
+    /// <summary>
+    /// Creates an Option based on a negated condition. Returns Some containing the factory result if the condition is false,
+    /// otherwise returns None. This is the opposite of <see cref="When{T}(bool, Func{T})"/>.
+    /// </summary>
+    /// <typeparam name="T">The type of the value.</typeparam>
+    /// <param name="condition">The condition to evaluate (negated).</param>
+    /// <param name="factory">The factory function to create the value if condition is false.</param>
+    /// <returns>Some containing the factory result if condition is false; otherwise None.</returns>
+    /// <example>
+    /// <code>
+    /// var warning = OptionExtensions.Unless(user.HasVerifiedEmail, () => "Please verify your email");
+    /// // Some("Please verify...") if email NOT verified, None otherwise
+    /// 
+    /// var fallback = OptionExtensions.Unless(cache.HasValue, () => LoadFromDatabase());
+    /// // Some(dbValue) if cache is empty, None otherwise
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Option<T> Unless<T>(bool condition, Func<T> factory)
+    {
+        return When(!condition, factory);
+    }
+
+    /// <summary>
+    /// Creates an Option based on a negated condition. Returns Some containing the value if the condition is false,
+    /// otherwise returns None. This is the opposite of <see cref="When{T}(bool, T)"/>.
+    /// </summary>
+    /// <typeparam name="T">The type of the value.</typeparam>
+    /// <param name="condition">The condition to evaluate (negated).</param>
+    /// <param name="value">The value to wrap if condition is false.</param>
+    /// <returns>Some containing the value if condition is false; otherwise None.</returns>
+    /// <example>
+    /// <code>
+    /// var defaultValue = OptionExtensions.Unless(hasCustomValue, standardDefault);
+    /// // Some(standardDefault) if NOT hasCustomValue, None otherwise
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Option<T> Unless<T>(bool condition, T value)
+    {
+        return When(!condition, value);
+    }
+
+    #endregion
+
     /// <summary>
     /// Converts a nullable value to an Option.
     /// </summary>
