@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.0-alpha.11] - 2025-12-21
+
+### Added
+
+- **ReaderAsync<R, A> monad** - An asynchronous Reader (environment-dependent) monad for composing async computations that depend on a shared environment.
+  - `From`, `FromReader`, `Pure`, `Ask`, `Asks`, `AsksAsync`, `RunAsync`
+  - `Map`, `MapAsync`, `FlatMap`, `FlatMapAsync`, `AndThen`, `Bind`
+  - `Tap`, `TapAsync`, `TapEnv`, `TapEnvAsync`, `Zip`, `Attempt`, `WithEnvironment`, `WithEnvironmentAsync`
+  - LINQ query support and examples in XML docs
+
+---
+
 ## [1.0.0-alpha.10] - 2025-12-16
 
 ### Changed

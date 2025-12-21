@@ -1,0 +1,14 @@
+# CodeFactor configuration
+# Exclude generated and build artifacts and test output
+exclude:
+  - "**/bin/**"
+  - "**/obj/**"
+  - "**/artifacts/**"
+  - "tests/**"
+
+# Enable language-specific engines if supported by CodeFactor
+engines:
+  csharp:
+    enabled: true
+
+# You can customize further rules here. See CodeFactor docs for options.
