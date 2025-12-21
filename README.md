@@ -3,6 +3,7 @@
 [![NuGet](https://img.shields.io/nuget/v/Monad.NET.svg)](https://www.nuget.org/packages/Monad.NET/)
 [![NuGet Downloads](https://img.shields.io/nuget/dt/Monad.NET.svg)](https://www.nuget.org/packages/Monad.NET/)
 [![Build](https://github.com/behrangmohseni/Monad.NET/actions/workflows/ci.yml/badge.svg)](https://github.com/behrangmohseni/Monad.NET/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/behrangmohseni/Monad.NET/actions/workflows/codeql.yml/badge.svg)](https://github.com/behrangmohseni/Monad.NET/actions/workflows/codeql.yml)
 [![codecov](https://codecov.io/gh/behrangmohseni/Monad.NET/graph/badge.svg)](https://codecov.io/gh/behrangmohseni/Monad.NET)
 [![CodeFactor](https://www.codefactor.io/repository/github/behrangmohseni/monad.net/badge)](https://www.codefactor.io/repository/github/behrangmohseni/monad.net)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
