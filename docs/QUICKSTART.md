@@ -60,6 +60,13 @@ var discount = OptionExtensions.When(order.Total > 100, () => 0.1m);
 
 var warning = OptionExtensions.Unless(user.HasVerifiedEmail, () => "Please verify email");
 // Some("Please verify...") if NOT verified, None otherwise
+
+// Replace None with a default (returns Option, not value)
+var configOption = loadConfig().DefaultIfNone(defaultConfig);
+// Some(loadedConfig) or Some(defaultConfig)
+
+// Throw custom exceptions on None
+var user = FindUser(id).ThrowIfNone(() => new UserNotFoundException(id));
 ```
 
 ### Result - Handle Errors
@@ -88,6 +95,15 @@ var output = ResultExtensions.Try(() => int.Parse(input))
     .Map(x => x * 2)
     .AndThen(x => Validate(x))
     .UnwrapOr(0);
+
+// Transform both success and error types with BiMap
+var adapted = apiResult.BiMap(
+    dto => new DomainModel(dto),
+    err => new DomainError(err.Code, err.Message)
+);
+
+// Throw custom exceptions with ThrowIfErr
+var user = GetUser(id).ThrowIfErr(err => new UserNotFoundException($"User not found: {err}"));
 ```
 
 ### Validation - Collect All Errors
@@ -106,6 +122,12 @@ user.Match(
     validAction: u => SaveUser(u),
     invalidAction: errors => ShowErrors(errors)  // Shows ALL validation errors!
 );
+
+// Chain validations with Ensure
+var validatedAge = Validation<int, string>.Valid(age)
+    .Ensure(x => x >= 18, "Must be at least 18")
+    .Ensure(x => x <= 120, "Must be at most 120")
+    .Ensure(x => x > 0, "Must be positive");
 ```
 
 ### Try - Capture Exceptions

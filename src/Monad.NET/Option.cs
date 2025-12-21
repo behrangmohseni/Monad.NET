@@ -651,6 +651,115 @@ public static class OptionExtensions
 
     #endregion
 
+    #region DefaultIfNone
+
+    /// <summary>
+    /// Returns the Option if it contains a value, otherwise returns an Option containing the default value.
+    /// Unlike UnwrapOr which extracts the value, this returns an Option containing the default.
+    /// </summary>
+    /// <typeparam name="T">The type of the value.</typeparam>
+    /// <param name="option">The source Option.</param>
+    /// <param name="defaultValue">The default value to use if None.</param>
+    /// <returns>The original Option if Some; otherwise Some containing the default value.</returns>
+    /// <example>
+    /// <code>
+    /// var some = Option&lt;int&gt;.Some(42);
+    /// var result = some.DefaultIfNone(0); // Some(42)
+    /// 
+    /// var none = Option&lt;int&gt;.None();
+    /// var result2 = none.DefaultIfNone(0); // Some(0)
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Option<T> DefaultIfNone<T>(this Option<T> option, T defaultValue)
+    {
+        return option.IsSome ? option : Option<T>.Some(defaultValue);
+    }
+
+    /// <summary>
+    /// Returns the Option if it contains a value, otherwise returns an Option containing the result of the factory function.
+    /// The factory is only called if the Option is None.
+    /// </summary>
+    /// <typeparam name="T">The type of the value.</typeparam>
+    /// <param name="option">The source Option.</param>
+    /// <param name="defaultFactory">The factory function to create the default value if None.</param>
+    /// <returns>The original Option if Some; otherwise Some containing the factory result.</returns>
+    /// <example>
+    /// <code>
+    /// var some = Option&lt;Config&gt;.Some(existingConfig);
+    /// var result = some.DefaultIfNone(() => new Config()); // Some(existingConfig)
+    /// 
+    /// var none = Option&lt;Config&gt;.None();
+    /// var result2 = none.DefaultIfNone(() => new Config()); // Some(new Config())
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Option<T> DefaultIfNone<T>(this Option<T> option, Func<T> defaultFactory)
+    {
+        ArgumentNullException.ThrowIfNull(defaultFactory);
+        return option.IsSome ? option : Option<T>.Some(defaultFactory());
+    }
+
+    #endregion
+
+    #region ThrowIfNone
+
+    /// <summary>
+    /// Returns the contained value if Some, otherwise throws the specified exception.
+    /// This is an alternative to Expect that allows throwing specific exception types.
+    /// </summary>
+    /// <typeparam name="T">The type of the value.</typeparam>
+    /// <param name="option">The source Option.</param>
+    /// <param name="exception">The exception to throw if None.</param>
+    /// <returns>The contained value if Some.</returns>
+    /// <exception cref="Exception">Throws the specified exception if None.</exception>
+    /// <example>
+    /// <code>
+    /// var some = Option&lt;User&gt;.Some(user);
+    /// var value = some.ThrowIfNone(new UserNotFoundException()); // returns user
+    /// 
+    /// var none = Option&lt;User&gt;.None();
+    /// none.ThrowIfNone(new UserNotFoundException()); // throws UserNotFoundException
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static T ThrowIfNone<T>(this Option<T> option, Exception exception)
+    {
+        ArgumentNullException.ThrowIfNull(exception);
+
+        if (option.IsNone)
+            throw exception;
+
+        return option.Unwrap();
+    }
+
+    /// <summary>
+    /// Returns the contained value if Some, otherwise throws an exception created by the factory.
+    /// The factory is only called if the Option is None.
+    /// </summary>
+    /// <typeparam name="T">The type of the value.</typeparam>
+    /// <param name="option">The source Option.</param>
+    /// <param name="exceptionFactory">The factory function to create the exception if None.</param>
+    /// <returns>The contained value if Some.</returns>
+    /// <exception cref="Exception">Throws the exception from the factory if None.</exception>
+    /// <example>
+    /// <code>
+    /// var result = FindUser(id).ThrowIfNone(() => new UserNotFoundException(id));
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static T ThrowIfNone<T>(this Option<T> option, Func<Exception> exceptionFactory)
+    {
+        ArgumentNullException.ThrowIfNull(exceptionFactory);
+
+        if (option.IsNone)
+            throw exceptionFactory();
+
+        return option.Unwrap();
+    }
+
+    #endregion
+
     /// <summary>
     /// Converts a nullable value to an Option.
     /// </summary>
