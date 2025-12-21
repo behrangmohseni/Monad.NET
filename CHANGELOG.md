@@ -9,15 +9,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.0-alpha.12] - 2025-12-21
+
+### Added
+
+- **Parallel Collection Extensions** - High-performance parallel operations for monadic collections
+  - `TraverseParallelAsync<T, U>` for `Option` - Map items to Options in parallel
+  - `SequenceParallelAsync<T>` for `Option` - Await Option tasks in parallel
+  - `TraverseParallelAsync<T, U, TErr>` for `Result` - Map items to Results in parallel
+  - `SequenceParallelAsync<T, TErr>` for `Result` - Await Result tasks in parallel
+  - `ChooseParallelAsync<T, U>` - Map to Options in parallel, collect Some values
+  - `PartitionParallelAsync<T, U, TErr>` - Map to Results in parallel, separate Ok/Err
+  - All methods support `maxDegreeOfParallelism` parameter for controlled concurrency
+  - Comprehensive tests for all parallel operations
+
+- **When/Unless Guard Extensions** for `Option<T>` - Conditional Option creation
+  - `OptionExtensions.When<T>(bool condition, Func<T> factory)` - Some if condition true
+  - `OptionExtensions.When<T>(bool condition, T value)` - Some if condition true
+  - `OptionExtensions.Unless<T>(bool condition, Func<T> factory)` - Some if condition false
+  - `OptionExtensions.Unless<T>(bool condition, T value)` - Some if condition false
+  - Lazy evaluation for factory overloads
+  - 12 comprehensive tests
+
+### Changed
+
+- Updated documentation with new features
+- Improved README with parallel collection examples
+- Enhanced API reference with complete method signatures
+
+---
+
 ## [1.0.0-alpha.11] - 2025-12-21
 
 ### Added
 
 - **ReaderAsync<R, A> monad** - An asynchronous Reader (environment-dependent) monad for composing async computations that depend on a shared environment.
-  - `From`, `FromReader`, `Pure`, `Ask`, `Asks`, `AsksAsync`, `RunAsync`
-  - `Map`, `MapAsync`, `FlatMap`, `FlatMapAsync`, `AndThen`, `Bind`
-  - `Tap`, `TapAsync`, `TapEnv`, `TapEnvAsync`, `Zip`, `Attempt`, `WithEnvironment`, `WithEnvironmentAsync`
-  - LINQ query support and examples in XML docs
+  - Factory methods: `From`, `FromReader`, `Pure`, `Ask`, `Asks`, `AsksAsync`
+  - Execution: `RunAsync` with CancellationToken support
+  - Transformation: `Map`, `MapAsync`, `FlatMap`, `FlatMapAsync`, `AndThen`, `Bind`
+  - Side effects: `Tap`, `TapAsync`, `TapEnv`, `TapEnvAsync`
+  - Combination: `Zip`, `ZipWith`
+  - Error handling: `Attempt`, `OrElse`, `Retry`, `RetryWithDelay`
+  - Environment transformation: `WithEnvironment`, `WithEnvironmentAsync`
+  - Static helpers: `ReaderAsync.Parallel`, `ReaderAsync.From`, `ReaderAsync.Ask`, etc.
+  - Collection operations: `Sequence`, `SequenceParallel`, `Traverse`, `TraverseParallel`
+  - LINQ query support with `Select` and `SelectMany`
+  - Comprehensive XML documentation with examples
+  - 40+ comprehensive tests
+
+- **Reader.ToAsync()** - Convert synchronous Reader to ReaderAsync
 
 ---
 
@@ -324,6 +364,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- ASP.NET Core integration helpers
-- Entity Framework extensions
-- Source generators for boilerplate reduction
+- Additional monad types
+- Performance optimizations
+- Extended framework support

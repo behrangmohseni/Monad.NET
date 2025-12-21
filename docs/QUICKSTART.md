@@ -22,7 +22,7 @@ Or add directly to your `.csproj`:
 <PackageReference Include="Monad.NET" />
 ```
 
-**Supported Frameworks:** .NET 6.0, 7.0, 8.0, 9.0, 10.0+
+**Supported Frameworks:** .NET 6.0, 7.0, 8.0, 9.0+
 
 ## Basic Usage
 
@@ -53,6 +53,13 @@ name.Match(
 var result = GetUserName().ToOption()
     .Map(n => n.ToUpper())
     .UnwrapOr("Anonymous");
+
+// Conditional creation with When/Unless
+var discount = OptionExtensions.When(order.Total > 100, () => 0.1m);
+// Some(0.1m) if order > 100, None otherwise
+
+var warning = OptionExtensions.Unless(user.HasVerifiedEmail, () => "Please verify email");
+// Some("Please verify...") if NOT verified, None otherwise
 ```
 
 ### Result - Handle Errors
@@ -146,6 +153,31 @@ var (value, finalState) = computation.Run(0);
 // value = 2, finalState = 2
 ```
 
+### ReaderAsync - Async Dependency Injection
+
+```csharp
+// Define your environment
+public record AppServices(IUserRepository Users, IEmailService Email);
+
+// Build async computations that depend on services
+var getUser = ReaderAsync<AppServices, User>.From(async services =>
+    await services.Users.FindAsync(userId));
+
+// Compose using LINQ
+var program = 
+    from user in getUser
+    from orders in ReaderAsync<AppServices, List<Order>>.From(async s =>
+        await s.Users.GetOrdersAsync(user.Id))
+    select new UserWithOrders(user, orders);
+
+// Execute with environment
+var services = new AppServices(userRepo, emailService);
+var result = await program.RunAsync(services);
+
+// Error handling with retry
+var resilient = getUser.RetryWithDelay(retries: 3, delay: TimeSpan.FromSeconds(1));
+```
+
 ## Common Patterns
 
 ### Railway-Oriented Programming
@@ -178,6 +210,23 @@ var result = await Option<int>.Some(42)
     .MapAsync(async x => await ProcessAsync(x));
 ```
 
+### Parallel Collection Operations
+
+```csharp
+// Process items in parallel with controlled concurrency
+var users = await userIds.TraverseParallelAsync(
+    id => FindUserAsync(id),
+    maxDegreeOfParallelism: 4
+);
+// Some([users]) if all found, None if any not found
+
+// Partition successes and failures in parallel
+var (successes, failures) = await orders.PartitionParallelAsync(
+    order => ProcessOrderAsync(order),
+    maxDegreeOfParallelism: 8
+);
+```
+
 ## Source Generators
 
 Create type-safe discriminated unions with auto-generated `Match` methods:
@@ -203,6 +252,11 @@ string Describe(PaymentMethod method) => method.Match(
     payPal: pp => $"PayPal: {pp.Email}",
     bankTransfer: bt => $"Account: {bt.AccountNumber}"
 );
+
+// Safe casting with As{Case}()
+var cardNumber = method.AsCreditCard()
+    .Map(cc => cc.Number)
+    .UnwrapOr("N/A");
 ```
 
 ## Entity Framework Core Integration
@@ -234,6 +288,34 @@ user.Match(
 
 // Available methods: FirstOrNone, SingleOrNone, ElementAtOrNone, LastOrNone
 // All have async variants
+```
+
+## ASP.NET Core Integration
+
+Convert monad types directly to HTTP responses:
+
+```bash
+dotnet add package Monad.NET.AspNetCore
+```
+
+```csharp
+using Monad.NET.AspNetCore;
+
+[HttpGet("{id}")]
+public IActionResult GetUser(int id)
+{
+    return _userService.FindUser(id)
+        .ToActionResult("User not found");
+    // Returns 200 OK with user, or 404 Not Found
+}
+
+[HttpPost]
+public IActionResult CreateUser(CreateUserRequest request)
+{
+    return ValidateRequest(request)
+        .ToValidationProblemResult();
+    // Returns 200 OK or 422 with ValidationProblemDetails
+}
 ```
 
 ## Next Steps

@@ -9,7 +9,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-6.0%2B-512BD4.svg)](https://dotnet.microsoft.com/)
 
-**Monad.NET** is a functional programming library for .NET that provides a robust set of monadic types for building reliable, composable, and maintainable applications.
+**Monad.NET** is a comprehensive functional programming library for .NET that provides a robust set of monadic types for building reliable, composable, and maintainable applications.
 
 ```csharp
 // Transform nullable chaos into composable clarity
@@ -43,6 +43,7 @@ var result = user.ToOption()
   - [NonEmptyList\<T\>](#nonemptylistt)
   - [Writer\<W, T\>](#writerw-t)
   - [Reader\<R, A\>](#readerr-a)
+  - [ReaderAsync\<R, A\>](#readerasyncr-a)
   - [State\<S, A\>](#states-a)
   - [IO\<T\>](#iot)
 - [Advanced Usage](#advanced-usage)
@@ -71,6 +72,7 @@ Modern .NET applications demand reliability. Yet we continue to fight the same b
 | Validation | Return on first error, lose context | `Validation<T, E>` accumulates all errors |
 | Async state | Boolean flags (`isLoading`, `hasError`) | `RemoteData<T, E>` models all four states |
 | Empty collections | Runtime exceptions on `.First()` | `NonEmptyList<T>` guarantees at least one element |
+| Async dependencies | Manual async/await chains | `ReaderAsync<R, A>` composes async environment-dependent code |
 
 ### Design Principles
 
@@ -91,6 +93,7 @@ Modern .NET applications demand reliability. Yet we continue to fight the same b
 | A list must have at least one item | `NonEmptyList<T>` |
 | Need to accumulate logs/traces | `Writer<W, T>` |
 | Dependency injection without DI container | `Reader<R, A>` |
+| Async dependency injection | `ReaderAsync<R, A>` |
 | Thread state through computations | `State<S, A>` |
 | Defer side effects for pure code | `IO<T>` |
 | Return one of two different types | `Either<L, R>` |
@@ -207,6 +210,13 @@ Represents a value that may or may not exist. Use instead of `null`.
 var some = Option<int>.Some(42);
 var none = Option<int>.None();
 var fromNullable = possiblyNull.ToOption();  // Extension method
+
+// Conditional creation with When/Unless guards
+var discount = OptionExtensions.When(order.Total > 100, () => 0.1m);
+// Some(0.1m) if order > 100, None otherwise
+
+var warning = OptionExtensions.Unless(user.HasVerifiedEmail, () => "Please verify email");
+// Some("Please verify...") if NOT verified, None otherwise
 
 // Transformation
 var doubled = some.Map(x => x * 2);                    // Some(84)
@@ -520,39 +530,126 @@ public record AppServices(
 );
 
 // Build computations that depend on services
-var sendWelcome = Reader<AppServices, Task>.From(async services =>
-{
-    var users = await services.Users.GetNewUsersAsync();
-    
-    foreach (var user in users)
-    {
-        await services.Email.SendWelcomeAsync(user.Email);
-        services.Logger.LogInformation("Sent welcome to {Email}", user.Email);
-    }
-});
+var getUserCount = Reader<AppServices, int>.Asks(s => s.Users.Count());
 
 // Compose readers
 var workflow = Reader<AppServices, string>.Asks(s => s.Users)
-    .FlatMap(repo => Reader<AppServices, string>.From(async s =>
+    .FlatMap(repo => Reader<AppServices, string>.From(s =>
     {
-        var count = await repo.CountAsync();
+        var count = repo.Count();
         s.Logger.LogInformation("Total users: {Count}", count);
         return $"Processed {count} users";
     }));
 
 // Execute with environment
 var services = new AppServices(userRepo, emailService, logger);
-await sendWelcome.Run(services);
+var result = workflow.Run(services);
 
 // Side effects with Tap
 var debugReader = Reader<AppServices, string>.Asks(s => s.Users.GetName())
     .Tap(name => Console.WriteLine($"Got user: {name}"))
     .TapEnv(env => Console.WriteLine($"Using logger: {env.Logger}"));
+
+// Convert to async
+var asyncReader = reader.ToAsync();
 ```
 
-**Methods:** `Map`, `FlatMap`, `Tap`, `TapEnv`, `WithEnvironment`
+**Methods:** `Map`, `FlatMap`, `Tap`, `TapEnv`, `WithEnvironment`, `ToAsync`
 
 **When to use:** Passing configuration/services through call chains without parameter drilling.
+
+---
+
+### ReaderAsync\<R, A\>
+
+Asynchronous computations that depend on a shared environment. The async variant of `Reader<R, A>`.
+
+```csharp
+// Define your environment
+public record AppServices(
+    IUserRepository Users,
+    IEmailService Email,
+    ILogger Logger
+);
+
+// Build async computations that depend on services
+var getUser = ReaderAsync<AppServices, User>.From(async services =>
+    await services.Users.FindAsync(userId));
+
+// Compose async readers using LINQ
+var program = 
+    from user in getUser
+    from orders in ReaderAsync<AppServices, List<Order>>.From(async s =>
+        await s.Users.GetOrdersAsync(user.Id))
+    select new UserWithOrders(user, orders);
+
+// Execute with environment
+var services = new AppServices(userRepo, emailService, logger);
+var result = await program.RunAsync(services);
+
+// Extract values from environment asynchronously
+var userCount = ReaderAsync<AppServices, int>.AsksAsync(async s => 
+    await s.Users.CountAsync());
+
+// Error handling with Attempt
+var safe = getUser.Attempt();  // ReaderAsync<AppServices, Try<User>>
+
+// Retry with delay
+var resilient = getUser.RetryWithDelay(retries: 3, delay: TimeSpan.FromSeconds(1));
+
+// Parallel execution
+var parallel = ReaderAsync.Parallel(getUser, getOrders);
+// → ReaderAsync<AppServices, (User, List<Order>)>
+
+// Side effects
+var logged = getUser
+    .Tap(user => Console.WriteLine($"Found: {user.Name}"))
+    .TapAsync(async user => await LogAsync(user))
+    .TapEnv(env => Console.WriteLine($"Using: {env.Logger}"));
+
+// Transform environment
+var narrowed = getUser.WithEnvironment<LargerServices>(larger => larger.App);
+```
+
+**Factory Methods:**
+- `From(Func<R, Task<A>>)` — Create from async function
+- `FromReader(Reader<R, A>)` — Convert from sync Reader
+- `Pure(value)` — Constant value, ignores environment
+- `Ask()` — Returns the environment itself
+- `Asks(selector)` — Extract value from environment (sync)
+- `AsksAsync(selector)` — Extract value from environment (async)
+
+**Composition:**
+- `Map(f)` / `MapAsync(f)` — Transform the result
+- `FlatMap(f)` / `AndThen(f)` / `Bind(f)` — Chain computations
+- `FlatMapAsync(f)` — Chain with async binder
+- `Zip(other)` / `Zip(other, combiner)` — Combine two readers
+- `Tap(action)` / `TapAsync(action)` — Side effects with result
+- `TapEnv(action)` / `TapEnvAsync(action)` — Side effects with environment
+
+**Error Handling:**
+- `Attempt()` — Returns `ReaderAsync<R, Try<A>>`
+- `OrElse(fallback)` — Use fallback reader on exception
+- `OrElse(value)` — Use fallback value on exception
+- `Retry(n)` — Retry n times on failure
+- `RetryWithDelay(n, delay)` — Retry with delay between attempts
+
+**Environment Transformation:**
+- `WithEnvironment<R2>(transform)` — Transform environment type
+- `WithEnvironmentAsync<R2>(transform)` — Async environment transformation
+
+**Parallel Execution:**
+- `ReaderAsync.Parallel(r1, r2)` — Run two readers in parallel
+- `ReaderAsync.Parallel(r1, r2, r3)` — Run three readers in parallel
+- `ReaderAsync.Parallel(readers)` — Run collection in parallel
+
+**Collection Operations:**
+- `readers.Sequence()` — Sequential execution
+- `readers.SequenceParallel()` — Parallel execution
+- `items.Traverse(selector)` — Map and sequence
+- `items.TraverseParallel(selector)` — Map and parallel sequence
+
+**When to use:** Async dependency injection, database access, HTTP clients, any async computation that depends on shared services.
 
 ---
 
@@ -740,6 +837,28 @@ var order = from cart in ValidateCart(input)
             from payment in ProcessPayment(cart)
             from confirmation in CreateOrder(cart, payment)
             select confirmation;
+
+// ReaderAsync
+var workflow = from user in GetUserAsync
+               from orders in GetOrdersAsync(user.Id)
+               select new UserWithOrders(user, orders);
+```
+
+### When/Unless Guards
+
+Create Options conditionally without verbose if/else:
+
+```csharp
+// When: returns Some if condition is true
+var discount = OptionExtensions.When(order.Total > 100, () => 0.1m);
+var adminPanel = OptionExtensions.When(user.IsAdmin, new AdminPanel());
+
+// Unless: returns Some if condition is false (opposite of When)
+var warning = OptionExtensions.Unless(user.HasVerifiedEmail, () => "Please verify email");
+var fallback = OptionExtensions.Unless(cache.HasValue, () => LoadFromDatabase());
+
+// Lazy evaluation - factory only called when needed
+var expensive = OptionExtensions.When(shouldCompute, () => ExpensiveOperation());
 ```
 
 ### Async Extensions
@@ -772,6 +891,57 @@ var (successes, failures) = results.Partition();
 // Choose: Filter and unwrap
 var values = options.Choose();  // Only the Some values
 ```
+
+### Parallel Collection Operations
+
+Process collections in parallel with controlled concurrency:
+
+```csharp
+// TraverseParallelAsync for Options - process all items in parallel
+var users = await userIds.TraverseParallelAsync(
+    id => FindUserAsync(id),
+    maxDegreeOfParallelism: 4
+);
+// Some([users]) if all found, None if any not found
+
+// SequenceParallelAsync - await multiple Option tasks in parallel
+var tasks = userIds.Select(id => GetUserAsync(id));
+var result = await tasks.SequenceParallelAsync(maxDegreeOfParallelism: 4);
+
+// TraverseParallelAsync for Results
+var orders = await orderIds.TraverseParallelAsync(
+    id => ProcessOrderAsync(id),
+    maxDegreeOfParallelism: 8
+);
+// Ok([results]) if all succeed, Err(firstError) if any fail
+
+// ChooseParallelAsync - filter Some values in parallel
+var validUsers = await userIds.ChooseParallelAsync(
+    id => TryGetUserAsync(id),
+    maxDegreeOfParallelism: 4
+);
+// Returns only the users that were found
+
+// PartitionParallelAsync - separate successes and failures
+var (successes, failures) = await orders.PartitionParallelAsync(
+    order => ProcessOrderAsync(order),
+    maxDegreeOfParallelism: 8
+);
+```
+
+**Available Parallel Methods:**
+| Method | Description |
+|--------|-------------|
+| `TraverseParallelAsync<T, U>` (Option) | Map items to Options in parallel, return None if any None |
+| `SequenceParallelAsync<T>` (Option) | Await Option tasks in parallel |
+| `TraverseParallelAsync<T, U, TErr>` (Result) | Map items to Results in parallel, return first Err |
+| `SequenceParallelAsync<T, TErr>` (Result) | Await Result tasks in parallel |
+| `ChooseParallelAsync<T, U>` | Map to Options in parallel, collect Some values |
+| `PartitionParallelAsync<T, U, TErr>` | Map to Results in parallel, separate Ok/Err |
+
+All parallel methods accept `maxDegreeOfParallelism`:
+- `-1` (default): Unlimited parallelism
+- `> 0`: Limit concurrent operations to specified number
 
 ### Async Streams (IAsyncEnumerable)
 
@@ -962,19 +1132,19 @@ result.Match(
 );
 ```
 
-### Configuration with Reader Monad
+### Async Configuration with ReaderAsync
 
 ```csharp
 public record AppConfig(string ConnectionString, string ApiKey, int MaxRetries);
 
-// Build composable configuration-dependent operations
-var getUsers = Reader<AppConfig, Task<List<User>>>.From(async config =>
+// Build composable async configuration-dependent operations
+var getUsers = ReaderAsync<AppConfig, List<User>>.From(async config =>
 {
     using var conn = new SqlConnection(config.ConnectionString);
     return await conn.QueryAsync<User>("SELECT * FROM Users").ToListAsync();
 });
 
-var enrichWithApi = Reader<AppConfig, Func<User, Task<UserWithDetails>>>.From(config =>
+var enrichWithApi = ReaderAsync<AppConfig, Func<User, Task<UserWithDetails>>>.From(config =>
     async user =>
     {
         var client = new ApiClient(config.ApiKey);
@@ -982,16 +1152,16 @@ var enrichWithApi = Reader<AppConfig, Func<User, Task<UserWithDetails>>>.From(co
         return new UserWithDetails(user, details);
     });
 
-// Compose and run
-var workflow = getUsers.FlatMap(users =>
-    Reader<AppConfig, Task<List<UserWithDetails>>>.From(async config =>
-    {
-        var enricher = enrichWithApi.Run(config);
-        return await Task.WhenAll(users.Select(enricher));
-    }));
+// Compose and run with parallel execution
+var workflow = 
+    from users in getUsers
+    from enricher in enrichWithApi
+    from enrichedUsers in ReaderAsync<AppConfig, List<UserWithDetails>>.From(async config =>
+        await Task.WhenAll(users.Select(enricher)))
+    select enrichedUsers.ToList();
 
 var config = new AppConfig("Server=...", "api-key-123", 3);
-var enrichedUsers = await workflow.Run(config);
+var enrichedUsers = await workflow.RunAsync(config);
 ```
 
 ### Blazor Component with RemoteData
@@ -1091,6 +1261,31 @@ public decimal CalculateAverageOrderValue(NonEmptyList<Order> orders)
         new Order { Total = acc.Total + order.Total }).Total;
     
     return total / orders.Count;
+}
+```
+
+### Parallel Batch Processing
+
+```csharp
+// Process orders in parallel with controlled concurrency
+public async Task<(List<Order> Successes, List<OrderError> Failures)> ProcessOrders(
+    IEnumerable<OrderRequest> requests)
+{
+    var (successes, failures) = await requests.PartitionParallelAsync(
+        async request => await ProcessOrderAsync(request),
+        maxDegreeOfParallelism: 8
+    );
+    
+    return (successes.ToList(), failures.ToList());
+}
+
+// Fetch all users in parallel, fail fast if any not found
+public async Task<Option<IReadOnlyList<User>>> GetAllUsers(IEnumerable<int> userIds)
+{
+    return await userIds.TraverseParallelAsync(
+        id => FindUserAsync(id),
+        maxDegreeOfParallelism: 4
+    );
 }
 ```
 
@@ -1414,6 +1609,8 @@ Monad.NET is designed for correctness and safety first, but performance is still
 | **No boxing** | Generic implementations avoid boxing value types |
 | **Lazy evaluation** | `UnwrapOrElse`, `OrElse` use `Func<>` for deferred computation |
 | **Zero allocations** | Most operations on value types are allocation-free |
+| **Aggressive inlining** | Hot paths use `[MethodImpl(AggressiveInlining)]` |
+| **ConfigureAwait(false)** | All async methods use `ConfigureAwait(false)` |
 
 ### When to Consider Alternatives
 
@@ -1486,6 +1683,9 @@ Try<int>.Of(() => int.Parse("42")).ToResult(ex => ex.Message);
 
 // Validation → Result
 validation.ToResult();  // Errors become IReadOnlyList<E>
+
+// Reader → ReaderAsync
+reader.ToAsync();  // Converts sync Reader to async
 ```
 
 ### Is Monad.NET thread-safe?
@@ -1515,6 +1715,25 @@ var validation = ValidateName(name)
     .Apply(ValidateEmail(email), (n, e) => (n, e))
     .Apply(ValidateAge(age), (partial, a) => new User(partial.n, partial.e, a));
 // Shows: "Name required", "Invalid email", "Age must be positive"
+```
+
+### What's the difference between `Reader` and `ReaderAsync`?
+
+- **`Reader<R, A>`** — Synchronous dependency injection. Use when computations don't need async.
+- **`ReaderAsync<R, A>`** — Asynchronous dependency injection. Use when computations involve I/O, database access, HTTP calls, etc.
+
+```csharp
+// Sync: for pure computations
+var syncReader = Reader<Config, int>.Asks(c => c.MaxRetries);
+var value = syncReader.Run(config);
+
+// Async: for I/O operations
+var asyncReader = ReaderAsync<Config, User>.From(async c => 
+    await database.FindUserAsync(c.DefaultUserId));
+var user = await asyncReader.RunAsync(config);
+
+// Convert sync to async
+var asyncFromSync = syncReader.ToAsync();
 ```
 
 ---
