@@ -13,9 +13,9 @@ public class ImprovementTests
     public void Ensure_ValidPasses_ReturnsOriginal()
     {
         var validation = Validation<int, string>.Valid(42);
-        
+
         var result = validation.Ensure(x => x > 0, "Must be positive");
-        
+
         Assert.True(result.IsValid);
         Assert.Equal(42, result.Unwrap());
     }
@@ -24,9 +24,9 @@ public class ImprovementTests
     public void Ensure_ValidFails_ReturnsInvalid()
     {
         var validation = Validation<int, string>.Valid(42);
-        
+
         var result = validation.Ensure(x => x > 100, "Must be greater than 100");
-        
+
         Assert.True(result.IsInvalid);
         Assert.Equal("Must be greater than 100", result.UnwrapErrors()[0]);
     }
@@ -35,9 +35,9 @@ public class ImprovementTests
     public void Ensure_Invalid_ReturnsOriginalInvalid()
     {
         var validation = Validation<int, string>.Invalid("original error");
-        
+
         var result = validation.Ensure(x => x > 0, "Must be positive");
-        
+
         Assert.True(result.IsInvalid);
         Assert.Equal("original error", result.UnwrapErrors()[0]);
     }
@@ -49,7 +49,7 @@ public class ImprovementTests
             .Ensure(x => x > 0, "Must be positive")
             .Ensure(x => x < 100, "Must be less than 100")
             .Ensure(x => x % 2 == 0, "Must be even");
-        
+
         Assert.True(result.IsValid);
         Assert.Equal(50, result.Unwrap());
     }
@@ -60,7 +60,7 @@ public class ImprovementTests
         var result = Validation<int, string>.Valid(-5)
             .Ensure(x => x > 0, "Must be positive")
             .Ensure(x => x < 100, "Must be less than 100");
-        
+
         Assert.True(result.IsInvalid);
         Assert.Equal("Must be positive", result.UnwrapErrors()[0]);
     }
@@ -69,18 +69,18 @@ public class ImprovementTests
     public void Ensure_NullPredicate_ThrowsArgumentNull()
     {
         var validation = Validation<int, string>.Valid(42);
-        
-        Assert.Throws<ArgumentNullException>(() => 
-            validation.Ensure(null!, "error"));
+
+        Assert.Throws<ArgumentNullException>(
+            () => validation.Ensure(null!, "error"));
     }
 
     [Fact]
     public void Ensure_NullError_ThrowsArgumentNull()
     {
         var validation = Validation<int, string>.Valid(42);
-        
-        Assert.Throws<ArgumentNullException>(() => 
-            validation.Ensure(x => x > 0, (string)null!));
+
+        Assert.Throws<ArgumentNullException>(
+            () => validation.Ensure(x => x > 0, (string)null!));
     }
 
     [Fact]
@@ -88,13 +88,15 @@ public class ImprovementTests
     {
         var validation = Validation<int, string>.Valid(42);
         var factoryCalled = false;
-        
-        var result = validation.Ensure(x => x > 0, () => 
-        {
-            factoryCalled = true;
-            return "error";
-        });
-        
+
+        var result = validation.Ensure(
+            x => x > 0,
+            () =>
+            {
+                factoryCalled = true;
+                return "error";
+            });
+
         Assert.True(result.IsValid);
         Assert.False(factoryCalled);
     }
@@ -104,13 +106,15 @@ public class ImprovementTests
     {
         var validation = Validation<int, string>.Valid(42);
         var factoryCalled = false;
-        
-        var result = validation.Ensure(x => x > 100, () => 
-        {
-            factoryCalled = true;
-            return "Must be > 100";
-        });
-        
+
+        var result = validation.Ensure(
+            x => x > 100,
+            () =>
+            {
+                factoryCalled = true;
+                return "Must be > 100";
+            });
+
         Assert.True(result.IsInvalid);
         Assert.True(factoryCalled);
         Assert.Equal("Must be > 100", result.UnwrapErrors()[0]);
@@ -121,13 +125,15 @@ public class ImprovementTests
     {
         var validation = Validation<int, string>.Invalid("original error");
         var factoryCalled = false;
-        
-        var result = validation.Ensure(x => x > 0, () => 
-        {
-            factoryCalled = true;
-            return "error";
-        });
-        
+
+        var result = validation.Ensure(
+            x => x > 0,
+            () =>
+            {
+                factoryCalled = true;
+                return "error";
+            });
+
         Assert.True(result.IsInvalid);
         Assert.False(factoryCalled);
         Assert.Equal("original error", result.UnwrapErrors()[0]);
@@ -142,9 +148,9 @@ public class ImprovementTests
     {
         var nested = Validation<Validation<int, string>, string>.Valid(
             Validation<int, string>.Valid(42));
-        
+
         var result = nested.Flatten();
-        
+
         Assert.True(result.IsValid);
         Assert.Equal(42, result.Unwrap());
     }
@@ -153,9 +159,9 @@ public class ImprovementTests
     public void Flatten_OuterInvalid_ReturnsOuterErrors()
     {
         var nested = Validation<Validation<int, string>, string>.Invalid("outer error");
-        
+
         var result = nested.Flatten();
-        
+
         Assert.True(result.IsInvalid);
         Assert.Equal("outer error", result.UnwrapErrors()[0]);
     }
@@ -165,9 +171,9 @@ public class ImprovementTests
     {
         var nested = Validation<Validation<int, string>, string>.Valid(
             Validation<int, string>.Invalid("inner error"));
-        
+
         var result = nested.Flatten();
-        
+
         Assert.True(result.IsInvalid);
         Assert.Equal("inner error", result.UnwrapErrors()[0]);
     }
@@ -177,9 +183,9 @@ public class ImprovementTests
     {
         var nested = Validation<Validation<int, string>, string>.Valid(
             Validation<int, string>.Invalid(new[] { "error1", "error2" }));
-        
+
         var result = nested.Flatten();
-        
+
         Assert.True(result.IsInvalid);
         Assert.Equal(2, result.UnwrapErrors().Count);
         Assert.Contains("error1", result.UnwrapErrors());
@@ -194,11 +200,11 @@ public class ImprovementTests
     public void BiMap_Ok_TransformsValue()
     {
         var result = Result<int, string>.Ok(42);
-        
+
         var mapped = result.BiMap(
-            x => x.ToString(), 
+            x => x.ToString(),
             e => e.Length);
-        
+
         Assert.True(mapped.IsOk);
         Assert.Equal("42", mapped.Unwrap());
     }
@@ -207,11 +213,11 @@ public class ImprovementTests
     public void BiMap_Err_TransformsError()
     {
         var result = Result<int, string>.Err("error");
-        
+
         var mapped = result.BiMap(
-            x => x.ToString(), 
+            x => x.ToString(),
             e => e.Length);
-        
+
         Assert.True(mapped.IsErr);
         Assert.Equal(5, mapped.UnwrapErr());
     }
@@ -220,28 +226,28 @@ public class ImprovementTests
     public void BiMap_NullOkMapper_ThrowsArgumentNull()
     {
         var result = Result<int, string>.Ok(42);
-        
-        Assert.Throws<ArgumentNullException>(() => 
-            result.BiMap<string, int>(null!, e => e.Length));
+
+        Assert.Throws<ArgumentNullException>(
+            () => result.BiMap<string, int>(null!, e => e.Length));
     }
 
     [Fact]
     public void BiMap_NullErrMapper_ThrowsArgumentNull()
     {
         var result = Result<int, string>.Ok(42);
-        
-        Assert.Throws<ArgumentNullException>(() => 
-            result.BiMap<string, int>(x => x.ToString(), null!));
+
+        Assert.Throws<ArgumentNullException>(
+            () => result.BiMap<string, int>(x => x.ToString(), null!));
     }
 
     [Fact]
     public void BiMap_EquivalentToSeparateMaps_Ok()
     {
         var result = Result<int, string>.Ok(42);
-        
+
         var biMapped = result.BiMap(x => x.ToString(), e => e.Length);
         var separateMapped = result.Map(x => x.ToString()).MapErr(e => e.Length);
-        
+
         Assert.Equal(biMapped.IsOk, separateMapped.IsOk);
         Assert.Equal(biMapped.Unwrap(), separateMapped.Unwrap());
     }
@@ -250,10 +256,10 @@ public class ImprovementTests
     public void BiMap_EquivalentToSeparateMaps_Err()
     {
         var result = Result<int, string>.Err("error");
-        
+
         var biMapped = result.BiMap(x => x.ToString(), e => e.Length);
         var separateMapped = result.Map(x => x.ToString()).MapErr(e => e.Length);
-        
+
         Assert.Equal(biMapped.IsErr, separateMapped.IsErr);
         Assert.Equal(biMapped.UnwrapErr(), separateMapped.UnwrapErr());
     }
@@ -266,9 +272,9 @@ public class ImprovementTests
     public void DefaultIfNone_Some_ReturnsOriginal()
     {
         var option = Option<int>.Some(42);
-        
+
         var result = option.DefaultIfNone(0);
-        
+
         Assert.True(result.IsSome);
         Assert.Equal(42, result.Unwrap());
     }
@@ -277,9 +283,9 @@ public class ImprovementTests
     public void DefaultIfNone_None_ReturnsDefault()
     {
         var option = Option<int>.None();
-        
+
         var result = option.DefaultIfNone(99);
-        
+
         Assert.True(result.IsSome);
         Assert.Equal(99, result.Unwrap());
     }
@@ -289,13 +295,13 @@ public class ImprovementTests
     {
         var option = Option<int>.Some(42);
         var factoryCalled = false;
-        
-        var result = option.DefaultIfNone(() => 
+
+        var result = option.DefaultIfNone(() =>
         {
             factoryCalled = true;
             return 0;
         });
-        
+
         Assert.True(result.IsSome);
         Assert.Equal(42, result.Unwrap());
         Assert.False(factoryCalled);
@@ -306,13 +312,13 @@ public class ImprovementTests
     {
         var option = Option<int>.None();
         var factoryCalled = false;
-        
-        var result = option.DefaultIfNone(() => 
+
+        var result = option.DefaultIfNone(() =>
         {
             factoryCalled = true;
             return 99;
         });
-        
+
         Assert.True(result.IsSome);
         Assert.Equal(99, result.Unwrap());
         Assert.True(factoryCalled);
@@ -322,20 +328,20 @@ public class ImprovementTests
     public void DefaultIfNone_Factory_NullFactory_ThrowsArgumentNull()
     {
         var option = Option<int>.None();
-        
-        Assert.Throws<ArgumentNullException>(() => 
-            option.DefaultIfNone((Func<int>)null!));
+
+        Assert.Throws<ArgumentNullException>(
+            () => option.DefaultIfNone((Func<int>)null!));
     }
 
     [Fact]
     public void DefaultIfNone_DifferentFromUnwrapOr()
     {
         var option = Option<int>.None();
-        
+
         // DefaultIfNone returns Option<T>
         var resultOption = option.DefaultIfNone(42);
         Assert.IsType<Option<int>>(resultOption);
-        
+
         // UnwrapOr returns T directly
         var resultValue = option.UnwrapOr(42);
         Assert.Equal(42, resultValue);
@@ -349,9 +355,9 @@ public class ImprovementTests
     public void ThrowIfNone_Some_ReturnsValue()
     {
         var option = Option<int>.Some(42);
-        
+
         var result = option.ThrowIfNone(new InvalidOperationException("No value"));
-        
+
         Assert.Equal(42, result);
     }
 
@@ -360,10 +366,10 @@ public class ImprovementTests
     {
         var option = Option<int>.None();
         var expectedException = new InvalidOperationException("No value");
-        
-        var thrownException = Assert.Throws<InvalidOperationException>(() => 
-            option.ThrowIfNone(expectedException));
-        
+
+        var thrownException = Assert.Throws<InvalidOperationException>(
+            () => option.ThrowIfNone(expectedException));
+
         Assert.Same(expectedException, thrownException);
     }
 
@@ -371,9 +377,9 @@ public class ImprovementTests
     public void ThrowIfNone_NullException_ThrowsArgumentNull()
     {
         var option = Option<int>.Some(42);
-        
-        Assert.Throws<ArgumentNullException>(() => 
-            option.ThrowIfNone((Exception)null!));
+
+        Assert.Throws<ArgumentNullException>(
+            () => option.ThrowIfNone((Exception)null!));
     }
 
     [Fact]
@@ -381,13 +387,13 @@ public class ImprovementTests
     {
         var option = Option<int>.Some(42);
         var factoryCalled = false;
-        
-        var result = option.ThrowIfNone(() => 
+
+        var result = option.ThrowIfNone(() =>
         {
             factoryCalled = true;
             return new InvalidOperationException("No value");
         });
-        
+
         Assert.Equal(42, result);
         Assert.False(factoryCalled);
     }
@@ -397,14 +403,14 @@ public class ImprovementTests
     {
         var option = Option<int>.None();
         var factoryCalled = false;
-        
-        Assert.Throws<InvalidOperationException>(() => 
-            option.ThrowIfNone(() => 
+
+        Assert.Throws<InvalidOperationException>(
+            () => option.ThrowIfNone(() =>
             {
                 factoryCalled = true;
                 return new InvalidOperationException("No value");
             }));
-        
+
         Assert.True(factoryCalled);
     }
 
@@ -412,18 +418,18 @@ public class ImprovementTests
     public void ThrowIfNone_Factory_NullFactory_ThrowsArgumentNull()
     {
         var option = Option<int>.Some(42);
-        
-        Assert.Throws<ArgumentNullException>(() => 
-            option.ThrowIfNone((Func<Exception>)null!));
+
+        Assert.Throws<ArgumentNullException>(
+            () => option.ThrowIfNone((Func<Exception>)null!));
     }
 
     [Fact]
     public void ThrowIfNone_CustomExceptionType()
     {
         var option = Option<int>.None();
-        
-        Assert.Throws<KeyNotFoundException>(() => 
-            option.ThrowIfNone(new KeyNotFoundException("Key not found")));
+
+        Assert.Throws<KeyNotFoundException>(
+            () => option.ThrowIfNone(new KeyNotFoundException("Key not found")));
     }
 
     #endregion
@@ -434,9 +440,9 @@ public class ImprovementTests
     public void ThrowIfErr_Ok_ReturnsValue()
     {
         var result = Result<int, string>.Ok(42);
-        
+
         var value = result.ThrowIfErr(new InvalidOperationException("Error occurred"));
-        
+
         Assert.Equal(42, value);
     }
 
@@ -445,10 +451,10 @@ public class ImprovementTests
     {
         var result = Result<int, string>.Err("error");
         var expectedException = new InvalidOperationException("Error occurred");
-        
-        var thrownException = Assert.Throws<InvalidOperationException>(() => 
-            result.ThrowIfErr(expectedException));
-        
+
+        var thrownException = Assert.Throws<InvalidOperationException>(
+            () => result.ThrowIfErr(expectedException));
+
         Assert.Same(expectedException, thrownException);
     }
 
@@ -456,9 +462,9 @@ public class ImprovementTests
     public void ThrowIfErr_NullException_ThrowsArgumentNull()
     {
         var result = Result<int, string>.Ok(42);
-        
-        Assert.Throws<ArgumentNullException>(() => 
-            result.ThrowIfErr((Exception)null!));
+
+        Assert.Throws<ArgumentNullException>(
+            () => result.ThrowIfErr((Exception)null!));
     }
 
     [Fact]
@@ -466,13 +472,13 @@ public class ImprovementTests
     {
         var result = Result<int, string>.Ok(42);
         var factoryCalled = false;
-        
-        var value = result.ThrowIfErr(err => 
+
+        var value = result.ThrowIfErr(err =>
         {
             factoryCalled = true;
             return new InvalidOperationException(err);
         });
-        
+
         Assert.Equal(42, value);
         Assert.False(factoryCalled);
     }
@@ -482,14 +488,14 @@ public class ImprovementTests
     {
         var result = Result<int, string>.Err("the error message");
         string? capturedError = null;
-        
-        Assert.Throws<InvalidOperationException>(() => 
-            result.ThrowIfErr(err => 
+
+        Assert.Throws<InvalidOperationException>(
+            () => result.ThrowIfErr(err =>
             {
                 capturedError = err;
                 return new InvalidOperationException(err);
             }));
-        
+
         Assert.Equal("the error message", capturedError);
     }
 
@@ -497,31 +503,30 @@ public class ImprovementTests
     public void ThrowIfErr_Factory_NullFactory_ThrowsArgumentNull()
     {
         var result = Result<int, string>.Ok(42);
-        
-        Assert.Throws<ArgumentNullException>(() => 
-            result.ThrowIfErr((Func<string, Exception>)null!));
+
+        Assert.Throws<ArgumentNullException>(
+            () => result.ThrowIfErr((Func<string, Exception>)null!));
     }
 
     [Fact]
     public void ThrowIfErr_CustomExceptionType()
     {
         var result = Result<int, string>.Err("not found");
-        
-        Assert.Throws<FileNotFoundException>(() => 
-            result.ThrowIfErr(new FileNotFoundException("File not found")));
+
+        Assert.Throws<FileNotFoundException>(
+            () => result.ThrowIfErr(new FileNotFoundException("File not found")));
     }
 
     [Fact]
     public void ThrowIfErr_Factory_CreatesExceptionFromError()
     {
         var result = Result<int, int>.Err(404);
-        
-        var ex = Assert.Throws<HttpRequestException>(() => 
-            result.ThrowIfErr(code => new HttpRequestException($"HTTP {code} error")));
-        
+
+        var ex = Assert.Throws<HttpRequestException>(
+            () => result.ThrowIfErr(code => new HttpRequestException($"HTTP {code} error")));
+
         Assert.Equal("HTTP 404 error", ex.Message);
     }
 
     #endregion
 }
-
