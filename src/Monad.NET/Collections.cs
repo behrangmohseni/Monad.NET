@@ -519,6 +519,11 @@ public static class MonadCollectionExtensions
         int maxDegreeOfParallelism = -1)
     {
         ArgumentNullException.ThrowIfNull(optionTasks);
+        if (maxDegreeOfParallelism < -1 || maxDegreeOfParallelism == 0)
+            throw new ArgumentOutOfRangeException(
+                nameof(maxDegreeOfParallelism),
+                maxDegreeOfParallelism,
+                "maxDegreeOfParallelism must be -1 (unlimited) or a positive integer.");
 
         var taskList = optionTasks.ToList();
         if (taskList.Count == 0)
@@ -583,15 +588,61 @@ public static class MonadCollectionExtensions
     /// // Some([users]) if all found, None if any not found
     /// </code>
     /// </example>
-    public static Task<Option<IReadOnlyList<U>>> TraverseParallelAsync<T, U>(
+    public static async Task<Option<IReadOnlyList<U>>> TraverseParallelAsync<T, U>(
         this IEnumerable<T> source,
         Func<T, Task<Option<U>>> selector,
         int maxDegreeOfParallelism = -1)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(selector);
+        if (maxDegreeOfParallelism < -1 || maxDegreeOfParallelism == 0)
+            throw new ArgumentOutOfRangeException(
+                nameof(maxDegreeOfParallelism),
+                maxDegreeOfParallelism,
+                "maxDegreeOfParallelism must be -1 (unlimited) or a positive integer.");
 
-        return source.Select(selector).SequenceParallelAsync(maxDegreeOfParallelism);
+        var sourceList = source.ToList();
+        if (sourceList.Count == 0)
+            return Option<IReadOnlyList<U>>.Some(Array.Empty<U>());
+
+        Option<U>[] results;
+
+        if (maxDegreeOfParallelism == -1 || maxDegreeOfParallelism >= sourceList.Count)
+        {
+            // Run all in parallel
+            results = await Task.WhenAll(sourceList.Select(selector)).ConfigureAwait(false);
+        }
+        else
+        {
+            // Throttled parallel execution - selector is called inside the semaphore-protected region
+            results = new Option<U>[sourceList.Count];
+            using var semaphore = new SemaphoreSlim(maxDegreeOfParallelism);
+
+            var indexedTasks = sourceList.Select(async (item, index) =>
+            {
+                await semaphore.WaitAsync().ConfigureAwait(false);
+                try
+                {
+                    results[index] = await selector(item).ConfigureAwait(false);
+                }
+                finally
+                {
+                    semaphore.Release();
+                }
+            });
+
+            await Task.WhenAll(indexedTasks).ConfigureAwait(false);
+        }
+
+        var values = new List<U>(results.Length);
+        foreach (var option in results)
+        {
+            if (option.IsNone)
+                return Option<IReadOnlyList<U>>.None();
+            values.Add(option.Unwrap());
+        }
+
+        return Option<IReadOnlyList<U>>.Some(values);
     }
 
     /// <summary>
@@ -616,6 +667,11 @@ public static class MonadCollectionExtensions
         int maxDegreeOfParallelism = -1)
     {
         ArgumentNullException.ThrowIfNull(resultTasks);
+        if (maxDegreeOfParallelism < -1 || maxDegreeOfParallelism == 0)
+            throw new ArgumentOutOfRangeException(
+                nameof(maxDegreeOfParallelism),
+                maxDegreeOfParallelism,
+                "maxDegreeOfParallelism must be -1 (unlimited) or a positive integer.");
 
         var taskList = resultTasks.ToList();
         if (taskList.Count == 0)
@@ -682,15 +738,61 @@ public static class MonadCollectionExtensions
     /// // Ok([results]) if all succeed, Err(firstError) if any fail
     /// </code>
     /// </example>
-    public static Task<Result<IReadOnlyList<U>, TErr>> TraverseParallelAsync<T, U, TErr>(
+    public static async Task<Result<IReadOnlyList<U>, TErr>> TraverseParallelAsync<T, U, TErr>(
         this IEnumerable<T> source,
         Func<T, Task<Result<U, TErr>>> selector,
         int maxDegreeOfParallelism = -1)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(selector);
+        if (maxDegreeOfParallelism < -1 || maxDegreeOfParallelism == 0)
+            throw new ArgumentOutOfRangeException(
+                nameof(maxDegreeOfParallelism),
+                maxDegreeOfParallelism,
+                "maxDegreeOfParallelism must be -1 (unlimited) or a positive integer.");
 
-        return source.Select(selector).SequenceParallelAsync(maxDegreeOfParallelism);
+        var sourceList = source.ToList();
+        if (sourceList.Count == 0)
+            return Result<IReadOnlyList<U>, TErr>.Ok(Array.Empty<U>());
+
+        Result<U, TErr>[] results;
+
+        if (maxDegreeOfParallelism == -1 || maxDegreeOfParallelism >= sourceList.Count)
+        {
+            // Run all in parallel
+            results = await Task.WhenAll(sourceList.Select(selector)).ConfigureAwait(false);
+        }
+        else
+        {
+            // Throttled parallel execution - selector is called inside the semaphore-protected region
+            results = new Result<U, TErr>[sourceList.Count];
+            using var semaphore = new SemaphoreSlim(maxDegreeOfParallelism);
+
+            var indexedTasks = sourceList.Select(async (item, index) =>
+            {
+                await semaphore.WaitAsync().ConfigureAwait(false);
+                try
+                {
+                    results[index] = await selector(item).ConfigureAwait(false);
+                }
+                finally
+                {
+                    semaphore.Release();
+                }
+            });
+
+            await Task.WhenAll(indexedTasks).ConfigureAwait(false);
+        }
+
+        var values = new List<U>(results.Length);
+        foreach (var result in results)
+        {
+            if (result.IsErr)
+                return Result<IReadOnlyList<U>, TErr>.Err(result.UnwrapErr());
+            values.Add(result.Unwrap());
+        }
+
+        return Result<IReadOnlyList<U>, TErr>.Ok(values);
     }
 
     /// <summary>
@@ -719,6 +821,11 @@ public static class MonadCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(selector);
+        if (maxDegreeOfParallelism < -1 || maxDegreeOfParallelism == 0)
+            throw new ArgumentOutOfRangeException(
+                nameof(maxDegreeOfParallelism),
+                maxDegreeOfParallelism,
+                "maxDegreeOfParallelism must be -1 (unlimited) or a positive integer.");
 
         var sourceList = source.ToList();
         if (sourceList.Count == 0)
@@ -782,6 +889,11 @@ public static class MonadCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(selector);
+        if (maxDegreeOfParallelism < -1 || maxDegreeOfParallelism == 0)
+            throw new ArgumentOutOfRangeException(
+                nameof(maxDegreeOfParallelism),
+                maxDegreeOfParallelism,
+                "maxDegreeOfParallelism must be -1 (unlimited) or a positive integer.");
 
         var sourceList = source.ToList();
         if (sourceList.Count == 0)
