@@ -1,0 +1,23 @@
+name: CodeFactor
+
+on:
+  pull_request:
+    branches: [ master, main, develop ]
+  push:
+    branches: [ master, main, develop ]
+
+jobs:
+  codefactor:
+    name: Run CodeFactor
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Run CodeFactor analysis
+      # This action assumes the CodeFactor GitHub App or Action is available.
+      # If the org uses the CodeFactor GitHub App, the app will pick up this repo automatically.
+      uses: codefactor/codefactor-action@v1
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
