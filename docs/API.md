@@ -19,8 +19,10 @@ Complete API documentation for Monad.NET.
 - [NonEmptyList\<T\>](#nonemptylistt)
 - [Writer\<W, T\>](#writerw-t)
 - [Reader\<R, A\>](#readerr-a)
+- [ReaderAsync\<R, A\>](#readerasyncr-a)
 - [State\<S, A\>](#states-a)
 - [IO\<T\>](#iot)
+- [Collection Extensions](#collection-extensions)
 - [Async Streams](#async-streams-iasyncenumerable)
 - [Source Generators](#source-generators)
 - [Entity Framework Core](#entity-framework-core)
@@ -53,26 +55,88 @@ Represents an optional value - either `Some(value)` or `None`.
 | `Expect(string message)` | `T` | Gets value or throws with message |
 | `UnwrapOr(T default)` | `T` | Gets value or returns default |
 | `UnwrapOrElse(Func<T>)` | `T` | Gets value or computes default |
+| `UnwrapOrDefault()` | `T?` | Gets value or default(T) |
+| `GetOrThrow()` | `T` | Alias for Unwrap |
+| `GetOrThrow(string message)` | `T` | Alias for Expect |
 | `TryGet(out T? value)` | `bool` | C#-style TryGet pattern |
+| `Contains(T value)` | `bool` | True if Some and contains value |
+| `Exists(Func<T, bool>)` | `bool` | True if Some and predicate passes |
 | `Map<U>(Func<T, U>)` | `Option<U>` | Transforms the value |
 | `Filter(Func<T, bool>)` | `Option<T>` | Filters by predicate |
+| `MapOr<U>(U default, Func<T, U>)` | `U` | Maps or returns default |
+| `MapOrElse<U>(Func<U>, Func<T, U>)` | `U` | Maps or computes default |
 | `AndThen<U>(Func<T, Option<U>>)` | `Option<U>` | Chains operations (flatMap) |
+| `And<U>(Option<U>)` | `Option<U>` | Returns other if this is Some |
 | `Or(Option<T>)` | `Option<T>` | Returns this if Some, else other |
+| `OrElse(Func<Option<T>>)` | `Option<T>` | Returns this if Some, else computes |
 | `Xor(Option<T>)` | `Option<T>` | Returns Some if exactly one is Some |
+| `Zip<U>(Option<U>)` | `Option<(T, U)>` | Combines into tuple |
+| `ZipWith<U, V>(Option<U>, Func<T, U, V>)` | `Option<V>` | Combines with function |
 | `Match<U>(someFunc, noneFunc)` | `U` | Pattern matching |
 | `Match(someAction, noneAction)` | `void` | Pattern matching with actions |
 | `OkOr<E>(E error)` | `Result<T, E>` | Converts to Result |
 | `OkOrElse<E>(Func<E>)` | `Result<T, E>` | Converts to Result with lazy error |
 | `Tap(Action<T>)` | `Option<T>` | Executes action if Some |
 | `TapNone(Action)` | `Option<T>` | Executes action if None |
+| `AsEnumerable()` | `IEnumerable<T>` | Returns 0 or 1 element sequence |
+| `ToArray()` | `T[]` | Converts to array |
+| `ToList()` | `List<T>` | Converts to list |
 | `Deconstruct(out T?, out bool)` | `void` | Deconstructs to `(value, isSome)` |
 
-### Extension Methods
+### Extension Methods (OptionExtensions)
+
+#### When/Unless Guards
+
+| Method | Description |
+|--------|-------------|
+| `When<T>(bool condition, Func<T> factory)` | Returns Some(factory()) if condition is true, else None |
+| `When<T>(bool condition, T value)` | Returns Some(value) if condition is true, else None |
+| `Unless<T>(bool condition, Func<T> factory)` | Returns Some(factory()) if condition is false, else None |
+| `Unless<T>(bool condition, T value)` | Returns Some(value) if condition is false, else None |
+
+#### Conversion Extensions
 
 | Method | Description |
 |--------|-------------|
 | `ToOption<T>(this T?)` | Converts nullable to Option |
 | `Flatten<T>(this Option<Option<T>>)` | Flattens nested Option |
+| `Transpose<T, E>(this Option<Result<T, E>>)` | Transposes Option of Result |
+| `OfType<TSource, TTarget>(this Option<TSource>)` | Safe cast to reference type |
+| `OfTypeValue<TSource, TTarget>(this Option<TSource>)` | Safe cast to value type |
+
+#### String Conversions
+
+| Method | Description |
+|--------|-------------|
+| `ToOptionNotEmpty(this string?)` | None if null or empty |
+| `ToOptionNotWhiteSpace(this string?)` | None if null, empty, or whitespace |
+| `ToOptionTrimmed(this string?)` | Trimmed value or None if empty |
+
+#### Parse Conversions
+
+| Method | Description |
+|--------|-------------|
+| `ParseInt(this string?)` | Parse as int |
+| `ParseLong(this string?)` | Parse as long |
+| `ParseDouble(this string?)` | Parse as double |
+| `ParseDecimal(this string?)` | Parse as decimal |
+| `ParseBool(this string?)` | Parse as bool |
+| `ParseGuid(this string?)` | Parse as Guid |
+| `ParseDateTime(this string?)` | Parse as DateTime |
+| `ParseDateTimeOffset(this string?)` | Parse as DateTimeOffset |
+| `ParseTimeSpan(this string?)` | Parse as TimeSpan |
+| `ParseEnum<TEnum>(this string?, bool ignoreCase)` | Parse as enum |
+
+#### Collection Lookups
+
+| Method | Description |
+|--------|-------------|
+| `GetOption<K, V>(this IReadOnlyDictionary<K, V>, K key)` | Dictionary lookup |
+| `FirstOption<T>(this IEnumerable<T>)` | First element or None |
+| `FirstOption<T>(this IEnumerable<T>, predicate)` | First matching element or None |
+| `LastOption<T>(this IEnumerable<T>)` | Last element or None |
+| `SingleOption<T>(this IEnumerable<T>)` | Single element or None |
+| `ElementAtOption<T>(this IEnumerable<T>, int)` | Element at index or None |
 
 ### Async Extensions
 
@@ -286,7 +350,7 @@ Captures exceptions as values.
 | `Filter(predicate)` | `Try<T>` | Filters by predicate |
 | `Filter(predicate, message)` | `Try<T>` | Filters with error message |
 | `Recover(Func<Exception, T>)` | `Try<T>` | Recovers from failure |
-| `Recover(Func<Exception, Try<T>>)` | `Try<T>` | Recovers with Try |
+| `RecoverWith(Func<Exception, Try<T>>)` | `Try<T>` | Recovers with Try |
 | `Match<U>(successFunc, failureFunc)` | `U` | Pattern matching |
 | `ToResult<E>(Func<Exception, E>)` | `Result<T, E>` | Converts to Result |
 | `ToOption()` | `Option<T>` | Success to Some |
@@ -377,6 +441,7 @@ List guaranteed to have at least one element.
 |--------|-------------|-------------|
 | `Last()` | `T` | Last element (always exists) |
 | `Map<U>(Func<T, U>)` | `NonEmptyList<U>` | Transforms elements |
+| `MapIndexed<U>(Func<T, int, U>)` | `NonEmptyList<U>` | Transforms with index |
 | `FlatMap<U>(Func<T, NonEmptyList<U>>)` | `NonEmptyList<U>` | Chains operations |
 | `Filter(Func<T, bool>)` | `Option<NonEmptyList<T>>` | Filters (may be empty) |
 | `Reduce(Func<T, T, T>)` | `T` | Reduces without initial value |
@@ -450,9 +515,82 @@ Computations depending on environment.
 | `Run(R environment)` | `A` | Executes with environment |
 | `Map<B>(Func<A, B>)` | `Reader<R, B>` | Transforms result |
 | `FlatMap<B>(Func<A, Reader<R, B>>)` | `Reader<R, B>` | Chains operations |
+| `AndThen<B>(...)` | `Reader<R, B>` | Alias for FlatMap |
+| `Bind<B>(...)` | `Reader<R, B>` | Alias for FlatMap |
 | `WithEnvironment<R2>(Func<R2, R>)` | `Reader<R2, A>` | Transforms environment |
 | `Tap(Action<A>)` | `Reader<R, A>` | Executes action with result |
 | `TapEnv(Action<R>)` | `Reader<R, A>` | Executes action with environment |
+| `ToAsync()` | `ReaderAsync<R, A>` | Converts to async Reader |
+
+---
+
+## ReaderAsync\<R, A\>
+
+Asynchronous computations depending on environment.
+
+### Constructors
+
+| Method | Description |
+|--------|-------------|
+| `From(Func<R, Task<A>>)` | Creates from async function |
+| `FromReader(Reader<R, A>)` | Creates from sync Reader |
+| `Pure(A value)` | Creates constant value |
+| `Ask()` | Returns environment itself |
+| `Asks(Func<R, A>)` | Extracts from environment (sync) |
+| `AsksAsync(Func<R, Task<A>>)` | Extracts from environment (async) |
+
+### Methods
+
+| Method | Return Type | Description |
+|--------|-------------|-------------|
+| `RunAsync(R environment, CancellationToken)` | `Task<A>` | Executes with environment |
+| `Map<B>(Func<A, B>)` | `ReaderAsync<R, B>` | Transforms result |
+| `MapAsync<B>(Func<A, Task<B>>)` | `ReaderAsync<R, B>` | Transforms result async |
+| `FlatMap<B>(Func<A, ReaderAsync<R, B>>)` | `ReaderAsync<R, B>` | Chains operations |
+| `FlatMapAsync<B>(Func<A, Task<ReaderAsync<R, B>>>)` | `ReaderAsync<R, B>` | Chains with async binder |
+| `AndThen<B>(...)` | `ReaderAsync<R, B>` | Alias for FlatMap |
+| `Bind<B>(...)` | `ReaderAsync<R, B>` | Alias for FlatMap |
+| `Tap(Action<A>)` | `ReaderAsync<R, A>` | Executes action with result |
+| `TapAsync(Func<A, Task>)` | `ReaderAsync<R, A>` | Executes async action with result |
+| `TapEnv(Action<R>)` | `ReaderAsync<R, A>` | Executes action with environment |
+| `TapEnvAsync(Func<R, Task>)` | `ReaderAsync<R, A>` | Executes async action with environment |
+| `WithEnvironment<R2>(Func<R2, R>)` | `ReaderAsync<R2, A>` | Transforms environment |
+| `WithEnvironmentAsync<R2>(Func<R2, Task<R>>)` | `ReaderAsync<R2, A>` | Transforms environment async |
+| `Zip<B, C>(ReaderAsync<R, B>, Func<A, B, C>)` | `ReaderAsync<R, C>` | Combines with function |
+| `Zip<B>(ReaderAsync<R, B>)` | `ReaderAsync<R, (A, B)>` | Combines into tuple |
+| `Attempt()` | `ReaderAsync<R, Try<A>>` | Wraps result in Try |
+| `OrElse(ReaderAsync<R, A>)` | `ReaderAsync<R, A>` | Fallback reader on exception |
+| `OrElse(A fallbackValue)` | `ReaderAsync<R, A>` | Fallback value on exception |
+| `Retry(int retries)` | `ReaderAsync<R, A>` | Retries on failure |
+| `RetryWithDelay(int retries, TimeSpan delay)` | `ReaderAsync<R, A>` | Retries with delay |
+| `Void()` | `ReaderAsync<R, Unit>` | Ignores result |
+
+### Static Helper Methods (ReaderAsync class)
+
+| Method | Description |
+|--------|-------------|
+| `ReaderAsync.From<R, A>(func)` | Create from async function |
+| `ReaderAsync.FromReader<R, A>(reader)` | Create from sync Reader |
+| `ReaderAsync.Pure<R, A>(value)` | Create pure value |
+| `ReaderAsync.Ask<R>()` | Get environment |
+| `ReaderAsync.Asks<R, A>(selector)` | Extract from environment (sync) |
+| `ReaderAsync.AsksAsync<R, A>(selector)` | Extract from environment (async) |
+| `ReaderAsync.Parallel(r1, r2)` | Run two readers in parallel |
+| `ReaderAsync.Parallel(r1, r2, r3)` | Run three readers in parallel |
+| `ReaderAsync.Parallel(readers)` | Run collection in parallel |
+
+### Extension Methods (ReaderAsyncExtensions)
+
+| Method | Description |
+|--------|-------------|
+| `Select(f)` | LINQ map |
+| `SelectMany(f)` | LINQ flatMap |
+| `SelectMany(f, resultSelector)` | LINQ flatMap with result selector |
+| `Sequence(this IEnumerable<ReaderAsync<R, A>>)` | Sequential execution |
+| `SequenceParallel(this IEnumerable<ReaderAsync<R, A>>)` | Parallel execution |
+| `Traverse(items, selector)` | Map and sequence |
+| `TraverseParallel(items, selector)` | Map and parallel sequence |
+| `Flatten(this ReaderAsync<R, ReaderAsync<R, A>>)` | Flatten nested |
 
 ---
 
@@ -517,49 +655,6 @@ Stateful computations that thread state through operations.
 |--------|-------------|
 | `Select` | Map operation |
 | `SelectMany` | FlatMap operation |
-
----
-
-## Collection Extensions
-
-### Option Collections
-
-| Method | Description |
-|--------|-------------|
-| `Sequence()` | `IEnumerable<Option<T>>` → `Option<IEnumerable<T>>` |
-| `Traverse(mapper)` | Map and sequence |
-| `Choose()` | Filter and unwrap Some values |
-
-### Result Collections
-
-| Method | Description |
-|--------|-------------|
-| `Sequence()` | `IEnumerable<Result<T,E>>` → `Result<IEnumerable<T>,E>` |
-| `Traverse(mapper)` | Map and sequence |
-| `Partition()` | Separate into (oks, errors) |
-| `CollectOk()` | Get all Ok values |
-| `CollectErr()` | Get all Err values |
-
----
-
-## LINQ Support
-
-All monads support LINQ query syntax:
-
-```csharp
-// Select = Map
-var result = from x in option select x * 2;
-
-// SelectMany = FlatMap
-var result = from x in option1
-             from y in option2
-             select x + y;
-
-// Where = Filter (Option and Result)
-var result = from x in option
-             where x > 0
-             select x;
-```
 
 ---
 
@@ -674,6 +769,95 @@ var program =
     select Unit.Default;
 
 program.Run();
+```
+
+---
+
+## Collection Extensions
+
+### Option Collections
+
+| Method | Description |
+|--------|-------------|
+| `Sequence()` | `IEnumerable<Option<T>>` → `Option<IReadOnlyList<T>>` |
+| `Traverse(mapper)` | Map and sequence |
+| `Choose()` | Filter and unwrap Some values |
+| `Choose(selector)` | Map then filter and unwrap |
+| `FirstSome()` | First Some value or None |
+
+### Result Collections
+
+| Method | Description |
+|--------|-------------|
+| `Sequence()` | `IEnumerable<Result<T,E>>` → `Result<IReadOnlyList<T>,E>` |
+| `Traverse(mapper)` | Map and sequence |
+| `Partition()` | Separate into (oks, errors) |
+| `CollectOk()` | Get all Ok values |
+| `CollectErr()` | Get all Err values |
+| `FirstOk()` | First Ok or last Err (throws if empty) |
+| `FirstOkOrDefault(defaultError)` | First Ok or last Err or default |
+
+### Either Collections
+
+| Method | Description |
+|--------|-------------|
+| `CollectRights()` | Get all Right values |
+| `CollectLefts()` | Get all Left values |
+| `Partition()` | Separate into (lefts, rights) |
+
+### Async Collection Extensions
+
+| Method | Description |
+|--------|-------------|
+| `SequenceAsync()` (Option) | `IEnumerable<Task<Option<T>>>` → `Task<Option<IReadOnlyList<T>>>` |
+| `TraverseAsync(selector)` (Option) | Map async and sequence |
+| `SequenceAsync()` (Result) | `IEnumerable<Task<Result<T,E>>>` → `Task<Result<IReadOnlyList<T>,E>>` |
+| `TraverseAsync(selector)` (Result) | Map async and sequence |
+
+### Parallel Async Collection Extensions
+
+| Method | Description |
+|--------|-------------|
+| `SequenceParallelAsync(maxDegreeOfParallelism)` (Option) | Await Option tasks in parallel |
+| `TraverseParallelAsync(selector, maxDegreeOfParallelism)` (Option) | Map to Options in parallel |
+| `SequenceParallelAsync(maxDegreeOfParallelism)` (Result) | Await Result tasks in parallel |
+| `TraverseParallelAsync(selector, maxDegreeOfParallelism)` (Result) | Map to Results in parallel |
+| `ChooseParallelAsync(selector, maxDegreeOfParallelism)` | Map to Options in parallel, collect Some values |
+| `PartitionParallelAsync(selector, maxDegreeOfParallelism)` | Map to Results in parallel, separate Ok/Err |
+
+**Parameters:**
+- `maxDegreeOfParallelism`: Maximum concurrent operations (-1 for unlimited)
+
+### General Enumerable Extensions
+
+| Method | Description |
+|--------|-------------|
+| `Do(action)` | Execute action for each element (lazy, chainable) |
+| `Do(action with index)` | Execute action with index (lazy, chainable) |
+| `ForEach(action)` | Execute action for each element (eager) |
+| `ForEach(action with index)` | Execute action with index (eager) |
+| `ForEachAsync(asyncAction, ct)` | Execute async action sequentially |
+| `ForEachAsync(asyncAction with index, ct)` | Execute async action with index |
+
+---
+
+## LINQ Support
+
+All monads support LINQ query syntax:
+
+```csharp
+// Select = Map
+var result = from x in option select x * 2;
+
+// SelectMany = FlatMap
+var result = from x in option1
+             from y in option2
+             select x + y;
+
+// Where = Filter (Option and Result)
+var result = from x in option
+             where x > 0
+             select x;
 ```
 
 ---
