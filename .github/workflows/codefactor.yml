@@ -1,0 +1,28 @@
+name: CodeFactor
+
+on:
+  pull_request:
+    branches: [ master, main, develop ]
+  push:
+    branches: [ master, main, develop ]
+
+jobs:
+  codefactor:
+    name: Run CodeFactor
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: CodeFactor integration (no-op)
+      run: |
+        echo "CodeFactor: no action is configured in this workflow."
+        echo "Recommended: install the CodeFactor GitHub App at https://www.codefactor.io/ and enable this repository."
+        echo "If you prefer an automated run from Actions, set the secret CODEFACTOR_TOKEN and implement an API call here."
+
+    - name: "Optional: trigger CodeFactor API (requires CODEFACTOR_TOKEN)"
+      if: ${{ secrets.CODEFACTOR_TOKEN != '' }}
+      run: |
+        echo "CODEFACTOR_TOKEN provided — you can call CodeFactor API from here."
+        echo "Add a curl or script to POST code or trigger analysis as needed."

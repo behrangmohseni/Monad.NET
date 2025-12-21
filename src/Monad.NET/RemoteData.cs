@@ -1,0 +1,645 @@
+using System.Runtime.CompilerServices;
+
+namespace Monad.NET;
+
+/// <summary>
+/// Represents the state of remotely-loaded data.
+/// Perfect for tracking API calls, database queries, or any asynchronous data fetching.
+/// Eliminates the need for separate loading/error boolean flags.
+/// Inspired by Elm's RemoteData type.
+/// </summary>
+/// <typeparam name="T">The type of the data</typeparam>
+/// <typeparam name="TErr">The type of the error</typeparam>
+public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>
+{
+    private readonly T? _data;
+    private readonly TErr? _error;
+    private readonly RemoteDataState _state;
+
+    private enum RemoteDataState
+    {
+        NotAsked,
+        Loading,
+        Success,
+        Failure
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private RemoteData(T data, TErr error, RemoteDataState state)
+    {
+        _data = data;
+        _error = error;
+        _state = state;
+    }
+
+    /// <summary>
+    /// Returns true if the data has not been requested yet.
+    /// </summary>
+    public bool IsNotAsked
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _state == RemoteDataState.NotAsked;
+    }
+
+    /// <summary>
+    /// Returns true if the data is currently being loaded.
+    /// </summary>
+    public bool IsLoading
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _state == RemoteDataState.Loading;
+    }
+
+    /// <summary>
+    /// Returns true if the data was successfully loaded.
+    /// </summary>
+    public bool IsSuccess
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _state == RemoteDataState.Success;
+    }
+
+    /// <summary>
+    /// Returns true if loading the data failed.
+    /// </summary>
+    public bool IsFailure
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _state == RemoteDataState.Failure;
+    }
+
+    /// <summary>
+    /// Creates a RemoteData in the NotAsked state.
+    /// Use this as the initial state before any data fetching begins.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static RemoteData<T, TErr> NotAsked() =>
+        new(default!, default!, RemoteDataState.NotAsked);
+
+    /// <summary>
+    /// Creates a RemoteData in the Loading state.
+    /// Use this when starting an async operation.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static RemoteData<T, TErr> Loading() =>
+        new(default!, default!, RemoteDataState.Loading);
+
+    /// <summary>
+    /// Creates a RemoteData in the Success state with the loaded data.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static RemoteData<T, TErr> Success(T data)
+    {
+        if (data is null)
+            ThrowHelper.ThrowArgumentNull(nameof(data), "Cannot create Success with null data.");
+
+        return new RemoteData<T, TErr>(data, default!, RemoteDataState.Success);
+    }
+
+    /// <summary>
+    /// Creates a RemoteData in the Failure state with an error.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static RemoteData<T, TErr> Failure(TErr error)
+    {
+        if (error is null)
+            ThrowHelper.ThrowArgumentNull(nameof(error), "Cannot create Failure with null error.");
+
+        return new RemoteData<T, TErr>(default!, error, RemoteDataState.Failure);
+    }
+
+    /// <summary>
+    /// Returns the data if successful.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if not in Success state</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T Unwrap()
+    {
+        return _state switch
+        {
+            RemoteDataState.Success => _data!,
+            RemoteDataState.NotAsked => throw new InvalidOperationException("Called Unwrap on NotAsked"),
+            RemoteDataState.Loading => throw new InvalidOperationException("Called Unwrap on Loading"),
+            RemoteDataState.Failure => throw new InvalidOperationException($"Called Unwrap on Failure: {_error}"),
+            _ => throw new InvalidOperationException("Invalid state")
+        };
+    }
+
+    /// <summary>
+    /// Returns the error if failed.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if not in Failure state</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public TErr UnwrapError()
+    {
+        if (_state != RemoteDataState.Failure)
+            ThrowHelper.ThrowInvalidOperation("Cannot unwrap error on non-Failure state.");
+
+        return _error!;
+    }
+
+    /// <summary>
+    /// Returns the data if successful, otherwise returns a default value.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T UnwrapOr(T defaultValue)
+    {
+        return _state == RemoteDataState.Success ? _data! : defaultValue;
+    }
+
+    /// <summary>
+    /// Returns the data if successful, otherwise computes a default value.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T UnwrapOrElse(Func<T> defaultFunc)
+    {
+        ArgumentNullException.ThrowIfNull(defaultFunc);
+
+        return _state == RemoteDataState.Success ? _data! : defaultFunc();
+    }
+
+    /// <summary>
+    /// Tries to get the contained data using the familiar C# TryGet pattern.
+    /// </summary>
+    /// <param name="data">When this method returns, contains the data if Success; otherwise, the default value.</param>
+    /// <returns>True if the RemoteData is in Success state; otherwise, false.</returns>
+    /// <example>
+    /// <code>
+    /// if (remoteData.TryGet(out var data))
+    /// {
+    ///     Console.WriteLine($"Data: {data}");
+    /// }
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool TryGet(out T? data)
+    {
+        data = _data;
+        return _state == RemoteDataState.Success;
+    }
+
+    /// <summary>
+    /// Tries to get the contained error using the familiar C# TryGet pattern.
+    /// </summary>
+    /// <param name="error">When this method returns, contains the error if Failure; otherwise, the default value.</param>
+    /// <returns>True if the RemoteData is in Failure state; otherwise, false.</returns>
+    /// <example>
+    /// <code>
+    /// if (remoteData.TryGetError(out var error))
+    /// {
+    ///     Console.WriteLine($"Error: {error}");
+    /// }
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool TryGetError(out TErr? error)
+    {
+        error = _error;
+        return _state == RemoteDataState.Failure;
+    }
+
+    /// <summary>
+    /// Maps the data if successful.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public RemoteData<U, TErr> Map<U>(Func<T, U> mapper)
+    {
+        ArgumentNullException.ThrowIfNull(mapper);
+
+        return _state switch
+        {
+            RemoteDataState.Success => RemoteData<U, TErr>.Success(mapper(_data!)),
+            RemoteDataState.NotAsked => RemoteData<U, TErr>.NotAsked(),
+            RemoteDataState.Loading => RemoteData<U, TErr>.Loading(),
+            RemoteDataState.Failure => RemoteData<U, TErr>.Failure(_error!),
+            _ => throw new InvalidOperationException("Invalid state")
+        };
+    }
+
+    /// <summary>
+    /// Maps the error if failed.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public RemoteData<T, F> MapError<F>(Func<TErr, F> mapper)
+    {
+        ArgumentNullException.ThrowIfNull(mapper);
+
+        return _state switch
+        {
+            RemoteDataState.Success => RemoteData<T, F>.Success(_data!),
+            RemoteDataState.NotAsked => RemoteData<T, F>.NotAsked(),
+            RemoteDataState.Loading => RemoteData<T, F>.Loading(),
+            RemoteDataState.Failure => RemoteData<T, F>.Failure(mapper(_error!)),
+            _ => throw new InvalidOperationException("Invalid state")
+        };
+    }
+
+    /// <summary>
+    /// Chains a remote data operation.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public RemoteData<U, TErr> AndThen<U>(Func<T, RemoteData<U, TErr>> binder)
+    {
+        ArgumentNullException.ThrowIfNull(binder);
+
+        return _state switch
+        {
+            RemoteDataState.Success => binder(_data!),
+            RemoteDataState.NotAsked => RemoteData<U, TErr>.NotAsked(),
+            RemoteDataState.Loading => RemoteData<U, TErr>.Loading(),
+            RemoteDataState.Failure => RemoteData<U, TErr>.Failure(_error!),
+            _ => throw new InvalidOperationException("Invalid state")
+        };
+    }
+
+    /// <summary>
+    /// Returns this RemoteData if Success, otherwise returns the alternative.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public RemoteData<T, TErr> Or(RemoteData<T, TErr> alternative)
+    {
+        return _state == RemoteDataState.Success ? this : alternative;
+    }
+
+    /// <summary>
+    /// Recovers from a Failure state by providing an alternative RemoteData.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public RemoteData<T, TErr> OrElse(Func<TErr, RemoteData<T, TErr>> recovery)
+    {
+        ArgumentNullException.ThrowIfNull(recovery);
+
+        return _state == RemoteDataState.Failure ? recovery(_error!) : this;
+    }
+
+    /// <summary>
+    /// Pattern matches on all four states.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Match(
+        Action notAskedAction,
+        Action loadingAction,
+        Action<T> successAction,
+        Action<TErr> failureAction)
+    {
+        ArgumentNullException.ThrowIfNull(notAskedAction);
+        ArgumentNullException.ThrowIfNull(loadingAction);
+        ArgumentNullException.ThrowIfNull(successAction);
+        ArgumentNullException.ThrowIfNull(failureAction);
+
+        switch (_state)
+        {
+            case RemoteDataState.NotAsked:
+                notAskedAction();
+                break;
+            case RemoteDataState.Loading:
+                loadingAction();
+                break;
+            case RemoteDataState.Success:
+                successAction(_data!);
+                break;
+            case RemoteDataState.Failure:
+                failureAction(_error!);
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Pattern matches on all four states and returns a result.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public U Match<U>(
+        Func<U> notAskedFunc,
+        Func<U> loadingFunc,
+        Func<T, U> successFunc,
+        Func<TErr, U> failureFunc)
+    {
+        ArgumentNullException.ThrowIfNull(notAskedFunc);
+        ArgumentNullException.ThrowIfNull(loadingFunc);
+        ArgumentNullException.ThrowIfNull(successFunc);
+        ArgumentNullException.ThrowIfNull(failureFunc);
+
+        return _state switch
+        {
+            RemoteDataState.NotAsked => notAskedFunc(),
+            RemoteDataState.Loading => loadingFunc(),
+            RemoteDataState.Success => successFunc(_data!),
+            RemoteDataState.Failure => failureFunc(_error!),
+            _ => throw new InvalidOperationException("Invalid state")
+        };
+    }
+
+    /// <summary>
+    /// Converts this RemoteData to an Option.
+    /// Returns Some if Success, None for all other states.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Option<T> ToOption()
+    {
+        return _state == RemoteDataState.Success
+            ? Option<T>.Some(_data!)
+            : Option<T>.None();
+    }
+
+    /// <summary>
+    /// Converts this RemoteData to a Result.
+    /// Returns Ok if Success, Err if Failure, throws for NotAsked/Loading.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Result<T, TErr> ToResult()
+    {
+        return _state switch
+        {
+            RemoteDataState.Success => Result<T, TErr>.Ok(_data!),
+            RemoteDataState.Failure => Result<T, TErr>.Err(_error!),
+            RemoteDataState.NotAsked => throw new InvalidOperationException("Cannot convert NotAsked to Result"),
+            RemoteDataState.Loading => throw new InvalidOperationException("Cannot convert Loading to Result"),
+            _ => throw new InvalidOperationException("Invalid state")
+        };
+    }
+
+    /// <summary>
+    /// Converts this RemoteData to a Result with default errors for NotAsked/Loading states.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Result<T, TErr> ToResult(TErr notAskedError, TErr loadingError)
+    {
+        return _state switch
+        {
+            RemoteDataState.Success => Result<T, TErr>.Ok(_data!),
+            RemoteDataState.Failure => Result<T, TErr>.Err(_error!),
+            RemoteDataState.NotAsked => Result<T, TErr>.Err(notAskedError),
+            RemoteDataState.Loading => Result<T, TErr>.Err(loadingError),
+            _ => throw new InvalidOperationException("Invalid state")
+        };
+    }
+
+    /// <inheritdoc />
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool Equals(RemoteData<T, TErr> other)
+    {
+        if (_state != other._state)
+            return false;
+
+        return _state switch
+        {
+            RemoteDataState.Success => EqualityComparer<T>.Default.Equals(_data, other._data),
+            RemoteDataState.Failure => EqualityComparer<TErr>.Default.Equals(_error, other._error),
+            _ => true // NotAsked and Loading have no data to compare
+        };
+    }
+
+    /// <inheritdoc />
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public override bool Equals(object? obj)
+    {
+        return obj is RemoteData<T, TErr> other && Equals(other);
+    }
+
+    /// <inheritdoc />
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public override int GetHashCode()
+    {
+        return _state switch
+        {
+            RemoteDataState.Success => HashCode.Combine(_state, _data),
+            RemoteDataState.Failure => HashCode.Combine(_state, _error),
+            _ => _state.GetHashCode()
+        };
+    }
+
+    /// <inheritdoc />
+    public override string ToString()
+    {
+        return _state switch
+        {
+            RemoteDataState.NotAsked => "NotAsked",
+            RemoteDataState.Loading => "Loading",
+            RemoteDataState.Success => $"Success({_data})",
+            RemoteDataState.Failure => $"Failure({_error})",
+            _ => "Invalid"
+        };
+    }
+
+    /// <summary>
+    /// Determines whether two RemoteData instances are equal.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator ==(RemoteData<T, TErr> left, RemoteData<T, TErr> right)
+    {
+        return left.Equals(right);
+    }
+
+    /// <summary>
+    /// Determines whether two RemoteData instances are not equal.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator !=(RemoteData<T, TErr> left, RemoteData<T, TErr> right)
+    {
+        return !left.Equals(right);
+    }
+
+    /// <summary>
+    /// Implicit conversion from T to RemoteData&lt;T, TErr&gt; (Success).
+    /// Allows: RemoteData&lt;int, string&gt; data = 42;
+    /// </summary>
+    /// <param name="data">The success data.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator RemoteData<T, TErr>(T data)
+    {
+        return Success(data);
+    }
+
+    /// <summary>
+    /// Deconstructs the RemoteData into its components for pattern matching.
+    /// </summary>
+    /// <param name="data">The success data, or default if not Success.</param>
+    /// <param name="isSuccess">True if the RemoteData is in Success state.</param>
+    /// <example>
+    /// <code>
+    /// var (data, isSuccess) = remoteData;
+    /// if (isSuccess)
+    ///     Console.WriteLine($"Data: {data}");
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Deconstruct(out T? data, out bool isSuccess)
+    {
+        data = _data;
+        isSuccess = _state == RemoteDataState.Success;
+    }
+
+    /// <summary>
+    /// Deconstructs the RemoteData into all its components for pattern matching.
+    /// </summary>
+    /// <param name="data">The success data, or default if not Success.</param>
+    /// <param name="error">The error, or default if not Failure.</param>
+    /// <param name="isNotAsked">True if in NotAsked state.</param>
+    /// <param name="isLoading">True if in Loading state.</param>
+    /// <param name="isSuccess">True if in Success state.</param>
+    /// <param name="isFailure">True if in Failure state.</param>
+    /// <example>
+    /// <code>
+    /// var (data, error, isNotAsked, isLoading, isSuccess, isFailure) = remoteData;
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Deconstruct(
+        out T? data,
+        out TErr? error,
+        out bool isNotAsked,
+        out bool isLoading,
+        out bool isSuccess,
+        out bool isFailure)
+    {
+        data = _data;
+        error = _error;
+        isNotAsked = _state == RemoteDataState.NotAsked;
+        isLoading = _state == RemoteDataState.Loading;
+        isSuccess = _state == RemoteDataState.Success;
+        isFailure = _state == RemoteDataState.Failure;
+    }
+}
+
+/// <summary>
+/// Extension methods for RemoteData&lt;T, E&gt;.
+/// </summary>
+public static class RemoteDataExtensions
+{
+    /// <summary>
+    /// Executes an action if the data is in Success state, allowing method chaining.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static RemoteData<T, TErr> Tap<T, TErr>(
+        this RemoteData<T, TErr> remoteData,
+        Action<T> action)
+    {
+        ArgumentNullException.ThrowIfNull(action);
+
+        if (remoteData.IsSuccess)
+            action(remoteData.Unwrap());
+
+        return remoteData;
+    }
+
+    /// <summary>
+    /// Executes an action if the data is in Failure state, allowing method chaining.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static RemoteData<T, TErr> TapFailure<T, TErr>(
+        this RemoteData<T, TErr> remoteData,
+        Action<TErr> action)
+    {
+        ArgumentNullException.ThrowIfNull(action);
+
+        if (remoteData.IsFailure)
+            action(remoteData.UnwrapError());
+
+        return remoteData;
+    }
+
+    /// <summary>
+    /// Executes an action if the data is in NotAsked state, allowing method chaining.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static RemoteData<T, TErr> TapNotAsked<T, TErr>(
+        this RemoteData<T, TErr> remoteData,
+        Action action)
+    {
+        ArgumentNullException.ThrowIfNull(action);
+
+        if (remoteData.IsNotAsked)
+            action();
+
+        return remoteData;
+    }
+
+    /// <summary>
+    /// Executes an action if the data is in Loading state, allowing method chaining.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static RemoteData<T, TErr> TapLoading<T, TErr>(
+        this RemoteData<T, TErr> remoteData,
+        Action action)
+    {
+        ArgumentNullException.ThrowIfNull(action);
+
+        if (remoteData.IsLoading)
+            action();
+
+        return remoteData;
+    }
+
+    /// <summary>
+    /// Executes an action if the data is in Failure state, allowing method chaining.
+    /// Alias for <see cref="TapFailure{T, TErr}"/> for backward compatibility.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static RemoteData<T, TErr> TapError<T, TErr>(
+        this RemoteData<T, TErr> remoteData,
+        Action<TErr> action) => remoteData.TapFailure(action);
+
+    /// <summary>
+    /// Converts a Result to RemoteData in Success or Failure state.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static RemoteData<T, TErr> ToRemoteData<T, TErr>(this Result<T, TErr> result)
+    {
+        return result.Match(
+            okFunc: static data => RemoteData<T, TErr>.Success(data),
+            errFunc: static err => RemoteData<T, TErr>.Failure(err)
+        );
+    }
+
+    /// <summary>
+    /// Wraps an async operation in RemoteData, starting with Loading and ending with Success/Failure.
+    /// </summary>
+    public static async Task<RemoteData<T, Exception>> FromTaskAsync<T>(Func<Task<T>> taskFunc)
+    {
+        ArgumentNullException.ThrowIfNull(taskFunc);
+
+        try
+        {
+            var result = await taskFunc().ConfigureAwait(false);
+            return RemoteData<T, Exception>.Success(result);
+        }
+        catch (Exception ex)
+        {
+            return RemoteData<T, Exception>.Failure(ex);
+        }
+    }
+
+    /// <summary>
+    /// Maps RemoteData with an async function.
+    /// </summary>
+    public static async Task<RemoteData<U, TErr>> MapAsync<T, TErr, U>(
+        this RemoteData<T, TErr> remoteData,
+        Func<T, Task<U>> mapper)
+    {
+        ArgumentNullException.ThrowIfNull(mapper);
+
+        if (!remoteData.IsSuccess)
+            return remoteData.Map(static _ => default(U)!); // Preserves state
+
+        var result = await mapper(remoteData.Unwrap()).ConfigureAwait(false);
+        return RemoteData<U, TErr>.Success(result);
+    }
+
+    /// <summary>
+    /// Returns true if the data is loaded (either Success or Failure).
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsLoaded<T, TErr>(this RemoteData<T, TErr> remoteData)
+    {
+        return remoteData.IsSuccess || remoteData.IsFailure;
+    }
+
+    /// <summary>
+    /// Returns true if the data is not loaded (either NotAsked or Loading).
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsNotLoaded<T, TErr>(this RemoteData<T, TErr> remoteData)
+    {
+        return remoteData.IsNotAsked || remoteData.IsLoading;
+    }
+}

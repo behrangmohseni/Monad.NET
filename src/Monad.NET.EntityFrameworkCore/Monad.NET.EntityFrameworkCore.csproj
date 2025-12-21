@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net6.0;net7.0;net8.0;net9.0</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    
+    <!-- Package Info -->
+    <PackageId>Monad.NET.EntityFrameworkCore</PackageId>
+    <PackageVersion>1.0.0-alpha.10</PackageVersion>
+    <Authors>Behrang Mohseni</Authors>
+    <Company>behrangmohseni.com</Company>
+    <Product>Monad.NET.EntityFrameworkCore</Product>
+    <Description>Entity Framework Core integration for Monad.NET - Option&lt;T&gt; property support and query extensions</Description>
+    <PackageTags>monad;functional;efcore;entityframework;option;nullable</PackageTags>
+    <PackageProjectUrl>https://behrangmohseni.com/monad_dot_net</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/behrangmohseni/Monad.NET</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
+    
+    <!-- Build settings -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Monad.NET\Monad.NET.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" Condition="'$(TargetFramework)' == 'net8.0' Or '$(TargetFramework)' == 'net9.0'" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.0" Condition="'$(TargetFramework)' == 'net7.0'" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.0" Condition="'$(TargetFramework)' == 'net6.0'" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" Condition="'$(TargetFramework)' == 'net8.0' Or '$(TargetFramework)' == 'net9.0'" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" Condition="'$(TargetFramework)' == 'net7.0'" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" Condition="'$(TargetFramework)' == 'net6.0'" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="" />
+    <None Include="..\..\icon.png" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+</Project>
+
