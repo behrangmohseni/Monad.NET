@@ -340,8 +340,8 @@ public class ReaderAsyncTests
     [Fact]
     public async Task Attempt_WrapsExceptionInTry()
     {
-        var reader = ReaderAsync<TestEnvironment, int>.From<TestEnvironment, int>(
-            _ => throw new InvalidOperationException("Test error"));
+        var reader = ReaderAsync<TestEnvironment, int>.From(
+            _ => Task.FromException<int>(new InvalidOperationException("Test error")));
         var attempted = reader.Attempt();
         var env = new TestEnvironment();
 
@@ -366,8 +366,8 @@ public class ReaderAsyncTests
     [Fact]
     public async Task OrElse_ReturnsFallbackReaderOnFailure()
     {
-        var reader = ReaderAsync<TestEnvironment, int>.From<TestEnvironment, int>(
-            _ => throw new InvalidOperationException());
+        var reader = ReaderAsync<TestEnvironment, int>.From(
+            _ => Task.FromException<int>(new InvalidOperationException()));
         var withFallback = reader.OrElse(ReaderAsync<TestEnvironment, int>.Pure(100));
         var env = new TestEnvironment();
 
@@ -379,8 +379,8 @@ public class ReaderAsyncTests
     [Fact]
     public async Task OrElse_ReturnsFallbackValueOnFailure()
     {
-        var reader = ReaderAsync<TestEnvironment, int>.From<TestEnvironment, int>(
-            _ => throw new InvalidOperationException());
+        var reader = ReaderAsync<TestEnvironment, int>.From(
+            _ => Task.FromException<int>(new InvalidOperationException()));
         var withFallback = reader.OrElse(100);
         var env = new TestEnvironment();
 
@@ -393,7 +393,7 @@ public class ReaderAsyncTests
     public async Task Retry_RetriesOnFailure()
     {
         var attempts = 0;
-        var reader = ReaderAsync<TestEnvironment, int>.From<TestEnvironment, int>(async _ =>
+        var reader = ReaderAsync<TestEnvironment, int>.From(async _ =>
         {
             await Task.Delay(1);
             attempts++;
@@ -413,8 +413,8 @@ public class ReaderAsyncTests
     [Fact]
     public async Task Retry_ThrowsAfterAllRetriesExhausted()
     {
-        var reader = ReaderAsync<TestEnvironment, int>.From<TestEnvironment, int>(
-            _ => throw new InvalidOperationException("Permanent error"));
+        var reader = ReaderAsync<TestEnvironment, int>.From(
+            _ => Task.FromException<int>(new InvalidOperationException("Permanent error")));
         var retrying = reader.Retry(2);
         var env = new TestEnvironment();
 
@@ -425,7 +425,7 @@ public class ReaderAsyncTests
     public async Task RetryWithDelay_RetriesWithDelayBetweenAttempts()
     {
         var attempts = 0;
-        var reader = ReaderAsync<TestEnvironment, int>.From<TestEnvironment, int>(async _ =>
+        var reader = ReaderAsync<TestEnvironment, int>.From(async _ =>
         {
             await Task.Delay(1);
             attempts++;
