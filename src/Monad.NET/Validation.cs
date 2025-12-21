@@ -487,6 +487,65 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     }
 
     /// <summary>
+    /// Validates the contained value against a predicate. If the validation is already invalid,
+    /// returns this unchanged. If the predicate returns false, returns an Invalid validation with the specified error.
+    /// This is useful for adding additional validation rules to an already valid value.
+    /// </summary>
+    /// <param name="predicate">The predicate to test the value against.</param>
+    /// <param name="error">The error to return if the predicate fails.</param>
+    /// <returns>This validation if valid and predicate passes; Invalid with error if predicate fails; or this if already invalid.</returns>
+    /// <example>
+    /// <code>
+    /// var validation = Validation&lt;int, string&gt;.Valid(18)
+    ///     .Ensure(x => x >= 18, "Must be at least 18")
+    ///     .Ensure(x => x <= 120, "Must be at most 120");
+    /// // Valid(18)
+    /// 
+    /// var invalid = Validation&lt;int, string&gt;.Valid(15)
+    ///     .Ensure(x => x >= 18, "Must be at least 18");
+    /// // Invalid(["Must be at least 18"])
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Validation<T, TErr> Ensure(Func<T, bool> predicate, TErr error)
+    {
+        ArgumentNullException.ThrowIfNull(predicate);
+        if (error is null)
+            ThrowHelper.ThrowArgumentNull(nameof(error), "Error cannot be null.");
+
+        if (!_isValid)
+            return this;
+
+        return predicate(_value!) ? this : Validation<T, TErr>.Invalid(error);
+    }
+
+    /// <summary>
+    /// Validates the contained value against a predicate with a lazy error factory.
+    /// If the validation is already invalid, returns this unchanged (error factory is not called).
+    /// If the predicate returns false, returns an Invalid validation with the error from the factory.
+    /// </summary>
+    /// <param name="predicate">The predicate to test the value against.</param>
+    /// <param name="errorFactory">The factory function to create the error if the predicate fails.</param>
+    /// <returns>This validation if valid and predicate passes; Invalid with error if predicate fails; or this if already invalid.</returns>
+    /// <example>
+    /// <code>
+    /// var validation = Validation&lt;User, string&gt;.Valid(user)
+    ///     .Ensure(u => u.Email.Contains("@"), () => $"Invalid email: {user.Email}");
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Validation<T, TErr> Ensure(Func<T, bool> predicate, Func<TErr> errorFactory)
+    {
+        ArgumentNullException.ThrowIfNull(predicate);
+        ArgumentNullException.ThrowIfNull(errorFactory);
+
+        if (!_isValid)
+            return this;
+
+        return predicate(_value!) ? this : Validation<T, TErr>.Invalid(errorFactory());
+    }
+
+    /// <summary>
     /// Pattern matches on the validation.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -749,6 +808,33 @@ public static class ValidationExtensions
             okFunc: static value => Validation<T, TErr>.Valid(value),
             errFunc: static err => Validation<T, TErr>.Invalid(err)
         );
+    }
+
+    /// <summary>
+    /// Flattens a nested Validation into a single Validation.
+    /// If the outer validation is invalid, returns those errors.
+    /// If the outer is valid and inner is invalid, returns the inner's errors.
+    /// If both are valid, returns the inner's value.
+    /// </summary>
+    /// <typeparam name="T">The type of the value.</typeparam>
+    /// <typeparam name="TErr">The type of the error.</typeparam>
+    /// <param name="nested">The nested validation to flatten.</param>
+    /// <returns>The flattened validation.</returns>
+    /// <example>
+    /// <code>
+    /// var nested = Validation&lt;Validation&lt;int, string&gt;, string&gt;.Valid(
+    ///     Validation&lt;int, string&gt;.Valid(42));
+    /// var flattened = nested.Flatten(); // Valid(42)
+    /// 
+    /// var nestedInvalid = Validation&lt;Validation&lt;int, string&gt;, string&gt;.Valid(
+    ///     Validation&lt;int, string&gt;.Invalid("inner error"));
+    /// var flattenedInvalid = nestedInvalid.Flatten(); // Invalid(["inner error"])
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Validation<T, TErr> Flatten<T, TErr>(this Validation<Validation<T, TErr>, TErr> nested)
+    {
+        return nested.AndThen(static inner => inner);
     }
 
     #region Async Operations

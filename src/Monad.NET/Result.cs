@@ -379,6 +379,41 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     }
 
     /// <summary>
+    /// Maps both the Ok and Err values using the provided functions.
+    /// This is useful when you need to transform both the success and error types simultaneously.
+    /// </summary>
+    /// <typeparam name="U">The new success type.</typeparam>
+    /// <typeparam name="F">The new error type.</typeparam>
+    /// <param name="okMapper">The function to apply to the Ok value.</param>
+    /// <param name="errMapper">The function to apply to the Err value.</param>
+    /// <returns>A new Result with both types transformed.</returns>
+    /// <example>
+    /// <code>
+    /// var result = Result&lt;int, string&gt;.Ok(42);
+    /// var mapped = result.BiMap(
+    ///     x => x.ToString(),
+    ///     e => new Error(e)
+    /// ); // Result&lt;string, Error&gt;.Ok("42")
+    /// 
+    /// var error = Result&lt;int, string&gt;.Err("not found");
+    /// var mappedError = error.BiMap(
+    ///     x => x.ToString(),
+    ///     e => new Error(e)
+    /// ); // Result&lt;string, Error&gt;.Err(Error("not found"))
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Result<U, F> BiMap<U, F>(Func<T, U> okMapper, Func<TErr, F> errMapper)
+    {
+        ArgumentNullException.ThrowIfNull(okMapper);
+        ArgumentNullException.ThrowIfNull(errMapper);
+
+        return _isOk
+            ? Result<U, F>.Ok(okMapper(_value!))
+            : Result<U, F>.Err(errMapper(_error!));
+    }
+
+    /// <summary>
     /// Returns the provided default (if Err), or applies a function to the contained value (if Ok).
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -722,6 +757,62 @@ public static class ResultExtensions
             action(result.UnwrapErr());
 
         return result;
+    }
+
+    /// <summary>
+    /// Returns the contained Ok value if successful, otherwise throws the specified exception.
+    /// This is an alternative to Expect that allows throwing specific exception types.
+    /// </summary>
+    /// <typeparam name="T">The type of the success value.</typeparam>
+    /// <typeparam name="TErr">The type of the error value.</typeparam>
+    /// <param name="result">The source Result.</param>
+    /// <param name="exception">The exception to throw if Err.</param>
+    /// <returns>The contained Ok value if successful.</returns>
+    /// <exception cref="Exception">Throws the specified exception if Err.</exception>
+    /// <example>
+    /// <code>
+    /// var ok = Result&lt;User, string&gt;.Ok(user);
+    /// var value = ok.ThrowIfErr(new UserNotFoundException()); // returns user
+    /// 
+    /// var err = Result&lt;User, string&gt;.Err("not found");
+    /// err.ThrowIfErr(new UserNotFoundException()); // throws UserNotFoundException
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static T ThrowIfErr<T, TErr>(this Result<T, TErr> result, Exception exception)
+    {
+        ArgumentNullException.ThrowIfNull(exception);
+
+        if (result.IsErr)
+            throw exception;
+
+        return result.Unwrap();
+    }
+
+    /// <summary>
+    /// Returns the contained Ok value if successful, otherwise throws an exception created by the factory.
+    /// The factory receives the error value and is only called if the Result is Err.
+    /// </summary>
+    /// <typeparam name="T">The type of the success value.</typeparam>
+    /// <typeparam name="TErr">The type of the error value.</typeparam>
+    /// <param name="result">The source Result.</param>
+    /// <param name="exceptionFactory">The factory function to create the exception from the error.</param>
+    /// <returns>The contained Ok value if successful.</returns>
+    /// <exception cref="Exception">Throws the exception from the factory if Err.</exception>
+    /// <example>
+    /// <code>
+    /// var result = GetUser(id).ThrowIfErr(err => new UserNotFoundException($"User not found: {err}"));
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static T ThrowIfErr<T, TErr>(this Result<T, TErr> result, Func<TErr, Exception> exceptionFactory)
+    {
+        ArgumentNullException.ThrowIfNull(exceptionFactory);
+
+        if (result.IsErr)
+            throw exceptionFactory(result.UnwrapErr());
+
+        return result.Unwrap();
     }
 
     /// <summary>

@@ -94,6 +94,20 @@ Represents an optional value - either `Some(value)` or `None`.
 | `Unless<T>(bool condition, Func<T> factory)` | Returns Some(factory()) if condition is false, else None |
 | `Unless<T>(bool condition, T value)` | Returns Some(value) if condition is false, else None |
 
+#### DefaultIfNone Extensions
+
+| Method | Description |
+|--------|-------------|
+| `DefaultIfNone<T>(this Option<T>, T default)` | Returns original if Some, else Some(default) |
+| `DefaultIfNone<T>(this Option<T>, Func<T> factory)` | Returns original if Some, else Some(factory()) |
+
+#### ThrowIfNone Extensions
+
+| Method | Description |
+|--------|-------------|
+| `ThrowIfNone<T>(this Option<T>, Exception)` | Returns value if Some, throws exception if None |
+| `ThrowIfNone<T>(this Option<T>, Func<Exception>)` | Returns value if Some, throws factory() if None |
+
 #### Conversion Extensions
 
 | Method | Description |
@@ -186,6 +200,7 @@ Represents success (`Ok`) or failure (`Err`).
 | `TryGetError(out E? error)` | `bool` | C#-style TryGet for error |
 | `Map<U>(Func<T, U>)` | `Result<U, E>` | Transforms the Ok value |
 | `MapErr<F>(Func<E, F>)` | `Result<T, F>` | Transforms the Err value |
+| `BiMap<U, F>(Func<T, U>, Func<E, F>)` | `Result<U, F>` | Transforms both Ok and Err values |
 | `AndThen<U>(Func<T, Result<U, E>>)` | `Result<U, E>` | Chains operations |
 | `OrElse<F>(Func<E, Result<T, F>>)` | `Result<T, F>` | Handles error |
 | `Match<U>(okFunc, errFunc)` | `U` | Pattern matching |
@@ -210,6 +225,13 @@ Represents success (`Ok`) or failure (`Err`).
 | `Combine(r1, r2, r3, r4, combiner)` | Combines 4 Results with function |
 | `Combine(IEnumerable<Result>)` | Combines collection into list |
 | `CombineAll(IEnumerable<Result>)` | Combines ignoring values (returns Unit) |
+
+### ThrowIfErr Extensions
+
+| Method | Description |
+|--------|-------------|
+| `ThrowIfErr<T, E>(this Result<T, E>, Exception)` | Returns value if Ok, throws exception if Err |
+| `ThrowIfErr<T, E>(this Result<T, E>, Func<E, Exception>)` | Returns value if Ok, throws factory(err) if Err |
 
 ### Async Extensions
 
@@ -300,11 +322,21 @@ Accumulates errors instead of short-circuiting.
 | `MapErrors<F>(Func<E, F>)` | `Validation<T, F>` | Transforms errors |
 | `Apply<T2, U>(other, combiner)` | `Validation<U, E>` | Combines validations |
 | `And(Validation<T, E>)` | `Validation<T, E>` | Combines, keeping errors |
+| `Ensure(Func<T, bool>, E)` | `Validation<T, E>` | Validates against predicate |
+| `Ensure(Func<T, bool>, Func<E>)` | `Validation<T, E>` | Validates with lazy error |
 | `Match<U>(validFunc, invalidFunc)` | `U` | Pattern matching |
 | `ToResult()` | `Result<T, IReadOnlyList<E>>` | Converts to Result |
 | `ToOption()` | `Option<T>` | Valid to Some |
 | `Deconstruct(out T?, out bool)` | `void` | Deconstructs to `(value, isValid)` |
 | `Deconstruct(out T?, out IReadOnlyList<E>, out bool)` | `void` | Deconstructs to `(value, errors, isValid)` |
+
+### Extension Methods (ValidationExtensions)
+
+| Method | Description |
+|--------|-------------|
+| `Flatten<T, E>(this Validation<Validation<T, E>, E>)` | Flattens nested Validation |
+| `Combine(this IEnumerable<Validation<T, E>>)` | Combines multiple validations, accumulating errors |
+| `ToValidation<T, E>(this Result<T, E>)` | Converts Result to Validation |
 
 ### Operators
 

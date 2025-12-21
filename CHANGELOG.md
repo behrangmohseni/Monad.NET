@@ -9,6 +9,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.0-alpha.13] - 2025-12-21
+
+### Added
+
+- **Validation.Ensure** - Conditional validation with predicate
+  - `Ensure(Func<T, bool> predicate, TErr error)` - Validates against predicate
+  - `Ensure(Func<T, bool> predicate, Func<TErr> errorFactory)` - Lazy error creation
+  - Chain multiple validations fluently
+  - Short-circuits if already invalid (preserves original errors)
+
+- **Result.BiMap** - Transform both success and error types
+  - `BiMap<U, F>(Func<T, U> okMapper, Func<TErr, F> errMapper)` - Maps both sides
+  - Equivalent to `Map().MapErr()` but in one operation
+  - Useful for adapting Result types between layers
+
+- **Validation.Flatten** - Flatten nested validations
+  - `Flatten<T, TErr>(this Validation<Validation<T, TErr>, TErr>)` - Flattens nested structure
+  - Preserves outer errors if outer is invalid
+  - Returns inner errors if outer valid but inner invalid
+
+- **Option.DefaultIfNone** - Replace None with default value wrapped in Some
+  - `DefaultIfNone(T defaultValue)` - Returns Some(default) if None
+  - `DefaultIfNone(Func<T> factory)` - Lazy default creation
+  - Unlike `UnwrapOr`, returns `Option<T>` not `T`
+
+- **Option.ThrowIfNone** - Throw specific exceptions on None
+  - `ThrowIfNone(Exception exception)` - Throws provided exception
+  - `ThrowIfNone(Func<Exception> factory)` - Lazy exception creation
+  - Alternative to `Expect` with custom exception types
+
+- **Result.ThrowIfErr** - Throw specific exceptions on Err
+  - `ThrowIfErr(Exception exception)` - Throws provided exception
+  - `ThrowIfErr(Func<TErr, Exception> factory)` - Create exception from error
+  - Alternative to `Expect` with custom exception types
+
+- **Enhanced Benchmark Tests**
+  - New `InliningBenchmarks` - Tests for AggressiveInlining effectiveness
+  - New `NewMethodsBenchmarks` - Benchmarks for all new methods
+  - Comparison benchmarks (BiMap vs separate maps, Ensure vs AndThen, etc.)
+
+### Changed
+
+- Updated API documentation with new methods
+- Added comprehensive tests for all new features (50+ new tests)
+
+---
+
 ## [1.0.0-alpha.12] - 2025-12-21
 
 ### Added
