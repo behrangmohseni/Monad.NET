@@ -497,12 +497,12 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     /// <example>
     /// <code>
     /// var validation = Validation&lt;int, string&gt;.Valid(18)
-    ///     .Ensure(x => x >= 18, "Must be at least 18")
-    ///     .Ensure(x => x <= 120, "Must be at most 120");
+    ///     .Ensure(x =&gt; x &gt;= 18, "Must be at least 18")
+    ///     .Ensure(x =&gt; x &lt;= 120, "Must be at most 120");
     /// // Valid(18)
     /// 
     /// var invalid = Validation&lt;int, string&gt;.Valid(15)
-    ///     .Ensure(x => x >= 18, "Must be at least 18");
+    ///     .Ensure(x =&gt; x &gt;= 18, "Must be at least 18");
     /// // Invalid(["Must be at least 18"])
     /// </code>
     /// </example>
@@ -530,7 +530,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     /// <example>
     /// <code>
     /// var validation = Validation&lt;User, string&gt;.Valid(user)
-    ///     .Ensure(u => u.Email.Contains("@"), () => $"Invalid email: {user.Email}");
+    ///     .Ensure(u =&gt; u.Email.Contains("@"), () =&gt; $"Invalid email: {user.Email}");
     /// </code>
     /// </example>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
