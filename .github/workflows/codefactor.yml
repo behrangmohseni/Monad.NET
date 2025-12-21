@@ -15,9 +15,14 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Run CodeFactor analysis
-      # This action assumes the CodeFactor GitHub App or Action is available.
-      # If the org uses the CodeFactor GitHub App, the app will pick up this repo automatically.
-      uses: codefactor/codefactor-action@v1
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+    - name: CodeFactor integration (no-op)
+      run: |
+        echo "CodeFactor: no action is configured in this workflow."
+        echo "Recommended: install the CodeFactor GitHub App at https://www.codefactor.io/ and enable this repository."
+        echo "If you prefer an automated run from Actions, set the secret CODEFACTOR_TOKEN and implement an API call here."
+
+    - name: "Optional: trigger CodeFactor API (requires CODEFACTOR_TOKEN)"
+      if: ${{ secrets.CODEFACTOR_TOKEN != '' }}
+      run: |
+        echo "CODEFACTOR_TOKEN provided — you can call CodeFactor API from here."
+        echo "Add a curl or script to POST code or trigger analysis as needed."
