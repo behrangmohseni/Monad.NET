@@ -242,3 +242,202 @@ public static class RemoteDataLinq
                 resultSelector(t, u)));
     }
 }
+
+/// <summary>
+/// LINQ query syntax support for Try&lt;T&gt;.
+/// Enables C# query comprehension syntax with from, let, where, and select.
+/// </summary>
+/// <example>
+/// <code>
+/// var result = from x in Try&lt;int&gt;.Of(() => Parse("42"))
+///              from y in Try&lt;int&gt;.Of(() => Parse("10"))
+///              select x + y;
+/// </code>
+/// </example>
+public static class TryLinq
+{
+    /// <summary>
+    /// Enables LINQ Select (projection) for Try&lt;T&gt;.
+    /// Equivalent to Map.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Try<U> Select<T, U>(this Try<T> @try, Func<T, U> selector)
+    {
+        return @try.Map(selector);
+    }
+
+    /// <summary>
+    /// Enables LINQ SelectMany (monadic bind) for Try&lt;T&gt;.
+    /// This is what makes query comprehension work.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Try<U> SelectMany<T, U>(
+        this Try<T> @try,
+        Func<T, Try<U>> selector)
+    {
+        return @try.FlatMap(selector);
+    }
+
+    /// <summary>
+    /// Enables LINQ SelectMany with result selector.
+    /// This allows multiple 'from' clauses in query syntax.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Try<V> SelectMany<T, U, V>(
+        this Try<T> @try,
+        Func<T, Try<U>> selector,
+        Func<T, U, V> resultSelector)
+    {
+        return @try.FlatMap(t =>
+            selector(t).Map(u =>
+                resultSelector(t, u)));
+    }
+
+    /// <summary>
+    /// Enables LINQ Where (filtering) for Try&lt;T&gt;.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Try<T> Where<T>(this Try<T> @try, Func<T, bool> predicate)
+    {
+        return @try.Filter(predicate);
+    }
+}
+
+/// <summary>
+/// LINQ query syntax support for Validation&lt;T, E&gt;.
+/// Enables C# query comprehension syntax with from, let, and select.
+/// </summary>
+/// <example>
+/// <code>
+/// var result = from name in ValidateName(input.Name)
+///              from email in ValidateEmail(input.Email)
+///              select new User(name, email);
+/// </code>
+/// </example>
+public static class ValidationLinq
+{
+    /// <summary>
+    /// Enables LINQ Select (projection) for Validation&lt;T, E&gt;.
+    /// Equivalent to Map.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Validation<U, TErr> Select<T, TErr, U>(
+        this Validation<T, TErr> validation,
+        Func<T, U> selector)
+    {
+        return validation.Map(selector);
+    }
+
+    /// <summary>
+    /// Enables LINQ SelectMany (monadic bind) for Validation&lt;T, E&gt;.
+    /// This is what makes query comprehension work.
+    /// Note: This uses AndThen which short-circuits on first error.
+    /// For accumulating errors, use Validation.Apply or Validation.Zip instead.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Validation<U, TErr> SelectMany<T, TErr, U>(
+        this Validation<T, TErr> validation,
+        Func<T, Validation<U, TErr>> selector)
+    {
+        return validation.AndThen(selector);
+    }
+
+    /// <summary>
+    /// Enables LINQ SelectMany with result selector.
+    /// This allows multiple 'from' clauses in query syntax.
+    /// Note: This uses AndThen which short-circuits on first error.
+    /// For accumulating errors, use Validation.Apply or Validation.Zip instead.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Validation<V, TErr> SelectMany<T, TErr, U, V>(
+        this Validation<T, TErr> validation,
+        Func<T, Validation<U, TErr>> selector,
+        Func<T, U, V> resultSelector)
+    {
+        return validation.AndThen(t =>
+            selector(t).Map(u =>
+                resultSelector(t, u)));
+    }
+}
+
+/// <summary>
+/// LINQ query syntax support for Writer&lt;W, T&gt;.
+/// Enables C# query comprehension syntax with from, let, and select.
+/// </summary>
+/// <example>
+/// <code>
+/// var result = from x in Writer&lt;string, int&gt;.Tell(10, "Started with 10\n")
+///              from y in Writer&lt;string, int&gt;.Tell(x * 2, "Doubled\n")
+///              select y + 1;
+/// </code>
+/// </example>
+public static class WriterLinq
+{
+    /// <summary>
+    /// Enables LINQ Select (projection) for Writer&lt;W, T&gt;.
+    /// Equivalent to Map.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Writer<TLog, U> Select<TLog, T, U>(
+        this Writer<TLog, T> writer,
+        Func<T, U> selector)
+    {
+        return writer.Map(selector);
+    }
+
+    /// <summary>
+    /// Enables LINQ SelectMany (monadic bind) for Writer&lt;string, T&gt;.
+    /// This is what makes query comprehension work.
+    /// Uses string concatenation for log combination.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Writer<string, U> SelectMany<T, U>(
+        this Writer<string, T> writer,
+        Func<T, Writer<string, U>> selector)
+    {
+        return writer.FlatMap(selector, (a, b) => a + b);
+    }
+
+    /// <summary>
+    /// Enables LINQ SelectMany with result selector for Writer&lt;string, T&gt;.
+    /// This allows multiple 'from' clauses in query syntax.
+    /// Uses string concatenation for log combination.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Writer<string, V> SelectMany<T, U, V>(
+        this Writer<string, T> writer,
+        Func<T, Writer<string, U>> selector,
+        Func<T, U, V> resultSelector)
+    {
+        return writer.FlatMap(t =>
+            selector(t).Map(u =>
+                resultSelector(t, u)), (a, b) => a + b);
+    }
+
+    /// <summary>
+    /// Enables LINQ SelectMany (monadic bind) for Writer&lt;List&lt;TLog&gt;, T&gt;.
+    /// Uses list concatenation for log combination.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Writer<List<TLog>, U> SelectMany<TLog, T, U>(
+        this Writer<List<TLog>, T> writer,
+        Func<T, Writer<List<TLog>, U>> selector)
+    {
+        return writer.FlatMap(selector, (a, b) => [.. a, .. b]);
+    }
+
+    /// <summary>
+    /// Enables LINQ SelectMany with result selector for Writer&lt;List&lt;TLog&gt;, T&gt;.
+    /// Uses list concatenation for log combination.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Writer<List<TLog>, V> SelectMany<TLog, T, U, V>(
+        this Writer<List<TLog>, T> writer,
+        Func<T, Writer<List<TLog>, U>> selector,
+        Func<T, U, V> resultSelector)
+    {
+        return writer.FlatMap(t =>
+            selector(t).Map(u =>
+                resultSelector(t, u)), (a, b) => [.. a, .. b]);
+    }
+}

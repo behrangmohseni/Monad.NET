@@ -346,6 +346,18 @@ Accumulates errors instead of short-circuiting.
 |----------|-------------|
 | `implicit operator Validation<T, E>(T value)` | Converts value to `Valid` |
 
+### LINQ Support
+
+Validation supports LINQ query syntax:
+
+```csharp
+var result = from name in ValidateName(input.Name)
+             from email in ValidateEmail(input.Email)
+             select new User(name, email);
+```
+
+> **Note:** LINQ uses `AndThen` which short-circuits on first error. For accumulating errors, use `Validation.Apply` or `Validation.Zip` instead.
+
 ---
 
 ## Try\<T\>
@@ -397,6 +409,17 @@ Captures exceptions as values.
 |----------|-------------|
 | `implicit operator Try<T>(T value)` | Converts value to `Success` |
 | `implicit operator Try<T>(Exception ex)` | Converts exception to `Failure` |
+
+### LINQ Support
+
+Try supports LINQ query syntax:
+
+```csharp
+var result = from x in Try<int>.Of(() => ParseInt("42"))
+             from y in Try<int>.Of(() => ParseInt("10"))
+             where x > 0
+             select x + y;
+```
 
 ---
 
@@ -488,6 +511,7 @@ List guaranteed to have at least one element.
 | `ToArray()` | `T[]` | Converts to array |
 | `Tap(Action<T>)` | `NonEmptyList<T>` | Executes action for each element |
 | `TapIndexed(Action<T, int>)` | `NonEmptyList<T>` | Executes action with index for each element |
+| `Deconstruct(out T, out IReadOnlyList<T>)` | `void` | Deconstructs for pattern matching `var (head, tail) = list;` |
 
 ### Operators
 
@@ -527,6 +551,17 @@ Computations with accumulated output.
 | `Tap(Action<T>)` | `Writer<W, T>` | Executes action with value |
 | `TapLog(Action<W>)` | `Writer<W, T>` | Executes action with log |
 | `Deconstruct(out T, out W)` | `void` | Deconstructs for pattern matching `var (value, log) = writer;` |
+
+### LINQ Support
+
+Writer supports LINQ query syntax for `Writer<string, T>` and `Writer<List<TLog>, T>`:
+
+```csharp
+var result = from x in Writer<string, int>.Tell(10, "Started\n")
+             from y in Writer<string, int>.Tell(20, "Added 20\n")
+             select x + y;
+// result.Value = 30, result.Log = "Started\nAdded 20\n"
+```
 
 ---
 

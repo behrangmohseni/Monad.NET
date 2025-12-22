@@ -453,6 +453,26 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     {
         return Of(value);
     }
+
+    /// <summary>
+    /// Deconstructs the NonEmptyList into its head and tail for pattern matching.
+    /// </summary>
+    /// <param name="head">The first element of the list.</param>
+    /// <param name="tail">The remaining elements (may be empty).</param>
+    /// <example>
+    /// <code>
+    /// var list = NonEmptyList&lt;int&gt;.Of(1, 2, 3);
+    /// var (head, tail) = list;
+    /// Console.WriteLine($"Head: {head}, Tail count: {tail.Count}");
+    /// // Output: Head: 1, Tail count: 2
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Deconstruct(out T head, out IReadOnlyList<T> tail)
+    {
+        head = _head;
+        tail = _tail;
+    }
 }
 
 /// <summary>

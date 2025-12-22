@@ -336,5 +336,218 @@ public class LinqTests
     }
 
     #endregion
+
+    #region Try LINQ Tests
+
+    [Fact]
+    public void Try_Select_TransformsValue()
+    {
+        var result = from x in Try<int>.Success(42)
+                     select x * 2;
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(84, result.Get());
+    }
+
+    [Fact]
+    public void Try_SelectMany_ChainsOperations()
+    {
+        var result = from x in Try<int>.Success(10)
+                     from y in Try<int>.Success(20)
+                     select x + y;
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(30, result.Get());
+    }
+
+    [Fact]
+    public void Try_SelectMany_WithFailure_ReturnsFailure()
+    {
+        var result = from x in Try<int>.Success(10)
+                     from y in Try<int>.Failure(new InvalidOperationException("Failed"))
+                     select x + y;
+
+        Assert.True(result.IsFailure);
+    }
+
+    [Fact]
+    public void Try_Where_FiltersValues()
+    {
+        var result = from x in Try<int>.Success(42)
+                     where x > 40
+                     select x;
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(42, result.Get());
+    }
+
+    [Fact]
+    public void Try_Where_FailingPredicate_ReturnsFailure()
+    {
+        var result = from x in Try<int>.Success(42)
+                     where x > 50
+                     select x;
+
+        Assert.True(result.IsFailure);
+    }
+
+    [Fact]
+    public void Try_ComplexQuery_ChainsMultipleOperations()
+    {
+        static Try<int> ParseInt(string s) =>
+            Try<int>.Of(() => int.Parse(s));
+
+        var result = from x in ParseInt("10")
+                     from y in ParseInt("20")
+                     from z in ParseInt("30")
+                     select x + y + z;
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(60, result.Get());
+    }
+
+    #endregion
+
+    #region Validation LINQ Tests
+
+    [Fact]
+    public void Validation_Select_TransformsValue()
+    {
+        var result = from x in Validation<int, string>.Valid(42)
+                     select x * 2;
+
+        Assert.True(result.IsValid);
+        Assert.Equal(84, result.Unwrap());
+    }
+
+    [Fact]
+    public void Validation_SelectMany_ChainsOperations()
+    {
+        var result = from x in Validation<int, string>.Valid(10)
+                     from y in Validation<int, string>.Valid(20)
+                     select x + y;
+
+        Assert.True(result.IsValid);
+        Assert.Equal(30, result.Unwrap());
+    }
+
+    [Fact]
+    public void Validation_SelectMany_WithInvalid_ReturnsInvalid()
+    {
+        var result = from x in Validation<int, string>.Valid(10)
+                     from y in Validation<int, string>.Invalid("Error")
+                     select x + y;
+
+        Assert.True(result.IsInvalid);
+    }
+
+    [Fact]
+    public void Validation_ComplexQuery_ChainsValidations()
+    {
+        static Validation<string, string> ValidateName(string name) =>
+            string.IsNullOrWhiteSpace(name)
+                ? Validation<string, string>.Invalid("Name is required")
+                : Validation<string, string>.Valid(name);
+
+        static Validation<int, string> ValidateAge(int age) =>
+            age < 0
+                ? Validation<int, string>.Invalid("Age must be positive")
+                : Validation<int, string>.Valid(age);
+
+        var result = from name in ValidateName("John")
+                     from age in ValidateAge(30)
+                     select $"{name} is {age} years old";
+
+        Assert.True(result.IsValid);
+        Assert.Equal("John is 30 years old", result.Unwrap());
+    }
+
+    #endregion
+
+    #region Writer LINQ Tests
+
+    [Fact]
+    public void Writer_Select_TransformsValue()
+    {
+        var writer = Writer<string, int>.Tell(42, "Initial value\n");
+        var result = from x in writer
+                     select x * 2;
+
+        Assert.Equal(84, result.Value);
+        Assert.Equal("Initial value\n", result.Log);
+    }
+
+    [Fact]
+    public void Writer_SelectMany_ChainsOperationsWithLogs()
+    {
+        var result = from x in Writer<string, int>.Tell(10, "Started\n")
+                     from y in Writer<string, int>.Tell(20, "Added 20\n")
+                     select x + y;
+
+        Assert.Equal(30, result.Value);
+        Assert.Equal("Started\nAdded 20\n", result.Log);
+    }
+
+    [Fact]
+    public void Writer_SelectMany_MultipleChains()
+    {
+        var result = from a in Writer<string, int>.Tell(1, "a=1\n")
+                     from b in Writer<string, int>.Tell(2, "b=2\n")
+                     from c in Writer<string, int>.Tell(3, "c=3\n")
+                     select a + b + c;
+
+        Assert.Equal(6, result.Value);
+        Assert.Equal("a=1\nb=2\nc=3\n", result.Log);
+    }
+
+    [Fact]
+    public void Writer_ListLog_SelectMany_ChainsWithListConcatenation()
+    {
+        var result = from x in Writer<List<string>, int>.Tell(10, ["Step 1"])
+                     from y in Writer<List<string>, int>.Tell(20, ["Step 2"])
+                     select x + y;
+
+        Assert.Equal(30, result.Value);
+        Assert.Equal(2, result.Log.Count);
+        Assert.Equal("Step 1", result.Log[0]);
+        Assert.Equal("Step 2", result.Log[1]);
+    }
+
+    #endregion
+
+    #region NonEmptyList Deconstruct Tests
+
+    [Fact]
+    public void NonEmptyList_Deconstruct_SingleElement()
+    {
+        var list = NonEmptyList<int>.Of(42);
+        var (head, tail) = list;
+
+        Assert.Equal(42, head);
+        Assert.Empty(tail);
+    }
+
+    [Fact]
+    public void NonEmptyList_Deconstruct_MultipleElements()
+    {
+        var list = NonEmptyList<int>.Of(1, 2, 3, 4, 5);
+        var (head, tail) = list;
+
+        Assert.Equal(1, head);
+        Assert.Equal(4, tail.Count);
+        Assert.Equal([2, 3, 4, 5], tail);
+    }
+
+    [Fact]
+    public void NonEmptyList_Deconstruct_PatternMatching()
+    {
+        var list = NonEmptyList<string>.Of("first", "second", "third");
+        var (head, tail) = list;
+
+        Assert.Equal("first", head);
+        Assert.Equal(2, tail.Count);
+    }
+
+    #endregion
 }
 
