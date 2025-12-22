@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 namespace Monad.NET;
@@ -5,6 +6,7 @@ namespace Monad.NET;
 /// <summary>
 /// Extension methods for working with IAsyncEnumerable and monad types.
 /// </summary>
+[EditorBrowsable(EditorBrowsableState.Never)]
 public static class AsyncEnumerableExtensions
 {
     #region Option Extensions

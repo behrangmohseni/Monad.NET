@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 namespace Monad.NET;
@@ -723,6 +724,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
 /// <summary>
 /// Extension methods for Result&lt;T, TErr&gt;.
 /// </summary>
+[EditorBrowsable(EditorBrowsableState.Never)]
 public static class ResultExtensions
 {
     /// <summary>

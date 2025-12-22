@@ -1,4 +1,5 @@
 using System.Collections;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 namespace Monad.NET;
@@ -478,6 +479,7 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
 /// <summary>
 /// Extension methods for NonEmptyList&lt;T&gt;.
 /// </summary>
+[EditorBrowsable(EditorBrowsableState.Never)]
 public static class NonEmptyListExtensions
 {
     /// <summary>

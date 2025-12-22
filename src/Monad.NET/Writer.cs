@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -263,6 +264,7 @@ public readonly struct Writer<TLog, T> : IEquatable<Writer<TLog, T>>
 /// <summary>
 /// Extension methods and helpers for Writer monad.
 /// </summary>
+[EditorBrowsable(EditorBrowsableState.Never)]
 public static class WriterExtensions
 {
     /// <summary>

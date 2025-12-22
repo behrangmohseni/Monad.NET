@@ -888,15 +888,16 @@ program.Run();
 
 | Method | Description |
 |--------|-------------|
-| `SequenceParallelAsync(maxDegreeOfParallelism)` (Option) | Await Option tasks in parallel |
-| `TraverseParallelAsync(selector, maxDegreeOfParallelism)` (Option) | Map to Options in parallel |
-| `SequenceParallelAsync(maxDegreeOfParallelism)` (Result) | Await Result tasks in parallel |
-| `TraverseParallelAsync(selector, maxDegreeOfParallelism)` (Result) | Map to Results in parallel |
-| `ChooseParallelAsync(selector, maxDegreeOfParallelism)` | Map to Options in parallel, collect Some values |
-| `PartitionParallelAsync(selector, maxDegreeOfParallelism)` | Map to Results in parallel, separate Ok/Err |
+| `SequenceParallelAsync(maxDegreeOfParallelism, cancellationToken)` (Option) | Await Option tasks in parallel |
+| `TraverseParallelAsync(selector, maxDegreeOfParallelism, cancellationToken)` (Option) | Map to Options in parallel |
+| `SequenceParallelAsync(maxDegreeOfParallelism, cancellationToken)` (Result) | Await Result tasks in parallel |
+| `TraverseParallelAsync(selector, maxDegreeOfParallelism, cancellationToken)` (Result) | Map to Results in parallel |
+| `ChooseParallelAsync(selector, maxDegreeOfParallelism, cancellationToken)` | Map to Options in parallel, collect Some values |
+| `PartitionParallelAsync(selector, maxDegreeOfParallelism, cancellationToken)` | Map to Results in parallel, separate Ok/Err |
 
 **Parameters:**
 - `maxDegreeOfParallelism`: Maximum concurrent operations (-1 for unlimited)
+- `cancellationToken`: Abort in-flight operations cooperatively
 
 ### General Enumerable Extensions
 

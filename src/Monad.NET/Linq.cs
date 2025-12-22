@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 namespace Monad.NET;
@@ -6,6 +7,7 @@ namespace Monad.NET;
 /// LINQ query syntax support for Option&lt;T&gt;.
 /// Enables C# query comprehension syntax with from, let, where, and select.
 /// </summary>
+[EditorBrowsable(EditorBrowsableState.Never)]
 public static class OptionLinq
 {
     /// <summary>
@@ -59,6 +61,7 @@ public static class OptionLinq
 /// LINQ query syntax support for Result&lt;T, E&gt;.
 /// Enables C# query comprehension syntax with from, let, where, and select.
 /// </summary>
+[EditorBrowsable(EditorBrowsableState.Never)]
 public static class ResultLinq
 {
     /// <summary>
@@ -142,6 +145,7 @@ public static class ResultLinq
 /// <summary>
 /// LINQ query syntax support for Either&lt;L, R&gt;.
 /// </summary>
+[EditorBrowsable(EditorBrowsableState.Never)]
 public static class EitherLinq
 {
     /// <summary>
@@ -203,6 +207,7 @@ public static class EitherLinq
 /// <summary>
 /// LINQ query syntax support for RemoteData&lt;T, E&gt;.
 /// </summary>
+[EditorBrowsable(EditorBrowsableState.Never)]
 public static class RemoteDataLinq
 {
     /// <summary>
@@ -254,6 +259,7 @@ public static class RemoteDataLinq
 ///              select x + y;
 /// </code>
 /// </example>
+[EditorBrowsable(EditorBrowsableState.Never)]
 public static class TryLinq
 {
     /// <summary>
@@ -314,6 +320,7 @@ public static class TryLinq
 ///              select new User(name, email);
 /// </code>
 /// </example>
+[EditorBrowsable(EditorBrowsableState.Never)]
 public static class ValidationLinq
 {
     /// <summary>
@@ -371,6 +378,7 @@ public static class ValidationLinq
 ///              select y + 1;
 /// </code>
 /// </example>
+[EditorBrowsable(EditorBrowsableState.Never)]
 public static class WriterLinq
 {
     /// <summary>

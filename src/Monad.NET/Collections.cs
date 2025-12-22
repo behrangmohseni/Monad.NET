@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 namespace Monad.NET;
@@ -5,6 +6,7 @@ namespace Monad.NET;
 /// <summary>
 /// Collection extensions for working with sequences of Option&lt;T&gt;, Result&lt;T, E&gt;, and Either&lt;L, R&gt;.
 /// </summary>
+[EditorBrowsable(EditorBrowsableState.Never)]
 public static class MonadCollectionExtensions
 {
     #region Option Collections
@@ -506,6 +508,7 @@ public static class MonadCollectionExtensions
     /// <typeparam name="T">The type of values in the options.</typeparam>
     /// <param name="optionTasks">The sequence of tasks that produce options.</param>
     /// <param name="maxDegreeOfParallelism">Maximum number of concurrent operations. -1 for unlimited.</param>
+    /// <param name="cancellationToken">Cancellation token to abort the operation.</param>
     /// <returns>A task containing Some with all values if all options are Some; otherwise None.</returns>
     /// <example>
     /// <code>
@@ -584,6 +587,7 @@ public static class MonadCollectionExtensions
     /// <param name="source">The source sequence to traverse.</param>
     /// <param name="selector">An async function that maps each element to an Option.</param>
     /// <param name="maxDegreeOfParallelism">Maximum number of concurrent operations. -1 for unlimited.</param>
+    /// <param name="cancellationToken">Cancellation token to abort the operation.</param>
     /// <returns>A task containing Some with all mapped values if all mappings return Some; otherwise None.</returns>
     /// <example>
     /// <code>
@@ -666,6 +670,7 @@ public static class MonadCollectionExtensions
     /// <typeparam name="TErr">The type of error values in the results.</typeparam>
     /// <param name="resultTasks">The sequence of tasks that produce results.</param>
     /// <param name="maxDegreeOfParallelism">Maximum number of concurrent operations. -1 for unlimited.</param>
+    /// <param name="cancellationToken">Cancellation token to abort the operation.</param>
     /// <returns>A task containing Ok with all values if all results are Ok; otherwise the first Err encountered.</returns>
     /// <example>
     /// <code>
@@ -746,6 +751,7 @@ public static class MonadCollectionExtensions
     /// <param name="source">The source sequence to traverse.</param>
     /// <param name="selector">An async function that maps each element to a Result.</param>
     /// <param name="maxDegreeOfParallelism">Maximum number of concurrent operations. -1 for unlimited.</param>
+    /// <param name="cancellationToken">Cancellation token to abort the operation.</param>
     /// <returns>A task containing Ok with all mapped values if all mappings return Ok; otherwise the first Err encountered.</returns>
     /// <example>
     /// <code>
@@ -828,6 +834,7 @@ public static class MonadCollectionExtensions
     /// <param name="source">The source sequence to process.</param>
     /// <param name="selector">An async function that maps each element to an Option.</param>
     /// <param name="maxDegreeOfParallelism">Maximum number of concurrent operations. -1 for unlimited.</param>
+    /// <param name="cancellationToken">Cancellation token to abort the operation.</param>
     /// <returns>A task containing a list of unwrapped Some values.</returns>
     /// <example>
     /// <code>
@@ -903,6 +910,7 @@ public static class MonadCollectionExtensions
     /// <param name="source">The source sequence to process.</param>
     /// <param name="selector">An async function that maps each element to a Result.</param>
     /// <param name="maxDegreeOfParallelism">Maximum number of concurrent operations. -1 for unlimited.</param>
+    /// <param name="cancellationToken">Cancellation token to abort the operation.</param>
     /// <returns>A task containing a tuple of Ok values and Err values.</returns>
     /// <example>
     /// <code>
