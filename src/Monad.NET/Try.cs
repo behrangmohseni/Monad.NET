@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 namespace Monad.NET;
@@ -778,6 +779,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>
 /// <summary>
 /// Extension methods for Try&lt;T&gt;.
 /// </summary>
+[EditorBrowsable(EditorBrowsableState.Never)]
 public static class TryExtensions
 {
     /// <summary>

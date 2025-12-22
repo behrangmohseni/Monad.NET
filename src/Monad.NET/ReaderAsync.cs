@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 namespace Monad.NET;
@@ -522,6 +523,7 @@ public sealed class ReaderAsync<R, A>
 /// <summary>
 /// Extension methods and helpers for ReaderAsync&lt;R, A&gt;.
 /// </summary>
+[EditorBrowsable(EditorBrowsableState.Never)]
 public static class ReaderAsyncExtensions
 {
     /// <summary>

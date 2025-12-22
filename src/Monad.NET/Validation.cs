@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 namespace Monad.NET;
@@ -761,6 +762,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
 /// <summary>
 /// Extension methods for Validation&lt;T, E&gt;.
 /// </summary>
+[EditorBrowsable(EditorBrowsableState.Never)]
 public static class ValidationExtensions
 {
     /// <summary>

@@ -1,4 +1,5 @@
 using Monad.NET;
+using System.Threading;
 
 namespace Monad.NET.Tests;
 
@@ -513,6 +514,66 @@ public class ParallelCollectionTests
 
         Assert.True(result.IsOk);
         Assert.Equal(numbers, result.Unwrap());
+    }
+
+    #endregion
+
+    #region Cancellation
+
+    [Fact]
+    public async Task TraverseParallelAsync_Option_HonorsCancellationToken()
+    {
+        using var cts = new CancellationTokenSource();
+        cts.CancelAfter(10);
+        var numbers = Enumerable.Range(1, 10).ToList();
+
+        var task = numbers.TraverseParallelAsync(
+            async n =>
+            {
+                await Task.Delay(200, cts.Token);
+                return Option<int>.Some(n);
+            },
+            maxDegreeOfParallelism: 2,
+            cancellationToken: cts.Token);
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
+    }
+
+    [Fact]
+    public async Task SequenceParallelAsync_Result_HonorsCancellationToken()
+    {
+        using var cts = new CancellationTokenSource();
+        cts.CancelAfter(10);
+        var tasks = Enumerable.Range(1, 5).Select(async n =>
+        {
+            await Task.Delay(200, cts.Token);
+            return Result<int, string>.Ok(n);
+        }).ToList();
+
+        var task = tasks.SequenceParallelAsync(maxDegreeOfParallelism: 2, cancellationToken: cts.Token);
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
+    }
+
+    [Fact]
+    public async Task PartitionParallelAsync_HonorsCancellationToken()
+    {
+        using var cts = new CancellationTokenSource();
+        cts.CancelAfter(10);
+        var numbers = Enumerable.Range(1, 20);
+
+        var task = numbers.PartitionParallelAsync(
+            async n =>
+            {
+                await Task.Delay(200, cts.Token);
+                return n % 2 == 0
+                    ? Result<int, string>.Ok(n)
+                    : Result<int, string>.Err($"odd: {n}");
+            },
+            maxDegreeOfParallelism: 2,
+            cancellationToken: cts.Token);
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
     }
 
     #endregion

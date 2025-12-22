@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 namespace Monad.NET;
@@ -548,6 +549,7 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>
 /// <summary>
 /// Extension methods for RemoteData&lt;T, E&gt;.
 /// </summary>
+[EditorBrowsable(EditorBrowsableState.Never)]
 public static class RemoteDataExtensions
 {
     /// <summary>

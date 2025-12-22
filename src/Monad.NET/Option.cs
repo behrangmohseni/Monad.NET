@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
@@ -558,6 +559,7 @@ public readonly struct Option<T> : IEquatable<Option<T>>
 /// <summary>
 /// Extension methods for Option&lt;T&gt;.
 /// </summary>
+[EditorBrowsable(EditorBrowsableState.Never)]
 public static class OptionExtensions
 {
     #region When/Unless Guards

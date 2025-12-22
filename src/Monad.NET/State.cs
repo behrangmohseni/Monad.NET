@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 namespace Monad.NET;
@@ -438,6 +439,7 @@ public readonly struct State<TState, T>
 /// <summary>
 /// Extension methods for State monad.
 /// </summary>
+[EditorBrowsable(EditorBrowsableState.Never)]
 public static class StateExtensions
 {
     /// <summary>

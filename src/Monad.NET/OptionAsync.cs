@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 namespace Monad.NET;
@@ -5,6 +6,7 @@ namespace Monad.NET;
 /// <summary>
 /// Async extensions for Option&lt;T&gt; to work seamlessly with Task-based asynchronous code.
 /// </summary>
+[EditorBrowsable(EditorBrowsableState.Never)]
 public static class OptionAsyncExtensions
 {
     /// <summary>

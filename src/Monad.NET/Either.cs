@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 namespace Monad.NET;
@@ -581,6 +582,7 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
 /// <summary>
 /// Extension methods for Either&lt;TLeft, TRight&gt;.
 /// </summary>
+[EditorBrowsable(EditorBrowsableState.Never)]
 public static class EitherExtensions
 {
     /// <summary>

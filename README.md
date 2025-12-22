@@ -51,9 +51,12 @@ var result = user.ToOption()
 - [ASP.NET Core Integration](#aspnet-core-integration)
 - [Entity Framework Core Integration](#entity-framework-core-integration)
 - [Real-World Examples](#real-world-examples)
+- [Samples](#samples)
 - [Performance](#performance)
 - [FAQ](#faq)
 - [API Reference](#api-reference)
+- [Guides](#guides)
+- [Compatibility](#compatibility)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -1437,6 +1440,10 @@ IActionResult ToActionResult<T>(ApiResponse<T> response) => response.Match(
 );
 ```
 
+## Samples
+
+- `examples/Monad.NET.Samples` — minimal console samples demonstrating Option, Result, Validation, Writer, RemoteData, and IO.
+
 ### Requirements
 
 - Types must be `abstract` and `partial`
@@ -1741,6 +1748,15 @@ var asyncFromSync = syncReader.ToAsync();
 ## API Reference
 
 Full API documentation is available in [docs/API.md](docs/API.md).
+
+## Guides
+
+- [Pitfalls & Gotchas](docs/Guides/Pitfalls.md)
+- [Logging Guidance](docs/Guides/Logging.md)
+
+## Compatibility
+
+See the [Compatibility Matrix](docs/Compatibility.md) for supported target frameworks (currently .NET 6–10).
 
 ---
 
