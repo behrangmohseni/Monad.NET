@@ -364,6 +364,25 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     }
 
     /// <summary>
+    /// Maps both the valid value and errors.
+    /// </summary>
+    /// <typeparam name="U">The new valid value type.</typeparam>
+    /// <typeparam name="F">The new error type.</typeparam>
+    /// <param name="valueMapper">Function to transform the value if valid.</param>
+    /// <param name="errorMapper">Function to transform each error if invalid.</param>
+    /// <returns>A new Validation with transformed value or errors.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Validation<U, F> BiMap<U, F>(Func<T, U> valueMapper, Func<TErr, F> errorMapper)
+    {
+        ArgumentNullException.ThrowIfNull(valueMapper);
+        ArgumentNullException.ThrowIfNull(errorMapper);
+
+        return _isValid
+            ? Validation<U, F>.Valid(valueMapper(_value!))
+            : Validation<U, F>.Invalid(_errors!.Select(errorMapper).ToList());
+    }
+
+    /// <summary>
     /// Combines two validations using applicative functor semantics.
     /// If both are valid, applies the function. If either/both are invalid, accumulates ALL errors.
     /// </summary>
@@ -485,6 +504,22 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
 
         return _isValid ? binder(_value!) : Validation<U, TErr>.Invalid(_errors!);
     }
+
+    /// <summary>
+    /// Chains validation operations.
+    /// Note: Unlike AndThen, this does NOT accumulate errors - it short-circuits on first error.
+    /// Alias for <see cref="AndThen{U}"/>.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Validation<U, TErr> FlatMap<U>(Func<T, Validation<U, TErr>> binder) => AndThen(binder);
+
+    /// <summary>
+    /// Chains validation operations.
+    /// Note: Unlike AndThen, this does NOT accumulate errors - it short-circuits on first error.
+    /// Alias for <see cref="AndThen{U}"/>.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Validation<U, TErr> Bind<U>(Func<T, Validation<U, TErr>> binder) => AndThen(binder);
 
     /// <summary>
     /// Validates the contained value against a predicate. If the validation is already invalid,

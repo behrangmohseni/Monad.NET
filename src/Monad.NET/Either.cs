@@ -412,6 +412,20 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
     }
 
     /// <summary>
+    /// Binds the Right value if it exists.
+    /// Alias for <see cref="AndThen{U}"/>.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Either<TLeft, U> FlatMap<U>(Func<TRight, Either<TLeft, U>> binder) => AndThen(binder);
+
+    /// <summary>
+    /// Binds the Right value if it exists.
+    /// Alias for <see cref="AndThen{U}"/>.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Either<TLeft, U> Bind<U>(Func<TRight, Either<TLeft, U>> binder) => AndThen(binder);
+
+    /// <summary>
     /// Binds the Left value if it exists.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -150,6 +150,20 @@ public sealed class Reader<R, A>
     }
 
     /// <summary>
+    /// Chains Reader computations.
+    /// Alias for <see cref="FlatMap{B}"/>.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Reader<R, B> AndThen<B>(Func<A, Reader<R, B>> binder) => FlatMap(binder);
+
+    /// <summary>
+    /// Chains Reader computations.
+    /// Alias for <see cref="FlatMap{B}"/>.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Reader<R, B> Bind<B>(Func<A, Reader<R, B>> binder) => FlatMap(binder);
+
+    /// <summary>
     /// Transforms the environment before running the computation.
     /// This allows using a Reader with a different environment type.
     /// </summary>

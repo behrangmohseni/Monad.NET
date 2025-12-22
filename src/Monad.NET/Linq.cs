@@ -199,3 +199,46 @@ public static class EitherLinq
             : Either<TLeft, TRight>.Left(leftIfFalse);
     }
 }
+
+/// <summary>
+/// LINQ query syntax support for RemoteData&lt;T, E&gt;.
+/// </summary>
+public static class RemoteDataLinq
+{
+    /// <summary>
+    /// Enables LINQ Select (projection) for RemoteData&lt;T, E&gt;.
+    /// Equivalent to Map.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static RemoteData<U, TErr> Select<T, TErr, U>(
+        this RemoteData<T, TErr> remoteData,
+        Func<T, U> selector)
+    {
+        return remoteData.Map(selector);
+    }
+
+    /// <summary>
+    /// Enables LINQ SelectMany (monadic bind) for RemoteData&lt;T, E&gt;.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static RemoteData<U, TErr> SelectMany<T, TErr, U>(
+        this RemoteData<T, TErr> remoteData,
+        Func<T, RemoteData<U, TErr>> selector)
+    {
+        return remoteData.AndThen(selector);
+    }
+
+    /// <summary>
+    /// Enables LINQ SelectMany with result selector for RemoteData&lt;T, E&gt;.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static RemoteData<V, TErr> SelectMany<T, TErr, U, V>(
+        this RemoteData<T, TErr> remoteData,
+        Func<T, RemoteData<U, TErr>> selector,
+        Func<T, U, V> resultSelector)
+    {
+        return remoteData.AndThen(t =>
+            selector(t).Map(u =>
+                resultSelector(t, u)));
+    }
+}
