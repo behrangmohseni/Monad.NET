@@ -516,7 +516,8 @@ public static class MonadCollectionExtensions
     /// </example>
     public static async Task<Option<IReadOnlyList<T>>> SequenceParallelAsync<T>(
         this IEnumerable<Task<Option<T>>> optionTasks,
-        int maxDegreeOfParallelism = -1)
+        int maxDegreeOfParallelism = -1,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(optionTasks);
         if (maxDegreeOfParallelism < -1 || maxDegreeOfParallelism == 0)
@@ -524,6 +525,8 @@ public static class MonadCollectionExtensions
                 nameof(maxDegreeOfParallelism),
                 maxDegreeOfParallelism,
                 "maxDegreeOfParallelism must be -1 (unlimited) or a positive integer.");
+
+        cancellationToken.ThrowIfCancellationRequested();
 
         var taskList = optionTasks.ToList();
         if (taskList.Count == 0)
@@ -544,9 +547,10 @@ public static class MonadCollectionExtensions
 
             var indexedTasks = taskList.Select(async (task, index) =>
             {
-                await semaphore.WaitAsync().ConfigureAwait(false);
+                await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
                 try
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     results[index] = await task.ConfigureAwait(false);
                 }
                 finally
@@ -557,6 +561,8 @@ public static class MonadCollectionExtensions
 
             await Task.WhenAll(indexedTasks).ConfigureAwait(false);
         }
+
+        cancellationToken.ThrowIfCancellationRequested();
 
         var values = new List<T>(results.Length);
         foreach (var option in results)
@@ -591,7 +597,8 @@ public static class MonadCollectionExtensions
     public static async Task<Option<IReadOnlyList<U>>> TraverseParallelAsync<T, U>(
         this IEnumerable<T> source,
         Func<T, Task<Option<U>>> selector,
-        int maxDegreeOfParallelism = -1)
+        int maxDegreeOfParallelism = -1,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(selector);
@@ -600,6 +607,8 @@ public static class MonadCollectionExtensions
                 nameof(maxDegreeOfParallelism),
                 maxDegreeOfParallelism,
                 "maxDegreeOfParallelism must be -1 (unlimited) or a positive integer.");
+
+        cancellationToken.ThrowIfCancellationRequested();
 
         var sourceList = source.ToList();
         if (sourceList.Count == 0)
@@ -620,9 +629,10 @@ public static class MonadCollectionExtensions
 
             var indexedTasks = sourceList.Select(async (item, index) =>
             {
-                await semaphore.WaitAsync().ConfigureAwait(false);
+                await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
                 try
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     results[index] = await selector(item).ConfigureAwait(false);
                 }
                 finally
@@ -633,6 +643,8 @@ public static class MonadCollectionExtensions
 
             await Task.WhenAll(indexedTasks).ConfigureAwait(false);
         }
+
+        cancellationToken.ThrowIfCancellationRequested();
 
         var values = new List<U>(results.Length);
         foreach (var option in results)
@@ -664,7 +676,8 @@ public static class MonadCollectionExtensions
     /// </example>
     public static async Task<Result<IReadOnlyList<T>, TErr>> SequenceParallelAsync<T, TErr>(
         this IEnumerable<Task<Result<T, TErr>>> resultTasks,
-        int maxDegreeOfParallelism = -1)
+        int maxDegreeOfParallelism = -1,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(resultTasks);
         if (maxDegreeOfParallelism < -1 || maxDegreeOfParallelism == 0)
@@ -672,6 +685,8 @@ public static class MonadCollectionExtensions
                 nameof(maxDegreeOfParallelism),
                 maxDegreeOfParallelism,
                 "maxDegreeOfParallelism must be -1 (unlimited) or a positive integer.");
+
+        cancellationToken.ThrowIfCancellationRequested();
 
         var taskList = resultTasks.ToList();
         if (taskList.Count == 0)
@@ -692,9 +707,10 @@ public static class MonadCollectionExtensions
 
             var indexedTasks = taskList.Select(async (task, index) =>
             {
-                await semaphore.WaitAsync().ConfigureAwait(false);
+                await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
                 try
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     results[index] = await task.ConfigureAwait(false);
                 }
                 finally
@@ -705,6 +721,8 @@ public static class MonadCollectionExtensions
 
             await Task.WhenAll(indexedTasks).ConfigureAwait(false);
         }
+
+        cancellationToken.ThrowIfCancellationRequested();
 
         var values = new List<T>(results.Length);
         foreach (var result in results)
@@ -741,7 +759,8 @@ public static class MonadCollectionExtensions
     public static async Task<Result<IReadOnlyList<U>, TErr>> TraverseParallelAsync<T, U, TErr>(
         this IEnumerable<T> source,
         Func<T, Task<Result<U, TErr>>> selector,
-        int maxDegreeOfParallelism = -1)
+        int maxDegreeOfParallelism = -1,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(selector);
@@ -750,6 +769,8 @@ public static class MonadCollectionExtensions
                 nameof(maxDegreeOfParallelism),
                 maxDegreeOfParallelism,
                 "maxDegreeOfParallelism must be -1 (unlimited) or a positive integer.");
+
+        cancellationToken.ThrowIfCancellationRequested();
 
         var sourceList = source.ToList();
         if (sourceList.Count == 0)
@@ -770,9 +791,10 @@ public static class MonadCollectionExtensions
 
             var indexedTasks = sourceList.Select(async (item, index) =>
             {
-                await semaphore.WaitAsync().ConfigureAwait(false);
+                await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
                 try
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     results[index] = await selector(item).ConfigureAwait(false);
                 }
                 finally
@@ -783,6 +805,8 @@ public static class MonadCollectionExtensions
 
             await Task.WhenAll(indexedTasks).ConfigureAwait(false);
         }
+
+        cancellationToken.ThrowIfCancellationRequested();
 
         var values = new List<U>(results.Length);
         foreach (var result in results)
@@ -817,7 +841,8 @@ public static class MonadCollectionExtensions
     public static async Task<IReadOnlyList<U>> ChooseParallelAsync<T, U>(
         this IEnumerable<T> source,
         Func<T, Task<Option<U>>> selector,
-        int maxDegreeOfParallelism = -1)
+        int maxDegreeOfParallelism = -1,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(selector);
@@ -826,6 +851,8 @@ public static class MonadCollectionExtensions
                 nameof(maxDegreeOfParallelism),
                 maxDegreeOfParallelism,
                 "maxDegreeOfParallelism must be -1 (unlimited) or a positive integer.");
+
+        cancellationToken.ThrowIfCancellationRequested();
 
         var sourceList = source.ToList();
         if (sourceList.Count == 0)
@@ -846,9 +873,10 @@ public static class MonadCollectionExtensions
 
             var indexedTasks = sourceList.Select(async (item, index) =>
             {
-                await semaphore.WaitAsync().ConfigureAwait(false);
+                await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
                 try
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     results[index] = await selector(item).ConfigureAwait(false);
                 }
                 finally
@@ -859,6 +887,8 @@ public static class MonadCollectionExtensions
 
             await Task.WhenAll(indexedTasks).ConfigureAwait(false);
         }
+
+        cancellationToken.ThrowIfCancellationRequested();
 
         return results.Where(o => o.IsSome).Select(o => o.Unwrap()).ToList();
     }
@@ -885,7 +915,8 @@ public static class MonadCollectionExtensions
     public static async Task<(IReadOnlyList<U> Oks, IReadOnlyList<TErr> Errors)> PartitionParallelAsync<T, U, TErr>(
         this IEnumerable<T> source,
         Func<T, Task<Result<U, TErr>>> selector,
-        int maxDegreeOfParallelism = -1)
+        int maxDegreeOfParallelism = -1,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(selector);
@@ -894,6 +925,8 @@ public static class MonadCollectionExtensions
                 nameof(maxDegreeOfParallelism),
                 maxDegreeOfParallelism,
                 "maxDegreeOfParallelism must be -1 (unlimited) or a positive integer.");
+
+        cancellationToken.ThrowIfCancellationRequested();
 
         var sourceList = source.ToList();
         if (sourceList.Count == 0)
@@ -914,9 +947,10 @@ public static class MonadCollectionExtensions
 
             var indexedTasks = sourceList.Select(async (item, index) =>
             {
-                await semaphore.WaitAsync().ConfigureAwait(false);
+                await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
                 try
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     results[index] = await selector(item).ConfigureAwait(false);
                 }
                 finally
@@ -927,6 +961,8 @@ public static class MonadCollectionExtensions
 
             await Task.WhenAll(indexedTasks).ConfigureAwait(false);
         }
+
+        cancellationToken.ThrowIfCancellationRequested();
 
         var oks = new List<U>();
         var errors = new List<TErr>();
