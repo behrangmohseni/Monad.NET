@@ -431,6 +431,20 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     }
 
     /// <summary>
+    /// Chains operations that may throw exceptions.
+    /// Alias for <see cref="FlatMap{U}"/>.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Try<U> AndThen<U>(Func<T, Try<U>> binder) => FlatMap(binder);
+
+    /// <summary>
+    /// Chains operations that may throw exceptions.
+    /// Alias for <see cref="FlatMap{U}"/>.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Try<U> Bind<U>(Func<T, Try<U>> binder) => FlatMap(binder);
+
+    /// <summary>
     /// Combines this Try with another into a tuple.
     /// Returns the first failure encountered if either Try failed.
     /// </summary>

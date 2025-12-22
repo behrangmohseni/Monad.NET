@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace Monad.NET;
 
@@ -239,6 +240,24 @@ public readonly struct Writer<TLog, T> : IEquatable<Writer<TLog, T>>
     {
         return !left.Equals(right);
     }
+
+    /// <summary>
+    /// Deconstructs the Writer into its components for pattern matching.
+    /// </summary>
+    /// <param name="value">The computed value.</param>
+    /// <param name="log">The accumulated log.</param>
+    /// <example>
+    /// <code>
+    /// var (value, log) = writer;
+    /// Console.WriteLine($"Value: {value}, Log: {log}");
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Deconstruct(out T value, out TLog log)
+    {
+        value = _value;
+        log = _log;
+    }
 }
 
 /// <summary>
@@ -318,15 +337,15 @@ public static class WriterExtensions
         ArgumentNullException.ThrowIfNull(writers);
 
         var values = new List<T>();
-        var combinedLog = string.Empty;
+        var logBuilder = new StringBuilder();
 
         foreach (var writer in writers)
         {
             values.Add(writer.Value);
-            combinedLog += writer.Log;
+            logBuilder.Append(writer.Log);
         }
 
-        return Writer<string, IEnumerable<T>>.Tell(values, combinedLog);
+        return Writer<string, IEnumerable<T>>.Tell(values, logBuilder.ToString());
     }
 
     /// <summary>

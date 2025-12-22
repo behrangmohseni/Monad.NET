@@ -260,5 +260,120 @@ public class OptionAsyncTests
         Assert.True(result.IsSome);
         Assert.Equal(20, result.Unwrap());
     }
+
+    [Fact]
+    public async Task OrElseAsync_OnSome_ReturnsOriginal()
+    {
+        var option = Option<int>.Some(42);
+        var alternativeExecuted = false;
+
+        var result = await option.OrElseAsync(async () =>
+        {
+            await Task.Delay(1);
+            alternativeExecuted = true;
+            return Option<int>.Some(100);
+        });
+
+        Assert.True(result.IsSome);
+        Assert.Equal(42, result.Unwrap());
+        Assert.False(alternativeExecuted);
+    }
+
+    [Fact]
+    public async Task OrElseAsync_OnNone_ReturnsAlternative()
+    {
+        var option = Option<int>.None();
+        var alternativeExecuted = false;
+
+        var result = await option.OrElseAsync(async () =>
+        {
+            await Task.Delay(1);
+            alternativeExecuted = true;
+            return Option<int>.Some(100);
+        });
+
+        Assert.True(result.IsSome);
+        Assert.Equal(100, result.Unwrap());
+        Assert.True(alternativeExecuted);
+    }
+
+    [Fact]
+    public async Task OrElseAsync_OnNone_ReturnsNoneFromAlternative()
+    {
+        var option = Option<int>.None();
+
+        var result = await option.OrElseAsync(async () =>
+        {
+            await Task.Delay(1);
+            return Option<int>.None();
+        });
+
+        Assert.True(result.IsNone);
+    }
+
+    [Fact]
+    public async Task OrElseAsync_OnTaskSome_ReturnsOriginal()
+    {
+        var optionTask = Task.FromResult(Option<int>.Some(42));
+
+        var result = await optionTask.OrElseAsync(async () =>
+        {
+            await Task.Delay(1);
+            return Option<int>.Some(100);
+        });
+
+        Assert.True(result.IsSome);
+        Assert.Equal(42, result.Unwrap());
+    }
+
+    [Fact]
+    public async Task OrElseAsync_OnTaskNone_ReturnsAlternative()
+    {
+        var optionTask = Task.FromResult(Option<int>.None());
+
+        var result = await optionTask.OrElseAsync(async () =>
+        {
+            await Task.Delay(1);
+            return Option<int>.Some(100);
+        });
+
+        Assert.True(result.IsSome);
+        Assert.Equal(100, result.Unwrap());
+    }
+
+    [Fact]
+    public async Task OrAsync_OnTaskSome_ReturnsOriginal()
+    {
+        var optionTask = Task.FromResult(Option<int>.Some(42));
+        var alternative = Option<int>.Some(100);
+
+        var result = await optionTask.OrAsync(alternative);
+
+        Assert.True(result.IsSome);
+        Assert.Equal(42, result.Unwrap());
+    }
+
+    [Fact]
+    public async Task OrAsync_OnTaskNone_ReturnsAlternative()
+    {
+        var optionTask = Task.FromResult(Option<int>.None());
+        var alternative = Option<int>.Some(100);
+
+        var result = await optionTask.OrAsync(alternative);
+
+        Assert.True(result.IsSome);
+        Assert.Equal(100, result.Unwrap());
+    }
+
+    [Fact]
+    public async Task OrAsync_OnTaskNone_ReturnsNoneAlternative()
+    {
+        var optionTask = Task.FromResult(Option<int>.None());
+        var alternative = Option<int>.None();
+
+        var result = await optionTask.OrAsync(alternative);
+
+        Assert.True(result.IsNone);
+    }
 }
 

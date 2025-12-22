@@ -115,14 +115,18 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T Unwrap()
     {
-        return _state switch
+        if (_state == RemoteDataState.Success)
+            return _data!;
+
+        var stateMessage = _state switch
         {
-            RemoteDataState.Success => _data!,
-            RemoteDataState.NotAsked => throw new InvalidOperationException("Called Unwrap on NotAsked"),
-            RemoteDataState.Loading => throw new InvalidOperationException("Called Unwrap on Loading"),
-            RemoteDataState.Failure => throw new InvalidOperationException($"Called Unwrap on Failure: {_error}"),
-            _ => throw new InvalidOperationException("Invalid state")
+            RemoteDataState.NotAsked => "RemoteData is NotAsked. Cannot unwrap value.",
+            RemoteDataState.Loading => "RemoteData is Loading. Cannot unwrap value.",
+            RemoteDataState.Failure => $"RemoteData is Failure. Cannot unwrap value. Error: {_error}",
+            _ => "RemoteData is in invalid state."
         };
+        ThrowHelper.ThrowInvalidOperation(stateMessage);
+        return default!; // Unreachable
     }
 
     /// <summary>
@@ -253,6 +257,44 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>
     }
 
     /// <summary>
+    /// Chains a remote data operation.
+    /// Alias for <see cref="AndThen{U}"/>.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public RemoteData<U, TErr> FlatMap<U>(Func<T, RemoteData<U, TErr>> binder) => AndThen(binder);
+
+    /// <summary>
+    /// Chains a remote data operation.
+    /// Alias for <see cref="AndThen{U}"/>.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public RemoteData<U, TErr> Bind<U>(Func<T, RemoteData<U, TErr>> binder) => AndThen(binder);
+
+    /// <summary>
+    /// Maps both the data and error values.
+    /// </summary>
+    /// <typeparam name="U">The new data type.</typeparam>
+    /// <typeparam name="F">The new error type.</typeparam>
+    /// <param name="dataMapper">Function to transform the data if successful.</param>
+    /// <param name="errorMapper">Function to transform the error if failed.</param>
+    /// <returns>A new RemoteData with transformed data or error.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public RemoteData<U, F> BiMap<U, F>(Func<T, U> dataMapper, Func<TErr, F> errorMapper)
+    {
+        ArgumentNullException.ThrowIfNull(dataMapper);
+        ArgumentNullException.ThrowIfNull(errorMapper);
+
+        return _state switch
+        {
+            RemoteDataState.Success => RemoteData<U, F>.Success(dataMapper(_data!)),
+            RemoteDataState.NotAsked => RemoteData<U, F>.NotAsked(),
+            RemoteDataState.Loading => RemoteData<U, F>.Loading(),
+            RemoteDataState.Failure => RemoteData<U, F>.Failure(errorMapper(_error!)),
+            _ => throw new InvalidOperationException("Invalid state")
+        };
+    }
+
+    /// <summary>
     /// Returns this RemoteData if Success, otherwise returns the alternative.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -348,14 +390,16 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Result<T, TErr> ToResult()
     {
-        return _state switch
-        {
-            RemoteDataState.Success => Result<T, TErr>.Ok(_data!),
-            RemoteDataState.Failure => Result<T, TErr>.Err(_error!),
-            RemoteDataState.NotAsked => throw new InvalidOperationException("Cannot convert NotAsked to Result"),
-            RemoteDataState.Loading => throw new InvalidOperationException("Cannot convert Loading to Result"),
-            _ => throw new InvalidOperationException("Invalid state")
-        };
+        if (_state == RemoteDataState.Success)
+            return Result<T, TErr>.Ok(_data!);
+        if (_state == RemoteDataState.Failure)
+            return Result<T, TErr>.Err(_error!);
+
+        var message = _state == RemoteDataState.NotAsked
+            ? "RemoteData.ToResult called on NotAsked. Use ToResult(notAskedError, loadingError) overload instead."
+            : "RemoteData.ToResult called on Loading. Use ToResult(notAskedError, loadingError) overload instead.";
+        ThrowHelper.ThrowInvalidOperation(message);
+        return default!; // Unreachable
     }
 
     /// <summary>

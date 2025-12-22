@@ -442,6 +442,20 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     }
 
     /// <summary>
+    /// Chains operations that may fail.
+    /// Alias for <see cref="AndThen{U}"/>.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Result<U, TErr> FlatMap<U>(Func<T, Result<U, TErr>> binder) => AndThen(binder);
+
+    /// <summary>
+    /// Chains operations that may fail.
+    /// Alias for <see cref="AndThen{U}"/>.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Result<U, TErr> Bind<U>(Func<T, Result<U, TErr>> binder) => AndThen(binder);
+
+    /// <summary>
     /// Combines this Result with another into a tuple.
     /// Returns the first error encountered if either Result is Err.
     /// </summary>
