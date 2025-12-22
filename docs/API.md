@@ -160,6 +160,8 @@ Represents an optional value - either `Some(value)` or `None`.
 | `AndThenAsync<U>(Func<T, Task<Option<U>>>)` | Async chain |
 | `FilterAsync(Func<T, Task<bool>>)` | Async filter |
 | `MatchAsync<U>(someFunc, noneFunc)` | Async pattern match |
+| `OrElseAsync(Func<Task<Option<T>>>)` | Returns Some if present, otherwise computes async alternative |
+| `OrAsync(Option<T>)` | Returns Some if present, otherwise returns alternative (on Task<Option<T>>) |
 
 ### Operators
 
@@ -524,6 +526,7 @@ Computations with accumulated output.
 | `Match<U>(Func<T, W, U>)` | `U` | Pattern matching |
 | `Tap(Action<T>)` | `Writer<W, T>` | Executes action with value |
 | `TapLog(Action<W>)` | `Writer<W, T>` | Executes action with log |
+| `Deconstruct(out T, out W)` | `void` | Deconstructs for pattern matching `var (value, log) = writer;` |
 
 ---
 

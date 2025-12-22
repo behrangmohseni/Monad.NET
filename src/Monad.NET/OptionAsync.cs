@@ -423,4 +423,74 @@ public static class OptionAsyncExtensions
         }
         return Option<T>.None();
     }
+
+    /// <summary>
+    /// Returns the Option if Some, otherwise returns the alternative computed asynchronously.
+    /// </summary>
+    /// <typeparam name="T">The type of the value in the option.</typeparam>
+    /// <param name="option">The option to check.</param>
+    /// <param name="alternativeAsync">An async function to compute the alternative if None.</param>
+    /// <returns>A task containing the original Some or the computed alternative.</returns>
+    /// <example>
+    /// <code>
+    /// var result = await option.OrElseAsync(async () => await FetchDefaultAsync());
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async Task<Option<T>> OrElseAsync<T>(
+        this Option<T> option,
+        Func<Task<Option<T>>> alternativeAsync)
+    {
+        ArgumentNullException.ThrowIfNull(alternativeAsync);
+
+        if (option.IsSome)
+            return option;
+
+        return await alternativeAsync().ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Returns the Option if Some, otherwise returns the alternative computed asynchronously.
+    /// </summary>
+    /// <typeparam name="T">The type of the value in the option.</typeparam>
+    /// <param name="optionTask">The task containing the option to check.</param>
+    /// <param name="alternativeAsync">An async function to compute the alternative if None.</param>
+    /// <returns>A task containing the original Some or the computed alternative.</returns>
+    /// <example>
+    /// <code>
+    /// var result = await optionTask.OrElseAsync(async () => await FetchDefaultAsync());
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async Task<Option<T>> OrElseAsync<T>(
+        this Task<Option<T>> optionTask,
+        Func<Task<Option<T>>> alternativeAsync)
+    {
+        ArgumentNullException.ThrowIfNull(optionTask);
+        ArgumentNullException.ThrowIfNull(alternativeAsync);
+
+        var option = await optionTask.ConfigureAwait(false);
+        if (option.IsSome)
+            return option;
+
+        return await alternativeAsync().ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Returns the Option if Some, otherwise returns the alternative.
+    /// </summary>
+    /// <typeparam name="T">The type of the value in the option.</typeparam>
+    /// <param name="optionTask">The task containing the option to check.</param>
+    /// <param name="alternative">The alternative to return if None.</param>
+    /// <returns>A task containing the original Some or the alternative.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async Task<Option<T>> OrAsync<T>(
+        this Task<Option<T>> optionTask,
+        Option<T> alternative)
+    {
+        ArgumentNullException.ThrowIfNull(optionTask);
+
+        var option = await optionTask.ConfigureAwait(false);
+        return option.IsSome ? option : alternative;
+    }
 }
