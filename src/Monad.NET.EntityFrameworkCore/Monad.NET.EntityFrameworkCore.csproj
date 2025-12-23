@@ -8,7 +8,7 @@
     
     <!-- Package Info -->
     <PackageId>Monad.NET.EntityFrameworkCore</PackageId>
-    <PackageVersion>1.0.0-alpha.13</PackageVersion>
+    <PackageVersion>1.0.0-beta.1</PackageVersion>
     <Authors>Behrang Mohseni</Authors>
     <Company>behrangmohseni.com</Company>
     <Product>Monad.NET.EntityFrameworkCore</Product>
@@ -23,7 +23,6 @@
     
     <!-- Build settings -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>

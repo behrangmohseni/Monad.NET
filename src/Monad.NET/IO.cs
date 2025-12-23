@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 namespace Monad.NET;
@@ -734,6 +735,7 @@ public readonly struct IOAsync<T>
 /// <summary>
 /// Extension methods for IO monad.
 /// </summary>
+[EditorBrowsable(EditorBrowsableState.Never)]
 public static class IOExtensions
 {
     /// <summary>

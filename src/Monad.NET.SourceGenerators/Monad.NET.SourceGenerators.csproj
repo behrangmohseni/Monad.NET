@@ -9,7 +9,7 @@
     
     <!-- Package Info -->
     <PackageId>Monad.NET.SourceGenerators</PackageId>
-    <Version>1.0.0-alpha.13</Version>
+    <Version>1.0.0-beta.1</Version>
     <Authors>Behrang Mohseni</Authors>
     <Company>behrangmohseni.com</Company>
     <Product>Monad.NET.SourceGenerators</Product>
@@ -26,6 +26,8 @@
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <DevelopmentDependency>true</DevelopmentDependency>
     <IsRoslynComponent>true</IsRoslynComponent>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
