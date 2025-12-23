@@ -431,7 +431,7 @@ public class Program
     {
         return Try<string>.Of(() =>
         {
-            if (!json.StartsWith("{"))
+            if (!json.StartsWith('{'))
                 throw new FormatException("Invalid JSON format");
             return $"Parsed: {json}";
         });
