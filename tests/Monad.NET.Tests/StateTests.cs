@@ -510,7 +510,7 @@ public class StateTests
         State<int, int> NextRandom() =>
             State<int, int>.Of(seed =>
             {
-                var next = (seed * 1103515245 + 12345) & 0x7FFFFFFF;
+                var next = ((seed * 1103515245) + 12345) & 0x7FFFFFFF;
                 return (next % 100, next); // Return value 0-99
             });
 

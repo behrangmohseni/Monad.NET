@@ -86,88 +86,122 @@ public class UnionGenerator : IIncrementalGenerator
 
     private static UnionInfo? GetUnionInfo(GeneratorAttributeSyntaxContext context)
     {
-        var symbol = context.TargetSymbol as INamedTypeSymbol;
-        if (symbol is null)
+        if (!TryGetValidUnionType(context, out var symbol, out var syntax))
             return null;
 
-        // Must be abstract and partial
-        if (!symbol.IsAbstract)
-            return null;
+        var (generateFactoryMethods, generateAsOptionMethods) = ExtractAttributeOptions(context.Attributes);
+        var cases = ExtractUnionCases(symbol);
 
-        var syntax = context.TargetNode as TypeDeclarationSyntax;
-        if (syntax is null)
-            return null;
-
-        if (!syntax.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword)))
-            return null;
-
-        // Get attribute data
-        var attributeData = context.Attributes.FirstOrDefault();
-        var generateFactoryMethods = true;
-        var generateAsOptionMethods = true;
-
-        if (attributeData is not null)
-        {
-            foreach (var namedArg in attributeData.NamedArguments)
-            {
-                if (namedArg.Key == "GenerateFactoryMethods" && namedArg.Value.Value is bool factoryValue)
-                    generateFactoryMethods = factoryValue;
-                if (namedArg.Key == "GenerateAsOptionMethods" && namedArg.Value.Value is bool optionValue)
-                    generateAsOptionMethods = optionValue;
-            }
-        }
-
-        // Find nested types that inherit from this type
-        var cases = new List<UnionCase>();
-        foreach (var member in symbol.GetTypeMembers())
-        {
-            if (member.BaseType?.Equals(symbol, SymbolEqualityComparer.Default) == true)
-            {
-                var caseName = member.Name;
-                var camelCaseName = char.ToLowerInvariant(caseName[0]) + caseName.Substring(1);
-
-                // Get constructor parameters for factory method generation
-                var primaryCtor = member.Constructors
-                    .Where(c => !c.IsImplicitlyDeclared && c.Parameters.Length > 0)
-                    .OrderByDescending(c => c.Parameters.Length)
-                    .FirstOrDefault();
-
-                var parameters = primaryCtor?.Parameters
-                    .Select(p => new UnionCaseParameter(
-                        p.Name,
-                        p.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-                        p.Type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)))
-                    .ToImmutableArray() ?? ImmutableArray<UnionCaseParameter>.Empty;
-
-                cases.Add(new UnionCase(
-                    caseName,
-                    member.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-                    camelCaseName,
-                    parameters));
-            }
-        }
-
-        if (cases.Count == 0)
+        if (cases.Length == 0)
             return null;
 
         var ns = symbol.ContainingNamespace.IsGlobalNamespace
             ? null
             : symbol.ContainingNamespace.ToDisplayString();
 
-        var isRecord = syntax is RecordDeclarationSyntax;
-
-        // Check if Monad.NET Option is available
-        var hasMonadOption = context.SemanticModel.Compilation.GetTypeByMetadataName("Monad.NET.Option`1") is not null;
+        var hasMonadOption = context.SemanticModel.Compilation
+            .GetTypeByMetadataName("Monad.NET.Option`1") is not null;
 
         return new UnionInfo(
             symbol.Name,
             symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
             ns,
-            cases.ToImmutableArray(),
-            isRecord,
+            cases,
+            IsRecord: syntax is RecordDeclarationSyntax,
             generateFactoryMethods,
             generateAsOptionMethods && hasMonadOption);
     }
+
+    private static bool TryGetValidUnionType(
+        GeneratorAttributeSyntaxContext context,
+        out INamedTypeSymbol symbol,
+        out TypeDeclarationSyntax syntax)
+    {
+        symbol = null!;
+        syntax = null!;
+
+        if (context.TargetSymbol is not INamedTypeSymbol namedSymbol || !namedSymbol.IsAbstract)
+            return false;
+
+        if (context.TargetNode is not TypeDeclarationSyntax typeSyntax)
+            return false;
+
+        if (!typeSyntax.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword)))
+            return false;
+
+        symbol = namedSymbol;
+        syntax = typeSyntax;
+        return true;
+    }
+
+    private static (bool GenerateFactoryMethods, bool GenerateAsOptionMethods) ExtractAttributeOptions(
+        ImmutableArray<AttributeData> attributes)
+    {
+        var generateFactoryMethods = true;
+        var generateAsOptionMethods = true;
+
+        var attributeData = attributes.FirstOrDefault();
+        if (attributeData is null)
+            return (generateFactoryMethods, generateAsOptionMethods);
+
+        foreach (var namedArg in attributeData.NamedArguments)
+        {
+            switch (namedArg.Key)
+            {
+                case "GenerateFactoryMethods" when namedArg.Value.Value is bool value:
+                    generateFactoryMethods = value;
+                    break;
+                case "GenerateAsOptionMethods" when namedArg.Value.Value is bool value:
+                    generateAsOptionMethods = value;
+                    break;
+            }
+        }
+
+        return (generateFactoryMethods, generateAsOptionMethods);
+    }
+
+    private static ImmutableArray<UnionCase> ExtractUnionCases(INamedTypeSymbol symbol)
+    {
+        var cases = ImmutableArray.CreateBuilder<UnionCase>();
+
+        foreach (var member in symbol.GetTypeMembers())
+        {
+            if (member.BaseType?.Equals(symbol, SymbolEqualityComparer.Default) != true)
+                continue;
+
+            var caseName = member.Name;
+            var parameters = ExtractCaseParameters(member);
+
+            cases.Add(new UnionCase(
+                caseName,
+                member.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                ParameterName: ToCamelCase(caseName),
+                parameters));
+        }
+
+        return cases.ToImmutable();
+    }
+
+    private static ImmutableArray<UnionCaseParameter> ExtractCaseParameters(INamedTypeSymbol caseType)
+    {
+        var primaryCtor = caseType.Constructors
+            .Where(c => !c.IsImplicitlyDeclared && c.Parameters.Length > 0)
+            .OrderByDescending(c => c.Parameters.Length)
+            .FirstOrDefault();
+
+        if (primaryCtor is null)
+            return ImmutableArray<UnionCaseParameter>.Empty;
+
+        return primaryCtor.Parameters
+            .Select(p => new UnionCaseParameter(
+                p.Name,
+                p.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                p.Type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)))
+            .ToImmutableArray();
+    }
+
+    private static string ToCamelCase(string name) =>
+        string.IsNullOrEmpty(name) ? name : char.ToLowerInvariant(name[0]) + name.Substring(1);
 
     private static void GenerateSource(SourceProductionContext context, UnionInfo info)
     {
@@ -465,3 +499,4 @@ internal sealed record UnionCaseParameter(
     string Name,
     string FullTypeName,
     string ShortTypeName);
+
