@@ -99,6 +99,27 @@ public static class MonadCollectionExtensions
             await Task.WhenAll(indexedTasks).ConfigureAwait(false);
             return results;
         }
+
+        /// <summary>
+        /// Validates traverse parameters and prepares the source list.
+        /// Returns null if the source is empty, otherwise returns the prepared list.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static List<TSource>? ValidateAndPrepareSource<TSource, TSelector>(
+            IEnumerable<TSource> source,
+            TSelector selector,
+            int maxDegreeOfParallelism,
+            CancellationToken cancellationToken)
+            where TSelector : Delegate
+        {
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(selector);
+            ValidateMaxDegreeOfParallelism(maxDegreeOfParallelism, nameof(maxDegreeOfParallelism));
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var sourceList = source.ToList();
+            return sourceList.Count == 0 ? null : sourceList;
+        }
     }
     #region Option Collections
 
@@ -668,13 +689,8 @@ public static class MonadCollectionExtensions
         int maxDegreeOfParallelism = -1,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(selector);
-        ParallelHelper.ValidateMaxDegreeOfParallelism(maxDegreeOfParallelism, nameof(maxDegreeOfParallelism));
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var sourceList = source.ToList();
-        if (sourceList.Count == 0)
+        var sourceList = ParallelHelper.ValidateAndPrepareSource(source, selector, maxDegreeOfParallelism, cancellationToken);
+        if (sourceList is null)
             return Option<IReadOnlyList<U>>.Some(Array.Empty<U>());
 
         var results = await ParallelHelper.RunParallelAsync(sourceList, selector, maxDegreeOfParallelism, cancellationToken).ConfigureAwait(false);
@@ -763,13 +779,8 @@ public static class MonadCollectionExtensions
         int maxDegreeOfParallelism = -1,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(selector);
-        ParallelHelper.ValidateMaxDegreeOfParallelism(maxDegreeOfParallelism, nameof(maxDegreeOfParallelism));
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var sourceList = source.ToList();
-        if (sourceList.Count == 0)
+        var sourceList = ParallelHelper.ValidateAndPrepareSource(source, selector, maxDegreeOfParallelism, cancellationToken);
+        if (sourceList is null)
             return Result<IReadOnlyList<U>, TErr>.Ok(Array.Empty<U>());
 
         var results = await ParallelHelper.RunParallelAsync(sourceList, selector, maxDegreeOfParallelism, cancellationToken).ConfigureAwait(false);
@@ -804,13 +815,8 @@ public static class MonadCollectionExtensions
         int maxDegreeOfParallelism = -1,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(selector);
-        ParallelHelper.ValidateMaxDegreeOfParallelism(maxDegreeOfParallelism, nameof(maxDegreeOfParallelism));
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var sourceList = source.ToList();
-        if (sourceList.Count == 0)
+        var sourceList = ParallelHelper.ValidateAndPrepareSource(source, selector, maxDegreeOfParallelism, cancellationToken);
+        if (sourceList is null)
             return Array.Empty<U>();
 
         var results = await ParallelHelper.RunParallelAsync(sourceList, selector, maxDegreeOfParallelism, cancellationToken).ConfigureAwait(false);
@@ -845,13 +851,8 @@ public static class MonadCollectionExtensions
         int maxDegreeOfParallelism = -1,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(selector);
-        ParallelHelper.ValidateMaxDegreeOfParallelism(maxDegreeOfParallelism, nameof(maxDegreeOfParallelism));
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var sourceList = source.ToList();
-        if (sourceList.Count == 0)
+        var sourceList = ParallelHelper.ValidateAndPrepareSource(source, selector, maxDegreeOfParallelism, cancellationToken);
+        if (sourceList is null)
             return (Array.Empty<U>(), Array.Empty<TErr>());
 
         var results = await ParallelHelper.RunParallelAsync(sourceList, selector, maxDegreeOfParallelism, cancellationToken).ConfigureAwait(false);
