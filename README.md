@@ -198,18 +198,20 @@ result.Match(
 
 These types come from functional programming languages. Here's the lineage:
 
-| Monad.NET | F# | Rust | Haskell | Notes |
-|-----------|-----|------|---------|-------|
-| `Option<T>` | `Option<'T>` | `Option<T>` | `Maybe a` | The original "null killer" |
-| `Result<T,E>` | `Result<'T,'E>` | `Result<T,E>` | `Either a b` | Rust popularized this for error handling |
-| `Either<L,R>` | `Choice<'T1,'T2>` | — | `Either a b` | Haskell's general sum type |
-| `Validation<T,E>` | — | — | `Validation e a` | From Haskell's `Data.Validation` |
-| `Try<T>` | — | — | — | Scala's approach to exception handling |
-| `NonEmptyList<T>` | — | — | `NonEmpty a` | Guarantees at compile time |
-| `Writer<W,T>` | — | — | `Writer w a` | Pure FP logging |
-| `Reader<R,A>` | — | — | `Reader r a` | Dependency injection, FP style |
-| `State<S,A>` | — | — | `State s a` | Threading state without mutation |
-| `IO<T>` | — | — | `IO a` | Deferred side effects |
+| Monad.NET | F# | Rust | Haskell |
+|-----------|-----|------|---------|
+| `Option<T>` | `Option<'T>` | `Option<T>` | `Maybe a` |
+| `Result<T,E>` | `Result<'T,'E>` | `Result<T,E>` | `Either a b` |
+| `Either<L,R>` | `Choice<'T1,'T2>` | — | `Either a b` |
+| `Validation<T,E>` | — | — | `Validation e a` |
+| `Try<T>` | — | — | — (Scala) |
+| `RemoteData<T,E>` | — | — | — (Elm) |
+| `NonEmptyList<T>` | — | — | `NonEmpty a` |
+| `Writer<W,T>` | — | — | `Writer w a` |
+| `Reader<R,A>` | — | — | `Reader r a` |
+| `ReaderAsync<R,A>` | — | — | `ReaderT IO r a` |
+| `State<S,A>` | — | — | `State s a` |
+| `IO<T>` | — | — | `IO a` |
 
 ---
 

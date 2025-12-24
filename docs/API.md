@@ -39,13 +39,15 @@ These types are proven patterns from functional programming. Here's the lineage:
 | `Option<T>` | `Option<'T>` | `Option<T>` | `Maybe a` |
 | `Result<T, E>` | `Result<'T, 'E>` | `Result<T, E>` | `Either a b` |
 | `Either<L, R>` | `Choice<'T1, 'T2>` | — | `Either a b` |
-| `Validation<T, E>` | FsToolkit.ErrorHandling | — | `Validation` |
-| `Try<T>` | `try...with` | `Result<T, Error>` | `ExceptT` |
-| `NonEmptyList<T>` | FSharpPlus | `NonEmpty<T>` | `NonEmpty a` |
-| `RemoteData<T, E>` | — | — | — (Elm origin) |
-| `Writer<W, T>` | FSharpPlus | — | `Writer w a` |
-| `Reader<R, A>` | FSharpPlus | — | `Reader r a` |
-| `State<S, A>` | FSharpPlus | — | `State s a` |
+| `Validation<T, E>` | — | — | `Validation e a` |
+| `Try<T>` | — | — | — (Scala) |
+| `RemoteData<T, E>` | — | — | — (Elm) |
+| `NonEmptyList<T>` | — | — | `NonEmpty a` |
+| `Writer<W, T>` | — | — | `Writer w a` |
+| `Reader<R, A>` | — | — | `Reader r a` |
+| `ReaderAsync<R, A>` | — | — | `ReaderT IO r a` |
+| `State<S, A>` | — | — | `State s a` |
+| `IO<T>` | — | — | `IO a` |
 | `IO<T>` | `Async<'T>` | `Future<T>` | `IO a` |
 
 ---
