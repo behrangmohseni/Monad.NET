@@ -452,26 +452,9 @@ public sealed class ReaderAsync<R, A>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when retries is negative.</exception>
     public ReaderAsync<R, A> Retry(int retries)
     {
-        if (retries < 0)
-            ThrowHelper.ThrowArgumentOutOfRange(nameof(retries), "Retries must be non-negative.");
-
+        RetryHelper.ValidateRetries(retries, nameof(retries));
         var run = _run;
-        return ReaderAsync<R, A>.From(async env =>
-        {
-            Exception? lastException = null;
-            for (var i = 0; i <= retries; i++)
-            {
-                try
-                {
-                    return await run(env).ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    lastException = ex;
-                }
-            }
-            throw lastException!;
-        });
+        return ReaderAsync<R, A>.From(env => RetryHelper.ExecuteWithRetryAsync(() => run(env), retries));
     }
 
     /// <summary>
@@ -483,30 +466,9 @@ public sealed class ReaderAsync<R, A>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when retries is negative.</exception>
     public ReaderAsync<R, A> RetryWithDelay(int retries, TimeSpan delay)
     {
-        if (retries < 0)
-            ThrowHelper.ThrowArgumentOutOfRange(nameof(retries), "Retries must be non-negative.");
-
+        RetryHelper.ValidateRetries(retries, nameof(retries));
         var run = _run;
-        return ReaderAsync<R, A>.From(async env =>
-        {
-            Exception? lastException = null;
-            for (var i = 0; i <= retries; i++)
-            {
-                try
-                {
-                    return await run(env).ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    lastException = ex;
-                    if (i < retries)
-                    {
-                        await Task.Delay(delay).ConfigureAwait(false);
-                    }
-                }
-            }
-            throw lastException!;
-        });
+        return ReaderAsync<R, A>.From(env => RetryHelper.ExecuteWithRetryAndDelayAsync(() => run(env), retries, delay));
     }
 
     /// <summary>
