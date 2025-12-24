@@ -26,12 +26,35 @@ Complete API documentation for Monad.NET.
 - [Async Streams](#async-streams-iasyncenumerable)
 - [Source Generators](#source-generators)
 - [Entity Framework Core](#entity-framework-core)
+- [Language Inspirations](#language-inspirations)
+
+---
+
+## Language Inspirations
+
+These types are proven patterns from functional programming. Here's the lineage:
+
+| Monad.NET | F# | Rust | Haskell |
+|-----------|-----|------|---------|
+| `Option<T>` | `Option<'T>` | `Option<T>` | `Maybe a` |
+| `Result<T, E>` | `Result<'T, 'E>` | `Result<T, E>` | `Either a b` |
+| `Either<L, R>` | `Choice<'T1, 'T2>` | — | `Either a b` |
+| `Validation<T, E>` | FsToolkit.ErrorHandling | — | `Validation` |
+| `Try<T>` | `try...with` | `Result<T, Error>` | `ExceptT` |
+| `NonEmptyList<T>` | FSharpPlus | `NonEmpty<T>` | `NonEmpty a` |
+| `RemoteData<T, E>` | — | — | — (Elm origin) |
+| `Writer<W, T>` | FSharpPlus | — | `Writer w a` |
+| `Reader<R, A>` | FSharpPlus | — | `Reader r a` |
+| `State<S, A>` | FSharpPlus | — | `State s a` |
+| `IO<T>` | `Async<'T>` | `Future<T>` | `IO a` |
 
 ---
 
 ## Option\<T\>
 
 Represents an optional value - either `Some(value)` or `None`.
+
+> **Inspired by:** Rust's `Option<T>`, F#'s `Option<'T>`, Haskell's `Maybe a`
 
 ### Constructors
 
@@ -175,6 +198,8 @@ Represents an optional value - either `Some(value)` or `None`.
 
 Represents success (`Ok`) or failure (`Err`).
 
+> **Inspired by:** Rust's `Result<T, E>`, F#'s `Result<'T, 'E>`, Haskell's `Either a b` (Left=Error convention)
+
 ### Constructors
 
 | Method | Description |
@@ -256,6 +281,8 @@ Represents success (`Ok`) or failure (`Err`).
 
 Represents a value of one of two types.
 
+> **Inspired by:** Haskell's `Either a b`, F#'s `Choice<'T1, 'T2>`
+
 ### Constructors
 
 | Method | Description |
@@ -297,6 +324,8 @@ Represents a value of one of two types.
 ## Validation\<T, E\>
 
 Accumulates errors instead of short-circuiting.
+
+> **Inspired by:** Haskell's `Validation` (from Data.Validation), F#'s FsToolkit.ErrorHandling
 
 ### Constructors
 
@@ -364,6 +393,8 @@ var result = from name in ValidateName(input.Name)
 
 Captures exceptions as values.
 
+> **Inspired by:** Rust's `Result<T, Box<dyn Error>>` pattern, Haskell's `ExceptT`, F#'s `try...with` expressions
+
 ### Constructors
 
 | Method | Description |
@@ -427,6 +458,8 @@ var result = from x in Try<int>.Of(() => ParseInt("42"))
 
 Tracks async data loading states.
 
+> **Inspired by:** Elm's RemoteData pattern (by Kris Jenkins) — represents NotAsked, Loading, Success, and Failure states
+
 ### Constructors
 
 | Method | Description |
@@ -474,6 +507,8 @@ Tracks async data loading states.
 ## NonEmptyList\<T\>
 
 List guaranteed to have at least one element.
+
+> **Inspired by:** Haskell's `NonEmpty` (from Data.List.NonEmpty), F#'s FSharpPlus, Rust's `nonempty` crate
 
 ### Constructors
 
@@ -525,6 +560,8 @@ List guaranteed to have at least one element.
 
 Computations with accumulated output.
 
+> **Inspired by:** Haskell's `Writer w a` (from Control.Monad.Writer), F#'s FSharpPlus
+
 ### Constructors
 
 | Method | Description |
@@ -569,6 +606,8 @@ var result = from x in Writer<string, int>.Tell(10, "Started\n")
 
 Computations depending on environment.
 
+> **Inspired by:** Haskell's `Reader r a` (from Control.Monad.Reader), F#'s FSharpPlus
+
 ### Constructors
 
 | Method | Description |
@@ -597,6 +636,8 @@ Computations depending on environment.
 ## ReaderAsync\<R, A\>
 
 Asynchronous computations depending on environment.
+
+> **Inspired by:** Haskell's `Reader r a` combined with async/effect handling, F#'s FSharpPlus
 
 ### Constructors
 
@@ -668,6 +709,8 @@ Asynchronous computations depending on environment.
 
 Stateful computations that thread state through operations.
 
+> **Inspired by:** Haskell's `State s a` (from Control.Monad.State), F#'s FSharpPlus
+
 ### Constructors
 
 | Method | Description |
@@ -731,6 +774,8 @@ Stateful computations that thread state through operations.
 ## IO\<T\>
 
 Defers side effects for pure functional code.
+
+> **Inspired by:** Haskell's `IO a` — the foundational effect type that separates pure code from side effects
 
 ### Constructors
 
@@ -914,22 +959,65 @@ program.Run();
 
 ## LINQ Support
 
-All monads support LINQ query syntax:
+All monads support LINQ extension methods for fluent composition.
+
+### Method Syntax (Recommended)
+
+Most developers prefer method syntax for its IntelliSense support and familiar chaining style:
 
 ```csharp
-// Select = Map
-var result = from x in option select x * 2;
+// Select = Map - transform the value
+var doubled = option.Select(x => x * 2);
+var userDto = result.Select(user => new UserDto(user));
 
-// SelectMany = FlatMap
-var result = from x in option1
-             from y in option2
-             select x + y;
+// SelectMany = FlatMap - chain operations that return monads
+var email = FindUser(id)
+    .SelectMany(user => GetEmail(user.Id))
+    .SelectMany(email => ValidateEmail(email));
 
-// Where = Filter (Option and Result)
-var result = from x in option
-             where x > 0
-             select x;
+// Where = Filter - keep values matching predicate
+var positive = option.Where(x => x > 0);
+var validOrder = result.Where(order => order.IsValid, OrderError.Invalid);
+
+// Combine them fluently
+var result = GetUserId(request)
+    .SelectMany(id => FindUser(id))
+    .Select(user => user.Profile)
+    .Where(profile => profile.IsComplete);
 ```
+
+### Query Syntax
+
+For complex compositions with multiple bindings, query syntax improves readability:
+
+```csharp
+// Multiple from clauses bind sequential operations
+var result = from user in FindUser(id)
+             from profile in LoadProfile(user.Id)
+             where profile.IsComplete
+             select new UserView(user, profile);
+
+// Equivalent to method syntax:
+var result = FindUser(id)
+    .SelectMany(user => LoadProfile(user.Id), (user, profile) => (user, profile))
+    .Where(x => x.profile.IsComplete)
+    .Select(x => new UserView(x.user, x.profile));
+```
+
+### Available LINQ Methods by Monad
+
+| Monad | Select | SelectMany | Where |
+|-------|--------|------------|-------|
+| `Option<T>` | ✅ | ✅ | ✅ `Where(predicate)` |
+| `Result<T,E>` | ✅ | ✅ | ✅ `Where(predicate, error)` |
+| `Either<L,R>` | ✅ (Right) | ✅ | ✅ `Where(predicate, leftValue)` |
+| `Try<T>` | ✅ | ✅ | ✅ `Where(predicate)` |
+| `Validation<T,E>` | ✅ | ✅ (short-circuits) | — |
+| `RemoteData<T,E>` | ✅ | ✅ | — |
+| `Writer<W,T>` | ✅ | ✅ (string, List<T>) | — |
+| `State<S,A>` | ✅ | ✅ | — |
+| `IO<T>` | ✅ | ✅ | — |
+| `ReaderAsync<R,A>` | ✅ | ✅ | — |
 
 ---
 
@@ -982,7 +1070,9 @@ Extension methods for working with `IAsyncEnumerable<T>` and monad types.
 
 ## Source Generators
 
-The `Monad.NET.SourceGenerators` package provides compile-time code generation for discriminated unions.
+Even [C# 14](https://learn.microsoft.com/en-us/dotnet/csharp/whats-new/csharp-14) doesn't include native discriminated unions (sum types)—a feature present in F#, Rust, Swift, Kotlin, and TypeScript. The [C# proposal (csharplang #8928)](https://github.com/dotnet/csharplang/issues/8928) is under active discussion but has no confirmed release date.
+
+`Monad.NET.SourceGenerators` fills this gap today with compile-time code generation, zero runtime overhead, and exhaustive pattern matching.
 
 ### Installation
 
