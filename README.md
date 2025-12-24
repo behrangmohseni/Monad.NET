@@ -416,7 +416,7 @@ Yes. All types are immutable `readonly struct` with no shared mutable state.
 Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 **Development requirements:**
-- .NET 8.0 SDK or later
+- .NET 6.0 SDK or later
 - Your preferred IDE (Visual Studio, Rider, VS Code)
 
 ```bash
