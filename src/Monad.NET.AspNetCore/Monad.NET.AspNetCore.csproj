@@ -14,7 +14,7 @@
     <Company>Behrang Mohseni</Company>
     <Product>Monad.NET.AspNetCore</Product>
     <Copyright>Copyright © 2025 Behrang Mohseni</Copyright>
-    <Description>ASP.NET Core integration for Monad.NET. Provides IActionResult extensions, middleware, and seamless integration with Option, Result, Either, and other monad types.</Description>
+    <Description>ASP.NET Core integration for Monad.NET. IActionResult extensions and middleware for Option, Result, Either, Validation, and Try types.</Description>
     <PackageTags>monad;functional;aspnetcore;mvc;webapi;result;option;either;iactionresult;middleware;error-handling</PackageTags>
     
     <!-- URLs -->

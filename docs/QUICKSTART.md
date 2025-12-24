@@ -24,6 +24,17 @@ Or add directly to your `.csproj`:
 
 **Supported Frameworks:** .NET 6.0, 7.0, 8.0, 9.0+
 
+## When to Use Monad.NET
+
+| Use Monad.NET when... | Stick with plain C# when... |
+|-----------------------|-----------------------------|
+| Chaining multiple nullable operations | Single null check with `is not null` |
+| Errors are expected and typed (validation, business rules) | Errors are exceptional (network, disk) |
+| You need ALL validation errors at once | First-error-wins is acceptable |
+| Building composable data pipelines | Simple procedural code |
+
+**The 80/20 rule:** You'll use `Option<T>` and `Result<T, E>` for 80% of cases. Start there.
+
 ## Basic Usage
 
 Add the namespace:
@@ -215,7 +226,31 @@ var result = ParseInput(data)
     .TapErr(e => Log($"Error: {e}"));
 ```
 
+### LINQ Method Syntax (Recommended)
+
+Use familiar `Select`, `SelectMany`, and `Where` methods for fluent composition:
+
+```csharp
+// Chain Option operations
+var userEmail = FindUser(id)
+    .Select(u => u.Email)                      // Transform: Option<User> → Option<string>
+    .Where(email => email.Contains("@"))       // Filter: None if predicate fails
+    .SelectMany(email => SendWelcome(email));  // Chain: bind to another Option
+
+// Chain Result operations  
+var order = ParseOrderId(input)
+    .SelectMany(id => FetchOrder(id))          // Chain fallible operations
+    .Select(order => order.Total);             // Transform success value
+
+// Chain Try operations
+var config = Try<string>.Of(() => File.ReadAllText("config.json"))
+    .Select(json => JsonSerializer.Deserialize<Config>(json))
+    .Where(cfg => cfg.IsValid);
+```
+
 ### LINQ Query Syntax
+
+For complex compositions, query syntax can be more readable:
 
 ```csharp
 var result = from x in Option<int>.Some(10)
@@ -345,6 +380,15 @@ public IActionResult CreateUser(CreateUserRequest request)
 - Read the full [README](../README.md) for detailed documentation
 - Check out the [examples](../examples/Monad.NET.Examples/Program.cs)
 - See the [API reference](API.md) for all available methods
+
+## Learn More
+
+New to functional programming patterns? These resources will help:
+
+- 📖 [Functional Programming in C#](https://www.manning.com/books/functional-programming-in-c-sharp-second-edition) by Enrico Buonanno
+- 🎥 [Railway Oriented Programming](https://fsharpforfunandprofit.com/rop/) by Scott Wlaschin
+- 📝 [Parse, Don't Validate](https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/) by Alexis King
+- 📚 [Rust Error Handling](https://doc.rust-lang.org/book/ch09-00-error-handling.html) — Rust's `Option` and `Result` are nearly identical
 
 ---
 

@@ -14,7 +14,7 @@
     <Company>Behrang Mohseni</Company>
     <Product>Monad.NET</Product>
     <Copyright>Copyright © 2025 Behrang Mohseni</Copyright>
-    <Description>A comprehensive functional programming library for .NET with 10 essential monads: Option, Result, Either, Validation, Try, RemoteData, NonEmptyList, Writer, Reader, and State. Features async support, LINQ integration, collection extensions, and zero dependencies. Supports .NET 6.0+.</Description>
+    <Description>Functional programming library for .NET with Option, Result, Either, Validation, Try, RemoteData, NonEmptyList, Writer, Reader, State, and IO monads. Async support, LINQ integration, zero dependencies. .NET 6.0+.</Description>
     <PackageTags>monad;functional;functional-programming;option;result;either;validation;try;remotedata;nonemptylist;writer;reader;state;railway-oriented-programming;error-handling;async;linq;immutable;type-safe;null-safety</PackageTags>
     
     <!-- URLs -->

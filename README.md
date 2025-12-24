@@ -9,7 +9,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-6.0%2B-512BD4.svg)](https://dotnet.microsoft.com/)
 
-**Monad.NET** is a comprehensive functional programming library for .NET that provides a robust set of monadic types for building reliable, composable, and maintainable applications.
+**Monad.NET** is a functional programming library for .NET. Option, Result, Either, Validation, and more — with zero dependencies.
 
 ```csharp
 // Transform nullable chaos into composable clarity
@@ -53,6 +53,7 @@ var result = user.ToOption()
 - [Real-World Examples](#real-world-examples)
 - [Samples](#samples)
 - [Performance](#performance)
+- [Resources](#resources)
 - [FAQ](#faq)
 - [API Reference](#api-reference)
 - [Guides](#guides)
@@ -64,18 +65,154 @@ var result = user.ToOption()
 
 ## Why Monad.NET?
 
-Modern .NET applications demand reliability. Yet we continue to fight the same battles: null reference exceptions, swallowed errors, inconsistent error handling, and code that's difficult to reason about.
+Modern C# has excellent features—nullable reference types, pattern matching, records. So why use Monad.NET?
 
-**Monad.NET addresses these challenges:**
+**The short answer:** Composability. While C# handles individual cases well, chaining operations that might fail, be absent, or need validation quickly becomes verbose. Monad.NET provides a unified API for composing these operations elegantly.
 
-| Problem             | Traditional Approach       | Monad.NET Solution                     |
-|---------------------|----------------------------|----------------------------------------|
-| Null references | `if (x is not null)` checks scattered everywhere | `Option<T>` makes absence explicit and composable |
-| Error handling | Try-catch blocks, exceptions as control flow | `Result<T, E>` treats errors as data |
-| Validation | Return on first error, lose context | `Validation<T, E>` accumulates all errors |
-| Async state | Boolean flags (`isLoading`, `hasError`) | `RemoteData<T, E>` models all four states |
-| Empty collections | Runtime exceptions on `.First()` | `NonEmptyList<T>` guarantees at least one element |
-| Async dependencies | Manual async/await chains | `ReaderAsync<R, A>` composes async environment-dependent code |
+### Honest Comparisons with Modern C#
+
+#### Optional Values: `Option<T>` vs Nullable Reference Types
+
+**Modern C# (NRT enabled):**
+```csharp
+User? user = FindUser(id);
+if (user is not null)
+{
+    Profile? profile = user.GetProfile();
+    if (profile is not null)
+    {
+        return profile.Email;  // Still might be null!
+    }
+}
+return "default@example.com";
+```
+
+**With Monad.NET:**
+```csharp
+return FindUser(id)
+    .AndThen(user => user.GetProfile())
+    .Map(profile => profile.Email)
+    .UnwrapOr("default@example.com");
+```
+
+**Verdict:** NRTs catch null issues at compile time—use them! But `Option<T>` shines when you need to *chain* operations or *transform* optional values. If you're writing nested null checks, Option is cleaner.
+
+---
+
+#### Error Handling: `Result<T, E>` vs Exceptions
+
+**Modern C# with exceptions:**
+```csharp
+public Order ProcessOrder(OrderRequest request)
+{
+    try
+    {
+        var validated = ValidateOrder(request);      // throws ValidationException
+        var inventory = ReserveInventory(validated); // throws InventoryException
+        var payment = ChargePayment(inventory);      // throws PaymentException
+        return CreateOrder(payment);
+    }
+    catch (ValidationException ex) { /* handle */ }
+    catch (InventoryException ex) { /* handle */ }
+    catch (PaymentException ex) { /* handle */ }
+}
+```
+
+**With Monad.NET:**
+```csharp
+public Result<Order, OrderError> ProcessOrder(OrderRequest request)
+{
+    return ValidateOrder(request)
+        .AndThen(ReserveInventory)
+        .AndThen(ChargePayment)
+        .AndThen(CreateOrder);
+}
+```
+
+**Verdict:** Exceptions are fine for *exceptional* situations (network failures, disk errors). Use `Result<T, E>` when failure is *expected* (validation errors, business rule violations). The signature `Result<Order, OrderError>` tells callers exactly what can go wrong—no surprises.
+
+---
+
+#### Validation: `Validation<T, E>` vs FluentValidation
+
+**With FluentValidation (industry standard):**
+```csharp
+public class UserValidator : AbstractValidator<UserRequest>
+{
+    public UserValidator()
+    {
+        RuleFor(x => x.Name).NotEmpty().MinimumLength(2);
+        RuleFor(x => x.Email).NotEmpty().EmailAddress();
+        RuleFor(x => x.Age).InclusiveBetween(18, 120);
+    }
+}
+
+// Usage
+var result = await validator.ValidateAsync(request);
+if (!result.IsValid)
+    return BadRequest(result.Errors);
+```
+
+**With Monad.NET:**
+```csharp
+var user = ValidateName(request.Name)
+    .Apply(ValidateEmail(request.Email), (name, email) => (name, email))
+    .Apply(ValidateAge(request.Age), (partial, age) => new User(partial.name, partial.email, age));
+```
+
+**Verdict:** FluentValidation is battle-tested and has more features (async rules, dependency injection, localization). Use it for complex scenarios. `Validation<T, E>` is lighter, has no dependencies, and works well with other Monad.NET types. Choose based on your needs.
+
+---
+
+#### Discriminated Unions: The Missing Feature in C#
+
+**The Problem:** C# still lacks native discriminated unions (sum types) as of [C# 14](https://learn.microsoft.com/en-us/dotnet/csharp/whats-new/csharp-14). Despite adding extension members, null-conditional assignment, field-backed properties, and other features—discriminated unions didn't make the cut. This remains one of the [most requested language features](https://github.com/dotnet/csharplang/issues/8928), with the proposal actively discussed by the C# Language Design Team. F#, Rust, Swift, Kotlin, and TypeScript all have this feature. C# developers have been waiting for years.
+
+**Why it matters:**
+```csharp
+// Without discriminated unions, you're stuck with:
+// 1. Class hierarchies (verbose, not exhaustive)
+// 2. Enums + switch (no associated data)
+// 3. Tuples (loses type safety)
+// 4. Exceptions (wrong tool for expected outcomes)
+```
+
+**With OneOf library (popular workaround):**
+```csharp
+OneOf<Success, NotFound, ValidationError> GetUser(int id) { ... }
+
+result.Switch(
+    success => Ok(success.User),
+    notFound => NotFound(),
+    error => BadRequest(error.Message)
+);
+```
+
+**With Monad.NET Source Generators:**
+```csharp
+[Union]
+public abstract partial record GetUserResult
+{
+    public partial record Success(User User) : GetUserResult;
+    public partial record NotFound : GetUserResult;
+    public partial record ValidationError(string Message) : GetUserResult;
+}
+
+// Exhaustive matching - compiler ensures all cases handled
+result.Match(
+    success: s => Ok(s.User),
+    notFound: _ => NotFound(),
+    validationError: e => BadRequest(e.Message)
+);
+
+// Plus additional utilities generated automatically:
+if (result.IsSuccess) { ... }
+var user = result.AsSuccess().Map(s => s.User);
+```
+
+**Verdict:** Until C# gets native discriminated unions (proposed but no confirmed timeline), you need a library. OneOf is battle-tested. Monad.NET uses source generators for zero runtime overhead and generates richer utilities (`Is{Case}`, `As{Case}()`, `Map`, `Tap`). Both work well—pick Monad.NET if you're already using Option/Result from this library.
+
+---
 
 ### Design Principles
 
@@ -86,20 +223,42 @@ Modern .NET applications demand reliability. Yet we continue to fight the same b
 
 ### Which Monad Should I Use?
 
-| Scenario | Use This |
-|----------|----------|
-| A value might be missing | `Option<T>` |
-| An operation can fail with an error | `Result<T, E>` |
-| Need to show ALL validation errors | `Validation<T, E>` |
-| Wrapping code that throws exceptions | `Try<T>` |
-| UI state for async data loading | `RemoteData<T, E>` |
-| A list must have at least one item | `NonEmptyList<T>` |
-| Need to accumulate logs/traces | `Writer<W, T>` |
-| Dependency injection without DI container | `Reader<R, A>` |
-| Async dependency injection | `ReaderAsync<R, A>` |
-| Thread state through computations | `State<S, A>` |
-| Defer side effects for pure code | `IO<T>` |
-| Return one of two different types | `Either<L, R>` |
+**Sorted by how often you'll need them:**
+
+| Frequency | Scenario | Use This |
+|-----------|----------|----------|
+| ⭐⭐⭐⭐⭐ | A value might be missing | `Option<T>` |
+| ⭐⭐⭐⭐⭐ | An operation can fail with a typed error | `Result<T, E>` |
+| ⭐⭐⭐⭐ | Need to show ALL validation errors at once | `Validation<T, E>` |
+| ⭐⭐⭐⭐ | Wrapping code that throws exceptions | `Try<T>` |
+| ⭐⭐⭐ | A list must have at least one item | `NonEmptyList<T>` |
+| ⭐⭐⭐ | UI state for async data loading (Blazor) | `RemoteData<T, E>` |
+| ⭐⭐ | Return one of two different types | `Either<L, R>` |
+| ⭐⭐ | Compose async operations with shared dependencies | `ReaderAsync<R, A>` |
+| ⭐⭐ | Dependency injection without DI container | `Reader<R, A>` |
+| ⭐ | Need to accumulate logs/traces alongside results | `Writer<W, T>` |
+| ⭐ | Thread state through pure computations | `State<S, A>` |
+| ⭐ | Defer and compose side effects | `IO<T>` |
+
+### Language Inspirations
+
+These types come from functional programming languages. Here's the lineage:
+
+| Monad.NET | F# | Rust | Haskell | Notes |
+|-----------|-----|------|---------|-------|
+| `Option<T>` | `Option<'T>` | `Option<T>` | `Maybe a` | Universal pattern for optional values |
+| `Result<T, E>` | `Result<'T, 'E>` | `Result<T, E>` | `Either a b`* | *Haskell uses Either with Left=Error convention |
+| `Either<L, R>` | `Choice<'T1, 'T2>` | — | `Either a b` | General sum type for two alternatives |
+| `Validation<T, E>` | FsToolkit.ErrorHandling | — | `Validation` | Error accumulation (vs short-circuit) |
+| `Try<T>` | `try...with` | `Result<T, Error>` | `IO`/`ExceptT` | Exception capture as values |
+| `NonEmptyList<T>` | FSharpPlus | `NonEmpty<T>`† | `NonEmpty a` | †Via `nonempty` crate |
+| `RemoteData<T, E>` | — | — | — | Originated in Elm (Kris Jenkins) |
+| `Writer<W, T>` | FSharpPlus | — | `Writer w a` | Classic Haskell monad |
+| `Reader<R, A>` | FSharpPlus | — | `Reader r a` | Dependency injection, FP style |
+| `State<S, A>` | FSharpPlus | — | `State s a` | Threading state through computations |
+| `IO<T>` | `Async<'T>` | `Future<T>` | `IO a` | The foundational effect type in Haskell |
+
+**Key insight:** Rust's `Option` and `Result` are nearly identical to Monad.NET's versions—same names, same semantics. If you know Rust, you already know how to use these types.
 
 ---
 
@@ -824,28 +983,67 @@ var fastest = IO.Race(
 
 ## Advanced Usage
 
-### LINQ Query Syntax
+### LINQ Support
 
-All monads support LINQ for natural composition:
+All monads support LINQ extension methods (`Select`, `SelectMany`, `Where`) for fluent composition.
+
+#### Method Syntax (Recommended)
+
+The method syntax is familiar to most .NET developers and works great with IntelliSense:
 
 ```csharp
-// Option
+// Option - chain transformations with Select and SelectMany
+var userEmail = FindUser(id)
+    .Select(user => user.Email)                    // Map: Option<User> → Option<string>
+    .Where(email => email.Contains("@"))           // Filter: keep only valid emails
+    .SelectMany(email => ValidateEmail(email));    // FlatMap: chain Option-returning functions
+
+// Result - compose fallible operations
+var order = ValidateCart(input)
+    .SelectMany(cart => ProcessPayment(cart))      // Chain to next Result
+    .Select(payment => CreateOrderDto(payment));   // Transform success value
+
+// Try - safely chain operations that might throw
+var parsed = Try<string>.Of(() => ReadFile(path))
+    .Select(content => content.Trim())
+    .SelectMany(content => Try<int>.Of(() => int.Parse(content)))
+    .Where(value => value > 0);
+```
+
+#### Query Syntax
+
+For complex compositions with multiple bindings, query syntax can be more readable:
+
+```csharp
+// Option - multiple from clauses bind values
 var result = from user in FindUser(id)
              from profile in LoadProfile(user.Id)
              where profile.IsComplete
              select new UserView(user, profile);
 
-// Result
+// Result - railway-oriented composition
 var order = from cart in ValidateCart(input)
             from payment in ProcessPayment(cart)
             from confirmation in CreateOrder(cart, payment)
             select confirmation;
 
-// ReaderAsync
-var workflow = from user in GetUserAsync
-               from orders in GetOrdersAsync(user.Id)
-               select new UserWithOrders(user, orders);
+// Validation - note: query syntax short-circuits; use Apply for error accumulation
+var user = from name in ValidateName(input.Name)
+           from email in ValidateEmail(input.Email)
+           select new User(name, email);
 ```
+
+#### Available LINQ Methods
+
+| Monad | Select | SelectMany | Where |
+|-------|--------|------------|-------|
+| `Option<T>` | ✅ Map value | ✅ Chain Options | ✅ Filter by predicate |
+| `Result<T,E>` | ✅ Map Ok value | ✅ Chain Results | ✅ With error value/factory |
+| `Either<L,R>` | ✅ Map Right | ✅ Chain Eithers | ✅ With Left value |
+| `Try<T>` | ✅ Map success | ✅ Chain Trys | ✅ Filter with predicate |
+| `Validation<T,E>` | ✅ Map valid | ✅ Chain (short-circuits) | — |
+| `RemoteData<T,E>` | ✅ Map success | ✅ Chain RemoteData | — |
+| `Writer<W,T>` | ✅ Map value | ✅ Chain with log combine | — |
 
 ### When/Unless Guards
 
@@ -1296,7 +1494,7 @@ public async Task<Option<IReadOnlyList<User>>> GetAllUsers(IEnumerable<int> user
 
 ## Source Generators
 
-The `Monad.NET.SourceGenerators` package provides compile-time code generation for discriminated unions, reducing boilerplate and ensuring exhaustive pattern matching:
+**Why this exists:** Even [C# 14](https://learn.microsoft.com/en-us/dotnet/csharp/whats-new/csharp-14) doesn't include native discriminated unions—a feature available in F#, Rust, Swift, Kotlin, and TypeScript. The [proposal (csharplang #8928)](https://github.com/dotnet/csharplang/issues/8928) is under discussion but has no confirmed release date. `Monad.NET.SourceGenerators` fills the gap today with zero runtime overhead.
 
 ```bash
 dotnet add package Monad.NET.SourceGenerators
@@ -1304,7 +1502,7 @@ dotnet add package Monad.NET.SourceGenerators
 
 ### Creating Discriminated Unions
 
-Mark your abstract record or class with `[Union]` and the generator creates `Match` methods automatically:
+Mark your abstract record or class with `[Union]` and the generator creates exhaustive pattern matching automatically:
 
 ```csharp
 using Monad.NET;
@@ -1627,6 +1825,53 @@ Monad.NET is designed for correctness and safety first, but performance is still
 ### Benchmarks
 
 For typical use cases, the overhead is negligible (nanoseconds). The safety guarantees and code clarity typically outweigh any micro-optimization concerns.
+
+---
+
+## Resources
+
+Want to dive deeper into functional programming and these patterns? Here are some excellent resources:
+
+### Books
+
+| Book | Author | Why Read It |
+|------|--------|-------------|
+| [Functional Programming in C#](https://www.manning.com/books/functional-programming-in-c-sharp-second-edition) | Enrico Buonanno | The definitive guide to FP in C#. Covers Option, Either, validation, and more. |
+| [Domain Modeling Made Functional](https://pragprog.com/titles/swdddf/domain-modeling-made-functional/) | Scott Wlaschin | Uses F# but concepts translate directly. Excellent on making illegal states unrepresentable. |
+| [Programming Rust](https://www.oreilly.com/library/view/programming-rust-2nd/9781492052586/) | Blandy, Orendorff, Tindall | Rust's `Option` and `Result` are nearly identical to Monad.NET's versions. |
+
+### Online Resources
+
+| Resource | Description |
+|----------|-------------|
+| [F# for Fun and Profit](https://fsharpforfunandprofit.com/) | Scott Wlaschin's legendary site. Start with [Railway Oriented Programming](https://fsharpforfunandprofit.com/rop/). |
+| [Rust Error Handling](https://doc.rust-lang.org/book/ch09-00-error-handling.html) | Official Rust book chapter on `Option` and `Result`. |
+| [Haskell Maybe/Either](https://wiki.haskell.org/Handling_errors_in_Haskell) | Haskell wiki on error handling patterns. |
+| [Parse, Don't Validate](https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/) | Alexis King's influential post on type-driven design. |
+
+### Videos & Talks
+
+| Talk | Speaker | Topics |
+|------|---------|--------|
+| [Functional Design Patterns](https://www.youtube.com/watch?v=srQt1NAHYC0) | Scott Wlaschin | Monads, Railway Oriented Programming, composition |
+| [Domain Modeling Made Functional](https://www.youtube.com/watch?v=2JB1_e5wZmU) | Scott Wlaschin | Making illegal states unrepresentable |
+| [The Power of Composition](https://www.youtube.com/watch?v=vDe-4o8Uwl8) | Scott Wlaschin | Why small, composable functions matter |
+
+### Related C# Libraries
+
+| Library | Description |
+|---------|-------------|
+| [language-ext](https://github.com/louthy/language-ext) | Comprehensive FP library for C#. More extensive than Monad.NET but steeper learning curve. |
+| [OneOf](https://github.com/mcintyre321/OneOf) | Focused on discriminated unions. Lighter weight. |
+| [FluentResults](https://github.com/altmann/FluentResults) | Result pattern with fluent API. Good for simple use cases. |
+| [ErrorOr](https://github.com/amantinband/error-or) | Discriminated union for errors. Popular in Clean Architecture circles. |
+
+### Key Concepts to Understand
+
+1. **Railway Oriented Programming** — Treat errors as alternate tracks, not exceptions
+2. **Making Illegal States Unrepresentable** — Use types to prevent bugs at compile time
+3. **Parse, Don't Validate** — Push validation to the boundaries, work with valid types internally
+4. **Composition over Inheritance** — Small, focused types that combine well
 
 ---
 
