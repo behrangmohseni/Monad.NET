@@ -1,12 +1,5 @@
-# Compatibility Matrix
+# Compatibility
 
-| Target  | Status |
-|---------|--------|
-| .NET 6  | ✅ |
-| .NET 7  | ✅ |
-| .NET 8  | ✅ |
-| .NET 9  | ✅ |
-| .NET 10 | ✅ |
+**Minimum Requirement:** .NET 6.0 or later
 
-CI builds and tests against all listed frameworks. No external runtime dependencies. Assemblies are cross-targeted for the full set above.
-
+Monad.NET targets `net6.0` and works with all subsequent .NET versions. No external runtime dependencies.

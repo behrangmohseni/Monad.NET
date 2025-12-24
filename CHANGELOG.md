@@ -402,7 +402,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Zero external dependencies (except Microsoft.SourceLink.GitHub for debugging)
 - Full XML documentation
 - 399 unit tests
-- Supports .NET 6.0, 7.0, 8.0, and 9.0
+- Supports .NET 6.0 or later
 - Symbol packages for debugging
 - Source Link integration
 

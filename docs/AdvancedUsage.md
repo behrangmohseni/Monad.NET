@@ -76,6 +76,9 @@ var user = from name in ValidateName(input.Name)
 | `Validation<T,E>` | ✅ Map valid | ✅ Chain (short-circuits) | — |
 | `RemoteData<T,E>` | ✅ Map success | ✅ Chain RemoteData | — |
 | `Writer<W,T>` | ✅ Map value | ✅ Chain with log combine | — |
+| `State<S,A>` | ✅ Map value | ✅ Chain State | — |
+| `IO<T>` | ✅ Map value | ✅ Chain IO | — |
+| `ReaderAsync<R,A>` | ✅ Map value | ✅ Chain ReaderAsync | — |
 
 ---
 

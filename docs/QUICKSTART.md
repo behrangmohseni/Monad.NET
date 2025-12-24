@@ -22,7 +22,7 @@ Or add directly to your `.csproj`:
 <PackageReference Include="Monad.NET" />
 ```
 
-**Supported Frameworks:** .NET 6.0, 7.0, 8.0, 9.0+
+**Requires:** .NET 6.0 or later
 
 ## When to Use Monad.NET
 
