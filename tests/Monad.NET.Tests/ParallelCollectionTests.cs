@@ -5,6 +5,48 @@ namespace Monad.NET.Tests;
 
 public class ParallelCollectionTests
 {
+    /// <summary>
+    /// Helper class for tracking concurrent execution in tests.
+    /// </summary>
+    private sealed class ConcurrencyTracker
+    {
+        private readonly object _lockObj = new();
+        private int _concurrentCount;
+        private int _maxConcurrent;
+
+        public int MaxConcurrent => _maxConcurrent;
+
+        public void Enter()
+        {
+            lock (_lockObj)
+            {
+                _concurrentCount++;
+                _maxConcurrent = Math.Max(_maxConcurrent, _concurrentCount);
+            }
+        }
+
+        public void Exit()
+        {
+            lock (_lockObj)
+            {
+                _concurrentCount--;
+            }
+        }
+
+        public async Task<T> TrackAsync<T>(Func<Task<T>> operation, int delayMs = 50)
+        {
+            Enter();
+            try
+            {
+                await Task.Delay(delayMs);
+                return await operation();
+            }
+            finally
+            {
+                Exit();
+            }
+        }
+    }
     #region Option SequenceParallelAsync
 
     [Fact]
@@ -52,36 +94,18 @@ public class ParallelCollectionTests
     [Fact]
     public async Task SequenceParallelAsync_Option_WithDegreeOfParallelism_RespectsLimit()
     {
-        var concurrentCount = 0;
-        var maxConcurrent = 0;
-        var lockObj = new object();
+        var tracker = new ConcurrencyTracker();
 
         // Use TraverseParallelAsync instead of SequenceParallelAsync to test throttling.
         // SequenceParallelAsync receives already-started tasks, so it can only throttle awaits.
         // TraverseParallelAsync creates tasks lazily inside the semaphore-protected region.
         var result = await Enumerable.Range(1, 10).TraverseParallelAsync(
-            async i =>
-            {
-                lock (lockObj)
-                {
-                    concurrentCount++;
-                    maxConcurrent = Math.Max(maxConcurrent, concurrentCount);
-                }
-
-                await Task.Delay(50);
-
-                lock (lockObj)
-                {
-                    concurrentCount--;
-                }
-
-                return Option<int>.Some(i);
-            },
+            i => tracker.TrackAsync(() => Task.FromResult(Option<int>.Some(i))),
             maxDegreeOfParallelism: 3);
 
         Assert.True(result.IsSome);
         Assert.Equal(10, result.Unwrap().Count);
-        Assert.True(maxConcurrent <= 3, $"Max concurrent was {maxConcurrent}, expected <= 3");
+        Assert.True(tracker.MaxConcurrent <= 3, $"Max concurrent was {tracker.MaxConcurrent}, expected <= 3");
     }
 
     #endregion
@@ -139,35 +163,16 @@ public class ParallelCollectionTests
     [Fact]
     public async Task TraverseParallelAsync_Option_WithDegreeOfParallelism_RespectsLimit()
     {
-        var concurrentCount = 0;
-        var maxConcurrent = 0;
-        var lockObj = new object();
-
+        var tracker = new ConcurrencyTracker();
         var numbers = Enumerable.Range(1, 10).ToList();
 
         var result = await numbers.TraverseParallelAsync(
-            async n =>
-            {
-                lock (lockObj)
-                {
-                    concurrentCount++;
-                    maxConcurrent = Math.Max(maxConcurrent, concurrentCount);
-                }
-
-                await Task.Delay(50);
-
-                lock (lockObj)
-                {
-                    concurrentCount--;
-                }
-
-                return Option<int>.Some(n);
-            },
+            n => tracker.TrackAsync(() => Task.FromResult(Option<int>.Some(n))),
             maxDegreeOfParallelism: 3);
 
         Assert.True(result.IsSome);
         Assert.Equal(10, result.Unwrap().Count);
-        Assert.True(maxConcurrent <= 3, $"Max concurrent was {maxConcurrent}, expected <= 3");
+        Assert.True(tracker.MaxConcurrent <= 3, $"Max concurrent was {tracker.MaxConcurrent}, expected <= 3");
     }
 
     #endregion
@@ -220,36 +225,18 @@ public class ParallelCollectionTests
     [Fact]
     public async Task SequenceParallelAsync_Result_WithDegreeOfParallelism_RespectsLimit()
     {
-        var concurrentCount = 0;
-        var maxConcurrent = 0;
-        var lockObj = new object();
+        var tracker = new ConcurrencyTracker();
 
         // Use TraverseParallelAsync instead of SequenceParallelAsync to test throttling.
         // SequenceParallelAsync receives already-started tasks, so it can only throttle awaits.
         // TraverseParallelAsync creates tasks lazily inside the semaphore-protected region.
         var result = await Enumerable.Range(1, 10).TraverseParallelAsync(
-            async i =>
-            {
-                lock (lockObj)
-                {
-                    concurrentCount++;
-                    maxConcurrent = Math.Max(maxConcurrent, concurrentCount);
-                }
-
-                await Task.Delay(50);
-
-                lock (lockObj)
-                {
-                    concurrentCount--;
-                }
-
-                return Result<int, string>.Ok(i);
-            },
+            i => tracker.TrackAsync(() => Task.FromResult(Result<int, string>.Ok(i))),
             maxDegreeOfParallelism: 4);
 
         Assert.True(result.IsOk);
         Assert.Equal(10, result.Unwrap().Count);
-        Assert.True(maxConcurrent <= 4, $"Max concurrent was {maxConcurrent}, expected <= 4");
+        Assert.True(tracker.MaxConcurrent <= 4, $"Max concurrent was {tracker.MaxConcurrent}, expected <= 4");
     }
 
     #endregion
@@ -310,35 +297,16 @@ public class ParallelCollectionTests
     [Fact]
     public async Task TraverseParallelAsync_Result_WithDegreeOfParallelism_RespectsLimit()
     {
-        var concurrentCount = 0;
-        var maxConcurrent = 0;
-        var lockObj = new object();
-
+        var tracker = new ConcurrencyTracker();
         var numbers = Enumerable.Range(1, 10).ToList();
 
         var result = await numbers.TraverseParallelAsync(
-            async n =>
-            {
-                lock (lockObj)
-                {
-                    concurrentCount++;
-                    maxConcurrent = Math.Max(maxConcurrent, concurrentCount);
-                }
-
-                await Task.Delay(50);
-
-                lock (lockObj)
-                {
-                    concurrentCount--;
-                }
-
-                return Result<int, string>.Ok(n);
-            },
+            n => tracker.TrackAsync(() => Task.FromResult(Result<int, string>.Ok(n))),
             maxDegreeOfParallelism: 4);
 
         Assert.True(result.IsOk);
         Assert.Equal(10, result.Unwrap().Count);
-        Assert.True(maxConcurrent <= 4, $"Max concurrent was {maxConcurrent}, expected <= 4");
+        Assert.True(tracker.MaxConcurrent <= 4, $"Max concurrent was {tracker.MaxConcurrent}, expected <= 4");
     }
 
     #endregion
