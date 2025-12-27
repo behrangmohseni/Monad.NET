@@ -28,34 +28,81 @@ public sealed class MapGetOrElseAnalyzer : DiagnosticAnalyzer
     private static void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
     {
         var invocation = (InvocationExpressionSyntax)context.Node;
-        if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess)
+
+        if (!TryGetMapGetOrElseChain(invocation, context, out var methodName))
             return;
 
-        var methodName = memberAccess.Name.Identifier.Text;
-        if (!GetOrElseMethods.Contains(methodName))
-            return;
+        var diagnostic = Diagnostic.Create(
+            DiagnosticDescriptors.MapGetOrElseToMatch,
+            invocation.GetLocation(),
+            methodName);
 
-        // Check if the receiver is a Map call
-        if (memberAccess.Expression is not InvocationExpressionSyntax mapInvocation)
-            return;
+        context.ReportDiagnostic(diagnostic);
+    }
 
-        if (mapInvocation.Expression is not MemberAccessExpressionSyntax mapMemberAccess)
-            return;
+    private static bool TryGetMapGetOrElseChain(
+        InvocationExpressionSyntax invocation,
+        SyntaxNodeAnalysisContext context,
+        out string methodName)
+    {
+        methodName = null!;
 
-        if (mapMemberAccess.Name.Identifier.Text != "Map")
-            return;
+        if (!TryGetGetOrElseMethod(invocation, out var getOrElseMemberAccess, out methodName))
+            return false;
 
-        // Verify this is on a monad type
-        var expressionType = context.SemanticModel.GetTypeInfo(mapMemberAccess.Expression, context.CancellationToken).Type;
+        if (!TryGetPrecedingMapCall(getOrElseMemberAccess, out var mapMemberAccess))
+            return false;
+
+        return IsMonadType(mapMemberAccess.Expression, context);
+    }
+
+    private static bool TryGetGetOrElseMethod(
+        InvocationExpressionSyntax invocation,
+        out MemberAccessExpressionSyntax memberAccess,
+        out string methodName)
+    {
+        memberAccess = null!;
+        methodName = null!;
+
+        if (invocation.Expression is not MemberAccessExpressionSyntax ma)
+            return false;
+
+        var name = ma.Name.Identifier.Text;
+        if (!GetOrElseMethods.Contains(name))
+            return false;
+
+        memberAccess = ma;
+        methodName = name;
+        return true;
+    }
+
+    private static bool TryGetPrecedingMapCall(
+        MemberAccessExpressionSyntax getOrElseMemberAccess,
+        out MemberAccessExpressionSyntax mapMemberAccess)
+    {
+        mapMemberAccess = null!;
+
+        if (getOrElseMemberAccess.Expression is not InvocationExpressionSyntax mapInvocation)
+            return false;
+
+        if (mapInvocation.Expression is not MemberAccessExpressionSyntax ma)
+            return false;
+
+        if (ma.Name.Identifier.Text != "Map")
+            return false;
+
+        mapMemberAccess = ma;
+        return true;
+    }
+
+    private static bool IsMonadType(ExpressionSyntax expression, SyntaxNodeAnalysisContext context)
+    {
+        var expressionType = context.SemanticModel.GetTypeInfo(expression, context.CancellationToken).Type;
         if (expressionType is null)
-            return;
+            return false;
 
         var typeName = GetBaseTypeName(expressionType);
-        if (!MonadTypes.Contains(typeName))
-            return;
-
-        var diagnostic = Diagnostic.Create(DiagnosticDescriptors.MapGetOrElseToMatch, invocation.GetLocation(), methodName);
-        context.ReportDiagnostic(diagnostic);
+        return MonadTypes.Contains(typeName);
     }
 
     private static string GetBaseTypeName(ITypeSymbol type) =>

@@ -13,8 +13,8 @@
     <Authors>Behrang Mohseni</Authors>
     <Company>behrangmohseni.com</Company>
     <Product>Monad.NET.SourceGenerators</Product>
-    <Description>Source generators for Monad.NET - auto-generate Match methods for discriminated unions</Description>
-    <PackageTags>monad;functional;source-generator;discriminated-union;match</PackageTags>
+    <Description>Source generators for Monad.NET - auto-generate Match methods for discriminated unions and typed error hierarchies with [Union] and [ErrorUnion] attributes</Description>
+    <PackageTags>monad;functional;source-generator;discriminated-union;match;error-union;result</PackageTags>
     <PackageProjectUrl>https://behrangmohseni.com/monad_dot_net</PackageProjectUrl>
     <RepositoryUrl>https://github.com/behrangmohseni/Monad.NET</RepositoryUrl>
     <RepositoryType>git</RepositoryType>

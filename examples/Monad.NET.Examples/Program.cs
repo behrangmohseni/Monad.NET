@@ -44,6 +44,9 @@ public class Program
         CollectionExamples();
         Console.WriteLine("\n" + new string('-', 50) + "\n");
 
+        ErrorUnionExamples();
+        Console.WriteLine("\n" + new string('-', 50) + "\n");
+
         RealWorldExamples();
     }
 
@@ -921,6 +924,100 @@ public class Program
             errFunc: err => err
         )}"); // 60
     }
+
+    static void ErrorUnionExamples()
+    {
+        Console.WriteLine("### ErrorUnion Examples ###\n");
+        Console.WriteLine("ErrorUnion generates typed error matching for Result<T, TError>.\n");
+
+        // Define error types using [ErrorUnion]
+        Console.WriteLine("1. Creating Results with Typed Errors:");
+        var success = Result<User, UserError>.Ok(new User { Email = "john@example.com", FirstName = "John" });
+        var notFound = Result<User, UserError>.Err(UserError.NewNotFound(Guid.NewGuid()));
+        var invalidEmail = Result<User, UserError>.Err(UserError.NewInvalidEmail("bad-email"));
+        var unauthorized = Result<User, UserError>.Err(UserError.NewUnauthorized());
+
+        Console.WriteLine($"   Success: {success}");
+        Console.WriteLine($"   NotFound: {notFound}");
+        Console.WriteLine($"   InvalidEmail: {invalidEmail}");
+        Console.WriteLine($"   Unauthorized: {unauthorized}");
+
+        // Match on error type
+        Console.WriteLine("\n2. Pattern Matching on Error Types:");
+        var message = notFound.MatchError(
+            ok: user => $"Found user: {user.Email}",
+            notFound: e => $"User with ID {e.Id} not found",
+            invalidEmail: e => $"Invalid email format: {e.Email}",
+            unauthorized: _ => "Access denied - please login");
+        Console.WriteLine($"   Message: {message}");
+
+        // Error type checking using generated properties
+        Console.WriteLine("\n3. Error Type Checking:");
+        var error = notFound.UnwrapErr();
+        Console.WriteLine($"   IsNotFound: {error.IsNotFound}");
+        Console.WriteLine($"   IsInvalidEmail: {error.IsInvalidEmail}");
+        Console.WriteLine($"   IsUnauthorized: {error.IsUnauthorized}");
+
+        // Match on the error directly
+        Console.WriteLine("\n4. Direct Error Matching:");
+        error.Match(
+            notFound: e => Console.WriteLine($"   Not found: {e.Id}"),
+            invalidEmail: e => Console.WriteLine($"   Invalid email: {e.Email}"),
+            unauthorized: _ => Console.WriteLine("   Unauthorized"));
+
+        // Using As{Case}() for safe casting
+        Console.WriteLine("\n5. Safe Casting with As{Case}():");
+        var asNotFound = error.AsNotFound();
+        var asInvalidEmail = error.AsInvalidEmail();
+        Console.WriteLine($"   AsNotFound: {asNotFound}");
+        Console.WriteLine($"   AsInvalidEmail: {asInvalidEmail}");
+
+        // MapError for transforming errors
+        Console.WriteLine("\n6. MapError for Error Transformation:");
+        var httpResult = invalidEmail.MapError(
+            notFound: e => 404,
+            invalidEmail: e => 400,
+            unauthorized: _ => 401);
+        Console.WriteLine($"   HTTP Status: {httpResult}");
+
+        // Recover from specific errors
+        Console.WriteLine("\n7. Recover from Specific Errors:");
+        var recovered = notFound.Recover(
+            notFound: e => Result<User, UserError>.Ok(new User { Email = "default@example.com", FirstName = "Default" }));
+        Console.WriteLine($"   Recovered: {recovered}");
+
+        // ToResult helper on error
+        Console.WriteLine("\n8. ToResult Helper:");
+        var fromError = UserError.NewUnauthorized().ToResult<User>();
+        Console.WriteLine($"   From error: {fromError}");
+
+        // Real-world: API error handling
+        Console.WriteLine("\n9. Real-World: API Error Handling:");
+        var apiResult = GetUserFromApi(Guid.Empty);
+        var response = apiResult.MatchError(
+            ok: user => $"200 OK: {user.Email}",
+            notFound: e => $"404 Not Found: User {e.Id}",
+            invalidEmail: e => $"400 Bad Request: {e.Email}",
+            unauthorized: _ => "401 Unauthorized");
+        Console.WriteLine($"   Response: {response}");
+    }
+
+    static Result<User, UserError> GetUserFromApi(Guid id)
+    {
+        if (id == Guid.Empty)
+            return UserError.NewNotFound(id).ToResult<User>();
+
+        return Result<User, UserError>.Ok(new User { Email = "found@example.com", FirstName = "Found" });
+    }
+}
+
+// Error union definition - generates Match, Is{Case}, As{Case}, and Result extensions
+[ErrorUnion]
+public abstract partial record UserError
+{
+    public sealed partial record NotFound(Guid Id) : UserError;
+    public sealed partial record InvalidEmail(string Email) : UserError;
+    public sealed partial record Unauthorized : UserError;
 }
 
 class User

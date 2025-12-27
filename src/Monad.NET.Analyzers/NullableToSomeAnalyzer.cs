@@ -23,76 +23,74 @@ public sealed class NullableToSomeAnalyzer : DiagnosticAnalyzer
     {
         var invocation = (InvocationExpressionSyntax)context.Node;
 
-        // Check for Option.Some(...) or Option<T>.Some(...)
-        var methodName = invocation.Expression switch
-        {
-            MemberAccessExpressionSyntax ma => ma.Name.Identifier.Text,
-            _ => null
-        };
-
-        if (methodName != "Some")
+        if (!IsOptionSomeInvocation(invocation, context))
             return;
 
-        // Verify it's on Option type
-        if (invocation.Expression is MemberAccessExpressionSyntax memberAccess)
-        {
-            var receiverType = context.SemanticModel.GetTypeInfo(memberAccess.Expression, context.CancellationToken).Type;
-            if (receiverType is not INamedTypeSymbol namedType || namedType.Name != "Option")
-                return;
-        }
-
-        if (invocation.ArgumentList.Arguments.Count != 1)
+        if (!TryGetSingleArgument(invocation, out var argument))
             return;
 
-        var argument = invocation.ArgumentList.Arguments[0].Expression;
-        var argumentType = context.SemanticModel.GetTypeInfo(argument, context.CancellationToken).Type;
-
-        if (argumentType is null)
+        if (IsDefinitelyNotNullArgument(argument, context))
             return;
 
-        // Check if the argument could be null
-        var isNullable = argumentType.NullableAnnotation == NullableAnnotation.Annotated ||
-                         argumentType.IsReferenceType ||
-                         IsNullableValueType(argumentType);
-
-        // Skip if it's a literal that's clearly not null
-        if (argument is LiteralExpressionSyntax literal && !literal.IsKind(SyntaxKind.NullLiteralExpression))
-            return;
-
-        // Skip if it's a creation expression
-        if (argument is ObjectCreationExpressionSyntax or ImplicitObjectCreationExpressionSyntax)
-            return;
-
-        if (isNullable && !IsDefinitelyNotNull(argument, context))
+        if (IsPotentiallyNullableArgument(argument, context))
         {
             var diagnostic = Diagnostic.Create(DiagnosticDescriptors.NullableToSome, invocation.GetLocation());
             context.ReportDiagnostic(diagnostic);
         }
     }
 
-    private static bool IsNullableValueType(ITypeSymbol type)
+    private static bool IsOptionSomeInvocation(InvocationExpressionSyntax invocation, SyntaxNodeAnalysisContext context)
     {
-        return type is INamedTypeSymbol { IsGenericType: true } namedType &&
-               namedType.ConstructedFrom.SpecialType == SpecialType.System_Nullable_T;
+        if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess)
+            return false;
+
+        if (memberAccess.Name.Identifier.Text != "Some")
+            return false;
+
+        var receiverType = context.SemanticModel.GetTypeInfo(memberAccess.Expression, context.CancellationToken).Type;
+        return receiverType is INamedTypeSymbol { Name: "Option" };
     }
 
-    private static bool IsDefinitelyNotNull(ExpressionSyntax expression, SyntaxNodeAnalysisContext context)
+    private static bool TryGetSingleArgument(InvocationExpressionSyntax invocation, out ExpressionSyntax argument)
     {
-        // Check for some patterns that are definitely not null
-        return expression switch
+        argument = null!;
+        if (invocation.ArgumentList.Arguments.Count != 1)
+            return false;
+
+        argument = invocation.ArgumentList.Arguments[0].Expression;
+        return true;
+    }
+
+    private static bool IsDefinitelyNotNullArgument(ExpressionSyntax argument, SyntaxNodeAnalysisContext context)
+    {
+        return argument switch
         {
             LiteralExpressionSyntax { RawKind: not (int)SyntaxKind.NullLiteralExpression } => true,
             ObjectCreationExpressionSyntax => true,
             ImplicitObjectCreationExpressionSyntax => true,
             ThisExpressionSyntax => true,
             TypeOfExpressionSyntax => true,
-            DefaultExpressionSyntax def => IsValueType(context.SemanticModel.GetTypeInfo(def, context.CancellationToken).Type),
+            DefaultExpressionSyntax def => IsNonNullableValueType(
+                context.SemanticModel.GetTypeInfo(def, context.CancellationToken).Type),
             _ => false
         };
     }
 
-    private static bool IsValueType(ITypeSymbol? type)
+    private static bool IsPotentiallyNullableArgument(ExpressionSyntax argument, SyntaxNodeAnalysisContext context)
     {
-        return type?.IsValueType == true && !IsNullableValueType(type);
+        var argumentType = context.SemanticModel.GetTypeInfo(argument, context.CancellationToken).Type;
+        if (argumentType is null)
+            return false;
+
+        return argumentType.NullableAnnotation == NullableAnnotation.Annotated ||
+               argumentType.IsReferenceType ||
+               IsNullableValueType(argumentType);
     }
+
+    private static bool IsNullableValueType(ITypeSymbol type) =>
+        type is INamedTypeSymbol { IsGenericType: true } namedType &&
+        namedType.ConstructedFrom.SpecialType == SpecialType.System_Nullable_T;
+
+    private static bool IsNonNullableValueType(ITypeSymbol? type) =>
+        type?.IsValueType == true && !IsNullableValueType(type);
 }
