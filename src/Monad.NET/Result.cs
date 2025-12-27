@@ -9,7 +9,7 @@ namespace Monad.NET;
 /// </summary>
 /// <typeparam name="T">The type of the success value</typeparam>
 /// <typeparam name="TErr">The type of the error value</typeparam>
-public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
+public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparable<Result<T, TErr>>, IComparable
 {
     private readonly T? _value;
     private readonly TErr? _error;
@@ -599,6 +599,34 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     public override int GetHashCode()
     {
         return _isOk ? _value?.GetHashCode() ?? 0 : _error?.GetHashCode() ?? 0;
+    }
+
+    /// <summary>
+    /// Compares this Result to another Result.
+    /// Err is considered less than Ok. When both are Ok, the values are compared.
+    /// When both are Err, the errors are compared.
+    /// </summary>
+    /// <param name="other">The other Result to compare to.</param>
+    /// <returns>A negative value if this is less than other, zero if equal, positive if greater.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public int CompareTo(Result<T, TErr> other)
+    {
+        if (_isOk && other._isOk)
+            return Comparer<T>.Default.Compare(_value, other._value);
+        if (!_isOk && !other._isOk)
+            return Comparer<TErr>.Default.Compare(_error, other._error);
+        return _isOk ? 1 : -1;
+    }
+
+    /// <inheritdoc />
+    int IComparable.CompareTo(object? obj)
+    {
+        if (obj is null)
+            return 1;
+        if (obj is Result<T, TErr> other)
+            return CompareTo(other);
+        ThrowHelper.ThrowArgument(nameof(obj), $"Object must be of type Result<{typeof(T).Name}, {typeof(TErr).Name}>");
+        return 0;
     }
 
     /// <inheritdoc />

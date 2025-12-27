@@ -9,7 +9,7 @@ namespace Monad.NET;
 /// All exceptions are captured and can be recovered from.
 /// </summary>
 /// <typeparam name="T">The type of the success value</typeparam>
-public readonly struct Try<T> : IEquatable<Try<T>>
+public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>, IComparable
 {
     private readonly T? _value;
     private readonly Exception? _exception;
@@ -686,6 +686,34 @@ public readonly struct Try<T> : IEquatable<Try<T>>
         return _isSuccess
             ? HashCode.Combine(_isSuccess, _value)
             : HashCode.Combine(_isSuccess, _exception!.GetType(), _exception.Message);
+    }
+
+    /// <summary>
+    /// Compares this Try to another Try.
+    /// Failure is considered less than Success. When both are Success, the values are compared.
+    /// When both are Failure, the exception messages are compared.
+    /// </summary>
+    /// <param name="other">The other Try to compare to.</param>
+    /// <returns>A negative value if this is less than other, zero if equal, positive if greater.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public int CompareTo(Try<T> other)
+    {
+        if (_isSuccess && other._isSuccess)
+            return Comparer<T>.Default.Compare(_value, other._value);
+        if (!_isSuccess && !other._isSuccess)
+            return string.Compare(_exception?.Message, other._exception?.Message, StringComparison.Ordinal);
+        return _isSuccess ? 1 : -1;
+    }
+
+    /// <inheritdoc />
+    int IComparable.CompareTo(object? obj)
+    {
+        if (obj is null)
+            return 1;
+        if (obj is Try<T> other)
+            return CompareTo(other);
+        ThrowHelper.ThrowArgument(nameof(obj), $"Object must be of type Try<{typeof(T).Name}>");
+        return 0;
     }
 
     /// <inheritdoc />
