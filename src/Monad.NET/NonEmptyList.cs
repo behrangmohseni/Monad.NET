@@ -10,6 +10,7 @@ namespace Monad.NET;
 /// Useful for operations that require at least one item (aggregations, head/tail, etc.).
 /// </summary>
 /// <typeparam name="T">The type of elements in the list</typeparam>
+[Serializable]
 public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>>
 {
     private readonly T _head;

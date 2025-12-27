@@ -11,6 +11,7 @@ namespace Monad.NET;
 /// </summary>
 /// <typeparam name="T">The type of the data</typeparam>
 /// <typeparam name="TErr">The type of the error</typeparam>
+[Serializable]
 public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>, IComparable<RemoteData<T, TErr>>, IComparable
 {
     private readonly T? _data;
@@ -484,7 +485,7 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>, IC
         if (obj is RemoteData<T, TErr> other)
             return CompareTo(other);
         ThrowHelper.ThrowArgument(nameof(obj), $"Object must be of type RemoteData<{typeof(T).Name}, {typeof(TErr).Name}>");
-        return 0;
+        return 0; // unreachable
     }
 
     /// <inheritdoc />

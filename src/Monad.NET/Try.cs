@@ -9,6 +9,7 @@ namespace Monad.NET;
 /// All exceptions are captured and can be recovered from.
 /// </summary>
 /// <typeparam name="T">The type of the success value</typeparam>
+[Serializable]
 public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>, IComparable
 {
     private readonly T? _value;
@@ -713,7 +714,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>, ICompar
         if (obj is Try<T> other)
             return CompareTo(other);
         ThrowHelper.ThrowArgument(nameof(obj), $"Object must be of type Try<{typeof(T).Name}>");
-        return 0;
+        return 0; // unreachable
     }
 
     /// <inheritdoc />

@@ -9,6 +9,7 @@ namespace Monad.NET;
 /// This is inspired by Rust's Option&lt;T&gt; type.
 /// </summary>
 /// <typeparam name="T">The type of the value</typeparam>
+[Serializable]
 public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>, IComparable
 {
     private readonly T? _value;
@@ -529,7 +530,7 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
         if (obj is Option<T> other)
             return CompareTo(other);
         ThrowHelper.ThrowArgument(nameof(obj), $"Object must be of type Option<{typeof(T).Name}>");
-        return 0;
+        return 0; // unreachable
     }
 
     /// <inheritdoc />
@@ -1399,7 +1400,7 @@ internal static class ThrowHelper
 {
     /// <summary>
     /// Throws <see cref="ArgumentNullException"/> if <paramref name="argument"/> is null.
-    /// Cross-platform polyfill for ArgumentNullException.ThrowIfNull.
+    /// Cross-platform polyfill for ThrowHelper.ThrowIfNull.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void ThrowIfNull(
