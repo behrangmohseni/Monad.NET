@@ -431,7 +431,7 @@ public static class WriterLinq
         this Writer<List<TLog>, T> writer,
         Func<T, Writer<List<TLog>, U>> selector)
     {
-        return writer.FlatMap(selector, (a, b) => [.. a, .. b]);
+        return writer.FlatMap(selector, (a, b) => a.Concat(b).ToList());
     }
 
     /// <summary>
@@ -446,6 +446,6 @@ public static class WriterLinq
     {
         return writer.FlatMap(t =>
             selector(t).Map(u =>
-                resultSelector(t, u)), (a, b) => [.. a, .. b]);
+                resultSelector(t, u)), (a, b) => a.Concat(b).ToList());
     }
 }

@@ -347,7 +347,7 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool ExistsRight(Func<TRight, bool> predicate)
     {
-        ArgumentNullException.ThrowIfNull(predicate);
+        ThrowHelper.ThrowIfNull(predicate);
         return _isRight && predicate(_right!);
     }
 
@@ -366,7 +366,7 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool ExistsLeft(Func<TLeft, bool> predicate)
     {
-        ArgumentNullException.ThrowIfNull(predicate);
+        ThrowHelper.ThrowIfNull(predicate);
         return !_isRight && predicate(_left!);
     }
 

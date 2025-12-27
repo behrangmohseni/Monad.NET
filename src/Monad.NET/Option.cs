@@ -215,7 +215,7 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Exists(Func<T, bool> predicate)
     {
-        ArgumentNullException.ThrowIfNull(predicate);
+        ThrowHelper.ThrowIfNull(predicate);
         return _isSome && predicate(_value!);
     }
 
@@ -584,7 +584,7 @@ public static class OptionExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Option<T> When<T>(bool condition, Func<T> factory)
     {
-        ArgumentNullException.ThrowIfNull(factory);
+        ThrowHelper.ThrowIfNull(factory);
         return condition ? Option<T>.Some(factory()) : Option<T>.None();
     }
 
@@ -698,7 +698,7 @@ public static class OptionExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Option<T> DefaultIfNone<T>(this Option<T> option, Func<T> defaultFactory)
     {
-        ArgumentNullException.ThrowIfNull(defaultFactory);
+        ThrowHelper.ThrowIfNull(defaultFactory);
         return option.IsSome ? option : Option<T>.Some(defaultFactory());
     }
 
@@ -727,7 +727,7 @@ public static class OptionExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T ThrowIfNone<T>(this Option<T> option, Exception exception)
     {
-        ArgumentNullException.ThrowIfNull(exception);
+        ThrowHelper.ThrowIfNull(exception);
 
         if (option.IsNone)
             throw exception;
@@ -752,7 +752,7 @@ public static class OptionExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T ThrowIfNone<T>(this Option<T> option, Func<Exception> exceptionFactory)
     {
-        ArgumentNullException.ThrowIfNull(exceptionFactory);
+        ThrowHelper.ThrowIfNull(exceptionFactory);
 
         if (option.IsNone)
             throw exceptionFactory();
@@ -1186,7 +1186,7 @@ public static class OptionExtensions
         this IReadOnlyDictionary<TKey, TValue> dictionary,
         TKey key)
     {
-        ArgumentNullException.ThrowIfNull(dictionary);
+        ThrowHelper.ThrowIfNull(dictionary);
 
         return dictionary.TryGetValue(key, out var value)
             ? Option<TValue>.Some(value!)
@@ -1207,7 +1207,7 @@ public static class OptionExtensions
     /// </example>
     public static Option<T> FirstOption<T>(this IEnumerable<T> source)
     {
-        ArgumentNullException.ThrowIfNull(source);
+        ThrowHelper.ThrowIfNull(source);
 
         if (source is IList<T> list)
         {
@@ -1237,8 +1237,8 @@ public static class OptionExtensions
     /// </example>
     public static Option<T> FirstOption<T>(this IEnumerable<T> source, Func<T, bool> predicate)
     {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(predicate);
+        ThrowHelper.ThrowIfNull(source);
+        ThrowHelper.ThrowIfNull(predicate);
 
         foreach (var item in source)
         {
@@ -1263,7 +1263,7 @@ public static class OptionExtensions
     /// </example>
     public static Option<T> LastOption<T>(this IEnumerable<T> source)
     {
-        ArgumentNullException.ThrowIfNull(source);
+        ThrowHelper.ThrowIfNull(source);
 
         if (source is IList<T> list)
         {
@@ -1300,7 +1300,7 @@ public static class OptionExtensions
     /// </example>
     public static Option<T> SingleOption<T>(this IEnumerable<T> source)
     {
-        ArgumentNullException.ThrowIfNull(source);
+        ThrowHelper.ThrowIfNull(source);
 
         if (source is IList<T> list)
         {
@@ -1336,7 +1336,7 @@ public static class OptionExtensions
     /// </example>
     public static Option<T> ElementAtOption<T>(this IEnumerable<T> source, int index)
     {
-        ArgumentNullException.ThrowIfNull(source);
+        ThrowHelper.ThrowIfNull(source);
 
         if (index < 0)
             return Option<T>.None();
@@ -1368,6 +1368,29 @@ public static class OptionExtensions
 /// </summary>
 internal static class ThrowHelper
 {
+    /// <summary>
+    /// Throws <see cref="ArgumentNullException"/> if <paramref name="argument"/> is null.
+    /// Cross-platform polyfill for ArgumentNullException.ThrowIfNull.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void ThrowIfNull(
+#if NET6_0_OR_GREATER
+        [System.Diagnostics.CodeAnalysis.NotNull]
+#endif
+        object? argument,
+#if NET6_0_OR_GREATER
+        [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(argument))]
+#endif
+        string? paramName = null)
+    {
+#if NET6_0_OR_GREATER
+        ArgumentNullException.ThrowIfNull(argument, paramName);
+#else
+        if (argument is null)
+            ThrowArgumentNull(paramName ?? "argument");
+#endif
+    }
+
     [DoesNotReturn]
     [MethodImpl(MethodImplOptions.NoInlining)]
     public static void ThrowInvalidOperation(string message)

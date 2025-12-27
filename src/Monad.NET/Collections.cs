@@ -112,8 +112,8 @@ public static class MonadCollectionExtensions
             CancellationToken cancellationToken)
             where TSelector : Delegate
         {
-            ArgumentNullException.ThrowIfNull(source);
-            ArgumentNullException.ThrowIfNull(selector);
+            ThrowHelper.ThrowIfNull(source);
+            ThrowHelper.ThrowIfNull(selector);
             ValidateMaxDegreeOfParallelism(maxDegreeOfParallelism, nameof(maxDegreeOfParallelism));
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -133,7 +133,7 @@ public static class MonadCollectionExtensions
     /// <returns>Some containing all values if all options are Some; otherwise None.</returns>
     public static Option<IReadOnlyList<T>> Sequence<T>(this IEnumerable<Option<T>> options)
     {
-        ArgumentNullException.ThrowIfNull(options);
+        ThrowHelper.ThrowIfNull(options);
 
         var result = new List<T>();
 
@@ -162,8 +162,8 @@ public static class MonadCollectionExtensions
         this IEnumerable<T> source,
         Func<T, Option<U>> selector)
     {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(selector);
+        ThrowHelper.ThrowIfNull(source);
+        ThrowHelper.ThrowIfNull(selector);
 
         var result = new List<U>();
 
@@ -188,7 +188,7 @@ public static class MonadCollectionExtensions
     /// <returns>An enumerable containing only the unwrapped Some values.</returns>
     public static IEnumerable<T> Choose<T>(this IEnumerable<Option<T>> options)
     {
-        ArgumentNullException.ThrowIfNull(options);
+        ThrowHelper.ThrowIfNull(options);
 
         foreach (var option in options)
         {
@@ -209,8 +209,8 @@ public static class MonadCollectionExtensions
         this IEnumerable<T> source,
         Func<T, Option<U>> selector)
     {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(selector);
+        ThrowHelper.ThrowIfNull(source);
+        ThrowHelper.ThrowIfNull(selector);
 
         foreach (var item in source)
         {
@@ -228,7 +228,7 @@ public static class MonadCollectionExtensions
     /// <returns>The first Some option found, or None if all options are None.</returns>
     public static Option<T> FirstSome<T>(this IEnumerable<Option<T>> options)
     {
-        ArgumentNullException.ThrowIfNull(options);
+        ThrowHelper.ThrowIfNull(options);
 
         foreach (var option in options)
         {
@@ -255,7 +255,7 @@ public static class MonadCollectionExtensions
     public static Result<IReadOnlyList<T>, TErr> Sequence<T, TErr>(
         this IEnumerable<Result<T, TErr>> results)
     {
-        ArgumentNullException.ThrowIfNull(results);
+        ThrowHelper.ThrowIfNull(results);
 
         var list = new List<T>();
 
@@ -285,8 +285,8 @@ public static class MonadCollectionExtensions
         this IEnumerable<T> source,
         Func<T, Result<U, TErr>> selector)
     {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(selector);
+        ThrowHelper.ThrowIfNull(source);
+        ThrowHelper.ThrowIfNull(selector);
 
         var list = new List<U>();
 
@@ -312,7 +312,7 @@ public static class MonadCollectionExtensions
     /// <returns>An enumerable containing only the unwrapped Ok values.</returns>
     public static IEnumerable<T> CollectOk<T, TErr>(this IEnumerable<Result<T, TErr>> results)
     {
-        ArgumentNullException.ThrowIfNull(results);
+        ThrowHelper.ThrowIfNull(results);
 
         foreach (var result in results)
         {
@@ -332,7 +332,7 @@ public static class MonadCollectionExtensions
     public static IEnumerable<TErr> CollectErr<T, TErr>(
         this IEnumerable<Result<T, TErr>> results)
     {
-        ArgumentNullException.ThrowIfNull(results);
+        ThrowHelper.ThrowIfNull(results);
 
         foreach (var result in results)
         {
@@ -351,7 +351,7 @@ public static class MonadCollectionExtensions
     public static (IReadOnlyList<T> Oks, IReadOnlyList<TErr> Errors) Partition<T, TErr>(
         this IEnumerable<Result<T, TErr>> results)
     {
-        ArgumentNullException.ThrowIfNull(results);
+        ThrowHelper.ThrowIfNull(results);
 
         var oks = new List<T>();
         var errors = new List<TErr>();
@@ -377,7 +377,7 @@ public static class MonadCollectionExtensions
     /// <exception cref="InvalidOperationException">Thrown when the sequence is empty.</exception>
     public static Result<T, TErr> FirstOk<T, TErr>(this IEnumerable<Result<T, TErr>> results)
     {
-        ArgumentNullException.ThrowIfNull(results);
+        ThrowHelper.ThrowIfNull(results);
 
         Result<T, TErr>? lastErr = null;
 
@@ -408,7 +408,7 @@ public static class MonadCollectionExtensions
         this IEnumerable<Result<T, TErr>> results,
         TErr defaultError)
     {
-        ArgumentNullException.ThrowIfNull(results);
+        ThrowHelper.ThrowIfNull(results);
 
         Result<T, TErr>? lastErr = null;
 
@@ -437,7 +437,7 @@ public static class MonadCollectionExtensions
     public static IEnumerable<TRight> CollectRights<TLeft, TRight>(
         this IEnumerable<Either<TLeft, TRight>> eithers)
     {
-        ArgumentNullException.ThrowIfNull(eithers);
+        ThrowHelper.ThrowIfNull(eithers);
 
         foreach (var either in eithers)
         {
@@ -456,7 +456,7 @@ public static class MonadCollectionExtensions
     public static IEnumerable<TLeft> CollectLefts<TLeft, TRight>(
         this IEnumerable<Either<TLeft, TRight>> eithers)
     {
-        ArgumentNullException.ThrowIfNull(eithers);
+        ThrowHelper.ThrowIfNull(eithers);
 
         foreach (var either in eithers)
         {
@@ -475,7 +475,7 @@ public static class MonadCollectionExtensions
     public static (IReadOnlyList<TLeft> Lefts, IReadOnlyList<TRight> Rights) Partition<TLeft, TRight>(
         this IEnumerable<Either<TLeft, TRight>> eithers)
     {
-        ArgumentNullException.ThrowIfNull(eithers);
+        ThrowHelper.ThrowIfNull(eithers);
 
         var lefts = new List<TLeft>();
         var rights = new List<TRight>();
@@ -505,7 +505,7 @@ public static class MonadCollectionExtensions
     public static async Task<Option<IReadOnlyList<T>>> SequenceAsync<T>(
         this IEnumerable<Task<Option<T>>> optionTasks)
     {
-        ArgumentNullException.ThrowIfNull(optionTasks);
+        ThrowHelper.ThrowIfNull(optionTasks);
 
         var result = new List<T>();
 
@@ -534,8 +534,8 @@ public static class MonadCollectionExtensions
         this IEnumerable<T> source,
         Func<T, Task<Option<U>>> selector)
     {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(selector);
+        ThrowHelper.ThrowIfNull(source);
+        ThrowHelper.ThrowIfNull(selector);
 
         var result = new List<U>();
 
@@ -562,7 +562,7 @@ public static class MonadCollectionExtensions
     public static async Task<Result<IReadOnlyList<T>, TErr>> SequenceAsync<T, TErr>(
         this IEnumerable<Task<Result<T, TErr>>> resultTasks)
     {
-        ArgumentNullException.ThrowIfNull(resultTasks);
+        ThrowHelper.ThrowIfNull(resultTasks);
 
         var list = new List<T>();
 
@@ -592,8 +592,8 @@ public static class MonadCollectionExtensions
         this IEnumerable<T> source,
         Func<T, Task<Result<U, TErr>>> selector)
     {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(selector);
+        ThrowHelper.ThrowIfNull(source);
+        ThrowHelper.ThrowIfNull(selector);
 
         var list = new List<U>();
 
@@ -634,7 +634,7 @@ public static class MonadCollectionExtensions
         int maxDegreeOfParallelism = -1,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(optionTasks);
+        ThrowHelper.ThrowIfNull(optionTasks);
         ParallelHelper.ValidateMaxDegreeOfParallelism(maxDegreeOfParallelism, nameof(maxDegreeOfParallelism));
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -722,7 +722,7 @@ public static class MonadCollectionExtensions
         int maxDegreeOfParallelism = -1,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(resultTasks);
+        ThrowHelper.ThrowIfNull(resultTasks);
         ParallelHelper.ValidateMaxDegreeOfParallelism(maxDegreeOfParallelism, nameof(maxDegreeOfParallelism));
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -899,8 +899,8 @@ public static class MonadCollectionExtensions
     /// </example>
     public static IEnumerable<T> Do<T>(this IEnumerable<T> source, Action<T> action)
     {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(action);
+        ThrowHelper.ThrowIfNull(source);
+        ThrowHelper.ThrowIfNull(action);
 
         foreach (var item in source)
         {
@@ -925,8 +925,8 @@ public static class MonadCollectionExtensions
     /// </example>
     public static IEnumerable<T> Do<T>(this IEnumerable<T> source, Action<T, int> action)
     {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(action);
+        ThrowHelper.ThrowIfNull(source);
+        ThrowHelper.ThrowIfNull(action);
 
         var index = 0;
         foreach (var item in source)
@@ -954,8 +954,8 @@ public static class MonadCollectionExtensions
     /// </example>
     public static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
     {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(action);
+        ThrowHelper.ThrowIfNull(source);
+        ThrowHelper.ThrowIfNull(action);
 
         foreach (var item in source)
         {
@@ -977,8 +977,8 @@ public static class MonadCollectionExtensions
     /// </example>
     public static void ForEach<T>(this IEnumerable<T> source, Action<T, int> action)
     {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(action);
+        ThrowHelper.ThrowIfNull(source);
+        ThrowHelper.ThrowIfNull(action);
 
         var index = 0;
         foreach (var item in source)
@@ -1005,8 +1005,8 @@ public static class MonadCollectionExtensions
         Func<T, Task> action,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(action);
+        ThrowHelper.ThrowIfNull(source);
+        ThrowHelper.ThrowIfNull(action);
 
         foreach (var item in source)
         {
@@ -1033,8 +1033,8 @@ public static class MonadCollectionExtensions
         Func<T, int, Task> action,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(action);
+        ThrowHelper.ThrowIfNull(source);
+        ThrowHelper.ThrowIfNull(action);
 
         var index = 0;
         foreach (var item in source)

@@ -158,7 +158,7 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T UnwrapOrElse(Func<T> defaultFunc)
     {
-        ArgumentNullException.ThrowIfNull(defaultFunc);
+        ThrowHelper.ThrowIfNull(defaultFunc);
 
         return _state == RemoteDataState.Success ? _data! : defaultFunc();
     }
@@ -209,7 +209,7 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public RemoteData<U, TErr> Map<U>(Func<T, U> mapper)
     {
-        ArgumentNullException.ThrowIfNull(mapper);
+        ThrowHelper.ThrowIfNull(mapper);
 
         return _state switch
         {
@@ -227,7 +227,7 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public RemoteData<T, F> MapError<F>(Func<TErr, F> mapper)
     {
-        ArgumentNullException.ThrowIfNull(mapper);
+        ThrowHelper.ThrowIfNull(mapper);
 
         return _state switch
         {
@@ -245,7 +245,7 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public RemoteData<U, TErr> AndThen<U>(Func<T, RemoteData<U, TErr>> binder)
     {
-        ArgumentNullException.ThrowIfNull(binder);
+        ThrowHelper.ThrowIfNull(binder);
 
         return _state switch
         {
@@ -282,8 +282,8 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public RemoteData<U, F> BiMap<U, F>(Func<T, U> dataMapper, Func<TErr, F> errorMapper)
     {
-        ArgumentNullException.ThrowIfNull(dataMapper);
-        ArgumentNullException.ThrowIfNull(errorMapper);
+        ThrowHelper.ThrowIfNull(dataMapper);
+        ThrowHelper.ThrowIfNull(errorMapper);
 
         return _state switch
         {
@@ -310,7 +310,7 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public RemoteData<T, TErr> OrElse(Func<TErr, RemoteData<T, TErr>> recovery)
     {
-        ArgumentNullException.ThrowIfNull(recovery);
+        ThrowHelper.ThrowIfNull(recovery);
 
         return _state == RemoteDataState.Failure ? recovery(_error!) : this;
     }
@@ -325,10 +325,10 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>
         Action<T> successAction,
         Action<TErr> failureAction)
     {
-        ArgumentNullException.ThrowIfNull(notAskedAction);
-        ArgumentNullException.ThrowIfNull(loadingAction);
-        ArgumentNullException.ThrowIfNull(successAction);
-        ArgumentNullException.ThrowIfNull(failureAction);
+        ThrowHelper.ThrowIfNull(notAskedAction);
+        ThrowHelper.ThrowIfNull(loadingAction);
+        ThrowHelper.ThrowIfNull(successAction);
+        ThrowHelper.ThrowIfNull(failureAction);
 
         switch (_state)
         {
@@ -357,10 +357,10 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>
         Func<T, U> successFunc,
         Func<TErr, U> failureFunc)
     {
-        ArgumentNullException.ThrowIfNull(notAskedFunc);
-        ArgumentNullException.ThrowIfNull(loadingFunc);
-        ArgumentNullException.ThrowIfNull(successFunc);
-        ArgumentNullException.ThrowIfNull(failureFunc);
+        ThrowHelper.ThrowIfNull(notAskedFunc);
+        ThrowHelper.ThrowIfNull(loadingFunc);
+        ThrowHelper.ThrowIfNull(successFunc);
+        ThrowHelper.ThrowIfNull(failureFunc);
 
         return _state switch
         {
@@ -560,7 +560,7 @@ public static class RemoteDataExtensions
         this RemoteData<T, TErr> remoteData,
         Action<T> action)
     {
-        ArgumentNullException.ThrowIfNull(action);
+        ThrowHelper.ThrowIfNull(action);
 
         if (remoteData.IsSuccess)
             action(remoteData.Unwrap());
@@ -576,7 +576,7 @@ public static class RemoteDataExtensions
         this RemoteData<T, TErr> remoteData,
         Action<TErr> action)
     {
-        ArgumentNullException.ThrowIfNull(action);
+        ThrowHelper.ThrowIfNull(action);
 
         if (remoteData.IsFailure)
             action(remoteData.UnwrapError());
@@ -592,7 +592,7 @@ public static class RemoteDataExtensions
         this RemoteData<T, TErr> remoteData,
         Action action)
     {
-        ArgumentNullException.ThrowIfNull(action);
+        ThrowHelper.ThrowIfNull(action);
 
         if (remoteData.IsNotAsked)
             action();
@@ -608,7 +608,7 @@ public static class RemoteDataExtensions
         this RemoteData<T, TErr> remoteData,
         Action action)
     {
-        ArgumentNullException.ThrowIfNull(action);
+        ThrowHelper.ThrowIfNull(action);
 
         if (remoteData.IsLoading)
             action();
@@ -642,7 +642,7 @@ public static class RemoteDataExtensions
     /// </summary>
     public static async Task<RemoteData<T, Exception>> FromTaskAsync<T>(Func<Task<T>> taskFunc)
     {
-        ArgumentNullException.ThrowIfNull(taskFunc);
+        ThrowHelper.ThrowIfNull(taskFunc);
 
         try
         {
@@ -662,7 +662,7 @@ public static class RemoteDataExtensions
         this RemoteData<T, TErr> remoteData,
         Func<T, Task<U>> mapper)
     {
-        ArgumentNullException.ThrowIfNull(mapper);
+        ThrowHelper.ThrowIfNull(mapper);
 
         if (!remoteData.IsSuccess)
             return remoteData.Map(static _ => default(U)!); // Preserves state

@@ -17,7 +17,7 @@ public sealed class Reader<R, A>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Reader(Func<R, A> run)
     {
-        ArgumentNullException.ThrowIfNull(run);
+        ThrowHelper.ThrowIfNull(run);
         _run = run;
     }
 
@@ -27,7 +27,7 @@ public sealed class Reader<R, A>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Reader<R, A> From(Func<R, A> func)
     {
-        ArgumentNullException.ThrowIfNull(func);
+        ThrowHelper.ThrowIfNull(func);
 
         return new Reader<R, A>(func);
     }
@@ -56,7 +56,7 @@ public sealed class Reader<R, A>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Reader<R, A> Asks(Func<R, A> selector)
     {
-        ArgumentNullException.ThrowIfNull(selector);
+        ThrowHelper.ThrowIfNull(selector);
 
         return new Reader<R, A>(selector);
     }
@@ -67,7 +67,7 @@ public sealed class Reader<R, A>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public A Run(R environment)
     {
-        ArgumentNullException.ThrowIfNull(environment);
+        ThrowHelper.ThrowIfNull(environment);
 
         return _run(environment);
     }
@@ -78,7 +78,7 @@ public sealed class Reader<R, A>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Reader<R, B> Map<B>(Func<A, B> mapper)
     {
-        ArgumentNullException.ThrowIfNull(mapper);
+        ThrowHelper.ThrowIfNull(mapper);
 
         var run = _run;
         return new Reader<R, B>(env => mapper(run(env)));
@@ -98,7 +98,7 @@ public sealed class Reader<R, A>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Reader<R, A> Tap(Action<A> action)
     {
-        ArgumentNullException.ThrowIfNull(action);
+        ThrowHelper.ThrowIfNull(action);
 
         var run = _run;
         return new Reader<R, A>(env =>
@@ -123,7 +123,7 @@ public sealed class Reader<R, A>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Reader<R, A> TapEnv(Action<R> action)
     {
-        ArgumentNullException.ThrowIfNull(action);
+        ThrowHelper.ThrowIfNull(action);
 
         var run = _run;
         return new Reader<R, A>(env =>
@@ -140,7 +140,7 @@ public sealed class Reader<R, A>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Reader<R, B> FlatMap<B>(Func<A, Reader<R, B>> binder)
     {
-        ArgumentNullException.ThrowIfNull(binder);
+        ThrowHelper.ThrowIfNull(binder);
 
         var run = _run;
         return new Reader<R, B>(env =>
@@ -171,7 +171,7 @@ public sealed class Reader<R, A>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Reader<R2, A> WithEnvironment<R2>(Func<R2, R> transform)
     {
-        ArgumentNullException.ThrowIfNull(transform);
+        ThrowHelper.ThrowIfNull(transform);
 
         var run = _run;
         return Reader<R2, A>.From(env2 => run(transform(env2)));
@@ -183,7 +183,7 @@ public sealed class Reader<R, A>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Reader<R, C> Zip<B, C>(Reader<R, B> other, Func<A, B, C> combiner)
     {
-        ArgumentNullException.ThrowIfNull(combiner);
+        ThrowHelper.ThrowIfNull(combiner);
 
         var run = _run;
         return Reader<R, C>.From(env =>
@@ -247,7 +247,7 @@ public static class ReaderExtensions
         Func<A, Reader<R, B>> selector,
         Func<A, B, C> resultSelector)
     {
-        ArgumentNullException.ThrowIfNull(resultSelector);
+        ThrowHelper.ThrowIfNull(resultSelector);
 
         return reader.FlatMap(a =>
             selector(a).Map(b =>
@@ -259,7 +259,7 @@ public static class ReaderExtensions
     /// </summary>
     public static Reader<R, IEnumerable<A>> Sequence<R, A>(this IEnumerable<Reader<R, A>> readers)
     {
-        ArgumentNullException.ThrowIfNull(readers);
+        ThrowHelper.ThrowIfNull(readers);
 
         return Reader<R, IEnumerable<A>>.From(env =>
             readers.Select(reader => reader.Run(env)).ToList()
@@ -273,8 +273,8 @@ public static class ReaderExtensions
         this IEnumerable<A> items,
         Func<A, Reader<R, B>> selector)
     {
-        ArgumentNullException.ThrowIfNull(items);
-        ArgumentNullException.ThrowIfNull(selector);
+        ThrowHelper.ThrowIfNull(items);
+        ThrowHelper.ThrowIfNull(selector);
 
         return Reader<R, IEnumerable<B>>.From(env =>
             items.Select(item => selector(item).Run(env)).ToList()

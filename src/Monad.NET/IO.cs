@@ -159,7 +159,7 @@ public readonly struct IO<T>
 
     private IO(Func<T> effect)
     {
-        ArgumentNullException.ThrowIfNull(effect);
+        ThrowHelper.ThrowIfNull(effect);
         _effect = effect;
     }
 
@@ -232,7 +232,7 @@ public readonly struct IO<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public IO<U> Map<U>(Func<T, U> mapper)
     {
-        ArgumentNullException.ThrowIfNull(mapper);
+        ThrowHelper.ThrowIfNull(mapper);
 
         var effect = _effect;
         return IO<U>.Of(() => mapper(effect()));
@@ -247,7 +247,7 @@ public readonly struct IO<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public IO<U> AndThen<U>(Func<T, IO<U>> binder)
     {
-        ArgumentNullException.ThrowIfNull(binder);
+        ThrowHelper.ThrowIfNull(binder);
 
         var effect = _effect;
         return IO<U>.Of(() => binder(effect()).Run());
@@ -275,7 +275,7 @@ public readonly struct IO<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public IO<T> Tap(Action<T> action)
     {
-        ArgumentNullException.ThrowIfNull(action);
+        ThrowHelper.ThrowIfNull(action);
 
         var effect = _effect;
         return IO<T>.Of(() =>
@@ -322,7 +322,7 @@ public readonly struct IO<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public IO<V> ZipWith<U, V>(IO<U> other, Func<T, U, V> combiner)
     {
-        ArgumentNullException.ThrowIfNull(combiner);
+        ThrowHelper.ThrowIfNull(combiner);
 
         return AndThen(a => other.Map(b => combiner(a, b)));
     }
@@ -473,7 +473,7 @@ public readonly struct IOAsync<T>
 
     private IOAsync(Func<Task<T>> effect)
     {
-        ArgumentNullException.ThrowIfNull(effect);
+        ThrowHelper.ThrowIfNull(effect);
         _effect = effect;
     }
 
@@ -528,7 +528,7 @@ public readonly struct IOAsync<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public IOAsync<U> Map<U>(Func<T, U> mapper)
     {
-        ArgumentNullException.ThrowIfNull(mapper);
+        ThrowHelper.ThrowIfNull(mapper);
 
         var effect = _effect;
         return IOAsync<U>.Of(async () => mapper(await effect().ConfigureAwait(false)));
@@ -540,7 +540,7 @@ public readonly struct IOAsync<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public IOAsync<U> MapAsync<U>(Func<T, Task<U>> mapper)
     {
-        ArgumentNullException.ThrowIfNull(mapper);
+        ThrowHelper.ThrowIfNull(mapper);
 
         var effect = _effect;
         return IOAsync<U>.Of(async () =>
@@ -556,7 +556,7 @@ public readonly struct IOAsync<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public IOAsync<U> AndThen<U>(Func<T, IOAsync<U>> binder)
     {
-        ArgumentNullException.ThrowIfNull(binder);
+        ThrowHelper.ThrowIfNull(binder);
 
         var effect = _effect;
         return IOAsync<U>.Of(async () =>
@@ -579,7 +579,7 @@ public readonly struct IOAsync<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public IOAsync<T> Tap(Action<T> action)
     {
-        ArgumentNullException.ThrowIfNull(action);
+        ThrowHelper.ThrowIfNull(action);
 
         var effect = _effect;
         return IOAsync<T>.Of(async () =>
@@ -596,7 +596,7 @@ public readonly struct IOAsync<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public IOAsync<T> TapAsync(Func<T, Task> action)
     {
-        ArgumentNullException.ThrowIfNull(action);
+        ThrowHelper.ThrowIfNull(action);
 
         var effect = _effect;
         return IOAsync<T>.Of(async () =>
@@ -715,7 +715,7 @@ public readonly struct IOAsync<T>
     /// <returns>An async IO action that retries while the condition is met.</returns>
     public IOAsync<T> RetryWhile(Func<Exception, int, bool> shouldRetry, int maxRetries = int.MaxValue)
     {
-        ArgumentNullException.ThrowIfNull(shouldRetry);
+        ThrowHelper.ThrowIfNull(shouldRetry);
 
         var effect = _effect;
         return IOAsync<T>.Of(async () =>
@@ -769,7 +769,7 @@ public static class IOExtensions
     /// </summary>
     public static IO<IReadOnlyList<T>> Sequence<T>(this IEnumerable<IO<T>> ios)
     {
-        ArgumentNullException.ThrowIfNull(ios);
+        ThrowHelper.ThrowIfNull(ios);
 
         return IO<IReadOnlyList<T>>.Of(() =>
         {
@@ -787,7 +787,7 @@ public static class IOExtensions
     /// </summary>
     public static IOAsync<IReadOnlyList<T>> Sequence<T>(this IEnumerable<IOAsync<T>> ios)
     {
-        ArgumentNullException.ThrowIfNull(ios);
+        ThrowHelper.ThrowIfNull(ios);
 
         var ioList = ios.ToList();
         return IOAsync<IReadOnlyList<T>>.Of(async () =>
@@ -808,8 +808,8 @@ public static class IOExtensions
         this IEnumerable<T> source,
         Func<T, IO<U>> func)
     {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(func);
+        ThrowHelper.ThrowIfNull(source);
+        ThrowHelper.ThrowIfNull(func);
 
         return source.Select(func).Sequence();
     }
@@ -821,8 +821,8 @@ public static class IOExtensions
         this IEnumerable<T> source,
         Func<T, IOAsync<U>> func)
     {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(func);
+        ThrowHelper.ThrowIfNull(source);
+        ThrowHelper.ThrowIfNull(func);
 
         return source.Select(func).Sequence();
     }
@@ -854,7 +854,7 @@ public static class IOExtensions
         Func<T, IO<U>> selector,
         Func<T, U, V> resultSelector)
     {
-        ArgumentNullException.ThrowIfNull(resultSelector);
+        ThrowHelper.ThrowIfNull(resultSelector);
 
         return io.AndThen(a => selector(a).Map(b => resultSelector(a, b)));
     }
@@ -886,7 +886,7 @@ public static class IOExtensions
         Func<T, IOAsync<U>> selector,
         Func<T, U, V> resultSelector)
     {
-        ArgumentNullException.ThrowIfNull(resultSelector);
+        ThrowHelper.ThrowIfNull(resultSelector);
 
         return io.AndThen(a => selector(a).Map(b => resultSelector(a, b)));
     }
@@ -915,7 +915,7 @@ public static class IO
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static IO<Unit> Execute(Action action)
     {
-        ArgumentNullException.ThrowIfNull(action);
+        ThrowHelper.ThrowIfNull(action);
 
         return IO<Unit>.Of(() =>
         {
@@ -976,10 +976,21 @@ public static class IO
     /// <summary>
     /// Creates an IO action that generates a random integer.
     /// </summary>
+#if NET6_0_OR_GREATER
+    private static System.Random SharedRandom => System.Random.Shared;
+#else
+    [ThreadStatic]
+    private static System.Random? _threadLocalRandom;
+    private static System.Random SharedRandom => _threadLocalRandom ??= new System.Random();
+#endif
+
+    /// <summary>
+    /// Creates an IO action that generates a random non-negative integer.
+    /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static IO<int> Random()
     {
-        return IO<int>.Of(() => System.Random.Shared.Next());
+        return IO<int>.Of(() => SharedRandom.Next());
     }
 
     /// <summary>
@@ -988,7 +999,7 @@ public static class IO
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static IO<int> Random(int minValue, int maxValue)
     {
-        return IO<int>.Of(() => System.Random.Shared.Next(minValue, maxValue));
+        return IO<int>.Of(() => SharedRandom.Next(minValue, maxValue));
     }
 
     /// <summary>
@@ -1035,7 +1046,7 @@ public static class IO
     /// </summary>
     public static IO<IReadOnlyList<T>> Parallel<T>(IEnumerable<IO<T>> ios)
     {
-        ArgumentNullException.ThrowIfNull(ios);
+        ThrowHelper.ThrowIfNull(ios);
 
         var ioList = ios.ToList();
         return IO<IReadOnlyList<T>>.Of(() =>
@@ -1090,7 +1101,7 @@ public static class IOAsync
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static IOAsync<Unit> Execute(Func<Task> action)
     {
-        ArgumentNullException.ThrowIfNull(action);
+        ThrowHelper.ThrowIfNull(action);
 
         return IOAsync<Unit>.Of(async () =>
         {
@@ -1131,7 +1142,7 @@ public static class IOAsync
     /// </summary>
     public static IOAsync<IReadOnlyList<T>> Parallel<T>(IEnumerable<IOAsync<T>> ios)
     {
-        ArgumentNullException.ThrowIfNull(ios);
+        ThrowHelper.ThrowIfNull(ios);
 
         var ioList = ios.ToList();
         return IOAsync<IReadOnlyList<T>>.Of(async () =>

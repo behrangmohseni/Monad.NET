@@ -18,7 +18,7 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private NonEmptyList(T head, IReadOnlyList<T> tail)
     {
-        ArgumentNullException.ThrowIfNull(head);
+        ThrowHelper.ThrowIfNull(head);
         _head = head;
         _tail = tail ?? Array.Empty<T>();
     }
@@ -96,7 +96,7 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     /// </summary>
     public static Option<NonEmptyList<T>> FromEnumerable(IEnumerable<T> items)
     {
-        ArgumentNullException.ThrowIfNull(items);
+        ThrowHelper.ThrowIfNull(items);
 
         var list = items.ToList();
         return list.Count == 0
@@ -110,7 +110,7 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     /// </summary>
     public static Result<NonEmptyList<T>, TErr> FromEnumerable<TErr>(IEnumerable<T> items, TErr errorIfEmpty)
     {
-        ArgumentNullException.ThrowIfNull(items);
+        ThrowHelper.ThrowIfNull(items);
 
         var list = items.ToList();
         return list.Count == 0
@@ -133,7 +133,7 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public NonEmptyList<U> Map<U>(Func<T, U> mapper)
     {
-        ArgumentNullException.ThrowIfNull(mapper);
+        ThrowHelper.ThrowIfNull(mapper);
 
         var newHead = mapper(_head);
         var newTail = _tail.Select(mapper).ToList();
@@ -146,7 +146,7 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public NonEmptyList<U> MapIndexed<U>(Func<T, int, U> mapper)
     {
-        ArgumentNullException.ThrowIfNull(mapper);
+        ThrowHelper.ThrowIfNull(mapper);
 
         var newHead = mapper(_head, 0);
         var newTail = _tail.Select((item, index) => mapper(item, index + 1)).ToList();
@@ -167,7 +167,7 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public NonEmptyList<T> Tap(Action<T> action)
     {
-        ArgumentNullException.ThrowIfNull(action);
+        ThrowHelper.ThrowIfNull(action);
 
         action(_head);
         foreach (var item in _tail)
@@ -189,7 +189,7 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public NonEmptyList<T> TapIndexed(Action<T, int> action)
     {
-        ArgumentNullException.ThrowIfNull(action);
+        ThrowHelper.ThrowIfNull(action);
 
         action(_head, 0);
         var index = 1;
@@ -203,7 +203,7 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     /// </summary>
     public NonEmptyList<U> FlatMap<U>(Func<T, NonEmptyList<U>> binder)
     {
-        ArgumentNullException.ThrowIfNull(binder);
+        ThrowHelper.ThrowIfNull(binder);
 
         var firstList = binder(_head);
         var allItems = new List<U> { firstList.Head };
@@ -224,7 +224,7 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     /// </summary>
     public Option<NonEmptyList<T>> Filter(Func<T, bool> predicate)
     {
-        ArgumentNullException.ThrowIfNull(predicate);
+        ThrowHelper.ThrowIfNull(predicate);
 
         var filtered = this.Where(predicate).ToList();
         return filtered.Count == 0
@@ -238,7 +238,7 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public NonEmptyList<T> Append(T item)
     {
-        ArgumentNullException.ThrowIfNull(item);
+        ThrowHelper.ThrowIfNull(item);
 
         var newTail = _tail.Append(item).ToList();
         return new NonEmptyList<T>(_head, newTail);
@@ -250,7 +250,7 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public NonEmptyList<T> Prepend(T item)
     {
-        ArgumentNullException.ThrowIfNull(item);
+        ThrowHelper.ThrowIfNull(item);
 
         var newTail = new List<T> { _head };
         newTail.AddRange(_tail);
@@ -263,7 +263,7 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public NonEmptyList<T> Concat(NonEmptyList<T> other)
     {
-        ArgumentNullException.ThrowIfNull(other);
+        ThrowHelper.ThrowIfNull(other);
 
         var newTail = new List<T>(_tail);
         newTail.Add(other.Head);
@@ -278,7 +278,7 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T Reduce(Func<T, T, T> reducer)
     {
-        ArgumentNullException.ThrowIfNull(reducer);
+        ThrowHelper.ThrowIfNull(reducer);
 
         var result = _head;
         foreach (var item in _tail)
@@ -293,7 +293,7 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public U Fold<U>(U initial, Func<U, T, U> folder)
     {
-        ArgumentNullException.ThrowIfNull(folder);
+        ThrowHelper.ThrowIfNull(folder);
 
         var result = folder(initial, _head);
         foreach (var item in _tail)
@@ -333,7 +333,7 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     /// </summary>
     public NonEmptyList<T> SortBy<TKey>(Func<T, TKey> keySelector)
     {
-        ArgumentNullException.ThrowIfNull(keySelector);
+        ThrowHelper.ThrowIfNull(keySelector);
 
         var allItems = new List<T> { _head };
         allItems.AddRange(_tail);
@@ -491,8 +491,8 @@ public static class NonEmptyListExtensions
         this NonEmptyList<T1> first,
         NonEmptyList<T2> second)
     {
-        ArgumentNullException.ThrowIfNull(first);
-        ArgumentNullException.ThrowIfNull(second);
+        ThrowHelper.ThrowIfNull(first);
+        ThrowHelper.ThrowIfNull(second);
 
         var zipped = first.Zip(second, static (a, b) => (a, b)).ToList();
         return NonEmptyList<(T1, T2)>.Of(zipped[0], zipped.Skip(1).ToArray());
@@ -505,8 +505,8 @@ public static class NonEmptyListExtensions
         this NonEmptyList<T> list,
         Func<T, TKey> keySelector) where TKey : notnull
     {
-        ArgumentNullException.ThrowIfNull(list);
-        ArgumentNullException.ThrowIfNull(keySelector);
+        ThrowHelper.ThrowIfNull(list);
+        ThrowHelper.ThrowIfNull(keySelector);
 
         var groupedList = list.ToList().GroupBy(keySelector);
         var groupsList = new List<(TKey, NonEmptyList<T>)>();
@@ -527,7 +527,7 @@ public static class NonEmptyListExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T Max<T>(this NonEmptyList<T> list)
     {
-        ArgumentNullException.ThrowIfNull(list);
+        ThrowHelper.ThrowIfNull(list);
 
         if (typeof(IComparable<T>).IsAssignableFrom(typeof(T)))
         {
@@ -543,7 +543,7 @@ public static class NonEmptyListExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T Min<T>(this NonEmptyList<T> list)
     {
-        ArgumentNullException.ThrowIfNull(list);
+        ThrowHelper.ThrowIfNull(list);
 
         if (typeof(IComparable<T>).IsAssignableFrom(typeof(T)))
         {

@@ -75,7 +75,7 @@ public readonly struct Unit : IEquatable<Unit>, IComparable<Unit>, IComparable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Unit From(Action action)
     {
-        ArgumentNullException.ThrowIfNull(action);
+        ThrowHelper.ThrowIfNull(action);
         action();
         return Value;
     }
@@ -92,7 +92,7 @@ public readonly struct Unit : IEquatable<Unit>, IComparable<Unit>, IComparable
     /// </example>
     public static async Task<Unit> FromAsync(Func<Task> action)
     {
-        ArgumentNullException.ThrowIfNull(action);
+        ThrowHelper.ThrowIfNull(action);
         await action().ConfigureAwait(false);
         return Value;
     }
@@ -105,7 +105,7 @@ public readonly struct Unit : IEquatable<Unit>, IComparable<Unit>, IComparable
     /// <returns>A task that completes with Unit.Value after the action completes.</returns>
     public static async Task<Unit> FromAsync(Func<CancellationToken, Task> action, CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(action);
+        ThrowHelper.ThrowIfNull(action);
         await action(cancellationToken).ConfigureAwait(false);
         return Value;
     }

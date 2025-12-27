@@ -71,7 +71,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     /// </summary>
     public static Validation<T, TErr> Invalid(IEnumerable<TErr> errors)
     {
-        ArgumentNullException.ThrowIfNull(errors);
+        ThrowHelper.ThrowIfNull(errors);
 
         var errorList = errors.ToList();
         if (errorList.Count == 0)
@@ -334,7 +334,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Exists(Func<T, bool> predicate)
     {
-        ArgumentNullException.ThrowIfNull(predicate);
+        ThrowHelper.ThrowIfNull(predicate);
         return _isValid && predicate(_value!);
     }
 
@@ -344,7 +344,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Validation<U, TErr> Map<U>(Func<T, U> mapper)
     {
-        ArgumentNullException.ThrowIfNull(mapper);
+        ThrowHelper.ThrowIfNull(mapper);
 
         return _isValid
             ? Validation<U, TErr>.Valid(mapper(_value!))
@@ -357,7 +357,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Validation<T, F> MapErrors<F>(Func<TErr, F> mapper)
     {
-        ArgumentNullException.ThrowIfNull(mapper);
+        ThrowHelper.ThrowIfNull(mapper);
 
         return _isValid
             ? Validation<T, F>.Valid(_value!)
@@ -375,8 +375,8 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Validation<U, F> BiMap<U, F>(Func<T, U> valueMapper, Func<TErr, F> errorMapper)
     {
-        ArgumentNullException.ThrowIfNull(valueMapper);
-        ArgumentNullException.ThrowIfNull(errorMapper);
+        ThrowHelper.ThrowIfNull(valueMapper);
+        ThrowHelper.ThrowIfNull(errorMapper);
 
         return _isValid
             ? Validation<U, F>.Valid(valueMapper(_value!))
@@ -392,7 +392,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
         Validation<TIntermediate, TErr> other,
         Func<T, TIntermediate, U> combiner)
     {
-        ArgumentNullException.ThrowIfNull(combiner);
+        ThrowHelper.ThrowIfNull(combiner);
 
         if (_isValid && other.IsValid)
             return Validation<U, TErr>.Valid(combiner(_value!, other._value!));
@@ -458,7 +458,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Validation<V, TErr> ZipWith<U, V>(Validation<U, TErr> other, Func<T, U, V> combiner)
     {
-        ArgumentNullException.ThrowIfNull(combiner);
+        ThrowHelper.ThrowIfNull(combiner);
 
         if (_isValid && other.IsValid)
             return Validation<V, TErr>.Valid(combiner(_value!, other.Unwrap()));
@@ -501,7 +501,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Validation<U, TErr> AndThen<U>(Func<T, Validation<U, TErr>> binder)
     {
-        ArgumentNullException.ThrowIfNull(binder);
+        ThrowHelper.ThrowIfNull(binder);
 
         return _isValid ? binder(_value!) : Validation<U, TErr>.Invalid(_errors!);
     }
@@ -545,7 +545,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Validation<T, TErr> Ensure(Func<T, bool> predicate, TErr error)
     {
-        ArgumentNullException.ThrowIfNull(predicate);
+        ThrowHelper.ThrowIfNull(predicate);
         if (error is null)
             ThrowHelper.ThrowArgumentNull(nameof(error), "Error cannot be null.");
 
@@ -572,8 +572,8 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Validation<T, TErr> Ensure(Func<T, bool> predicate, Func<TErr> errorFactory)
     {
-        ArgumentNullException.ThrowIfNull(predicate);
-        ArgumentNullException.ThrowIfNull(errorFactory);
+        ThrowHelper.ThrowIfNull(predicate);
+        ThrowHelper.ThrowIfNull(errorFactory);
 
         if (!_isValid)
             return this;
@@ -587,8 +587,8 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Match(Action<T> validAction, Action<IReadOnlyList<TErr>> invalidAction)
     {
-        ArgumentNullException.ThrowIfNull(validAction);
-        ArgumentNullException.ThrowIfNull(invalidAction);
+        ThrowHelper.ThrowIfNull(validAction);
+        ThrowHelper.ThrowIfNull(invalidAction);
 
         if (_isValid)
             validAction(_value!);
@@ -602,8 +602,8 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public U Match<U>(Func<T, U> validFunc, Func<IReadOnlyList<TErr>, U> invalidFunc)
     {
-        ArgumentNullException.ThrowIfNull(validFunc);
-        ArgumentNullException.ThrowIfNull(invalidFunc);
+        ThrowHelper.ThrowIfNull(validFunc);
+        ThrowHelper.ThrowIfNull(invalidFunc);
 
         return _isValid ? validFunc(_value!) : invalidFunc(_errors!);
     }
@@ -626,7 +626,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Result<T, TErr> ToResult(Func<IReadOnlyList<TErr>, TErr> combineErrors)
     {
-        ArgumentNullException.ThrowIfNull(combineErrors);
+        ThrowHelper.ThrowIfNull(combineErrors);
 
         return _isValid
             ? Result<T, TErr>.Ok(_value!)
@@ -772,7 +772,7 @@ public static class ValidationExtensions
     public static Validation<T, TErr> Combine<T, TErr>(
         this IEnumerable<Validation<T, TErr>> validations)
     {
-        ArgumentNullException.ThrowIfNull(validations);
+        ThrowHelper.ThrowIfNull(validations);
 
         var validationList = validations.ToList();
         if (validationList.Count == 0)
@@ -802,7 +802,7 @@ public static class ValidationExtensions
         this Validation<T, TErr> validation,
         Action<T> action)
     {
-        ArgumentNullException.ThrowIfNull(action);
+        ThrowHelper.ThrowIfNull(action);
 
         if (validation.IsValid)
             action(validation.Unwrap());
@@ -818,7 +818,7 @@ public static class ValidationExtensions
         this Validation<T, TErr> validation,
         Action<IReadOnlyList<TErr>> action)
     {
-        ArgumentNullException.ThrowIfNull(action);
+        ThrowHelper.ThrowIfNull(action);
 
         if (validation.IsInvalid)
             action(validation.UnwrapErrors());
@@ -894,9 +894,9 @@ public static class ValidationExtensions
         Task<Validation<TIntermediate, TErr>> secondTask,
         Func<T, TIntermediate, U> combiner)
     {
-        ArgumentNullException.ThrowIfNull(firstTask);
-        ArgumentNullException.ThrowIfNull(secondTask);
-        ArgumentNullException.ThrowIfNull(combiner);
+        ThrowHelper.ThrowIfNull(firstTask);
+        ThrowHelper.ThrowIfNull(secondTask);
+        ThrowHelper.ThrowIfNull(combiner);
 
         var result1 = await firstTask.ConfigureAwait(false);
         var result2 = await secondTask.ConfigureAwait(false);
@@ -919,8 +919,8 @@ public static class ValidationExtensions
         Task<Validation<T, TErr>> firstTask,
         Task<Validation<U, TErr>> secondTask)
     {
-        ArgumentNullException.ThrowIfNull(firstTask);
-        ArgumentNullException.ThrowIfNull(secondTask);
+        ThrowHelper.ThrowIfNull(firstTask);
+        ThrowHelper.ThrowIfNull(secondTask);
 
         var result1 = await firstTask.ConfigureAwait(false);
         var result2 = await secondTask.ConfigureAwait(false);
@@ -945,9 +945,9 @@ public static class ValidationExtensions
         Task<Validation<U, TErr>> secondTask,
         Func<T, U, V> combiner)
     {
-        ArgumentNullException.ThrowIfNull(firstTask);
-        ArgumentNullException.ThrowIfNull(secondTask);
-        ArgumentNullException.ThrowIfNull(combiner);
+        ThrowHelper.ThrowIfNull(firstTask);
+        ThrowHelper.ThrowIfNull(secondTask);
+        ThrowHelper.ThrowIfNull(combiner);
 
         var result1 = await firstTask.ConfigureAwait(false);
         var result2 = await secondTask.ConfigureAwait(false);
@@ -963,9 +963,9 @@ public static class ValidationExtensions
         Task<Validation<T2, TErr>> second,
         Task<Validation<T3, TErr>> third)
     {
-        ArgumentNullException.ThrowIfNull(first);
-        ArgumentNullException.ThrowIfNull(second);
-        ArgumentNullException.ThrowIfNull(third);
+        ThrowHelper.ThrowIfNull(first);
+        ThrowHelper.ThrowIfNull(second);
+        ThrowHelper.ThrowIfNull(third);
 
         var result1 = await first.ConfigureAwait(false);
         var result2 = await second.ConfigureAwait(false);
@@ -1005,7 +1005,7 @@ public static class ValidationExtensions
     public static async Task<Validation<IReadOnlyList<T>, TErr>> CombineAsync<T, TErr>(
         this IEnumerable<Task<Validation<T, TErr>>> validationTasks)
     {
-        ArgumentNullException.ThrowIfNull(validationTasks);
+        ThrowHelper.ThrowIfNull(validationTasks);
 
         var validations = await Task.WhenAll(validationTasks).ConfigureAwait(false);
 
@@ -1032,8 +1032,8 @@ public static class ValidationExtensions
         this Task<Validation<T, TErr>> validationTask,
         Func<T, Task> action)
     {
-        ArgumentNullException.ThrowIfNull(validationTask);
-        ArgumentNullException.ThrowIfNull(action);
+        ThrowHelper.ThrowIfNull(validationTask);
+        ThrowHelper.ThrowIfNull(action);
 
         var validation = await validationTask.ConfigureAwait(false);
         if (validation.IsValid)
@@ -1049,8 +1049,8 @@ public static class ValidationExtensions
         this Task<Validation<T, TErr>> validationTask,
         Func<IReadOnlyList<TErr>, Task> action)
     {
-        ArgumentNullException.ThrowIfNull(validationTask);
-        ArgumentNullException.ThrowIfNull(action);
+        ThrowHelper.ThrowIfNull(validationTask);
+        ThrowHelper.ThrowIfNull(action);
 
         var validation = await validationTask.ConfigureAwait(false);
         if (validation.IsInvalid)
@@ -1066,7 +1066,7 @@ public static class ValidationExtensions
         this Validation<T, TErr> validation,
         Func<T, Task<U>> mapper)
     {
-        ArgumentNullException.ThrowIfNull(mapper);
+        ThrowHelper.ThrowIfNull(mapper);
 
         if (validation.IsInvalid)
             return Validation<U, TErr>.Invalid(validation.UnwrapErrors());
@@ -1082,8 +1082,8 @@ public static class ValidationExtensions
         this Task<Validation<T, TErr>> validationTask,
         Func<T, Task<U>> mapper)
     {
-        ArgumentNullException.ThrowIfNull(validationTask);
-        ArgumentNullException.ThrowIfNull(mapper);
+        ThrowHelper.ThrowIfNull(validationTask);
+        ThrowHelper.ThrowIfNull(mapper);
 
         var validation = await validationTask.ConfigureAwait(false);
         return await validation.MapAsync(mapper).ConfigureAwait(false);
