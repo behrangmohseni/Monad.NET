@@ -10,7 +10,7 @@ namespace Monad.NET;
 /// </summary>
 /// <typeparam name="T">The type of the valid value</typeparam>
 /// <typeparam name="TErr">The type of the error</typeparam>
-public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
+public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IComparable<Validation<T, TErr>>, IComparable
 {
     private readonly T? _value;
     private readonly IReadOnlyList<TErr>? _errors;
@@ -678,6 +678,45 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>
         foreach (var error in _errors!)
             hash.Add(error);
         return hash.ToHashCode();
+    }
+
+    /// <summary>
+    /// Compares this Validation to another Validation.
+    /// Invalid is considered less than Valid. When both are Valid, the values are compared.
+    /// When both are Invalid, the error counts are compared first, then errors lexicographically.
+    /// </summary>
+    /// <param name="other">The other Validation to compare to.</param>
+    /// <returns>A negative value if this is less than other, zero if equal, positive if greater.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public int CompareTo(Validation<T, TErr> other)
+    {
+        if (_isValid && other._isValid)
+            return Comparer<T>.Default.Compare(_value, other._value);
+        if (!_isValid && !other._isValid)
+        {
+            var countCompare = _errors!.Count.CompareTo(other._errors!.Count);
+            if (countCompare != 0)
+                return countCompare;
+            for (int i = 0; i < _errors.Count; i++)
+            {
+                var cmp = Comparer<TErr>.Default.Compare(_errors[i], other._errors[i]);
+                if (cmp != 0)
+                    return cmp;
+            }
+            return 0;
+        }
+        return _isValid ? 1 : -1;
+    }
+
+    /// <inheritdoc />
+    int IComparable.CompareTo(object? obj)
+    {
+        if (obj is null)
+            return 1;
+        if (obj is Validation<T, TErr> other)
+            return CompareTo(other);
+        ThrowHelper.ThrowArgument(nameof(obj), $"Object must be of type Validation<{typeof(T).Name}, {typeof(TErr).Name}>");
+        return 0;
     }
 
     /// <inheritdoc />

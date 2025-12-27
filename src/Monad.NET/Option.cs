@@ -9,7 +9,7 @@ namespace Monad.NET;
 /// This is inspired by Rust's Option&lt;T&gt; type.
 /// </summary>
 /// <typeparam name="T">The type of the value</typeparam>
-public readonly struct Option<T> : IEquatable<Option<T>>
+public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>, IComparable
 {
     private readonly T? _value;
     private readonly bool _isSome;
@@ -501,6 +501,35 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     public override int GetHashCode()
     {
         return _isSome ? _value?.GetHashCode() ?? 0 : 0;
+    }
+
+    /// <summary>
+    /// Compares this Option to another Option.
+    /// None is considered less than Some. When both are Some, the contained values are compared.
+    /// </summary>
+    /// <param name="other">The other Option to compare to.</param>
+    /// <returns>A negative value if this is less than other, zero if equal, positive if greater.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public int CompareTo(Option<T> other)
+    {
+        if (!_isSome && !other._isSome)
+            return 0;
+        if (!_isSome)
+            return -1;
+        if (!other._isSome)
+            return 1;
+        return Comparer<T>.Default.Compare(_value, other._value);
+    }
+
+    /// <inheritdoc />
+    int IComparable.CompareTo(object? obj)
+    {
+        if (obj is null)
+            return 1;
+        if (obj is Option<T> other)
+            return CompareTo(other);
+        ThrowHelper.ThrowArgument(nameof(obj), $"Object must be of type Option<{typeof(T).Name}>");
+        return 0;
     }
 
     /// <inheritdoc />

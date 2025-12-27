@@ -11,7 +11,7 @@ namespace Monad.NET;
 /// </summary>
 /// <typeparam name="T">The type of the data</typeparam>
 /// <typeparam name="TErr">The type of the error</typeparam>
-public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>
+public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>, IComparable<RemoteData<T, TErr>>, IComparable
 {
     private readonly T? _data;
     private readonly TErr? _error;
@@ -451,6 +451,40 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>
             RemoteDataState.Failure => HashCode.Combine(_state, _error),
             _ => _state.GetHashCode()
         };
+    }
+
+    /// <summary>
+    /// Compares this RemoteData to another RemoteData.
+    /// States are ordered: NotAsked &lt; Loading &lt; Failure &lt; Success.
+    /// When both are Success, the data values are compared.
+    /// When both are Failure, the errors are compared.
+    /// </summary>
+    /// <param name="other">The other RemoteData to compare to.</param>
+    /// <returns>A negative value if this is less than other, zero if equal, positive if greater.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public int CompareTo(RemoteData<T, TErr> other)
+    {
+        var stateCompare = _state.CompareTo(other._state);
+        if (stateCompare != 0)
+            return stateCompare;
+
+        return _state switch
+        {
+            RemoteDataState.Success => Comparer<T>.Default.Compare(_data, other._data),
+            RemoteDataState.Failure => Comparer<TErr>.Default.Compare(_error, other._error),
+            _ => 0
+        };
+    }
+
+    /// <inheritdoc />
+    int IComparable.CompareTo(object? obj)
+    {
+        if (obj is null)
+            return 1;
+        if (obj is RemoteData<T, TErr> other)
+            return CompareTo(other);
+        ThrowHelper.ThrowArgument(nameof(obj), $"Object must be of type RemoteData<{typeof(T).Name}, {typeof(TErr).Name}>");
+        return 0;
     }
 
     /// <inheritdoc />
