@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -19,12 +19,14 @@ public sealed class CombineMapCodeFixProvider : CodeFixProvider
     public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-        if (root is null) return;
+        if (root is null)
+            return;
 
         var diagnostic = context.Diagnostics.First();
         var node = root.FindNode(diagnostic.Location.SourceSpan);
         var outerMapInvocation = node.FirstAncestorOrSelf<InvocationExpressionSyntax>();
-        if (outerMapInvocation is null) return;
+        if (outerMapInvocation is null)
+            return;
 
         context.RegisterCodeFix(
             CodeAction.Create(
@@ -37,18 +39,24 @@ public sealed class CombineMapCodeFixProvider : CodeFixProvider
     private static async Task<Document> CombineMapCallsAsync(Document document, InvocationExpressionSyntax outerMapInvocation, CancellationToken cancellationToken)
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        if (root is null) return document;
+        if (root is null)
+            return document;
 
-        if (outerMapInvocation.Expression is not MemberAccessExpressionSyntax outerMemberAccess) return document;
-        if (outerMemberAccess.Expression is not InvocationExpressionSyntax innerMapInvocation) return document;
-        if (innerMapInvocation.Expression is not MemberAccessExpressionSyntax innerMemberAccess) return document;
+        if (outerMapInvocation.Expression is not MemberAccessExpressionSyntax outerMemberAccess)
+            return document;
+        if (outerMemberAccess.Expression is not InvocationExpressionSyntax innerMapInvocation)
+            return document;
+        if (innerMapInvocation.Expression is not MemberAccessExpressionSyntax innerMemberAccess)
+            return document;
 
         var outerLambda = GetLambdaExpression(outerMapInvocation);
         var innerLambda = GetLambdaExpression(innerMapInvocation);
-        if (outerLambda is null || innerLambda is null) return document;
+        if (outerLambda is null || innerLambda is null)
+            return document;
 
         var combinedLambda = CombineLambdas(innerLambda, outerLambda);
-        if (combinedLambda is null) return document;
+        if (combinedLambda is null)
+            return document;
 
         var newInvocation = SyntaxFactory.InvocationExpression(
             SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, innerMemberAccess.Expression, SyntaxFactory.IdentifierName("Map")),
@@ -68,7 +76,8 @@ public sealed class CombineMapCodeFixProvider : CodeFixProvider
         var outerParam = GetParameterName(outerLambda);
         var outerBody = outerLambda.ExpressionBody;
 
-        if (innerParam is null || innerBody is null || outerParam is null || outerBody is null) return null;
+        if (innerParam is null || innerBody is null || outerParam is null || outerBody is null)
+            return null;
 
         var combinedBody = ReplaceIdentifier(outerBody, outerParam, innerBody);
         return SyntaxFactory.SimpleLambdaExpression(SyntaxFactory.Parameter(SyntaxFactory.Identifier(innerParam)), combinedBody);

@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -39,7 +39,7 @@ public sealed class FlatMapToMapAnalyzer : DiagnosticAnalyzer
             return;
 
         var argument = invocation.ArgumentList.Arguments[0].Expression;
-        
+
         // Check if the lambda body always wraps in Some/Ok/etc
         var wrapperMethod = GetWrapperMethodIfAlwaysWraps(argument);
         if (wrapperMethod is null)

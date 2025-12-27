@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -77,7 +77,7 @@ public sealed class ThrowInMatchAnalyzer : DiagnosticAnalyzer
         // Check for throw statement in block
         if (expression is SimpleLambdaExpressionSyntax { Block: not null } simpleLambda)
             return ContainsThrowStatement(simpleLambda.Block);
-            
+
         if (expression is ParenthesizedLambdaExpressionSyntax { Block: not null } parenLambda)
             return ContainsThrowStatement(parenLambda.Block);
 

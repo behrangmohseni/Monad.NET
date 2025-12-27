@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 
 namespace Monad.NET.Analyzers;
 
@@ -7,7 +7,7 @@ public static class DiagnosticDescriptors
     private const string Category = "Monad.NET";
 
     // === SAFETY WARNINGS ===
-    
+
     public static readonly DiagnosticDescriptor UncheckedUnwrap = new(
         id: "MNT001",
         title: "Unchecked Unwrap call",

@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -36,7 +36,7 @@ public sealed class FilterConstantAnalyzer : DiagnosticAnalyzer
 
         var argument = invocation.ArgumentList.Arguments[0].Expression;
         var constantValue = GetConstantBoolValue(argument);
-        
+
         if (constantValue is null)
             return;
 

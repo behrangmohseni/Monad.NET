@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -74,7 +74,7 @@ public sealed class UncheckedUnwrapAnalyzer : DiagnosticAnalyzer
         var binaryExpr = unwrapCall.FirstAncestorOrSelf<BinaryExpressionSyntax>();
         while (binaryExpr is not null)
         {
-            if (binaryExpr.IsKind(SyntaxKind.LogicalAndExpression) && 
+            if (binaryExpr.IsKind(SyntaxKind.LogicalAndExpression) &&
                 IsConditionCheckingMonad(binaryExpr.Left, monadExpression, context))
                 return true;
             binaryExpr = binaryExpr.Parent as BinaryExpressionSyntax;

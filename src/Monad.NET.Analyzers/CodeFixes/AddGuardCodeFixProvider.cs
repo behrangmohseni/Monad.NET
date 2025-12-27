@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -19,12 +19,14 @@ public sealed class AddGuardCodeFixProvider : CodeFixProvider
     public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-        if (root is null) return;
+        if (root is null)
+            return;
 
         var diagnostic = context.Diagnostics.First();
         var node = root.FindNode(diagnostic.Location.SourceSpan);
         var invocation = node.FirstAncestorOrSelf<InvocationExpressionSyntax>();
-        if (invocation is null) return;
+        if (invocation is null)
+            return;
 
         context.RegisterCodeFix(
             CodeAction.Create(
@@ -37,9 +39,11 @@ public sealed class AddGuardCodeFixProvider : CodeFixProvider
     private static async Task<Document> UseGetOrElseAsync(Document document, InvocationExpressionSyntax invocation, CancellationToken cancellationToken)
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        if (root is null) return document;
+        if (root is null)
+            return document;
 
-        if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess) return document;
+        if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess)
+            return document;
 
         var getOrElseInvocation = SyntaxFactory.InvocationExpression(
             SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, memberAccess.Expression, SyntaxFactory.IdentifierName("GetOrElse")),
