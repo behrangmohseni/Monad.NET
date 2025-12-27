@@ -308,8 +308,12 @@ var area = shape.Match(
 | [Integrations](docs/Integrations.md) | Source Generators, ASP.NET Core, Entity Framework Core |
 | [API Reference](docs/API.md) | Complete API documentation |
 | [Compatibility](docs/Compatibility.md) | Supported .NET versions |
+| [Performance Benchmarks](docs/PerformanceBenchmarks.md) | Detailed performance comparisons and analysis |
+| [Versioning Policy](docs/VersioningPolicy.md) | API versioning and deprecation policy |
 | [Pitfalls & Gotchas](docs/Guides/Pitfalls.md) | Common mistakes to avoid |
 | [Logging Guidance](docs/Guides/Logging.md) | Best practices for logging |
+| [Type Selection Guide](docs/Guides/TypeSelectionGuide.md) | Decision flowchart for choosing the right type |
+| [Migration Guide](docs/Guides/MigrationGuide.md) | Migrate from language-ext, OneOf, FluentResults |
 
 ---
 
