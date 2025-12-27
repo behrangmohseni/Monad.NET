@@ -1414,7 +1414,7 @@ internal static class ThrowHelper
         string? paramName = null)
     {
 #if NET6_0_OR_GREATER
-        ThrowHelper.ThrowIfNull(argument, paramName);
+        ArgumentNullException.ThrowIfNull(argument, paramName);
 #else
         if (argument is null)
             ThrowArgumentNull(paramName ?? "argument");
