@@ -16,7 +16,8 @@ namespace System
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Index(int value, bool fromEnd = false)
         {
-            if (value < 0) throw new ArgumentOutOfRangeException(nameof(value), "value must be non-negative");
+            if (value < 0)
+                throw new ArgumentOutOfRangeException(nameof(value), "value must be non-negative");
             _value = fromEnd ? ~value : value;
         }
 
@@ -28,14 +29,16 @@ namespace System
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Index FromStart(int value)
         {
-            if (value < 0) throw new ArgumentOutOfRangeException(nameof(value), "value must be non-negative");
+            if (value < 0)
+                throw new ArgumentOutOfRangeException(nameof(value), "value must be non-negative");
             return new Index(value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Index FromEnd(int value)
         {
-            if (value < 0) throw new ArgumentOutOfRangeException(nameof(value), "value must be non-negative");
+            if (value < 0)
+                throw new ArgumentOutOfRangeException(nameof(value), "value must be non-negative");
             return new Index(~value);
         }
 
@@ -46,7 +49,8 @@ namespace System
         public int GetOffset(int length)
         {
             int offset = _value;
-            if (IsFromEnd) offset += length + 1;
+            if (IsFromEnd)
+                offset += length + 1;
             return offset;
         }
 

@@ -1,4 +1,4 @@
-﻿// Global using directives for Monad.NET
+// Global using directives for Monad.NET
 // These provide the same convenience as ImplicitUsings for all target frameworks.
 
 global using System;
