@@ -338,7 +338,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Exists(Func<T, bool> predicate)
     {
-        ArgumentNullException.ThrowIfNull(predicate);
+        ThrowHelper.ThrowIfNull(predicate);
         return _isOk && predicate(_value!);
     }
 
@@ -357,7 +357,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool ExistsError(Func<TErr, bool> predicate)
     {
-        ArgumentNullException.ThrowIfNull(predicate);
+        ThrowHelper.ThrowIfNull(predicate);
         return !_isOk && predicate(_error!);
     }
 
@@ -406,8 +406,8 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Result<U, F> BiMap<U, F>(Func<T, U> okMapper, Func<TErr, F> errMapper)
     {
-        ArgumentNullException.ThrowIfNull(okMapper);
-        ArgumentNullException.ThrowIfNull(errMapper);
+        ThrowHelper.ThrowIfNull(okMapper);
+        ThrowHelper.ThrowIfNull(errMapper);
 
         return _isOk
             ? Result<U, F>.Ok(okMapper(_value!))
@@ -797,7 +797,7 @@ public static class ResultExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T ThrowIfErr<T, TErr>(this Result<T, TErr> result, Exception exception)
     {
-        ArgumentNullException.ThrowIfNull(exception);
+        ThrowHelper.ThrowIfNull(exception);
 
         if (result.IsErr)
             throw exception;
@@ -823,7 +823,7 @@ public static class ResultExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T ThrowIfErr<T, TErr>(this Result<T, TErr> result, Func<TErr, Exception> exceptionFactory)
     {
-        ArgumentNullException.ThrowIfNull(exceptionFactory);
+        ThrowHelper.ThrowIfNull(exceptionFactory);
 
         if (result.IsErr)
             throw exceptionFactory(result.UnwrapErr());
@@ -1059,8 +1059,8 @@ public static class ResultExtensions
         Task<Result<T1, TErr>> first,
         Task<Result<T2, TErr>> second)
     {
-        ArgumentNullException.ThrowIfNull(first);
-        ArgumentNullException.ThrowIfNull(second);
+        ThrowHelper.ThrowIfNull(first);
+        ThrowHelper.ThrowIfNull(second);
 
         var (result1, result2) = (await first.ConfigureAwait(false), await second.ConfigureAwait(false));
         return Combine(result1, result2);
@@ -1084,9 +1084,9 @@ public static class ResultExtensions
         Task<Result<T2, TErr>> second,
         Func<T1, T2, TResult> combiner)
     {
-        ArgumentNullException.ThrowIfNull(first);
-        ArgumentNullException.ThrowIfNull(second);
-        ArgumentNullException.ThrowIfNull(combiner);
+        ThrowHelper.ThrowIfNull(first);
+        ThrowHelper.ThrowIfNull(second);
+        ThrowHelper.ThrowIfNull(combiner);
 
         var (result1, result2) = (await first.ConfigureAwait(false), await second.ConfigureAwait(false));
         return Combine(result1, result2, combiner);
@@ -1101,9 +1101,9 @@ public static class ResultExtensions
         Task<Result<T2, TErr>> second,
         Task<Result<T3, TErr>> third)
     {
-        ArgumentNullException.ThrowIfNull(first);
-        ArgumentNullException.ThrowIfNull(second);
-        ArgumentNullException.ThrowIfNull(third);
+        ThrowHelper.ThrowIfNull(first);
+        ThrowHelper.ThrowIfNull(second);
+        ThrowHelper.ThrowIfNull(third);
 
         var result1 = await first.ConfigureAwait(false);
         var result2 = await second.ConfigureAwait(false);
@@ -1121,10 +1121,10 @@ public static class ResultExtensions
         Task<Result<T3, TErr>> third,
         Func<T1, T2, T3, TResult> combiner)
     {
-        ArgumentNullException.ThrowIfNull(first);
-        ArgumentNullException.ThrowIfNull(second);
-        ArgumentNullException.ThrowIfNull(third);
-        ArgumentNullException.ThrowIfNull(combiner);
+        ThrowHelper.ThrowIfNull(first);
+        ThrowHelper.ThrowIfNull(second);
+        ThrowHelper.ThrowIfNull(third);
+        ThrowHelper.ThrowIfNull(combiner);
 
         var result1 = await first.ConfigureAwait(false);
         var result2 = await second.ConfigureAwait(false);
@@ -1148,7 +1148,7 @@ public static class ResultExtensions
     public static async Task<Result<IReadOnlyList<T>, TErr>> CombineAsync<T, TErr>(
         IEnumerable<Task<Result<T, TErr>>> resultTasks)
     {
-        ArgumentNullException.ThrowIfNull(resultTasks);
+        ThrowHelper.ThrowIfNull(resultTasks);
 
         var results = await Task.WhenAll(resultTasks).ConfigureAwait(false);
         return Combine(results);
@@ -1162,7 +1162,7 @@ public static class ResultExtensions
     public static async Task<Result<Unit, TErr>> CombineAllAsync<T, TErr>(
         IEnumerable<Task<Result<T, TErr>>> resultTasks)
     {
-        ArgumentNullException.ThrowIfNull(resultTasks);
+        ThrowHelper.ThrowIfNull(resultTasks);
 
         var results = await Task.WhenAll(resultTasks).ConfigureAwait(false);
         return CombineAll(results);

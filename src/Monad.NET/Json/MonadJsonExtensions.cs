@@ -14,7 +14,7 @@ public static class MonadJsonExtensions
     /// <returns>The same options instance for chaining.</returns>
     public static JsonSerializerOptions AddMonadConverters(this JsonSerializerOptions options)
     {
-        ArgumentNullException.ThrowIfNull(options);
+        ThrowHelper.ThrowIfNull(options);
 
         options.Converters.Add(new OptionJsonConverterFactory());
         options.Converters.Add(new ResultJsonConverterFactory());

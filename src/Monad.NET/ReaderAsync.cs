@@ -47,7 +47,7 @@ public sealed class ReaderAsync<R, A>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private ReaderAsync(Func<R, Task<A>> run)
     {
-        ArgumentNullException.ThrowIfNull(run);
+        ThrowHelper.ThrowIfNull(run);
         _run = run;
     }
 
@@ -59,7 +59,7 @@ public sealed class ReaderAsync<R, A>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ReaderAsync<R, A> From(Func<R, Task<A>> func)
     {
-        ArgumentNullException.ThrowIfNull(func);
+        ThrowHelper.ThrowIfNull(func);
         return new ReaderAsync<R, A>(func);
     }
 
@@ -71,7 +71,7 @@ public sealed class ReaderAsync<R, A>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ReaderAsync<R, A> FromReader(Reader<R, A> reader)
     {
-        ArgumentNullException.ThrowIfNull(reader);
+        ThrowHelper.ThrowIfNull(reader);
         return new ReaderAsync<R, A>(env => Task.FromResult(reader.Run(env)));
     }
 
@@ -104,7 +104,7 @@ public sealed class ReaderAsync<R, A>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ReaderAsync<R, A> Asks(Func<R, A> selector)
     {
-        ArgumentNullException.ThrowIfNull(selector);
+        ThrowHelper.ThrowIfNull(selector);
         return new ReaderAsync<R, A>(env => Task.FromResult(selector(env)));
     }
 
@@ -116,7 +116,7 @@ public sealed class ReaderAsync<R, A>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ReaderAsync<R, A> AsksAsync(Func<R, Task<A>> selector)
     {
-        ArgumentNullException.ThrowIfNull(selector);
+        ThrowHelper.ThrowIfNull(selector);
         return new ReaderAsync<R, A>(selector);
     }
 
@@ -129,7 +129,7 @@ public sealed class ReaderAsync<R, A>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public async Task<A> RunAsync(R environment, CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(environment);
+        ThrowHelper.ThrowIfNull(environment);
         cancellationToken.ThrowIfCancellationRequested();
         return await _run(environment).ConfigureAwait(false);
     }
@@ -143,7 +143,7 @@ public sealed class ReaderAsync<R, A>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ReaderAsync<R, B> Map<B>(Func<A, B> mapper)
     {
-        ArgumentNullException.ThrowIfNull(mapper);
+        ThrowHelper.ThrowIfNull(mapper);
 
         var run = _run;
         return ReaderAsync<R, B>.From(async env =>
@@ -162,7 +162,7 @@ public sealed class ReaderAsync<R, A>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ReaderAsync<R, B> MapAsync<B>(Func<A, Task<B>> mapper)
     {
-        ArgumentNullException.ThrowIfNull(mapper);
+        ThrowHelper.ThrowIfNull(mapper);
 
         var run = _run;
         return ReaderAsync<R, B>.From(async env =>
@@ -186,7 +186,7 @@ public sealed class ReaderAsync<R, A>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ReaderAsync<R, A> Tap(Action<A> action)
     {
-        ArgumentNullException.ThrowIfNull(action);
+        ThrowHelper.ThrowIfNull(action);
 
         var run = _run;
         return ReaderAsync<R, A>.From(async env =>
@@ -205,7 +205,7 @@ public sealed class ReaderAsync<R, A>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ReaderAsync<R, A> TapAsync(Func<A, Task> action)
     {
-        ArgumentNullException.ThrowIfNull(action);
+        ThrowHelper.ThrowIfNull(action);
 
         var run = _run;
         return ReaderAsync<R, A>.From(async env =>
@@ -224,7 +224,7 @@ public sealed class ReaderAsync<R, A>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ReaderAsync<R, A> TapEnv(Action<R> action)
     {
-        ArgumentNullException.ThrowIfNull(action);
+        ThrowHelper.ThrowIfNull(action);
 
         var run = _run;
         return ReaderAsync<R, A>.From(async env =>
@@ -242,7 +242,7 @@ public sealed class ReaderAsync<R, A>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ReaderAsync<R, A> TapEnvAsync(Func<R, Task> action)
     {
-        ArgumentNullException.ThrowIfNull(action);
+        ThrowHelper.ThrowIfNull(action);
 
         var run = _run;
         return ReaderAsync<R, A>.From(async env =>
@@ -261,7 +261,7 @@ public sealed class ReaderAsync<R, A>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ReaderAsync<R, B> FlatMap<B>(Func<A, ReaderAsync<R, B>> binder)
     {
-        ArgumentNullException.ThrowIfNull(binder);
+        ThrowHelper.ThrowIfNull(binder);
 
         var run = _run;
         return ReaderAsync<R, B>.From(async env =>
@@ -280,7 +280,7 @@ public sealed class ReaderAsync<R, A>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ReaderAsync<R, B> FlatMapAsync<B>(Func<A, Task<ReaderAsync<R, B>>> binder)
     {
-        ArgumentNullException.ThrowIfNull(binder);
+        ThrowHelper.ThrowIfNull(binder);
 
         var run = _run;
         return ReaderAsync<R, B>.From(async env =>
@@ -315,7 +315,7 @@ public sealed class ReaderAsync<R, A>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ReaderAsync<R2, A> WithEnvironment<R2>(Func<R2, R> transform)
     {
-        ArgumentNullException.ThrowIfNull(transform);
+        ThrowHelper.ThrowIfNull(transform);
 
         var run = _run;
         return ReaderAsync<R2, A>.From(env2 => run(transform(env2)));
@@ -330,7 +330,7 @@ public sealed class ReaderAsync<R, A>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ReaderAsync<R2, A> WithEnvironmentAsync<R2>(Func<R2, Task<R>> transform)
     {
-        ArgumentNullException.ThrowIfNull(transform);
+        ThrowHelper.ThrowIfNull(transform);
 
         var run = _run;
         return ReaderAsync<R2, A>.From(async env2 =>
@@ -351,8 +351,8 @@ public sealed class ReaderAsync<R, A>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ReaderAsync<R, C> Zip<B, C>(ReaderAsync<R, B> other, Func<A, B, C> combiner)
     {
-        ArgumentNullException.ThrowIfNull(other);
-        ArgumentNullException.ThrowIfNull(combiner);
+        ThrowHelper.ThrowIfNull(other);
+        ThrowHelper.ThrowIfNull(combiner);
 
         var run = _run;
         return ReaderAsync<R, C>.From(async env =>
@@ -406,7 +406,7 @@ public sealed class ReaderAsync<R, A>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ReaderAsync<R, A> OrElse(ReaderAsync<R, A> fallback)
     {
-        ArgumentNullException.ThrowIfNull(fallback);
+        ThrowHelper.ThrowIfNull(fallback);
 
         var run = _run;
         return ReaderAsync<R, A>.From(async env =>
@@ -517,7 +517,7 @@ public static class ReaderAsyncExtensions
         Func<A, ReaderAsync<R, B>> selector,
         Func<A, B, C> resultSelector)
     {
-        ArgumentNullException.ThrowIfNull(resultSelector);
+        ThrowHelper.ThrowIfNull(resultSelector);
 
         return reader.FlatMap(a =>
             selector(a).Map(b =>
@@ -533,7 +533,7 @@ public static class ReaderAsyncExtensions
     /// <returns>A ReaderAsync that produces a list of results.</returns>
     public static ReaderAsync<R, IReadOnlyList<A>> Sequence<R, A>(this IEnumerable<ReaderAsync<R, A>> readers)
     {
-        ArgumentNullException.ThrowIfNull(readers);
+        ThrowHelper.ThrowIfNull(readers);
 
         var readerList = readers.ToList();
         return ReaderAsync<R, IReadOnlyList<A>>.From(async env =>
@@ -556,7 +556,7 @@ public static class ReaderAsyncExtensions
     /// <returns>A ReaderAsync that produces a list of results computed in parallel.</returns>
     public static ReaderAsync<R, IReadOnlyList<A>> SequenceParallel<R, A>(this IEnumerable<ReaderAsync<R, A>> readers)
     {
-        ArgumentNullException.ThrowIfNull(readers);
+        ThrowHelper.ThrowIfNull(readers);
 
         var readerList = readers.ToList();
         return ReaderAsync<R, IReadOnlyList<A>>.From(async env =>
@@ -580,8 +580,8 @@ public static class ReaderAsyncExtensions
         this IEnumerable<A> items,
         Func<A, ReaderAsync<R, B>> selector)
     {
-        ArgumentNullException.ThrowIfNull(items);
-        ArgumentNullException.ThrowIfNull(selector);
+        ThrowHelper.ThrowIfNull(items);
+        ThrowHelper.ThrowIfNull(selector);
 
         return items.Select(selector).Sequence();
     }
@@ -599,8 +599,8 @@ public static class ReaderAsyncExtensions
         this IEnumerable<A> items,
         Func<A, ReaderAsync<R, B>> selector)
     {
-        ArgumentNullException.ThrowIfNull(items);
-        ArgumentNullException.ThrowIfNull(selector);
+        ThrowHelper.ThrowIfNull(items);
+        ThrowHelper.ThrowIfNull(selector);
 
         return items.Select(selector).SequenceParallel();
     }
@@ -681,8 +681,8 @@ public static class ReaderAsync
         ReaderAsync<R, A> first,
         ReaderAsync<R, B> second)
     {
-        ArgumentNullException.ThrowIfNull(first);
-        ArgumentNullException.ThrowIfNull(second);
+        ThrowHelper.ThrowIfNull(first);
+        ThrowHelper.ThrowIfNull(second);
 
         return ReaderAsync<R, (A, B)>.From(async env =>
         {
@@ -701,9 +701,9 @@ public static class ReaderAsync
         ReaderAsync<R, B> second,
         ReaderAsync<R, C> third)
     {
-        ArgumentNullException.ThrowIfNull(first);
-        ArgumentNullException.ThrowIfNull(second);
-        ArgumentNullException.ThrowIfNull(third);
+        ThrowHelper.ThrowIfNull(first);
+        ThrowHelper.ThrowIfNull(second);
+        ThrowHelper.ThrowIfNull(third);
 
         return ReaderAsync<R, (A, B, C)>.From(async env =>
         {

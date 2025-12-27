@@ -389,7 +389,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Exists(Func<T, bool> predicate)
     {
-        ArgumentNullException.ThrowIfNull(predicate);
+        ThrowHelper.ThrowIfNull(predicate);
         return _isSuccess && predicate(_value!);
     }
 

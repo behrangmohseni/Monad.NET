@@ -135,7 +135,7 @@ public readonly struct State<TState, T>
 
     private State(Func<TState, StateResult<TState, T>> run)
     {
-        ArgumentNullException.ThrowIfNull(run);
+        ThrowHelper.ThrowIfNull(run);
         _run = run;
     }
 
@@ -219,7 +219,7 @@ public readonly struct State<TState, T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static State<TState, Unit> Modify(Func<TState, TState> modifier)
     {
-        ArgumentNullException.ThrowIfNull(modifier);
+        ThrowHelper.ThrowIfNull(modifier);
 
         return new State<TState, Unit>(state => new StateResult<TState, Unit>(Unit.Default, modifier(state)));
     }
@@ -232,7 +232,7 @@ public readonly struct State<TState, T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static State<TState, U> Gets<U>(Func<TState, U> selector)
     {
-        ArgumentNullException.ThrowIfNull(selector);
+        ThrowHelper.ThrowIfNull(selector);
 
         return new State<TState, U>(state => new StateResult<TState, U>(selector(state), state));
     }
@@ -256,7 +256,7 @@ public readonly struct State<TState, T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static State<TState, T> Of(Func<TState, (T value, TState state)> run)
     {
-        ArgumentNullException.ThrowIfNull(run);
+        ThrowHelper.ThrowIfNull(run);
 
         return new State<TState, T>(state =>
         {
@@ -274,7 +274,7 @@ public readonly struct State<TState, T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public State<TState, U> Map<U>(Func<T, U> mapper)
     {
-        ArgumentNullException.ThrowIfNull(mapper);
+        ThrowHelper.ThrowIfNull(mapper);
 
         var run = _run;
         return new State<TState, U>(state =>
@@ -298,7 +298,7 @@ public readonly struct State<TState, T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public State<TState, T> Tap(Action<T> action)
     {
-        ArgumentNullException.ThrowIfNull(action);
+        ThrowHelper.ThrowIfNull(action);
 
         var run = _run;
         return new State<TState, T>(state =>
@@ -323,7 +323,7 @@ public readonly struct State<TState, T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public State<TState, T> TapState(Action<TState> action)
     {
-        ArgumentNullException.ThrowIfNull(action);
+        ThrowHelper.ThrowIfNull(action);
 
         var run = _run;
         return new State<TState, T>(state =>
@@ -343,7 +343,7 @@ public readonly struct State<TState, T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public State<TState, U> AndThen<U>(Func<T, State<TState, U>> binder)
     {
-        ArgumentNullException.ThrowIfNull(binder);
+        ThrowHelper.ThrowIfNull(binder);
 
         var run = _run;
         return new State<TState, U>(state =>
@@ -408,7 +408,7 @@ public readonly struct State<TState, T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public State<TState, V> ZipWith<U, V>(State<TState, U> other, Func<T, U, V> combiner)
     {
-        ArgumentNullException.ThrowIfNull(combiner);
+        ThrowHelper.ThrowIfNull(combiner);
 
         return AndThen(a => other.Map(b => combiner(a, b)));
     }
@@ -480,7 +480,7 @@ public static class StateExtensions
         this IEnumerable<T> source,
         Func<T, State<TState, U>> func)
     {
-        ArgumentNullException.ThrowIfNull(func);
+        ThrowHelper.ThrowIfNull(func);
 
         return source.Select(func).Sequence();
     }
@@ -505,7 +505,7 @@ public static class StateExtensions
         this State<TState, T> body,
         Func<TState, bool> condition)
     {
-        ArgumentNullException.ThrowIfNull(condition);
+        ThrowHelper.ThrowIfNull(condition);
 
         return State<TState, IReadOnlyList<T>>.Of(initialState =>
         {
@@ -554,7 +554,7 @@ public static class StateExtensions
         Func<T, State<TState, U>> selector,
         Func<T, U, V> resultSelector)
     {
-        ArgumentNullException.ThrowIfNull(resultSelector);
+        ThrowHelper.ThrowIfNull(resultSelector);
 
         return state.AndThen(a => selector(a).Map(b => resultSelector(a, b)));
     }

@@ -47,8 +47,8 @@ public readonly struct Writer<TLog, T> : IEquatable<Writer<TLog, T>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Writer<TLog, T> Of(T value, TLog emptyLog)
     {
-        ArgumentNullException.ThrowIfNull(value);
-        ArgumentNullException.ThrowIfNull(emptyLog);
+        ThrowHelper.ThrowIfNull(value);
+        ThrowHelper.ThrowIfNull(emptyLog);
 
         return new Writer<TLog, T>(value, emptyLog);
     }
@@ -59,8 +59,8 @@ public readonly struct Writer<TLog, T> : IEquatable<Writer<TLog, T>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Writer<TLog, T> Tell(T value, TLog log)
     {
-        ArgumentNullException.ThrowIfNull(value);
-        ArgumentNullException.ThrowIfNull(log);
+        ThrowHelper.ThrowIfNull(value);
+        ThrowHelper.ThrowIfNull(log);
 
         return new Writer<TLog, T>(value, log);
     }
@@ -71,7 +71,7 @@ public readonly struct Writer<TLog, T> : IEquatable<Writer<TLog, T>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Writer<TLog, Unit> TellUnit(TLog log)
     {
-        ArgumentNullException.ThrowIfNull(log);
+        ThrowHelper.ThrowIfNull(log);
 
         return new Writer<TLog, Unit>(Unit.Default, log);
     }
@@ -82,7 +82,7 @@ public readonly struct Writer<TLog, T> : IEquatable<Writer<TLog, T>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Writer<TLog, U> Map<U>(Func<T, U> mapper)
     {
-        ArgumentNullException.ThrowIfNull(mapper);
+        ThrowHelper.ThrowIfNull(mapper);
 
         return new Writer<TLog, U>(mapper(_value), _log);
     }
@@ -101,7 +101,7 @@ public readonly struct Writer<TLog, T> : IEquatable<Writer<TLog, T>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Writer<TLog, T> Tap(Action<T> action)
     {
-        ArgumentNullException.ThrowIfNull(action);
+        ThrowHelper.ThrowIfNull(action);
 
         action(_value);
         return this;
@@ -121,7 +121,7 @@ public readonly struct Writer<TLog, T> : IEquatable<Writer<TLog, T>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Writer<TLog, T> TapLog(Action<TLog> action)
     {
-        ArgumentNullException.ThrowIfNull(action);
+        ThrowHelper.ThrowIfNull(action);
 
         action(_log);
         return this;
@@ -134,8 +134,8 @@ public readonly struct Writer<TLog, T> : IEquatable<Writer<TLog, T>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Writer<TLog, U> FlatMap<U>(Func<T, Writer<TLog, U>> binder, Func<TLog, TLog, TLog> combine)
     {
-        ArgumentNullException.ThrowIfNull(binder);
-        ArgumentNullException.ThrowIfNull(combine);
+        ThrowHelper.ThrowIfNull(binder);
+        ThrowHelper.ThrowIfNull(combine);
 
         var result = binder(_value);
         var combinedLog = combine(_log, result._log);
@@ -148,8 +148,8 @@ public readonly struct Writer<TLog, T> : IEquatable<Writer<TLog, T>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Writer<ULog, U> BiMap<ULog, U>(Func<TLog, ULog> logMapper, Func<T, U> valueMapper)
     {
-        ArgumentNullException.ThrowIfNull(logMapper);
-        ArgumentNullException.ThrowIfNull(valueMapper);
+        ThrowHelper.ThrowIfNull(logMapper);
+        ThrowHelper.ThrowIfNull(valueMapper);
 
         return new Writer<ULog, U>(valueMapper(_value), logMapper(_log));
     }
@@ -160,7 +160,7 @@ public readonly struct Writer<TLog, T> : IEquatable<Writer<TLog, T>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Writer<ULog, T> MapLog<ULog>(Func<TLog, ULog> logMapper)
     {
-        ArgumentNullException.ThrowIfNull(logMapper);
+        ThrowHelper.ThrowIfNull(logMapper);
 
         return new Writer<ULog, T>(_value, logMapper(_log));
     }
@@ -180,7 +180,7 @@ public readonly struct Writer<TLog, T> : IEquatable<Writer<TLog, T>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Run(Action<T, TLog> action)
     {
-        ArgumentNullException.ThrowIfNull(action);
+        ThrowHelper.ThrowIfNull(action);
 
         action(_value, _log);
     }
@@ -191,7 +191,7 @@ public readonly struct Writer<TLog, T> : IEquatable<Writer<TLog, T>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public U Match<U>(Func<T, TLog, U> func)
     {
-        ArgumentNullException.ThrowIfNull(func);
+        ThrowHelper.ThrowIfNull(func);
 
         return func(_value, _log);
     }
@@ -273,7 +273,7 @@ public static class WriterExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Writer<string, T> WithLog<T>(this T value, string log)
     {
-        ArgumentNullException.ThrowIfNull(value);
+        ThrowHelper.ThrowIfNull(value);
 
         return Writer<string, T>.Tell(value, log ?? string.Empty);
     }
@@ -284,7 +284,7 @@ public static class WriterExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Writer<string, T> ToWriter<T>(this T value)
     {
-        ArgumentNullException.ThrowIfNull(value);
+        ThrowHelper.ThrowIfNull(value);
 
         return Writer<string, T>.Of(value, string.Empty);
     }
@@ -324,7 +324,7 @@ public static class WriterExtensions
         this Writer<string, T> writer,
         Func<T, string> logger)
     {
-        ArgumentNullException.ThrowIfNull(logger);
+        ThrowHelper.ThrowIfNull(logger);
 
         var additionalLog = logger(writer.Value);
         return Writer<string, T>.Tell(writer.Value, writer.Log + additionalLog);
@@ -336,7 +336,7 @@ public static class WriterExtensions
     public static Writer<string, IEnumerable<T>> Sequence<T>(
         this IEnumerable<Writer<string, T>> writers)
     {
-        ArgumentNullException.ThrowIfNull(writers);
+        ThrowHelper.ThrowIfNull(writers);
 
         var values = new List<T>();
         var logBuilder = new StringBuilder();
@@ -356,7 +356,7 @@ public static class WriterExtensions
     public static Writer<List<TLog>, IEnumerable<T>> Sequence<T, TLog>(
         this IEnumerable<Writer<List<TLog>, T>> writers)
     {
-        ArgumentNullException.ThrowIfNull(writers);
+        ThrowHelper.ThrowIfNull(writers);
 
         var values = new List<T>();
         var combinedLog = new List<TLog>();
@@ -382,7 +382,7 @@ public static class StringWriter
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Writer<string, T> Pure<T>(T value)
     {
-        ArgumentNullException.ThrowIfNull(value);
+        ThrowHelper.ThrowIfNull(value);
 
         return Writer<string, T>.Of(value, string.Empty);
     }
@@ -393,7 +393,7 @@ public static class StringWriter
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Writer<string, T> Tell<T>(T value, string message)
     {
-        ArgumentNullException.ThrowIfNull(value);
+        ThrowHelper.ThrowIfNull(value);
 
         return Writer<string, T>.Tell(value, message ?? string.Empty);
     }
@@ -419,7 +419,7 @@ public static class ListWriter
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Writer<List<TLog>, T> Pure<T, TLog>(T value)
     {
-        ArgumentNullException.ThrowIfNull(value);
+        ThrowHelper.ThrowIfNull(value);
 
         return Writer<List<TLog>, T>.Of(value, new List<TLog>());
     }
@@ -430,8 +430,8 @@ public static class ListWriter
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Writer<List<TLog>, T> Tell<T, TLog>(T value, TLog logEntry)
     {
-        ArgumentNullException.ThrowIfNull(value);
-        ArgumentNullException.ThrowIfNull(logEntry);
+        ThrowHelper.ThrowIfNull(value);
+        ThrowHelper.ThrowIfNull(logEntry);
 
         return Writer<List<TLog>, T>.Tell(value, new List<TLog> { logEntry });
     }
@@ -442,7 +442,7 @@ public static class ListWriter
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Writer<List<TLog>, T> Tell<T, TLog>(T value, params TLog[] logEntries)
     {
-        ArgumentNullException.ThrowIfNull(value);
+        ThrowHelper.ThrowIfNull(value);
 
         return Writer<List<TLog>, T>.Tell(value, new List<TLog>(logEntries ?? Array.Empty<TLog>()));
     }

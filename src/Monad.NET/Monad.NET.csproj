@@ -1,11 +1,15 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!-- Target Framework - .NET 6.0 and later -->
-    <TargetFramework>net6.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Multi-target Framework Support -->
+    <TargetFrameworks>netstandard2.0;netstandard2.1;net8.0;net10.0</TargetFrameworks>
+    <!-- Nullable only fully works on .NET 6+ where BCL has annotations -->
     <Nullable>enable</Nullable>
+    <NoWarn Condition="'$(TargetFramework)' == 'netstandard2.0' Or '$(TargetFramework)' == 'netstandard2.1'">$(NoWarn);CS8604</NoWarn>
     <LangVersion>latest</LangVersion>
+    
+    <!-- ImplicitUsings only for net6.0+ -->
+    <ImplicitUsings>disable</ImplicitUsings>
     
     <!-- Package Metadata -->
     <PackageId>Monad.NET</PackageId>
@@ -13,8 +17,8 @@
     <Authors>Behrang Mohseni</Authors>
     <Company>Behrang Mohseni</Company>
     <Product>Monad.NET</Product>
-    <Copyright>Copyright © 2025 Behrang Mohseni</Copyright>
-    <Description>Functional programming library for .NET with Option, Result, Either, Validation, Try, RemoteData, NonEmptyList, Writer, Reader, State, and IO monads. Async support, LINQ integration, zero dependencies. .NET 6.0+.</Description>
+    <Copyright>Copyright 2025 Behrang Mohseni</Copyright>
+    <Description>Functional programming library for .NET with Option, Result, Either, Validation, Try, RemoteData, NonEmptyList, Writer, Reader, State, and IO monads. Async support, LINQ integration, zero dependencies. Supports .NET Standard 2.0/2.1, .NET 8.0, and .NET 10.0.</Description>
     <PackageTags>monad;functional;functional-programming;option;result;either;validation;try;remotedata;nonemptylist;writer;reader;state;railway-oriented-programming;error-handling;async;linq;immutable;type-safe;null-safety</PackageTags>
     
     <!-- URLs -->
@@ -58,6 +62,19 @@
   <!-- Source Link -->
   <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+  </ItemGroup>
+
+  <!-- Dependencies for .NET Standard 2.0 -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="9.0.0" />
+    <PackageReference Include="System.Memory" Version="4.5.5" />
+    <PackageReference Include="System.Text.Json" Version="9.0.0" />
+  </ItemGroup>
+
+  <!-- Dependencies for .NET Standard 2.1 -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="9.0.0" />
+    <PackageReference Include="System.Text.Json" Version="9.0.0" />
   </ItemGroup>
 
   <!-- Continuous Integration -->
