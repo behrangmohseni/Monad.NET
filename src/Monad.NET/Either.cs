@@ -10,6 +10,7 @@ namespace Monad.NET;
 /// </summary>
 /// <typeparam name="TLeft">The type of the Left value</typeparam>
 /// <typeparam name="TRight">The type of the Right value</typeparam>
+[Serializable]
 public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>, IComparable<Either<TLeft, TRight>>, IComparable
 {
     private readonly TLeft? _left;
@@ -548,7 +549,7 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
         if (obj is Either<TLeft, TRight> other)
             return CompareTo(other);
         ThrowHelper.ThrowArgument(nameof(obj), $"Object must be of type Either<{typeof(TLeft).Name}, {typeof(TRight).Name}>");
-        return 0;
+        return 0; // unreachable
     }
 
     /// <inheritdoc />

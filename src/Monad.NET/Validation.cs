@@ -10,6 +10,7 @@ namespace Monad.NET;
 /// </summary>
 /// <typeparam name="T">The type of the valid value</typeparam>
 /// <typeparam name="TErr">The type of the error</typeparam>
+[Serializable]
 public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IComparable<Validation<T, TErr>>, IComparable
 {
     private readonly T? _value;
@@ -716,7 +717,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
         if (obj is Validation<T, TErr> other)
             return CompareTo(other);
         ThrowHelper.ThrowArgument(nameof(obj), $"Object must be of type Validation<{typeof(T).Name}, {typeof(TErr).Name}>");
-        return 0;
+        return 0; // unreachable
     }
 
     /// <inheritdoc />

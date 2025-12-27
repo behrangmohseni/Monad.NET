@@ -35,6 +35,7 @@ namespace Monad.NET;
 /// async Task&lt;Unit&gt; SaveAsync() { await db.SaveAsync(); return Unit.Value; }
 /// </code>
 /// </example>
+[Serializable]
 public readonly struct Unit : IEquatable<Unit>, IComparable<Unit>, IComparable
 {
     /// <summary>

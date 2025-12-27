@@ -9,6 +9,7 @@ namespace Monad.NET;
 /// </summary>
 /// <typeparam name="T">The type of the success value</typeparam>
 /// <typeparam name="TErr">The type of the error value</typeparam>
+[Serializable]
 public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparable<Result<T, TErr>>, IComparable
 {
     private readonly T? _value;
@@ -626,7 +627,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
         if (obj is Result<T, TErr> other)
             return CompareTo(other);
         ThrowHelper.ThrowArgument(nameof(obj), $"Object must be of type Result<{typeof(T).Name}, {typeof(TErr).Name}>");
-        return 0;
+        return 0; // unreachable
     }
 
     /// <inheritdoc />
