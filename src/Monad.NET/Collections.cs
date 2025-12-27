@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Monad.NET.Internal;
 
 namespace Monad.NET;
 
@@ -29,6 +30,7 @@ public static class MonadCollectionExtensions
 
         /// <summary>
         /// Executes tasks in parallel with optional throttling.
+        /// Optimized to avoid intermediate allocations where possible.
         /// </summary>
         public static async Task<TResult[]> RunParallelAsync<TSource, TResult>(
             IList<TSource> source,
@@ -36,76 +38,133 @@ public static class MonadCollectionExtensions
             int maxDegreeOfParallelism,
             CancellationToken cancellationToken)
         {
-            if (maxDegreeOfParallelism == -1 || maxDegreeOfParallelism >= source.Count)
+            var count = source.Count;
+
+            if (maxDegreeOfParallelism == -1 || maxDegreeOfParallelism >= count)
             {
-                // Run all in parallel
-                return await Task.WhenAll(source.Select(selector)).ConfigureAwait(false);
+                // Run all in parallel - pre-allocate task array to avoid LINQ allocation
+                var tasks = new Task<TResult>[count];
+                for (var i = 0; i < count; i++)
+                {
+                    tasks[i] = selector(source[i]);
+                }
+                return await Task.WhenAll(tasks).ConfigureAwait(false);
             }
 
             // Throttled parallel execution
-            var results = new TResult[source.Count];
+            var results = new TResult[count];
             using var semaphore = new SemaphoreSlim(maxDegreeOfParallelism);
 
-            var indexedTasks = source.Select(async (item, index) =>
+            // Pre-allocate task array instead of using LINQ Select
+            var indexedTasks = new Task[count];
+            for (var i = 0; i < count; i++)
             {
-                await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
-                try
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    results[index] = await selector(item).ConfigureAwait(false);
-                }
-                finally
-                {
-                    semaphore.Release();
-                }
-            });
+                var index = i; // Capture for closure
+                var item = source[i];
+                indexedTasks[i] = ExecuteWithSemaphoreAsync(semaphore, item, index, selector, results, cancellationToken);
+            }
 
             await Task.WhenAll(indexedTasks).ConfigureAwait(false);
             return results;
         }
 
         /// <summary>
+        /// Helper to execute a single item with semaphore throttling.
+        /// </summary>
+        private static async Task ExecuteWithSemaphoreAsync<TSource, TResult>(
+            SemaphoreSlim semaphore,
+            TSource item,
+            int index,
+            Func<TSource, Task<TResult>> selector,
+            TResult[] results,
+            CancellationToken cancellationToken)
+        {
+            await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                results[index] = await selector(item).ConfigureAwait(false);
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        }
+
+        /// <summary>
         /// Awaits pre-started tasks in parallel with optional throttling.
+        /// Optimized to avoid intermediate LINQ allocations.
         /// </summary>
         public static async Task<TResult[]> AwaitParallelAsync<TResult>(
             IList<Task<TResult>> tasks,
             int maxDegreeOfParallelism,
             CancellationToken cancellationToken)
         {
-            if (maxDegreeOfParallelism == -1 || maxDegreeOfParallelism >= tasks.Count)
+            var count = tasks.Count;
+
+            if (maxDegreeOfParallelism == -1 || maxDegreeOfParallelism >= count)
             {
-                // Run all in parallel
-                return await Task.WhenAll(tasks).ConfigureAwait(false);
+                // Run all in parallel - copy to array for Task.WhenAll if needed
+                if (tasks is Task<TResult>[] taskArray)
+                {
+                    return await Task.WhenAll(taskArray).ConfigureAwait(false);
+                }
+
+                // Pre-allocate task array to avoid LINQ allocation
+                var tasksArray = new Task<TResult>[count];
+                for (var i = 0; i < count; i++)
+                {
+                    tasksArray[i] = tasks[i];
+                }
+                return await Task.WhenAll(tasksArray).ConfigureAwait(false);
             }
 
             // Throttled parallel execution
-            var results = new TResult[tasks.Count];
+            var results = new TResult[count];
             using var semaphore = new SemaphoreSlim(maxDegreeOfParallelism);
 
-            var indexedTasks = tasks.Select(async (task, index) =>
+            // Pre-allocate task array instead of using LINQ Select
+            var indexedTasks = new Task[count];
+            for (var i = 0; i < count; i++)
             {
-                await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
-                try
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    results[index] = await task.ConfigureAwait(false);
-                }
-                finally
-                {
-                    semaphore.Release();
-                }
-            });
+                var index = i;
+                var task = tasks[i];
+                indexedTasks[i] = AwaitWithSemaphoreAsync(semaphore, task, index, results, cancellationToken);
+            }
 
             await Task.WhenAll(indexedTasks).ConfigureAwait(false);
             return results;
         }
 
         /// <summary>
+        /// Helper to await a task with semaphore throttling.
+        /// </summary>
+        private static async Task AwaitWithSemaphoreAsync<TResult>(
+            SemaphoreSlim semaphore,
+            Task<TResult> task,
+            int index,
+            TResult[] results,
+            CancellationToken cancellationToken)
+        {
+            await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                results[index] = await task.ConfigureAwait(false);
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        }
+
+        /// <summary>
         /// Validates traverse parameters and prepares the source list.
         /// Returns null if the source is empty, otherwise returns the prepared list.
+        /// Avoids unnecessary allocations when the source is already a list.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static List<TSource>? ValidateAndPrepareSource<TSource, TSelector>(
+        public static IList<TSource>? ValidateAndPrepareSource<TSource, TSelector>(
             IEnumerable<TSource> source,
             TSelector selector,
             int maxDegreeOfParallelism,
@@ -117,7 +176,8 @@ public static class MonadCollectionExtensions
             ValidateMaxDegreeOfParallelism(maxDegreeOfParallelism, nameof(maxDegreeOfParallelism));
             cancellationToken.ThrowIfCancellationRequested();
 
-            var sourceList = source.ToList();
+            // Avoid ToList() allocation if source is already a list or array
+            var sourceList = CollectionHelper.MaterializeToList(source);
             return sourceList.Count == 0 ? null : sourceList;
         }
     }
@@ -135,7 +195,8 @@ public static class MonadCollectionExtensions
     {
         ThrowHelper.ThrowIfNull(options);
 
-        var result = new List<T>();
+        // Pre-allocate with capacity if we can determine the count
+        var result = CollectionHelper.CreateListWithCapacity<Option<T>, T>(options);
 
         foreach (var option in options)
         {
@@ -165,7 +226,8 @@ public static class MonadCollectionExtensions
         ThrowHelper.ThrowIfNull(source);
         ThrowHelper.ThrowIfNull(selector);
 
-        var result = new List<U>();
+        // Pre-allocate with capacity if we can determine the count
+        var result = CollectionHelper.CreateListWithCapacity<T, U>(source);
 
         foreach (var item in source)
         {
@@ -257,7 +319,8 @@ public static class MonadCollectionExtensions
     {
         ThrowHelper.ThrowIfNull(results);
 
-        var list = new List<T>();
+        // Pre-allocate with capacity if we can determine the count
+        var list = CollectionHelper.CreateListWithCapacity<Result<T, TErr>, T>(results);
 
         foreach (var result in results)
         {
@@ -288,7 +351,8 @@ public static class MonadCollectionExtensions
         ThrowHelper.ThrowIfNull(source);
         ThrowHelper.ThrowIfNull(selector);
 
-        var list = new List<U>();
+        // Pre-allocate with capacity if we can determine the count
+        var list = CollectionHelper.CreateListWithCapacity<T, U>(source);
 
         foreach (var item in source)
         {
@@ -353,8 +417,10 @@ public static class MonadCollectionExtensions
     {
         ThrowHelper.ThrowIfNull(results);
 
-        var oks = new List<T>();
-        var errors = new List<TErr>();
+        // Try to get initial capacity for better allocation
+        CollectionHelper.TryGetNonEnumeratedCount(results, out var count);
+        var oks = new List<T>(count > 0 ? count : 4);
+        var errors = new List<TErr>(count > 0 ? count / 4 : 4); // Expect fewer errors
 
         foreach (var result in results)
         {
@@ -477,8 +543,11 @@ public static class MonadCollectionExtensions
     {
         ThrowHelper.ThrowIfNull(eithers);
 
-        var lefts = new List<TLeft>();
-        var rights = new List<TRight>();
+        // Try to get initial capacity for better allocation
+        CollectionHelper.TryGetNonEnumeratedCount(eithers, out var count);
+        var halfCapacity = count > 0 ? count / 2 : 4;
+        var lefts = new List<TLeft>(halfCapacity);
+        var rights = new List<TRight>(halfCapacity);
 
         foreach (var either in eithers)
         {
@@ -507,7 +576,8 @@ public static class MonadCollectionExtensions
     {
         ThrowHelper.ThrowIfNull(optionTasks);
 
-        var result = new List<T>();
+        // Pre-allocate with capacity if we can determine the count
+        var result = CollectionHelper.CreateListWithCapacity<Task<Option<T>>, T>(optionTasks);
 
         foreach (var task in optionTasks)
         {
@@ -537,7 +607,8 @@ public static class MonadCollectionExtensions
         ThrowHelper.ThrowIfNull(source);
         ThrowHelper.ThrowIfNull(selector);
 
-        var result = new List<U>();
+        // Pre-allocate with capacity if we can determine the count
+        var result = CollectionHelper.CreateListWithCapacity<T, U>(source);
 
         foreach (var item in source)
         {
@@ -564,7 +635,8 @@ public static class MonadCollectionExtensions
     {
         ThrowHelper.ThrowIfNull(resultTasks);
 
-        var list = new List<T>();
+        // Pre-allocate with capacity if we can determine the count
+        var list = CollectionHelper.CreateListWithCapacity<Task<Result<T, TErr>>, T>(resultTasks);
 
         foreach (var task in resultTasks)
         {
@@ -595,7 +667,8 @@ public static class MonadCollectionExtensions
         ThrowHelper.ThrowIfNull(source);
         ThrowHelper.ThrowIfNull(selector);
 
-        var list = new List<U>();
+        // Pre-allocate with capacity if we can determine the count
+        var list = CollectionHelper.CreateListWithCapacity<T, U>(source);
 
         foreach (var item in source)
         {
@@ -638,7 +711,8 @@ public static class MonadCollectionExtensions
         ParallelHelper.ValidateMaxDegreeOfParallelism(maxDegreeOfParallelism, nameof(maxDegreeOfParallelism));
         cancellationToken.ThrowIfCancellationRequested();
 
-        var taskList = optionTasks.ToList();
+        // Avoid ToList() allocation if source is already a list
+        var taskList = CollectionHelper.MaterializeToList(optionTasks);
         if (taskList.Count == 0)
             return Option<IReadOnlyList<T>>.Some(Array.Empty<T>());
 
@@ -726,7 +800,8 @@ public static class MonadCollectionExtensions
         ParallelHelper.ValidateMaxDegreeOfParallelism(maxDegreeOfParallelism, nameof(maxDegreeOfParallelism));
         cancellationToken.ThrowIfCancellationRequested();
 
-        var taskList = resultTasks.ToList();
+        // Avoid ToList() allocation if source is already a list
+        var taskList = CollectionHelper.MaterializeToList(resultTasks);
         if (taskList.Count == 0)
             return Result<IReadOnlyList<T>, TErr>.Ok(Array.Empty<T>());
 
@@ -858,8 +933,10 @@ public static class MonadCollectionExtensions
         var results = await ParallelHelper.RunParallelAsync(sourceList, selector, maxDegreeOfParallelism, cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var oks = new List<U>();
-        var errors = new List<TErr>();
+        // Pre-allocate with reasonable capacity
+        var count = results.Length;
+        var oks = new List<U>(count);
+        var errors = new List<TErr>(count / 4 + 1); // Expect fewer errors
 
         foreach (var result in results)
         {
