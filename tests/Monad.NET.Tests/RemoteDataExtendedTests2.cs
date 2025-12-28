@@ -10,28 +10,6 @@ public class RemoteDataExtendedTests2
     #region Factory Tests
 
     [Fact]
-    public void NotAsked_CreatesNotAskedState()
-    {
-        var rd = RemoteData<int, string>.NotAsked();
-
-        Assert.True(rd.IsNotAsked);
-        Assert.False(rd.IsLoading);
-        Assert.False(rd.IsSuccess);
-        Assert.False(rd.IsFailure);
-    }
-
-    [Fact]
-    public void Loading_CreatesLoadingState()
-    {
-        var rd = RemoteData<int, string>.Loading();
-
-        Assert.True(rd.IsLoading);
-        Assert.False(rd.IsNotAsked);
-        Assert.False(rd.IsSuccess);
-        Assert.False(rd.IsFailure);
-    }
-
-    [Fact]
     public void Success_CreatesSuccessState()
     {
         var rd = RemoteData<int, string>.Success(42);

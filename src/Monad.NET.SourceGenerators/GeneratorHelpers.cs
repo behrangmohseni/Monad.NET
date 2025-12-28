@@ -137,5 +137,67 @@ internal static class GeneratorHelpers
               .Append("                break;\n");
         }
     }
-}
 
+    /// <summary>
+    /// Generates a Match&lt;TResult&gt; method that returns a value.
+    /// </summary>
+    public static void GenerateMatchMethod<TCase>(
+        StringBuilder sb,
+        IReadOnlyList<TCase> cases,
+        Func<TCase, string> getFullTypeName,
+        Func<TCase, string> getParameterName,
+        string caseTypeName)
+    {
+        sb.Append("    #region Match Methods\n\n")
+          .Append("    /// <summary>\n")
+          .Append("    /// Pattern matches on all ").Append(caseTypeName).Append("s, returning a result.\n")
+          .Append("    /// All cases must be handled - this provides compile-time exhaustiveness checking.\n")
+          .Append("    /// </summary>\n")
+          .Append("    public TResult Match<TResult>(");
+
+        AppendFuncParameters(sb, cases, getFullTypeName, getParameterName);
+
+        sb.Append(")\n")
+          .Append("    {\n")
+          .Append("        return this switch\n")
+          .Append("        {\n");
+
+        AppendSwitchExpressionArms(sb, cases, getFullTypeName, getParameterName);
+
+        sb.Append("            _ => throw new global::System.InvalidOperationException($\"Unknown ").Append(caseTypeName).Append(": {GetType().Name}\")\n")
+          .Append("        };\n")
+          .Append("    }\n\n");
+    }
+
+    /// <summary>
+    /// Generates a Match void method that executes an action.
+    /// </summary>
+    public static void GenerateMatchVoidMethod<TCase>(
+        StringBuilder sb,
+        IReadOnlyList<TCase> cases,
+        Func<TCase, string> getFullTypeName,
+        Func<TCase, string> getParameterName,
+        string caseTypeName)
+    {
+        sb.Append("    /// <summary>\n")
+          .Append("    /// Pattern matches on all ").Append(caseTypeName).Append("s, executing an action.\n")
+          .Append("    /// All cases must be handled - this provides compile-time exhaustiveness checking.\n")
+          .Append("    /// </summary>\n")
+          .Append("    public void Match(");
+
+        AppendActionParameters(sb, cases, getFullTypeName, getParameterName);
+
+        sb.Append(")\n")
+          .Append("    {\n")
+          .Append("        switch (this)\n")
+          .Append("        {\n");
+
+        AppendSwitchStatementCases(sb, cases, getFullTypeName, getParameterName);
+
+        sb.Append("            default:\n")
+          .Append("                throw new global::System.InvalidOperationException($\"Unknown ").Append(caseTypeName).Append(": {GetType().Name}\");\n")
+          .Append("        }\n")
+          .Append("    }\n\n")
+          .Append("    #endregion\n\n");
+    }
+}

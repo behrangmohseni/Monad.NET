@@ -278,51 +278,14 @@ public class UnionGenerator : IIncrementalGenerator
     {
         var cases = (IReadOnlyList<UnionCase>)info.Cases;
 
-        sb.Append("    #region Match Methods\n\n")
-          .Append("    /// <summary>\n")
-          .Append("    /// Pattern matches on all cases of this union, returning a result.\n")
-          .Append("    /// All cases must be handled - this provides compile-time exhaustiveness checking.\n")
-          .Append("    /// </summary>\n")
-          .Append("    public TResult Match<TResult>(");
-
-        GeneratorHelpers.AppendFuncParameters(sb, cases, c => c.FullTypeName, c => c.ParameterName);
-
-        sb.Append(")\n")
-          .Append("    {\n")
-          .Append("        return this switch\n")
-          .Append("        {\n");
-
-        GeneratorHelpers.AppendSwitchExpressionArms(sb, cases, c => c.FullTypeName, c => c.ParameterName);
-
-        sb.Append("            _ => throw new global::System.InvalidOperationException($\"Unknown case: {GetType().Name}\")\n")
-          .Append("        };\n")
-          .Append("    }\n\n");
+        GeneratorHelpers.GenerateMatchMethod(sb, cases, c => c.FullTypeName, c => c.ParameterName, "case");
     }
 
     private static void GenerateMatchVoidMethod(StringBuilder sb, UnionInfo info)
     {
         var cases = (IReadOnlyList<UnionCase>)info.Cases;
 
-        sb.Append("    /// <summary>\n")
-          .Append("    /// Pattern matches on all cases of this union, executing an action.\n")
-          .Append("    /// All cases must be handled - this provides compile-time exhaustiveness checking.\n")
-          .Append("    /// </summary>\n")
-          .Append("    public void Match(");
-
-        GeneratorHelpers.AppendActionParameters(sb, cases, c => c.FullTypeName, c => c.ParameterName);
-
-        sb.Append(")\n")
-          .Append("    {\n")
-          .Append("        switch (this)\n")
-          .Append("        {\n");
-
-        GeneratorHelpers.AppendSwitchStatementCases(sb, cases, c => c.FullTypeName, c => c.ParameterName);
-
-        sb.Append("            default:\n")
-          .Append("                throw new global::System.InvalidOperationException($\"Unknown case: {GetType().Name}\");\n")
-          .Append("        }\n")
-          .Append("    }\n\n")
-          .Append("    #endregion\n\n");
+        GeneratorHelpers.GenerateMatchVoidMethod(sb, cases, c => c.FullTypeName, c => c.ParameterName, "case");
     }
 
     private static void GenerateMapMethod(StringBuilder sb, UnionInfo info)
