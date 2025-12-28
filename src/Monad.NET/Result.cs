@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace Monad.NET;
@@ -10,11 +11,16 @@ namespace Monad.NET;
 /// <typeparam name="T">The type of the success value</typeparam>
 /// <typeparam name="TErr">The type of the error value</typeparam>
 [Serializable]
+[DebuggerDisplay("{DebuggerDisplay,nq}")]
+[DebuggerTypeProxy(typeof(ResultDebugView<,>))]
 public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparable<Result<T, TErr>>, IComparable
 {
     private readonly T? _value;
     private readonly TErr? _error;
     private readonly bool _isOk;
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private string DebuggerDisplay => _isOk ? $"Ok({_value})" : $"Err({_error})";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Result(T value, TErr error, bool isOk)
@@ -1198,4 +1204,25 @@ public static class ResultExtensions
     }
 
     #endregion
+}
+
+/// <summary>
+/// Debug view proxy for <see cref="Result{T, TErr}"/> to provide a better debugging experience.
+/// </summary>
+internal sealed class ResultDebugView<T, TErr>
+{
+    private readonly Result<T, TErr> _result;
+
+    public ResultDebugView(Result<T, TErr> result)
+    {
+        _result = result;
+    }
+
+    public bool IsOk => _result.IsOk;
+    public bool IsErr => _result.IsErr;
+
+    [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+    public object? Value => _result.IsOk ? _result.Unwrap() : null;
+
+    public object? Error => _result.IsErr ? _result.UnwrapErr() : null;
 }

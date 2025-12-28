@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
@@ -10,10 +11,15 @@ namespace Monad.NET;
 /// </summary>
 /// <typeparam name="T">The type of the value</typeparam>
 [Serializable]
+[DebuggerDisplay("{DebuggerDisplay,nq}")]
+[DebuggerTypeProxy(typeof(OptionDebugView<>))]
 public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>, IComparable
 {
     private readonly T? _value;
     private readonly bool _isSome;
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private string DebuggerDisplay => _isSome ? $"Some({_value})" : "None";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Option(T value, bool isSome)
@@ -1455,4 +1461,24 @@ internal static class ThrowHelper
     {
         throw new ArgumentException(message, paramName);
     }
+}
+
+/// <summary>
+/// Debug view proxy for <see cref="Option{T}"/> to provide a better debugging experience.
+/// </summary>
+/// <typeparam name="T">The type of the value</typeparam>
+internal sealed class OptionDebugView<T>
+{
+    private readonly Option<T> _option;
+
+    public OptionDebugView(Option<T> option)
+    {
+        _option = option;
+    }
+
+    public bool IsSome => _option.IsSome;
+    public bool IsNone => _option.IsNone;
+
+    [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+    public object? Value => _option.IsSome ? _option.Unwrap() : null;
 }

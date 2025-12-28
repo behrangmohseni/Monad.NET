@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace Monad.NET;
@@ -10,11 +11,16 @@ namespace Monad.NET;
 /// </summary>
 /// <typeparam name="T">The type of the success value</typeparam>
 [Serializable]
+[DebuggerDisplay("{DebuggerDisplay,nq}")]
+[DebuggerTypeProxy(typeof(TryDebugView<>))]
 public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>, IComparable
 {
     private readonly T? _value;
     private readonly Exception? _exception;
     private readonly bool _isSuccess;
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private string DebuggerDisplay => _isSuccess ? $"Success({_value})" : $"Failure({_exception?.GetType().Name}: {_exception?.Message})";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Try(T value, Exception? exception, bool isSuccess)
@@ -901,4 +907,25 @@ public static class TryExtensions
             return Try<U>.Failure(ex);
         }
     }
+}
+
+/// <summary>
+/// Debug view proxy for <see cref="Try{T}"/> to provide a better debugging experience.
+/// </summary>
+internal sealed class TryDebugView<T>
+{
+    private readonly Try<T> _try;
+
+    public TryDebugView(Try<T> @try)
+    {
+        _try = @try;
+    }
+
+    public bool IsSuccess => _try.IsSuccess;
+    public bool IsFailure => _try.IsFailure;
+
+    [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+    public object? Value => _try.IsSuccess ? _try.Get() : null;
+
+    public Exception? Exception => _try.IsFailure ? _try.GetException() : null;
 }

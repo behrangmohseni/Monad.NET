@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace Monad.NET;
@@ -12,11 +13,23 @@ namespace Monad.NET;
 /// <typeparam name="T">The type of the data</typeparam>
 /// <typeparam name="TErr">The type of the error</typeparam>
 [Serializable]
+[DebuggerDisplay("{DebuggerDisplay,nq}")]
+[DebuggerTypeProxy(typeof(RemoteDataDebugView<,>))]
 public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>, IComparable<RemoteData<T, TErr>>, IComparable
 {
     private readonly T? _data;
     private readonly TErr? _error;
     private readonly RemoteDataState _state;
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private string DebuggerDisplay => _state switch
+    {
+        RemoteDataState.NotAsked => "NotAsked",
+        RemoteDataState.Loading => "Loading",
+        RemoteDataState.Success => $"Success({_data})",
+        RemoteDataState.Failure => $"Failure({_error})",
+        _ => "Unknown"
+    };
 
     private enum RemoteDataState
     {
@@ -723,4 +736,27 @@ public static class RemoteDataExtensions
     {
         return remoteData.IsNotAsked || remoteData.IsLoading;
     }
+}
+
+/// <summary>
+/// Debug view proxy for <see cref="RemoteData{T, TErr}"/> to provide a better debugging experience.
+/// </summary>
+internal sealed class RemoteDataDebugView<T, TErr>
+{
+    private readonly RemoteData<T, TErr> _remoteData;
+
+    public RemoteDataDebugView(RemoteData<T, TErr> remoteData)
+    {
+        _remoteData = remoteData;
+    }
+
+    public bool IsNotAsked => _remoteData.IsNotAsked;
+    public bool IsLoading => _remoteData.IsLoading;
+    public bool IsSuccess => _remoteData.IsSuccess;
+    public bool IsFailure => _remoteData.IsFailure;
+
+    [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+    public object? Data => _remoteData.IsSuccess ? _remoteData.Unwrap() : null;
+
+    public object? Error => _remoteData.IsFailure ? _remoteData.UnwrapError() : null;
 }

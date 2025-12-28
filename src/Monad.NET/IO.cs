@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace Monad.NET;
@@ -153,6 +154,7 @@ internal static class RetryHelper
 /// program.Run();
 /// </code>
 /// </example>
+[DebuggerDisplay("IO<{typeof(T).Name,nq}>")]
 public readonly struct IO<T>
 {
     private readonly Func<T> _effect;
@@ -467,6 +469,7 @@ public readonly struct IO<T>
 /// Represents an asynchronous IO action that may perform side effects.
 /// </summary>
 /// <typeparam name="T">The type of the value produced by the computation.</typeparam>
+[DebuggerDisplay("IOAsync<{typeof(T).Name,nq}>")]
 public readonly struct IOAsync<T>
 {
     private readonly Func<Task<T>> _effect;
