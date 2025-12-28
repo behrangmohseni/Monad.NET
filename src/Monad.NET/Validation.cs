@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace Monad.NET;
@@ -11,11 +12,16 @@ namespace Monad.NET;
 /// <typeparam name="T">The type of the valid value</typeparam>
 /// <typeparam name="TErr">The type of the error</typeparam>
 [Serializable]
+[DebuggerDisplay("{DebuggerDisplay,nq}")]
+[DebuggerTypeProxy(typeof(ValidationDebugView<,>))]
 public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IComparable<Validation<T, TErr>>, IComparable
 {
     private readonly T? _value;
     private readonly IReadOnlyList<TErr>? _errors;
     private readonly bool _isValid;
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private string DebuggerDisplay => _isValid ? $"Valid({_value})" : $"Invalid({_errors?.Count ?? 0} errors)";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Validation(T value, IReadOnlyList<TErr> errors, bool isValid)
@@ -1130,4 +1136,25 @@ public static class ValidationExtensions
     }
 
     #endregion
+}
+
+/// <summary>
+/// Debug view proxy for <see cref="Validation{T, TErr}"/> to provide a better debugging experience.
+/// </summary>
+internal sealed class ValidationDebugView<T, TErr>
+{
+    private readonly Validation<T, TErr> _validation;
+
+    public ValidationDebugView(Validation<T, TErr> validation)
+    {
+        _validation = validation;
+    }
+
+    public bool IsValid => _validation.IsValid;
+    public bool IsInvalid => _validation.IsInvalid;
+
+    [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+    public object? Value => _validation.IsValid ? _validation.Unwrap() : null;
+
+    public IReadOnlyList<TErr>? Errors => _validation.IsInvalid ? _validation.GetErrorsOrThrow() : null;
 }

@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace Monad.NET;
@@ -11,11 +12,16 @@ namespace Monad.NET;
 /// <typeparam name="TLeft">The type of the Left value</typeparam>
 /// <typeparam name="TRight">The type of the Right value</typeparam>
 [Serializable]
+[DebuggerDisplay("{DebuggerDisplay,nq}")]
+[DebuggerTypeProxy(typeof(EitherDebugView<,>))]
 public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>, IComparable<Either<TLeft, TRight>>, IComparable
 {
     private readonly TLeft? _left;
     private readonly TRight? _right;
     private readonly bool _isRight;
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private string DebuggerDisplay => _isRight ? $"Right({_right})" : $"Left({_left})";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Either(TLeft left, TRight right, bool isRight)
@@ -662,4 +668,25 @@ public static class EitherExtensions
             errFunc: static err => Either<TErr, T>.Left(err)
         );
     }
+}
+
+/// <summary>
+/// Debug view proxy for <see cref="Either{TLeft, TRight}"/> to provide a better debugging experience.
+/// </summary>
+internal sealed class EitherDebugView<TLeft, TRight>
+{
+    private readonly Either<TLeft, TRight> _either;
+
+    public EitherDebugView(Either<TLeft, TRight> either)
+    {
+        _either = either;
+    }
+
+    public bool IsRight => _either.IsRight;
+    public bool IsLeft => _either.IsLeft;
+
+    [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+    public object? Value => _either.IsRight ? _either.UnwrapRight() : null;
+
+    public object? Left => _either.IsLeft ? _either.UnwrapLeft() : null;
 }
