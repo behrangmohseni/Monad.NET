@@ -495,4 +495,194 @@ public static class OptionAsyncExtensions
         var option = await optionTask.ConfigureAwait(false);
         return option.IsSome ? option : alternative;
     }
+
+    #region ValueTask Overloads
+    // ValueTask overloads provide better performance when the result is often 
+    // available synchronously or when frequent allocations need to be avoided.
+
+    /// <summary>
+    /// Maps the value inside a ValueTask&lt;Option&lt;T&gt;&gt; using a synchronous function.
+    /// Optimized for scenarios where the option is frequently None or already completed.
+    /// </summary>
+    /// <typeparam name="T">The type of the value in the source option.</typeparam>
+    /// <typeparam name="U">The type of the value in the resulting option.</typeparam>
+    /// <param name="optionTask">The value task containing the option to map.</param>
+    /// <param name="mapper">A function to apply to the value if Some.</param>
+    /// <returns>A value task containing Some with the mapped value, or None if the original was None.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<Option<U>> MapAsync<T, U>(
+        this ValueTask<Option<T>> optionTask,
+        Func<T, U> mapper)
+    {
+        ThrowHelper.ThrowIfNull(mapper);
+
+        if (optionTask.IsCompletedSuccessfully)
+        {
+            var option = optionTask.Result;
+            return new ValueTask<Option<U>>(option.Map(mapper));
+        }
+
+        return MapAsyncCore(optionTask, mapper);
+
+        static async ValueTask<Option<U>> MapAsyncCore(ValueTask<Option<T>> task, Func<T, U> m)
+        {
+            var option = await task.ConfigureAwait(false);
+            return option.Map(m);
+        }
+    }
+
+    /// <summary>
+    /// Maps the value inside a ValueTask&lt;Option&lt;T&gt;&gt; using an async function.
+    /// </summary>
+    /// <typeparam name="T">The type of the value in the source option.</typeparam>
+    /// <typeparam name="U">The type of the value in the resulting option.</typeparam>
+    /// <param name="optionTask">The value task containing the option to map.</param>
+    /// <param name="mapper">An async function to apply to the value if Some.</param>
+    /// <returns>A value task containing Some with the mapped value, or None if the original was None.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async ValueTask<Option<U>> MapAsync<T, U>(
+        this ValueTask<Option<T>> optionTask,
+        Func<T, ValueTask<U>> mapper)
+    {
+        ThrowHelper.ThrowIfNull(mapper);
+
+        var option = await optionTask.ConfigureAwait(false);
+        if (!option.IsSome)
+            return Option<U>.None();
+
+        var result = await mapper(option.Unwrap()).ConfigureAwait(false);
+        return Option<U>.Some(result);
+    }
+
+    /// <summary>
+    /// Chains a synchronous operation on a ValueTask&lt;Option&lt;T&gt;&gt;.
+    /// Optimized for scenarios where the option is frequently None or already completed.
+    /// </summary>
+    /// <typeparam name="T">The type of the value in the source option.</typeparam>
+    /// <typeparam name="U">The type of the value in the resulting option.</typeparam>
+    /// <param name="optionTask">The value task containing the option to chain.</param>
+    /// <param name="binder">A function that returns a new option based on the value.</param>
+    /// <returns>A value task containing the result of the binder if Some, otherwise None.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<Option<U>> AndThenAsync<T, U>(
+        this ValueTask<Option<T>> optionTask,
+        Func<T, Option<U>> binder)
+    {
+        ThrowHelper.ThrowIfNull(binder);
+
+        if (optionTask.IsCompletedSuccessfully)
+        {
+            var option = optionTask.Result;
+            return new ValueTask<Option<U>>(option.AndThen(binder));
+        }
+
+        return AndThenAsyncCore(optionTask, binder);
+
+        static async ValueTask<Option<U>> AndThenAsyncCore(ValueTask<Option<T>> task, Func<T, Option<U>> b)
+        {
+            var option = await task.ConfigureAwait(false);
+            return option.AndThen(b);
+        }
+    }
+
+    /// <summary>
+    /// Chains an async operation on a ValueTask&lt;Option&lt;T&gt;&gt;.
+    /// </summary>
+    /// <typeparam name="T">The type of the value in the source option.</typeparam>
+    /// <typeparam name="U">The type of the value in the resulting option.</typeparam>
+    /// <param name="optionTask">The value task containing the option to chain.</param>
+    /// <param name="binder">An async function that returns a new option based on the value.</param>
+    /// <returns>A value task containing the result of the binder if Some, otherwise None.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async ValueTask<Option<U>> AndThenAsync<T, U>(
+        this ValueTask<Option<T>> optionTask,
+        Func<T, ValueTask<Option<U>>> binder)
+    {
+        ThrowHelper.ThrowIfNull(binder);
+
+        var option = await optionTask.ConfigureAwait(false);
+        if (!option.IsSome)
+            return Option<U>.None();
+
+        return await binder(option.Unwrap()).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Filters a ValueTask&lt;Option&lt;T&gt;&gt; using a synchronous predicate.
+    /// Optimized for scenarios where the option is frequently None or already completed.
+    /// </summary>
+    /// <typeparam name="T">The type of the value in the option.</typeparam>
+    /// <param name="optionTask">The value task containing the option to filter.</param>
+    /// <param name="predicate">A predicate to test the value.</param>
+    /// <returns>A value task containing the original Some if the predicate passes, otherwise None.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<Option<T>> FilterAsync<T>(
+        this ValueTask<Option<T>> optionTask,
+        Func<T, bool> predicate)
+    {
+        ThrowHelper.ThrowIfNull(predicate);
+
+        if (optionTask.IsCompletedSuccessfully)
+        {
+            var option = optionTask.Result;
+            return new ValueTask<Option<T>>(option.Filter(predicate));
+        }
+
+        return FilterAsyncCore(optionTask, predicate);
+
+        static async ValueTask<Option<T>> FilterAsyncCore(ValueTask<Option<T>> task, Func<T, bool> p)
+        {
+            var option = await task.ConfigureAwait(false);
+            return option.Filter(p);
+        }
+    }
+
+    /// <summary>
+    /// Pattern matches on a ValueTask&lt;Option&lt;T&gt;&gt; with synchronous handlers.
+    /// Optimized for scenarios where the option is frequently None or already completed.
+    /// </summary>
+    /// <typeparam name="T">The type of the value in the option.</typeparam>
+    /// <typeparam name="U">The type of the result.</typeparam>
+    /// <param name="optionTask">The value task containing the option to match.</param>
+    /// <param name="someFunc">A function to call if Some.</param>
+    /// <param name="noneFunc">A function to call if None.</param>
+    /// <returns>A value task containing the result of the matched handler.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<U> MatchAsync<T, U>(
+        this ValueTask<Option<T>> optionTask,
+        Func<T, U> someFunc,
+        Func<U> noneFunc)
+    {
+        ThrowHelper.ThrowIfNull(someFunc);
+        ThrowHelper.ThrowIfNull(noneFunc);
+
+        if (optionTask.IsCompletedSuccessfully)
+        {
+            var option = optionTask.Result;
+            return new ValueTask<U>(option.Match(someFunc, noneFunc));
+        }
+
+        return MatchAsyncCore(optionTask, someFunc, noneFunc);
+
+        static async ValueTask<U> MatchAsyncCore(ValueTask<Option<T>> task, Func<T, U> some, Func<U> none)
+        {
+            var option = await task.ConfigureAwait(false);
+            return option.Match(some, none);
+        }
+    }
+
+    /// <summary>
+    /// Wraps an Option&lt;T&gt; in a completed ValueTask&lt;Option&lt;T&gt;&gt;.
+    /// More efficient than Task.FromResult for frequently-called paths.
+    /// </summary>
+    /// <typeparam name="T">The type of the value in the option.</typeparam>
+    /// <param name="option">The option to wrap.</param>
+    /// <returns>A completed value task containing the option.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<Option<T>> AsValueTask<T>(this Option<T> option)
+    {
+        return new ValueTask<Option<T>>(option);
+    }
+
+    #endregion
 }
