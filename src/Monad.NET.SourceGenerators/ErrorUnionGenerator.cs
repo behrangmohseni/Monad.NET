@@ -120,24 +120,8 @@ public class ErrorUnionGenerator : IIncrementalGenerator
     private static bool TryGetValidErrorUnionType(
         GeneratorAttributeSyntaxContext context,
         out INamedTypeSymbol symbol,
-        out TypeDeclarationSyntax syntax)
-    {
-        symbol = null!;
-        syntax = null!;
-
-        if (context.TargetSymbol is not INamedTypeSymbol namedSymbol || !namedSymbol.IsAbstract)
-            return false;
-
-        if (context.TargetNode is not TypeDeclarationSyntax typeSyntax)
-            return false;
-
-        if (!typeSyntax.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword)))
-            return false;
-
-        symbol = namedSymbol;
-        syntax = typeSyntax;
-        return true;
-    }
+        out TypeDeclarationSyntax syntax) =>
+        GeneratorHelpers.TryGetValidUnionType(context, out symbol, out syntax);
 
     private static (bool GenerateFactoryMethods, bool GenerateResultExtensions) ExtractAttributeOptions(
         ImmutableArray<AttributeData> attributes)
@@ -206,7 +190,7 @@ public class ErrorUnionGenerator : IIncrementalGenerator
     }
 
     private static string ToCamelCase(string name) =>
-        string.IsNullOrEmpty(name) ? name : char.ToLowerInvariant(name[0]) + name.Substring(1);
+        GeneratorHelpers.ToCamelCase(name);
 
     private static void GenerateSource(SourceProductionContext context, ErrorUnionInfo info)
     {
@@ -305,6 +289,8 @@ public class ErrorUnionGenerator : IIncrementalGenerator
 
     private static void GenerateMatchMethod(StringBuilder sb, ErrorUnionInfo info)
     {
+        var cases = (IReadOnlyList<ErrorCase>)info.Cases;
+
         sb.Append("    #region Match Methods\n\n")
           .Append("    /// <summary>\n")
           .Append("    /// Pattern matches on all error cases, returning a result.\n")
@@ -312,24 +298,14 @@ public class ErrorUnionGenerator : IIncrementalGenerator
           .Append("    /// </summary>\n")
           .Append("    public TResult Match<TResult>(");
 
-        for (var i = 0; i < info.Cases.Length; i++)
-        {
-            if (i > 0)
-                sb.Append(", ");
-
-            var c = info.Cases[i];
-            sb.Append("global::System.Func<").Append(c.FullTypeName).Append(", TResult> ").Append(c.ParameterName);
-        }
+        GeneratorHelpers.AppendFuncParameters(sb, cases, c => c.FullTypeName, c => c.ParameterName);
 
         sb.Append(")\n")
           .Append("    {\n")
           .Append("        return this switch\n")
           .Append("        {\n");
 
-        foreach (var errorCase in info.Cases)
-        {
-            sb.Append("            ").Append(errorCase.FullTypeName).Append(" __case__ => ").Append(errorCase.ParameterName).Append("(__case__),\n");
-        }
+        GeneratorHelpers.AppendSwitchExpressionArms(sb, cases, c => c.FullTypeName, c => c.ParameterName);
 
         sb.Append("            _ => throw new global::System.InvalidOperationException($\"Unknown error case: {GetType().Name}\")\n")
           .Append("        };\n")
@@ -338,32 +314,22 @@ public class ErrorUnionGenerator : IIncrementalGenerator
 
     private static void GenerateMatchVoidMethod(StringBuilder sb, ErrorUnionInfo info)
     {
+        var cases = (IReadOnlyList<ErrorCase>)info.Cases;
+
         sb.Append("    /// <summary>\n")
           .Append("    /// Pattern matches on all error cases, executing an action.\n")
           .Append("    /// All cases must be handled - this provides compile-time exhaustiveness checking.\n")
           .Append("    /// </summary>\n")
           .Append("    public void Match(");
 
-        for (var i = 0; i < info.Cases.Length; i++)
-        {
-            if (i > 0)
-                sb.Append(", ");
-
-            var c = info.Cases[i];
-            sb.Append("global::System.Action<").Append(c.FullTypeName).Append("> ").Append(c.ParameterName);
-        }
+        GeneratorHelpers.AppendActionParameters(sb, cases, c => c.FullTypeName, c => c.ParameterName);
 
         sb.Append(")\n")
           .Append("    {\n")
           .Append("        switch (this)\n")
           .Append("        {\n");
 
-        foreach (var errorCase in info.Cases)
-        {
-            sb.Append("            case ").Append(errorCase.FullTypeName).Append(" __case__:\n")
-              .Append("                ").Append(errorCase.ParameterName).Append("(__case__);\n")
-              .Append("                break;\n");
-        }
+        GeneratorHelpers.AppendSwitchStatementCases(sb, cases, c => c.FullTypeName, c => c.ParameterName);
 
         sb.Append("            default:\n")
           .Append("                throw new global::System.InvalidOperationException($\"Unknown error case: {GetType().Name}\");\n")

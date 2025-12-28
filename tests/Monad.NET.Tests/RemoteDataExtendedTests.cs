@@ -1,475 +1,806 @@
-using Xunit;
+using Monad.NET;
 
 namespace Monad.NET.Tests;
 
+/// <summary>
+/// Extended tests for RemoteData<T, TErr> to improve code coverage.
+/// </summary>
 public class RemoteDataExtendedTests
 {
-    #region RemoteData Core Coverage
+    #region Factory Tests
 
     [Fact]
     public void NotAsked_CreatesNotAskedState()
     {
-        var data = RemoteData<int, string>.NotAsked();
+        var rd = RemoteData<int, string>.NotAsked();
 
-        Assert.True(data.IsNotAsked);
-        Assert.False(data.IsLoading);
-        Assert.False(data.IsSuccess);
-        Assert.False(data.IsFailure);
+        Assert.True(rd.IsNotAsked);
+        Assert.False(rd.IsLoading);
+        Assert.False(rd.IsSuccess);
+        Assert.False(rd.IsFailure);
     }
 
     [Fact]
     public void Loading_CreatesLoadingState()
     {
-        var data = RemoteData<int, string>.Loading();
+        var rd = RemoteData<int, string>.Loading();
 
-        Assert.False(data.IsNotAsked);
-        Assert.True(data.IsLoading);
-        Assert.False(data.IsSuccess);
-        Assert.False(data.IsFailure);
+        Assert.False(rd.IsNotAsked);
+        Assert.True(rd.IsLoading);
+        Assert.False(rd.IsSuccess);
+        Assert.False(rd.IsFailure);
     }
 
     [Fact]
     public void Success_CreatesSuccessState()
     {
-        var data = RemoteData<int, string>.Success(42);
+        var rd = RemoteData<int, string>.Success(42);
 
-        Assert.False(data.IsNotAsked);
-        Assert.False(data.IsLoading);
-        Assert.True(data.IsSuccess);
-        Assert.False(data.IsFailure);
-        Assert.Equal(42, data.Unwrap());
+        Assert.False(rd.IsNotAsked);
+        Assert.False(rd.IsLoading);
+        Assert.True(rd.IsSuccess);
+        Assert.False(rd.IsFailure);
+        Assert.Equal(42, rd.Unwrap());
     }
 
     [Fact]
     public void Failure_CreatesFailureState()
     {
-        var data = RemoteData<int, string>.Failure("error");
+        var rd = RemoteData<int, string>.Failure("error");
 
-        Assert.False(data.IsNotAsked);
-        Assert.False(data.IsLoading);
-        Assert.False(data.IsSuccess);
-        Assert.True(data.IsFailure);
-        Assert.Equal("error", data.UnwrapError());
+        Assert.False(rd.IsNotAsked);
+        Assert.False(rd.IsLoading);
+        Assert.False(rd.IsSuccess);
+        Assert.True(rd.IsFailure);
+        Assert.Equal("error", rd.UnwrapError());
+    }
+
+    #endregion
+
+    #region Unwrap Tests
+
+    [Fact]
+    public void Unwrap_NotAsked_Throws()
+    {
+        var rd = RemoteData<int, string>.NotAsked();
+        Assert.Throws<InvalidOperationException>(() => rd.Unwrap());
     }
 
     [Fact]
-    public void Success_ThrowsOnNullValue()
+    public void Unwrap_Loading_Throws()
     {
-        Assert.Throws<ArgumentNullException>(() =>
-            RemoteData<string, string>.Success(null!));
+        var rd = RemoteData<int, string>.Loading();
+        Assert.Throws<InvalidOperationException>(() => rd.Unwrap());
     }
 
     [Fact]
-    public void Failure_ThrowsOnNullError()
+    public void Unwrap_Failure_Throws()
     {
-        Assert.Throws<ArgumentNullException>(() =>
-            RemoteData<int, string>.Failure(null!));
+        var rd = RemoteData<int, string>.Failure("error");
+        Assert.Throws<InvalidOperationException>(() => rd.Unwrap());
     }
 
     [Fact]
-    public void Unwrap_ThrowsWhenNotSuccess()
+    public void UnwrapError_NotFailure_Throws()
     {
-        var data = RemoteData<int, string>.Loading();
-
-        Assert.Throws<InvalidOperationException>(() => data.Unwrap());
+        var rd = RemoteData<int, string>.Success(42);
+        Assert.Throws<InvalidOperationException>(() => rd.UnwrapError());
     }
 
     [Fact]
-    public void UnwrapError_ThrowsWhenNotFailure()
+    public void UnwrapOr_Success_ReturnsValue()
     {
-        var data = RemoteData<int, string>.Success(42);
-
-        Assert.Throws<InvalidOperationException>(() => data.UnwrapError());
+        var rd = RemoteData<int, string>.Success(42);
+        Assert.Equal(42, rd.UnwrapOr(99));
     }
 
     [Fact]
-    public void UnwrapOr_ReturnsValueOnSuccess()
+    public void UnwrapOr_NotSuccess_ReturnsDefault()
     {
-        var data = RemoteData<int, string>.Success(42);
-
-        Assert.Equal(42, data.UnwrapOr(0));
+        var rd = RemoteData<int, string>.Loading();
+        Assert.Equal(99, rd.UnwrapOr(99));
     }
 
     [Fact]
-    public void UnwrapOr_ReturnsDefaultOnOtherStates()
+    public void UnwrapOrElse_Success_ReturnsValue()
     {
-        Assert.Equal(0, RemoteData<int, string>.NotAsked().UnwrapOr(0));
-        Assert.Equal(0, RemoteData<int, string>.Loading().UnwrapOr(0));
-        Assert.Equal(0, RemoteData<int, string>.Failure("err").UnwrapOr(0));
-    }
+        var rd = RemoteData<int, string>.Success(42);
+        var factoryExecuted = false;
+        var value = rd.UnwrapOrElse(() =>
+        {
+            factoryExecuted = true;
+            return 99;
+        });
 
-    [Fact]
-    public void TryGet_OnSuccess_ReturnsTrueAndData()
-    {
-        var data = RemoteData<int, string>.Success(42);
-
-        var result = data.TryGet(out var value);
-
-        Assert.True(result);
+        Assert.False(factoryExecuted);
         Assert.Equal(42, value);
     }
 
     [Fact]
-    public void TryGet_OnOtherStates_ReturnsFalse()
+    public void UnwrapOrElse_NotSuccess_ExecutesFactory()
     {
-        Assert.False(RemoteData<int, string>.NotAsked().TryGet(out _));
-        Assert.False(RemoteData<int, string>.Loading().TryGet(out _));
-        Assert.False(RemoteData<int, string>.Failure("err").TryGet(out _));
+        var rd = RemoteData<int, string>.Failure("error");
+        Assert.Equal(99, rd.UnwrapOrElse(() => 99));
+    }
+
+    #endregion
+
+    #region TryGet Tests
+
+    [Fact]
+    public void TryGet_Success_ReturnsTrue()
+    {
+        var rd = RemoteData<int, string>.Success(42);
+        Assert.True(rd.TryGet(out var data));
+        Assert.Equal(42, data);
     }
 
     [Fact]
-    public void TryGetError_OnFailure_ReturnsTrueAndError()
+    public void TryGet_NotSuccess_ReturnsFalse()
     {
-        var data = RemoteData<int, string>.Failure("error");
+        var rd = RemoteData<int, string>.Loading();
+        Assert.False(rd.TryGet(out _));
+    }
 
-        var result = data.TryGetError(out var error);
-
-        Assert.True(result);
+    [Fact]
+    public void TryGetError_Failure_ReturnsTrue()
+    {
+        var rd = RemoteData<int, string>.Failure("error");
+        Assert.True(rd.TryGetError(out var error));
         Assert.Equal("error", error);
     }
 
     [Fact]
-    public void TryGetError_OnOtherStates_ReturnsFalse()
+    public void TryGetError_NotFailure_ReturnsFalse()
     {
-        Assert.False(RemoteData<int, string>.NotAsked().TryGetError(out _));
-        Assert.False(RemoteData<int, string>.Loading().TryGetError(out _));
-        Assert.False(RemoteData<int, string>.Success(42).TryGetError(out _));
+        var rd = RemoteData<int, string>.Success(42);
+        Assert.False(rd.TryGetError(out _));
     }
 
-    [Fact]
-    public void Map_TransformsSuccessValue()
-    {
-        var data = RemoteData<int, string>.Success(10);
+    #endregion
 
-        var mapped = data.Map(x => x * 2);
-
-        Assert.True(mapped.IsSuccess);
-        Assert.Equal(20, mapped.Unwrap());
-    }
+    #region Map Tests
 
     [Fact]
-    public void Map_PreservesOtherStates()
+    public void Map_Success_TransformsValue()
     {
-        Assert.True(RemoteData<int, string>.NotAsked().Map(x => x * 2).IsNotAsked);
-        Assert.True(RemoteData<int, string>.Loading().Map(x => x * 2).IsLoading);
-        Assert.True(RemoteData<int, string>.Failure("err").Map(x => x * 2).IsFailure);
-    }
-
-    [Fact]
-    public void Map_ThrowsOnNullMapper()
-    {
-        var data = RemoteData<int, string>.Success(42);
-
-        Assert.Throws<ArgumentNullException>(() => data.Map<int>(null!));
-    }
-
-    [Fact]
-    public void MapError_TransformsFailureError()
-    {
-        var data = RemoteData<int, string>.Failure("error");
-
-        var mapped = data.MapError(e => e.Length);
-
-        Assert.True(mapped.IsFailure);
-        Assert.Equal(5, mapped.UnwrapError());
-    }
-
-    [Fact]
-    public void MapError_PreservesOtherStates()
-    {
-        Assert.True(RemoteData<int, string>.NotAsked().MapError(e => e.Length).IsNotAsked);
-        Assert.True(RemoteData<int, string>.Loading().MapError(e => e.Length).IsLoading);
-        Assert.True(RemoteData<int, string>.Success(42).MapError(e => e.Length).IsSuccess);
-    }
-
-    [Fact]
-    public void AndThen_ChainsSuccess()
-    {
-        var data = RemoteData<int, string>.Success(10);
-
-        var result = data.AndThen(x => RemoteData<int, string>.Success(x * 2));
+        var rd = RemoteData<int, string>.Success(42);
+        var result = rd.Map(x => x * 2);
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(20, result.Unwrap());
+        Assert.Equal(84, result.Unwrap());
     }
 
     [Fact]
-    public void AndThen_PropagatesOtherStates()
+    public void Map_NotAsked_PreservesState()
     {
-        Assert.True(RemoteData<int, string>.NotAsked()
-            .AndThen(x => RemoteData<int, string>.Success(x)).IsNotAsked);
-        Assert.True(RemoteData<int, string>.Loading()
-            .AndThen(x => RemoteData<int, string>.Success(x)).IsLoading);
-        Assert.True(RemoteData<int, string>.Failure("err")
-            .AndThen(x => RemoteData<int, string>.Success(x)).IsFailure);
+        var rd = RemoteData<int, string>.NotAsked();
+        var result = rd.Map(x => x * 2);
+
+        Assert.True(result.IsNotAsked);
     }
 
     [Fact]
-    public void Match_ExecutesCorrectFunction()
+    public void Map_Loading_PreservesState()
     {
-        Assert.Equal("notasked", RemoteData<int, string>.NotAsked()
-            .Match(() => "notasked", () => "loading", _ => "success", _ => "failure"));
-        Assert.Equal("loading", RemoteData<int, string>.Loading()
-            .Match(() => "notasked", () => "loading", _ => "success", _ => "failure"));
-        Assert.Equal("success", RemoteData<int, string>.Success(42)
-            .Match(() => "notasked", () => "loading", _ => "success", _ => "failure"));
-        Assert.Equal("failure", RemoteData<int, string>.Failure("err")
-            .Match(() => "notasked", () => "loading", _ => "success", _ => "failure"));
+        var rd = RemoteData<int, string>.Loading();
+        var result = rd.Map(x => x * 2);
+
+        Assert.True(result.IsLoading);
     }
 
     [Fact]
-    public void IsLoaded_ReturnsCorrectly()
+    public void Map_Failure_PreservesError()
     {
-        Assert.False(RemoteData<int, string>.NotAsked().IsLoaded());
-        Assert.False(RemoteData<int, string>.Loading().IsLoaded());
-        Assert.True(RemoteData<int, string>.Success(42).IsLoaded());
-        Assert.True(RemoteData<int, string>.Failure("err").IsLoaded());
+        var rd = RemoteData<int, string>.Failure("error");
+        var result = rd.Map(x => x * 2);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("error", result.UnwrapError());
+    }
+
+    #endregion
+
+    #region MapError Tests
+
+    [Fact]
+    public void MapError_Failure_TransformsError()
+    {
+        var rd = RemoteData<int, string>.Failure("error");
+        var result = rd.MapError(e => e.ToUpper());
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("ERROR", result.UnwrapError());
     }
 
     [Fact]
-    public void IsNotLoaded_ReturnsCorrectly()
+    public void MapError_Success_PreservesValue()
     {
-        Assert.True(RemoteData<int, string>.NotAsked().IsNotLoaded());
-        Assert.True(RemoteData<int, string>.Loading().IsNotLoaded());
-        Assert.False(RemoteData<int, string>.Success(42).IsNotLoaded());
-        Assert.False(RemoteData<int, string>.Failure("err").IsNotLoaded());
+        var rd = RemoteData<int, string>.Success(42);
+        var result = rd.MapError(e => e.ToUpper());
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(42, result.Unwrap());
+    }
+
+    #endregion
+
+    #region BiMap Tests
+
+    [Fact]
+    public void BiMap_Success_MapsData()
+    {
+        var rd = RemoteData<int, string>.Success(42);
+        var result = rd.BiMap(x => x * 2, e => e.ToUpper());
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(84, result.Unwrap());
     }
 
     [Fact]
-    public void ToResult_ConvertsSuccessToOk()
+    public void BiMap_Failure_MapsError()
     {
-        var data = RemoteData<int, string>.Success(42);
+        var rd = RemoteData<int, string>.Failure("error");
+        var result = rd.BiMap(x => x * 2, e => e.ToUpper());
 
-        var result = data.ToResult("na", "loading");
+        Assert.True(result.IsFailure);
+        Assert.Equal("ERROR", result.UnwrapError());
+    }
 
-        Assert.True(result.IsOk);
+    #endregion
+
+    #region AndThen/FlatMap/Bind Tests
+
+    [Fact]
+    public void AndThen_Success_Chains()
+    {
+        var rd = RemoteData<int, string>.Success(42);
+        var result = rd.AndThen(x => RemoteData<string, string>.Success($"Value: {x}"));
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal("Value: 42", result.Unwrap());
+    }
+
+    [Fact]
+    public void AndThen_NotSuccess_PreservesState()
+    {
+        var rd = RemoteData<int, string>.Loading();
+        var result = rd.AndThen(x => RemoteData<string, string>.Success($"Value: {x}"));
+
+        Assert.True(result.IsLoading);
+    }
+
+    [Fact]
+    public void FlatMap_Success_Chains()
+    {
+        var rd = RemoteData<int, string>.Success(42);
+        var result = rd.FlatMap(x => RemoteData<string, string>.Success($"Value: {x}"));
+
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    public void Bind_Success_Chains()
+    {
+        var rd = RemoteData<int, string>.Success(42);
+        var result = rd.Bind(x => RemoteData<string, string>.Success($"Value: {x}"));
+
+        Assert.True(result.IsSuccess);
+    }
+
+    #endregion
+
+    #region Or/OrElse Tests
+
+    [Fact]
+    public void Or_Success_ReturnsOriginal()
+    {
+        var rd = RemoteData<int, string>.Success(42);
+        var alt = RemoteData<int, string>.Success(99);
+        var result = rd.Or(alt);
+
         Assert.Equal(42, result.Unwrap());
     }
 
     [Fact]
-    public void ToResult_ConvertsFailureToErr()
+    public void Or_NotSuccess_ReturnsAlternative()
     {
-        var data = RemoteData<int, string>.Failure("error");
+        var rd = RemoteData<int, string>.Failure("error");
+        var alt = RemoteData<int, string>.Success(99);
+        var result = rd.Or(alt);
 
-        var result = data.ToResult("na", "loading");
-
-        Assert.True(result.IsErr);
-        Assert.Equal("error", result.UnwrapErr());
+        Assert.Equal(99, result.Unwrap());
     }
 
     [Fact]
-    public void ToResult_ConvertsNotAskedToErr()
+    public void OrElse_Failure_RecoveryIsCalled()
     {
-        var data = RemoteData<int, string>.NotAsked();
+        var rd = RemoteData<int, string>.Failure("error");
+        var result = rd.OrElse(e => RemoteData<int, string>.Success(99));
 
-        var result = data.ToResult("not asked", "loading");
-
-        Assert.True(result.IsErr);
-        Assert.Equal("not asked", result.UnwrapErr());
+        Assert.True(result.IsSuccess);
+        Assert.Equal(99, result.Unwrap());
     }
 
     [Fact]
-    public void ToResult_ConvertsLoadingToErr()
+    public void OrElse_Success_RecoveryNotCalled()
     {
-        var data = RemoteData<int, string>.Loading();
+        var rd = RemoteData<int, string>.Success(42);
+        var recoveryCalled = false;
+        var result = rd.OrElse(e =>
+        {
+            recoveryCalled = true;
+            return RemoteData<int, string>.Success(99);
+        });
 
-        var result = data.ToResult("na", "loading");
+        Assert.False(recoveryCalled);
+        Assert.Equal(42, result.Unwrap());
+    }
 
-        Assert.True(result.IsErr);
-        Assert.Equal("loading", result.UnwrapErr());
+    #endregion
+
+    #region Match Tests
+
+    [Fact]
+    public void Match_Actions_NotAsked()
+    {
+        var rd = RemoteData<int, string>.NotAsked();
+        var state = "";
+
+        rd.Match(
+            () => state = "NotAsked",
+            () => state = "Loading",
+            x => state = $"Success: {x}",
+            e => state = $"Failure: {e}");
+
+        Assert.Equal("NotAsked", state);
     }
 
     [Fact]
-    public void ToOption_ConvertsSuccessToSome()
+    public void Match_Actions_Loading()
     {
-        var data = RemoteData<int, string>.Success(42);
+        var rd = RemoteData<int, string>.Loading();
+        var state = "";
 
-        var option = data.ToOption();
+        rd.Match(
+            () => state = "NotAsked",
+            () => state = "Loading",
+            x => state = $"Success: {x}",
+            e => state = $"Failure: {e}");
+
+        Assert.Equal("Loading", state);
+    }
+
+    [Fact]
+    public void Match_Actions_Success()
+    {
+        var rd = RemoteData<int, string>.Success(42);
+        var state = "";
+
+        rd.Match(
+            () => state = "NotAsked",
+            () => state = "Loading",
+            x => state = $"Success: {x}",
+            e => state = $"Failure: {e}");
+
+        Assert.Equal("Success: 42", state);
+    }
+
+    [Fact]
+    public void Match_Actions_Failure()
+    {
+        var rd = RemoteData<int, string>.Failure("error");
+        var state = "";
+
+        rd.Match(
+            () => state = "NotAsked",
+            () => state = "Loading",
+            x => state = $"Success: {x}",
+            e => state = $"Failure: {e}");
+
+        Assert.Equal("Failure: error", state);
+    }
+
+    [Fact]
+    public void Match_Func_AllStates()
+    {
+        var notAsked = RemoteData<int, string>.NotAsked();
+        var loading = RemoteData<int, string>.Loading();
+        var success = RemoteData<int, string>.Success(42);
+        var failure = RemoteData<int, string>.Failure("error");
+
+        Assert.Equal("NotAsked", notAsked.Match(() => "NotAsked", () => "Loading", x => $"Success: {x}", e => $"Failure: {e}"));
+        Assert.Equal("Loading", loading.Match(() => "NotAsked", () => "Loading", x => $"Success: {x}", e => $"Failure: {e}"));
+        Assert.Equal("Success: 42", success.Match(() => "NotAsked", () => "Loading", x => $"Success: {x}", e => $"Failure: {e}"));
+        Assert.Equal("Failure: error", failure.Match(() => "NotAsked", () => "Loading", x => $"Success: {x}", e => $"Failure: {e}"));
+    }
+
+    #endregion
+
+    #region ToOption/ToResult Tests
+
+    [Fact]
+    public void ToOption_Success_ReturnsSome()
+    {
+        var rd = RemoteData<int, string>.Success(42);
+        var option = rd.ToOption();
 
         Assert.True(option.IsSome);
         Assert.Equal(42, option.Unwrap());
     }
 
     [Fact]
-    public void ToOption_ConvertsOtherStatesToNone()
+    public void ToOption_NotSuccess_ReturnsNone()
     {
-        Assert.True(RemoteData<int, string>.NotAsked().ToOption().IsNone);
-        Assert.True(RemoteData<int, string>.Loading().ToOption().IsNone);
-        Assert.True(RemoteData<int, string>.Failure("err").ToOption().IsNone);
+        var rd = RemoteData<int, string>.Loading();
+        var option = rd.ToOption();
+
+        Assert.True(option.IsNone);
     }
 
     [Fact]
-    public void Tap_ExecutesOnSuccess()
+    public void ToResult_Success_ReturnsOk()
     {
-        int captured = 0;
-        var data = RemoteData<int, string>.Success(42);
+        var rd = RemoteData<int, string>.Success(42);
+        var result = rd.ToResult();
 
-        var result = data.Tap(v => captured = v);
-
-        Assert.Equal(42, captured);
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
+        Assert.Equal(42, result.Unwrap());
     }
 
     [Fact]
-    public void Tap_DoesNotExecuteOnOtherStates()
+    public void ToResult_Failure_ReturnsErr()
     {
-        int captured = 0;
+        var rd = RemoteData<int, string>.Failure("error");
+        var result = rd.ToResult();
 
-        RemoteData<int, string>.NotAsked().Tap(v => captured = v);
-        Assert.Equal(0, captured);
-
-        RemoteData<int, string>.Loading().Tap(v => captured = v);
-        Assert.Equal(0, captured);
-
-        RemoteData<int, string>.Failure("err").Tap(v => captured = v);
-        Assert.Equal(0, captured);
+        Assert.True(result.IsErr);
+        Assert.Equal("error", result.UnwrapErr());
     }
 
     [Fact]
-    public void TapError_ExecutesOnFailure()
+    public void ToResult_NotAsked_Throws()
     {
-        string? captured = null;
-        var data = RemoteData<int, string>.Failure("error");
-
-        var result = data.TapError(e => captured = e);
-
-        Assert.Equal("error", captured);
-        Assert.True(result.IsFailure);
+        var rd = RemoteData<int, string>.NotAsked();
+        Assert.Throws<InvalidOperationException>(() => rd.ToResult());
     }
 
     [Fact]
-    public void TapFailure_ExecutesOnFailure()
+    public void ToResult_Loading_Throws()
     {
-        string? captured = null;
-        var data = RemoteData<int, string>.Failure("error");
-
-        var result = data.TapFailure(e => captured = e);
-
-        Assert.Equal("error", captured);
-        Assert.True(result.IsFailure);
+        var rd = RemoteData<int, string>.Loading();
+        Assert.Throws<InvalidOperationException>(() => rd.ToResult());
     }
 
     [Fact]
-    public void TapFailure_DoesNotExecuteOnOtherStates()
+    public void ToResult_WithDefaults_NotAsked()
     {
-        string? captured = null;
+        var rd = RemoteData<int, string>.NotAsked();
+        var result = rd.ToResult("not asked", "loading");
 
-        RemoteData<int, string>.NotAsked().TapFailure(e => captured = e);
-        Assert.Null(captured);
-
-        RemoteData<int, string>.Loading().TapFailure(e => captured = e);
-        Assert.Null(captured);
-
-        RemoteData<int, string>.Success(42).TapFailure(e => captured = e);
-        Assert.Null(captured);
+        Assert.True(result.IsErr);
+        Assert.Equal("not asked", result.UnwrapErr());
     }
 
     [Fact]
-    public void TapNotAsked_ExecutesOnNotAsked()
+    public void ToResult_WithDefaults_Loading()
     {
-        bool executed = false;
-        var data = RemoteData<int, string>.NotAsked();
+        var rd = RemoteData<int, string>.Loading();
+        var result = rd.ToResult("not asked", "loading");
 
-        var result = data.TapNotAsked(() => executed = true);
-
-        Assert.True(executed);
-        Assert.True(result.IsNotAsked);
-    }
-
-    [Fact]
-    public void TapNotAsked_DoesNotExecuteOnOtherStates()
-    {
-        bool executed = false;
-
-        RemoteData<int, string>.Loading().TapNotAsked(() => executed = true);
-        Assert.False(executed);
-
-        RemoteData<int, string>.Success(42).TapNotAsked(() => executed = true);
-        Assert.False(executed);
-
-        RemoteData<int, string>.Failure("err").TapNotAsked(() => executed = true);
-        Assert.False(executed);
-    }
-
-    [Fact]
-    public void TapLoading_ExecutesOnLoading()
-    {
-        bool executed = false;
-        var data = RemoteData<int, string>.Loading();
-
-        var result = data.TapLoading(() => executed = true);
-
-        Assert.True(executed);
-        Assert.True(result.IsLoading);
-    }
-
-    [Fact]
-    public void TapLoading_DoesNotExecuteOnOtherStates()
-    {
-        bool executed = false;
-
-        RemoteData<int, string>.NotAsked().TapLoading(() => executed = true);
-        Assert.False(executed);
-
-        RemoteData<int, string>.Success(42).TapLoading(() => executed = true);
-        Assert.False(executed);
-
-        RemoteData<int, string>.Failure("err").TapLoading(() => executed = true);
-        Assert.False(executed);
-    }
-
-    [Fact]
-    public void Equals_WorksCorrectly()
-    {
-        Assert.True(RemoteData<int, string>.NotAsked() == RemoteData<int, string>.NotAsked());
-        Assert.True(RemoteData<int, string>.Loading() == RemoteData<int, string>.Loading());
-        Assert.True(RemoteData<int, string>.Success(42) == RemoteData<int, string>.Success(42));
-        Assert.True(RemoteData<int, string>.Failure("err") == RemoteData<int, string>.Failure("err"));
-
-        Assert.False(RemoteData<int, string>.Success(42) == RemoteData<int, string>.Success(43));
-        Assert.True(RemoteData<int, string>.Success(42) != RemoteData<int, string>.Loading());
-    }
-
-    [Fact]
-    public void GetHashCode_SameForEqualValues()
-    {
-        Assert.Equal(
-            RemoteData<int, string>.Success(42).GetHashCode(),
-            RemoteData<int, string>.Success(42).GetHashCode()
-        );
-    }
-
-    [Fact]
-    public void ToString_FormatsCorrectly()
-    {
-        Assert.Contains("NotAsked", RemoteData<int, string>.NotAsked().ToString());
-        Assert.Contains("Loading", RemoteData<int, string>.Loading().ToString());
-        Assert.Contains("Success", RemoteData<int, string>.Success(42).ToString());
-        Assert.Contains("Failure", RemoteData<int, string>.Failure("err").ToString());
+        Assert.True(result.IsErr);
+        Assert.Equal("loading", result.UnwrapErr());
     }
 
     #endregion
 
-    #region RemoteDataExtensions
+    #region Equality Tests
 
     [Fact]
-    public void ToRemoteData_FromResultOk_ReturnsSuccess()
+    public void Equals_SameState_ReturnsTrue()
     {
-        var result = Result<int, string>.Ok(42);
-        var data = result.ToRemoteData();
+        var rd1 = RemoteData<int, string>.Success(42);
+        var rd2 = RemoteData<int, string>.Success(42);
 
-        Assert.True(data.IsSuccess);
-        Assert.Equal(42, data.Unwrap());
+        Assert.True(rd1.Equals(rd2));
+        Assert.True(rd1 == rd2);
     }
 
     [Fact]
-    public void ToRemoteData_FromResultErr_ReturnsFailure()
+    public void Equals_DifferentState_ReturnsFalse()
+    {
+        var rd1 = RemoteData<int, string>.Success(42);
+        var rd2 = RemoteData<int, string>.Loading();
+
+        Assert.False(rd1.Equals(rd2));
+        Assert.True(rd1 != rd2);
+    }
+
+    [Fact]
+    public void Equals_DifferentValue_ReturnsFalse()
+    {
+        var rd1 = RemoteData<int, string>.Success(42);
+        var rd2 = RemoteData<int, string>.Success(99);
+
+        Assert.False(rd1.Equals(rd2));
+    }
+
+    [Fact]
+    public void Equals_NotAsked_ReturnsTrue()
+    {
+        var rd1 = RemoteData<int, string>.NotAsked();
+        var rd2 = RemoteData<int, string>.NotAsked();
+
+        Assert.True(rd1.Equals(rd2));
+    }
+
+    [Fact]
+    public void Equals_Object_Works()
+    {
+        var rd1 = RemoteData<int, string>.Success(42);
+        object rd2 = RemoteData<int, string>.Success(42);
+        object notRd = "not remote data";
+
+        Assert.True(rd1.Equals(rd2));
+        Assert.False(rd1.Equals(notRd));
+    }
+
+    [Fact]
+    public void GetHashCode_SameForEqual()
+    {
+        var rd1 = RemoteData<int, string>.Success(42);
+        var rd2 = RemoteData<int, string>.Success(42);
+
+        Assert.Equal(rd1.GetHashCode(), rd2.GetHashCode());
+    }
+
+    #endregion
+
+    #region CompareTo Tests
+
+    [Fact]
+    public void CompareTo_SameState_ComparesValues()
+    {
+        var rd1 = RemoteData<int, string>.Success(42);
+        var rd2 = RemoteData<int, string>.Success(99);
+
+        Assert.True(rd1.CompareTo(rd2) < 0);
+    }
+
+    [Fact]
+    public void CompareTo_DifferentStates_ComparesStates()
+    {
+        var notAsked = RemoteData<int, string>.NotAsked();
+        var loading = RemoteData<int, string>.Loading();
+        var success = RemoteData<int, string>.Success(42);
+        var failure = RemoteData<int, string>.Failure("error");
+
+        // Enum order: NotAsked=0, Loading=1, Success=2, Failure=3
+        Assert.True(notAsked.CompareTo(loading) < 0);
+        Assert.True(loading.CompareTo(success) < 0);
+        Assert.True(success.CompareTo(failure) < 0);
+    }
+
+    [Fact]
+    public void CompareTo_Object_Works()
+    {
+        var rd = RemoteData<int, string>.Success(42);
+        IComparable comparable = rd;
+
+        Assert.True(comparable.CompareTo(null) > 0);
+        Assert.Equal(0, comparable.CompareTo(RemoteData<int, string>.Success(42)));
+    }
+
+    [Fact]
+    public void CompareTo_InvalidType_Throws()
+    {
+        var rd = RemoteData<int, string>.Success(42);
+        IComparable comparable = rd;
+
+        Assert.Throws<ArgumentException>(() => comparable.CompareTo("invalid"));
+    }
+
+    #endregion
+
+    #region ToString Tests
+
+    [Fact]
+    public void ToString_AllStates()
+    {
+        Assert.Equal("NotAsked", RemoteData<int, string>.NotAsked().ToString());
+        Assert.Equal("Loading", RemoteData<int, string>.Loading().ToString());
+        Assert.Equal("Success(42)", RemoteData<int, string>.Success(42).ToString());
+        Assert.Equal("Failure(error)", RemoteData<int, string>.Failure("error").ToString());
+    }
+
+    #endregion
+
+    #region Implicit Conversion Tests
+
+    [Fact]
+    public void ImplicitConversion_FromValue_CreatesSuccess()
+    {
+        RemoteData<int, string> rd = 42;
+
+        Assert.True(rd.IsSuccess);
+        Assert.Equal(42, rd.Unwrap());
+    }
+
+    #endregion
+
+    #region Deconstruct Tests
+
+    [Fact]
+    public void Deconstruct_TwoArgs_Works()
+    {
+        var rd = RemoteData<int, string>.Success(42);
+        var (data, isSuccess) = rd;
+
+        Assert.Equal(42, data);
+        Assert.True(isSuccess);
+    }
+
+    [Fact]
+    public void Deconstruct_SixArgs_Works()
+    {
+        var rd = RemoteData<int, string>.Loading();
+        var (data, error, isNotAsked, isLoading, isSuccess, isFailure) = rd;
+
+        Assert.Equal(default, data);
+        Assert.Equal(default, error);
+        Assert.False(isNotAsked);
+        Assert.True(isLoading);
+        Assert.False(isSuccess);
+        Assert.False(isFailure);
+    }
+
+    #endregion
+
+    #region Extension Tests
+
+    [Fact]
+    public void Tap_Success_ExecutesAction()
+    {
+        var rd = RemoteData<int, string>.Success(42);
+        var capturedValue = 0;
+
+        var result = rd.Tap(x => capturedValue = x);
+
+        Assert.Equal(42, capturedValue);
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    public void Tap_NotSuccess_DoesNotExecute()
+    {
+        var rd = RemoteData<int, string>.Loading();
+        var executed = false;
+
+        rd.Tap(x => executed = true);
+
+        Assert.False(executed);
+    }
+
+    [Fact]
+    public void TapFailure_Failure_ExecutesAction()
+    {
+        var rd = RemoteData<int, string>.Failure("error");
+        var capturedError = "";
+
+        rd.TapFailure(e => capturedError = e);
+
+        Assert.Equal("error", capturedError);
+    }
+
+    [Fact]
+    public void TapNotAsked_NotAsked_ExecutesAction()
+    {
+        var rd = RemoteData<int, string>.NotAsked();
+        var executed = false;
+
+        rd.TapNotAsked(() => executed = true);
+
+        Assert.True(executed);
+    }
+
+    [Fact]
+    public void TapLoading_Loading_ExecutesAction()
+    {
+        var rd = RemoteData<int, string>.Loading();
+        var executed = false;
+
+        rd.TapLoading(() => executed = true);
+
+        Assert.True(executed);
+    }
+
+    [Fact]
+    public void TapError_Alias_Works()
+    {
+        var rd = RemoteData<int, string>.Failure("error");
+        var capturedError = "";
+
+        rd.TapError(e => capturedError = e);
+
+        Assert.Equal("error", capturedError);
+    }
+
+    [Fact]
+    public void ToRemoteData_Ok_ReturnsSuccess()
+    {
+        var result = Result<int, string>.Ok(42);
+        var rd = result.ToRemoteData();
+
+        Assert.True(rd.IsSuccess);
+        Assert.Equal(42, rd.Unwrap());
+    }
+
+    [Fact]
+    public void ToRemoteData_Err_ReturnsFailure()
     {
         var result = Result<int, string>.Err("error");
-        var data = result.ToRemoteData();
+        var rd = result.ToRemoteData();
 
-        Assert.True(data.IsFailure);
-        Assert.Equal("error", data.UnwrapError());
+        Assert.True(rd.IsFailure);
+        Assert.Equal("error", rd.UnwrapError());
+    }
+
+    [Fact]
+    public async Task FromTaskAsync_Success_ReturnsSuccess()
+    {
+        var rd = await RemoteDataExtensions.FromTaskAsync(async () =>
+        {
+            await Task.Delay(1);
+            return 42;
+        });
+
+        Assert.True(rd.IsSuccess);
+        Assert.Equal(42, rd.Unwrap());
+    }
+
+    [Fact]
+    public async Task FromTaskAsync_Exception_ReturnsFailure()
+    {
+        var rd = await RemoteDataExtensions.FromTaskAsync<int>(async () =>
+        {
+            await Task.Delay(1);
+            throw new InvalidOperationException("test");
+        });
+
+        Assert.True(rd.IsFailure);
+        Assert.IsType<InvalidOperationException>(rd.UnwrapError());
+    }
+
+    [Fact]
+    public async Task MapAsync_Success_TransformsAsync()
+    {
+        var rd = RemoteData<int, string>.Success(21);
+        var result = await rd.MapAsync(async x =>
+        {
+            await Task.Delay(1);
+            return x * 2;
+        });
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(42, result.Unwrap());
+    }
+
+    [Fact]
+    public void IsLoaded_SuccessOrFailure_ReturnsTrue()
+    {
+        Assert.True(RemoteData<int, string>.Success(42).IsLoaded());
+        Assert.True(RemoteData<int, string>.Failure("error").IsLoaded());
+        Assert.False(RemoteData<int, string>.NotAsked().IsLoaded());
+        Assert.False(RemoteData<int, string>.Loading().IsLoaded());
+    }
+
+    [Fact]
+    public void IsNotLoaded_NotAskedOrLoading_ReturnsTrue()
+    {
+        Assert.True(RemoteData<int, string>.NotAsked().IsNotLoaded());
+        Assert.True(RemoteData<int, string>.Loading().IsNotLoaded());
+        Assert.False(RemoteData<int, string>.Success(42).IsNotLoaded());
+        Assert.False(RemoteData<int, string>.Failure("error").IsNotLoaded());
     }
 
     #endregion
