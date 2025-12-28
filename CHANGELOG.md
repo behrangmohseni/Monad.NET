@@ -9,6 +9,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.0] - 2025-12-28
+
+### 🎉 First Stable Release
+
+This is the first stable release of Monad.NET! The library is now production-ready with a stable API.
+
+#### Highlights
+
+- **12 Monad Types**: Option, Result, Either, Validation, Try, RemoteData, NonEmptyList, Writer, Reader, ReaderAsync, State, IO
+- **Full Async Support**: Async variants for all operations with `ConfigureAwait(false)`
+- **LINQ Integration**: Query syntax and method syntax support
+- **Zero Dependencies**: Core library has no external dependencies
+- **Multi-Target**: Supports .NET Standard 2.0/2.1, .NET 8.0, and .NET 10.0
+- **Integration Packages**: ASP.NET Core, Entity Framework Core, MessagePack
+- **Source Generators**: Discriminated unions with `[Union]` attribute
+- **Analyzers**: 10+ Roslyn analyzers with code fixes
+
+#### All Features from Alpha/Beta
+
+All features from the alpha releases (1.0.0-alpha.1 through 1.0.0-alpha.13) are included. See below for the complete feature list.
+
+---
+
 ## [1.0.0-alpha.13] - 2025-12-21
 
 ### Added
@@ -406,11 +429,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Symbol packages for debugging
 - Source Link integration
 
----
-
-## [Unreleased]
-
-### Planned
-- Additional monad types
-- Performance optimizations
-- Extended framework support

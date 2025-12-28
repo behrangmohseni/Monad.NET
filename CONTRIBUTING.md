@@ -34,7 +34,7 @@ This project follows a standard code of conduct. Please be respectful and constr
 
 ### Prerequisites
 
-- [.NET 6.0 SDK](https://dotnet.microsoft.com/download/dotnet/6.0) or later
+- [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) or later (for building all targets)
 - Your preferred IDE (Visual Studio, VS Code, Rider)
 
 ### Building the Project
