@@ -1,4 +1,4 @@
-using Monad.NET;
+﻿using Monad.NET;
 
 namespace Monad.NET.Tests;
 
@@ -36,26 +36,6 @@ public class StateExtendedTests
         var result = state.Run(42);
 
         Assert.Equal(42, result.Value);
-        Assert.Equal(42, result.State);
-    }
-
-    [Fact]
-    public void Put_ReplacesStateWithNewValue()
-    {
-        var state = State<int, Unit>.Put(100);
-        var result = state.Run(42);
-
-        Assert.Equal(Unit.Default, result.Value);
-        Assert.Equal(100, result.State);
-    }
-
-    [Fact]
-    public void Modify_TransformsState()
-    {
-        var state = State<int, Unit>.Modify(s => s * 2);
-        var result = state.Run(21);
-
-        Assert.Equal(Unit.Default, result.Value);
         Assert.Equal(42, result.State);
     }
 

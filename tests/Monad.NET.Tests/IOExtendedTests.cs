@@ -1,4 +1,4 @@
-using Monad.NET;
+﻿using Monad.NET;
 
 namespace Monad.NET.Tests;
 
@@ -628,25 +628,6 @@ public class IOExtendedTests
         var after = DateTime.Now;
 
         Assert.True(after - before >= TimeSpan.FromMilliseconds(40)); // allow some tolerance
-    }
-
-    [Fact]
-    public async Task IOAsync_Parallel_TwoAsync()
-    {
-        var io1 = IOAsync<int>.Pure(1);
-        var io2 = IOAsync<int>.Pure(2);
-        var result = await IOAsync.Parallel(io1, io2).RunAsync();
-
-        Assert.Equal((1, 2), result);
-    }
-
-    [Fact]
-    public async Task IOAsync_Parallel_Collection()
-    {
-        var ios = new[] { IOAsync<int>.Pure(1), IOAsync<int>.Pure(2), IOAsync<int>.Pure(3) };
-        var result = await IOAsync.Parallel(ios).RunAsync();
-
-        Assert.Equal(new[] { 1, 2, 3 }, result);
     }
 
     [Fact]

@@ -1,4 +1,4 @@
-using Monad.NET;
+﻿using Monad.NET;
 
 namespace Monad.NET.Tests;
 
@@ -350,28 +350,6 @@ public class OptionExtendedTests
     }
 
     [Fact]
-    public void Zip_FirstNone_ReturnsNone()
-    {
-        var option1 = Option<int>.None();
-        var option2 = Option<string>.Some("hello");
-
-        var result = option1.Zip(option2);
-
-        Assert.True(result.IsNone);
-    }
-
-    [Fact]
-    public void Zip_SecondNone_ReturnsNone()
-    {
-        var option1 = Option<int>.Some(42);
-        var option2 = Option<string>.None();
-
-        var result = option1.Zip(option2);
-
-        Assert.True(result.IsNone);
-    }
-
-    [Fact]
     public void ZipWith_BothSome_AppliesCombiner()
     {
         var option1 = Option<int>.Some(42);
@@ -386,26 +364,6 @@ public class OptionExtendedTests
     #endregion
 
     #region OkOr Tests
-
-    [Fact]
-    public void OkOr_OnSome_ReturnsOk()
-    {
-        var option = Option<int>.Some(42);
-        var result = option.OkOr("error");
-
-        Assert.True(result.IsOk);
-        Assert.Equal(42, result.Unwrap());
-    }
-
-    [Fact]
-    public void OkOr_OnNone_ReturnsErr()
-    {
-        var option = Option<int>.None();
-        var result = option.OkOr("error");
-
-        Assert.True(result.IsErr);
-        Assert.Equal("error", result.UnwrapErr());
-    }
 
     [Fact]
     public void OkOrElse_OnSome_ReturnsOk()

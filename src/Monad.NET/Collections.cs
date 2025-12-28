@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Monad.NET.Internal;
 
@@ -936,7 +936,7 @@ public static class MonadCollectionExtensions
         // Pre-allocate with reasonable capacity
         var count = results.Length;
         var oks = new List<U>(count);
-        var errors = new List<TErr>(count / 4 + 1); // Expect fewer errors
+        var errors = new List<TErr>((count / 4) + 1); // Expect fewer errors
 
         foreach (var result in results)
         {
