@@ -22,7 +22,7 @@ Or add directly to your `.csproj`:
 <PackageReference Include="Monad.NET" />
 ```
 
-**Requires:** .NET 6.0 or later
+**Requires:** .NET Standard 2.0+ (.NET Framework 4.6.1+, .NET Core 2.0+, .NET 5+)
 
 ## When to Use Monad.NET
 

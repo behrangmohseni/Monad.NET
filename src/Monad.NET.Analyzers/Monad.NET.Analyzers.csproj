@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -7,12 +7,14 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     
+    <!-- Package Info -->
     <PackageId>Monad.NET.Analyzers</PackageId>
-    <Version>1.0.0-beta.2</Version>
+    <Version>1.0.0</Version>
     <Authors>Behrang Mohseni</Authors>
     <Company>Behrang Mohseni</Company>
     <Product>Monad.NET.Analyzers</Product>
-    <Description>Roslyn analyzers for Monad.NET - catch common misuse patterns at compile-time.</Description>
+    <Copyright>Copyright 2025 Behrang Mohseni</Copyright>
+    <Description>Roslyn analyzers for Monad.NET - catch common misuse patterns at compile-time. Warns about unchecked Unwrap calls, redundant Map chains, and other anti-patterns.</Description>
     <PackageTags>monad;functional;analyzer;roslyn;static-analysis;code-quality</PackageTags>
     <PackageProjectUrl>https://github.com/behrangmohseni/Monad.NET</PackageProjectUrl>
     <RepositoryUrl>https://github.com/behrangmohseni/Monad.NET</RepositoryUrl>
@@ -21,11 +23,15 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>icon.png</PackageIcon>
     
+    <!-- Analyzer specific -->
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <DevelopmentDependency>true</DevelopmentDependency>
     <IsRoslynComponent>true</IsRoslynComponent>
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
-    <NoWarn>$(NoWarn);NU5128;RS2008;CS1591</NoWarn>
+    <NoWarn>$(NoWarn);NU5128;CS1591;RS2008</NoWarn>
+    
+    <!-- Build Settings -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

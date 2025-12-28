@@ -7,7 +7,7 @@
 [![codecov](https://codecov.io/gh/behrangmohseni/Monad.NET/graph/badge.svg)](https://codecov.io/gh/behrangmohseni/Monad.NET)
 [![CodeFactor](https://www.codefactor.io/repository/github/behrangmohseni/monad.net/badge/main)](https://www.codefactor.io/repository/github/behrangmohseni/monad.net)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![.NET](https://img.shields.io/badge/.NET-6.0%2B-512BD4.svg)](https://dotnet.microsoft.com/)
+[![.NET](https://img.shields.io/badge/.NET_Standard-2.0%2B-512BD4.svg)](https://dotnet.microsoft.com/)
 
 **Monad.NET** is a functional programming library for .NET. Option, Result, Either, Validation, and more — with zero dependencies.
 
@@ -422,7 +422,7 @@ Yes. All types are immutable `readonly struct` with no shared mutable state.
 Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 **Development requirements:**
-- .NET 6.0 SDK or later
+- .NET 8.0 SDK or later (for building all targets)
 - Your preferred IDE (Visual Studio, Rider, VS Code)
 
 ```bash
