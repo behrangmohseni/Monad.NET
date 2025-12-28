@@ -1,4 +1,4 @@
-﻿using Monad.NET;
+using Monad.NET;
 
 namespace Monad.NET.Tests;
 
