@@ -228,9 +228,8 @@ var value = option.UnwrapOr(default);
 
 | Version | Status | Support Until |
 |---------|--------|---------------|
-| 2.x | Current | Active development |
-| 1.x | Maintenance | 6 months after 2.0 release |
-| 0.x | End of life | No longer supported |
+| 1.x | Current | Active development |
+| 0.x | N/A | No 0.x versions were released |
 
 **Maintenance mode** means:
 - Critical bug fixes only
@@ -245,27 +244,27 @@ var value = option.UnwrapOr(default);
 
 | Version | Date | Significance |
 |---------|------|--------------|
-| 0.1.0 | Initial | First public release |
-| 1.0.0 | Stable | First stable API |
+| 1.0.0-alpha.1 | 2025-12-14 | First public release |
+| 1.0.0 | 2025-12-28 | First stable API |
 | 2.0.0 | TBD | Major improvements (see roadmap) |
 
 ### API Stability by Version
 
 | Feature | Introduced | Stable Since |
 |---------|------------|--------------|
-| `Option<T>` | 0.1.0 | 1.0.0 |
-| `Result<T,E>` | 0.1.0 | 1.0.0 |
-| `Either<L,R>` | 0.1.0 | 1.0.0 |
-| `Validation<T,E>` | 0.2.0 | 1.0.0 |
-| `Try<T>` | 0.2.0 | 1.0.0 |
-| `NonEmptyList<T>` | 0.3.0 | 1.0.0 |
-| `RemoteData<T,E>` | 0.4.0 | 1.0.0 |
-| `Writer<W,T>` | 0.5.0 | 1.0.0 |
-| `Reader<R,A>` | 0.5.0 | 1.0.0 |
-| `ReaderAsync<R,A>` | 0.6.0 | 1.0.0 |
-| `State<S,A>` | 0.6.0 | 1.0.0 |
-| `IO<T>` | 0.7.0 | 1.0.0 |
-| `[Union]` generator | 0.8.0 | 1.0.0 |
+| `Option<T>` | 1.0.0-alpha.1 | 1.0.0 |
+| `Result<T,E>` | 1.0.0-alpha.1 | 1.0.0 |
+| `Either<L,R>` | 1.0.0-alpha.1 | 1.0.0 |
+| `Validation<T,E>` | 1.0.0-alpha.1 | 1.0.0 |
+| `Try<T>` | 1.0.0-alpha.1 | 1.0.0 |
+| `NonEmptyList<T>` | 1.0.0-alpha.1 | 1.0.0 |
+| `RemoteData<T,E>` | 1.0.0-alpha.1 | 1.0.0 |
+| `Writer<W,T>` | 1.0.0-alpha.1 | 1.0.0 |
+| `Reader<R,A>` | 1.0.0-alpha.1 | 1.0.0 |
+| `ReaderAsync<R,A>` | 1.0.0-alpha.11 | 1.0.0 |
+| `State<S,A>` | 1.0.0-alpha.5 | 1.0.0 |
+| `IO<T>` | 1.0.0-alpha.9 | 1.0.0 |
+| `[Union]` generator | 1.0.0-alpha.8 | 1.0.0 |
 
 ---
 
