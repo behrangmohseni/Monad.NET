@@ -685,4 +685,94 @@ public static class OptionAsyncExtensions
     }
 
     #endregion
+
+    #region CancellationToken Overloads
+
+    /// <summary>
+    /// Maps the value inside a Task&lt;Option&lt;T&gt;&gt; using an async function with cancellation support.
+    /// </summary>
+    /// <typeparam name="T">The type of the value in the source option.</typeparam>
+    /// <typeparam name="U">The type of the value in the resulting option.</typeparam>
+    /// <param name="optionTask">The task containing the option to map.</param>
+    /// <param name="mapper">An async function to apply to the value if Some.</param>
+    /// <param name="cancellationToken">A cancellation token to observe.</param>
+    /// <returns>A task containing Some with the mapped value, or None if the original was None.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async Task<Option<U>> MapAsync<T, U>(
+        this Task<Option<T>> optionTask,
+        Func<T, CancellationToken, Task<U>> mapper,
+        CancellationToken cancellationToken)
+    {
+        ThrowHelper.ThrowIfNull(optionTask);
+        ThrowHelper.ThrowIfNull(mapper);
+
+        cancellationToken.ThrowIfCancellationRequested();
+        var option = await optionTask.ConfigureAwait(false);
+        if (!option.IsSome)
+            return Option<U>.None();
+
+        cancellationToken.ThrowIfCancellationRequested();
+        var result = await mapper(option.Unwrap(), cancellationToken).ConfigureAwait(false);
+        return Option<U>.Some(result);
+    }
+
+    /// <summary>
+    /// Chains an async operation on a Task&lt;Option&lt;T&gt;&gt; with cancellation support.
+    /// </summary>
+    /// <typeparam name="T">The type of the value in the source option.</typeparam>
+    /// <typeparam name="U">The type of the value in the resulting option.</typeparam>
+    /// <param name="optionTask">The task containing the option to chain.</param>
+    /// <param name="binder">An async function that returns a new option based on the value.</param>
+    /// <param name="cancellationToken">A cancellation token to observe.</param>
+    /// <returns>A task containing the result of the binder if Some, otherwise None.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async Task<Option<U>> AndThenAsync<T, U>(
+        this Task<Option<T>> optionTask,
+        Func<T, CancellationToken, Task<Option<U>>> binder,
+        CancellationToken cancellationToken)
+    {
+        ThrowHelper.ThrowIfNull(optionTask);
+        ThrowHelper.ThrowIfNull(binder);
+
+        cancellationToken.ThrowIfCancellationRequested();
+        var option = await optionTask.ConfigureAwait(false);
+        if (!option.IsSome)
+            return Option<U>.None();
+
+        cancellationToken.ThrowIfCancellationRequested();
+        return await binder(option.Unwrap(), cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Pattern matches on a Task&lt;Option&lt;T&gt;&gt; with async handlers and cancellation support.
+    /// </summary>
+    /// <typeparam name="T">The type of the value in the option.</typeparam>
+    /// <typeparam name="U">The type of the result.</typeparam>
+    /// <param name="optionTask">The task containing the option to match.</param>
+    /// <param name="someFunc">An async function to call if Some.</param>
+    /// <param name="noneFunc">An async function to call if None.</param>
+    /// <param name="cancellationToken">A cancellation token to observe.</param>
+    /// <returns>A task containing the result of the matched handler.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async Task<U> MatchAsync<T, U>(
+        this Task<Option<T>> optionTask,
+        Func<T, CancellationToken, Task<U>> someFunc,
+        Func<CancellationToken, Task<U>> noneFunc,
+        CancellationToken cancellationToken)
+    {
+        ThrowHelper.ThrowIfNull(optionTask);
+        ThrowHelper.ThrowIfNull(someFunc);
+        ThrowHelper.ThrowIfNull(noneFunc);
+
+        cancellationToken.ThrowIfCancellationRequested();
+        var option = await optionTask.ConfigureAwait(false);
+        
+        cancellationToken.ThrowIfCancellationRequested();
+        if (option.IsSome)
+            return await someFunc(option.Unwrap(), cancellationToken).ConfigureAwait(false);
+
+        return await noneFunc(cancellationToken).ConfigureAwait(false);
+    }
+
+    #endregion
 }

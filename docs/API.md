@@ -1010,16 +1010,16 @@ var result = FindUser(id)
 
 | Monad | Select | SelectMany | Where |
 |-------|--------|------------|-------|
-| `Option<T>` | ✅ | ✅ | ✅ `Where(predicate)` |
-| `Result<T,E>` | ✅ | ✅ | ✅ `Where(predicate, error)` |
-| `Either<L,R>` | ✅ (Right) | ✅ | ✅ `Where(predicate, leftValue)` |
-| `Try<T>` | ✅ | ✅ | ✅ `Where(predicate)` |
-| `Validation<T,E>` | ✅ | ✅ (short-circuits) | — |
-| `RemoteData<T,E>` | ✅ | ✅ | — |
-| `Writer<W,T>` | ✅ | ✅ (string, List<T>) | — |
-| `State<S,A>` | ✅ | ✅ | — |
-| `IO<T>` | ✅ | ✅ | — |
-| `ReaderAsync<R,A>` | ✅ | ✅ | — |
+| `Option<T>` | Yes | Yes | `Where(predicate)` |
+| `Result<T,E>` | Yes | Yes | `Where(predicate, error)` |
+| `Either<L,R>` | Yes (Right) | Yes | `Where(predicate, leftValue)` |
+| `Try<T>` | Yes | Yes | `Where(predicate)` |
+| `Validation<T,E>` | Yes | Yes (short-circuits) | — |
+| `RemoteData<T,E>` | Yes | Yes | — |
+| `Writer<W,T>` | Yes | Yes (string, List<T>) | — |
+| `State<S,A>` | Yes | Yes | — |
+| `IO<T>` | Yes | Yes | — |
+| `ReaderAsync<R,A>` | Yes | Yes | — |
 
 ---
 

@@ -55,11 +55,11 @@ The following are considered **stable API** and will not change without a major 
 
 | Category | Examples | Stability |
 |----------|----------|-----------|
-| **Public types** | `Option<T>`, `Result<T,E>`, etc. | ✅ Stable |
-| **Public methods** | `.Map()`, `.AndThen()`, `.Match()` | ✅ Stable |
-| **Method signatures** | Parameter types, return types | ✅ Stable |
-| **Behavior** | Short-circuit semantics, error accumulation | ✅ Stable |
-| **Extension methods** | `.ToOption()`, `.ToResult()` | ✅ Stable |
+| **Public types** | `Option<T>`, `Result<T,E>`, etc. | Stable |
+| **Public methods** | `.Map()`, `.AndThen()`, `.Match()` | Stable |
+| **Method signatures** | Parameter types, return types | Stable |
+| **Behavior** | Short-circuit semantics, error accumulation | Stable |
+| **Extension methods** | `.ToOption()`, `.ToResult()` | Stable |
 
 ### What May Change (Minor Versions)
 
@@ -79,11 +79,11 @@ The following are **not part of the public API** and may change without notice:
 
 | Category | Examples | Stability |
 |----------|----------|-----------|
-| **Internal types** | Types in internal namespaces | ❌ Unstable |
-| **Private members** | Private fields, methods | ❌ Unstable |
-| **Implementation details** | Internal data structures | ❌ Unstable |
-| **Debugging output** | `ToString()` format | ❌ Unstable |
-| **Exception messages** | Error message text | ❌ Unstable |
+| **Internal types** | Types in internal namespaces | Unstable |
+| **Private members** | Private fields, methods | Unstable |
+| **Implementation details** | Internal data structures | Unstable |
+| **Debugging output** | `ToString()` format | Unstable |
+| **Exception messages** | Error message text | Unstable |
 
 ---
 
@@ -153,16 +153,16 @@ public T Value => ...
 
 | Change Type | Breaking? | Requires Major Version? |
 |-------------|-----------|------------------------|
-| Removing public type | ✅ Yes | ✅ Yes |
-| Removing public method | ✅ Yes | ✅ Yes |
-| Changing method signature | ✅ Yes | ✅ Yes |
-| Changing behavior | ✅ Yes | ✅ Yes |
-| Adding required parameter | ✅ Yes | ✅ Yes |
-| Adding new type | ❌ No | ❌ No |
-| Adding new method | ❌ No | ❌ No |
-| Adding optional parameter | ❌ No | ❌ No |
-| Bug fix (unintended behavior) | ⚠️ Maybe | ❌ No |
-| Performance optimization | ❌ No | ❌ No |
+| Removing public type | Yes | Yes |
+| Removing public method | Yes | Yes |
+| Changing method signature | Yes | Yes |
+| Changing behavior | Yes | Yes |
+| Adding required parameter | Yes | Yes |
+| Adding new type | No | No |
+| Adding new method | No | No |
+| Adding optional parameter | No | No |
+| Bug fix (unintended behavior) | Maybe | No |
+| Performance optimization | No | No |
 
 ### Breaking Change Documentation
 
@@ -177,7 +177,7 @@ Example CHANGELOG entry:
 ```markdown
 ## [3.0.0] - 2025-06-01
 
-### ⚠️ Breaking Changes
+### Breaking Changes
 
 - **BREAKING**: Removed `Option<T>.Value` property
   - Use `UnwrapOr(default)` or `Match(some: v => v, none: () => default)` instead
@@ -289,8 +289,8 @@ All Monad.NET packages share the same version number:
 
 | Monad.NET | .NET 6.0 | .NET 7.0 | .NET 8.0 | .NET 9.0 |
 |-----------|----------|----------|----------|----------|
-| 1.x | ✅ | ✅ | ✅ | ✅ |
-| 2.x | ✅ | ✅ | ✅ | ✅ |
+| 1.x | Yes | Yes | Yes | Yes |
+| 2.x | Yes | Yes | Yes | Yes |
 
 ---
 

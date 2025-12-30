@@ -411,6 +411,53 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
     }
 
     /// <summary>
+    /// Filters the Right value based on a predicate. Returns Left if the predicate returns false.
+    /// </summary>
+    /// <param name="predicate">The predicate to test the Right value against.</param>
+    /// <param name="leftValue">The Left value to return if the predicate returns false.</param>
+    /// <returns>The original Either if Right and predicate is true; otherwise Left.</returns>
+    /// <example>
+    /// <code>
+    /// var either = Either&lt;string, int&gt;.Right(42);
+    /// either.FilterRight(x => x > 40, "Value too small"); // Right(42)
+    /// either.FilterRight(x => x > 50, "Value too small"); // Left("Value too small")
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Either<TLeft, TRight> FilterRight(Func<TRight, bool> predicate, TLeft leftValue)
+    {
+        ThrowHelper.ThrowIfNull(predicate);
+        return _isRight && predicate(_right!) ? this : Left(leftValue);
+    }
+
+    /// <summary>
+    /// Filters the Right value based on a predicate. Returns Left if the predicate returns false.
+    /// </summary>
+    /// <param name="predicate">The predicate to test the Right value against.</param>
+    /// <param name="leftFactory">A function that creates the Left value if the predicate returns false.</param>
+    /// <returns>The original Either if Right and predicate is true; otherwise Left.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Either<TLeft, TRight> FilterRight(Func<TRight, bool> predicate, Func<TLeft> leftFactory)
+    {
+        ThrowHelper.ThrowIfNull(predicate);
+        ThrowHelper.ThrowIfNull(leftFactory);
+        return _isRight && predicate(_right!) ? this : Left(leftFactory());
+    }
+
+    /// <summary>
+    /// Filters the Left value based on a predicate. Returns Right if the predicate returns false.
+    /// </summary>
+    /// <param name="predicate">The predicate to test the Left value against.</param>
+    /// <param name="rightValue">The Right value to return if the predicate returns false.</param>
+    /// <returns>The original Either if Left and predicate is true; otherwise Right.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Either<TLeft, TRight> FilterLeft(Func<TLeft, bool> predicate, TRight rightValue)
+    {
+        ThrowHelper.ThrowIfNull(predicate);
+        return !_isRight && predicate(_left!) ? this : Right(rightValue);
+    }
+
+    /// <summary>
     /// Binds the Right value if it exists.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

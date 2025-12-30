@@ -293,7 +293,7 @@ If you have questions about contributing, feel free to:
 - Start a GitHub Discussion
 - Reach out to the maintainer
 
-Thank you for contributing! 🎉
+Thank you for contributing!
 
 ---
 

@@ -278,6 +278,8 @@ user.Match(
 );
 ```
 
+> **Important:** LINQ query syntax (`from...select`) on Validation **short-circuits** on the first error. Use `Apply()` or `Zip()` to accumulate all errors.
+
 ### Discriminated Unions — Type-safe alternatives
 
 ```csharp
@@ -317,11 +319,11 @@ var area = shape.Match(
 
 ---
 
-## Samples
+## Examples
 
-The `examples/` folder contains runnable samples:
+The `examples/` folder contains a comprehensive example application:
 
-- `examples/Monad.NET.Samples` — Console app demonstrating Option, Result, Validation, Writer, RemoteData, and IO.
+- `examples/Monad.NET.Examples` — Interactive console app demonstrating all monad types with real-world patterns.
 
 ---
 
@@ -386,6 +388,22 @@ Want to dive deeper into functional programming and these patterns?
 2. **Making Illegal States Unrepresentable** — Use types to prevent bugs at compile time
 3. **Parse, Don't Validate** — Push validation to the boundaries, work with valid types internally
 4. **Composition over Inheritance** — Small, focused types that combine well
+
+---
+
+## When NOT to Use Monad.NET
+
+Monad.NET is not always the right choice. Here's when to stick with native C#:
+
+| Scenario | Recommendation |
+|----------|----------------|
+| Simple null checks | Use `??`, `?.`, and nullable reference types |
+| Exceptional failures (IO, network) | Use exceptions — they're designed for this |
+| Performance-critical hot loops | Avoid lambda allocations; use traditional control flow |
+| Team unfamiliar with FP concepts | Consider the learning curve before adoption |
+| Simple CRUD operations | Often overkill; use when composition benefits outweigh complexity |
+
+**Good rule of thumb:** If you're writing `if (x != null) { ... }` once, use nullable. If you're chaining multiple such checks, use `Option`.
 
 ---
 

@@ -385,10 +385,10 @@ public IActionResult CreateUser(CreateUserRequest request)
 
 New to functional programming patterns? These resources will help:
 
-- 📖 [Functional Programming in C#](https://www.manning.com/books/functional-programming-in-c-sharp-second-edition) by Enrico Buonanno
-- 🎥 [Railway Oriented Programming](https://fsharpforfunandprofit.com/rop/) by Scott Wlaschin
-- 📝 [Parse, Don't Validate](https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/) by Alexis King
-- 📚 [Rust Error Handling](https://doc.rust-lang.org/book/ch09-00-error-handling.html) — Rust's `Option` and `Result` are nearly identical
+- [Functional Programming in C#](https://www.manning.com/books/functional-programming-in-c-sharp-second-edition) by Enrico Buonanno
+- [Railway Oriented Programming](https://fsharpforfunandprofit.com/rop/) by Scott Wlaschin
+- [Parse, Don't Validate](https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/) by Alexis King
+- [Rust Error Handling](https://doc.rust-lang.org/book/ch09-00-error-handling.html) — Rust's `Option` and `Result` are nearly identical
 
 ---
 

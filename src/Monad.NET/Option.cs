@@ -10,6 +10,21 @@ namespace Monad.NET;
 /// This is inspired by Rust's Option&lt;T&gt; type.
 /// </summary>
 /// <typeparam name="T">The type of the value</typeparam>
+/// <remarks>
+/// <para>
+/// Use <see cref="Option{T}"/> when a value may or may not exist, as an alternative to null.
+/// This forces explicit handling of the absent case at compile time.
+/// </para>
+/// <para>
+/// For error handling with typed errors, consider <see cref="Result{T,TErr}"/> instead.
+/// For validation with multiple errors, use <see cref="Validation{T,TErr}"/>.
+/// For exception-throwing code, wrap with <see cref="Try{T}"/>.
+/// </para>
+/// </remarks>
+/// <seealso cref="Result{T,TErr}"/>
+/// <seealso cref="Validation{T,TErr}"/>
+/// <seealso cref="Try{T}"/>
+/// <seealso cref="OptionExtensions"/>
 [Serializable]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DebuggerTypeProxy(typeof(OptionDebugView<>))]
@@ -1398,70 +1413,6 @@ public static class OptionExtensions
     #endregion
 }
 
-/// <summary>
-/// Helper class for throwing exceptions without inlining the throw site.
-/// This keeps hot paths small and improves JIT optimization.
-/// </summary>
-internal static class ThrowHelper
-{
-    /// <summary>
-    /// Throws <see cref="ArgumentNullException"/> if <paramref name="argument"/> is null.
-    /// Cross-platform polyfill for ThrowHelper.ThrowIfNull.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void ThrowIfNull(
-#if NET6_0_OR_GREATER
-        [System.Diagnostics.CodeAnalysis.NotNull]
-#endif
-        object? argument,
-#if NET6_0_OR_GREATER
-        [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(argument))]
-#endif
-        string? paramName = null)
-    {
-#if NET6_0_OR_GREATER
-        ArgumentNullException.ThrowIfNull(argument, paramName);
-#else
-        if (argument is null)
-            ThrowArgumentNull(paramName ?? "argument");
-#endif
-    }
-
-    [DoesNotReturn]
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    public static void ThrowInvalidOperation(string message)
-    {
-        throw new InvalidOperationException(message);
-    }
-
-    [DoesNotReturn]
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    public static void ThrowArgumentNull(string paramName)
-    {
-        throw new ArgumentNullException(paramName);
-    }
-
-    [DoesNotReturn]
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    public static void ThrowArgumentNull(string paramName, string message)
-    {
-        throw new ArgumentNullException(paramName, message);
-    }
-
-    [DoesNotReturn]
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    public static void ThrowArgumentOutOfRange(string paramName, string message)
-    {
-        throw new ArgumentOutOfRangeException(paramName, message);
-    }
-
-    [DoesNotReturn]
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    public static void ThrowArgument(string paramName, string message)
-    {
-        throw new ArgumentException(message, paramName);
-    }
-}
 
 /// <summary>
 /// Debug view proxy for <see cref="Option{T}"/> to provide a better debugging experience.

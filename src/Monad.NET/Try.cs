@@ -10,6 +10,19 @@ namespace Monad.NET;
 /// All exceptions are captured and can be recovered from.
 /// </summary>
 /// <typeparam name="T">The type of the success value</typeparam>
+/// <remarks>
+/// <para>
+/// Use <see cref="Try{T}"/> to wrap code that throws exceptions, converting them to recoverable values.
+/// This is useful for integrating with legacy code or external libraries that use exceptions.
+/// </para>
+/// <para>
+/// For typed errors without exceptions, prefer <see cref="Result{T,TErr}"/>.
+/// For simple presence/absence, use <see cref="Option{T}"/>.
+/// </para>
+/// </remarks>
+/// <seealso cref="Result{T,TErr}"/>
+/// <seealso cref="Option{T}"/>
+/// <seealso cref="TryExtensions"/>
 [Serializable]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DebuggerTypeProxy(typeof(TryDebugView<>))]
@@ -96,6 +109,26 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>, ICompar
         try
         {
             return Success(await func().ConfigureAwait(false));
+        }
+        catch (Exception ex)
+        {
+            return Failure(ex);
+        }
+    }
+
+    /// <summary>
+    /// Executes an async function with cancellation support and captures any exception.
+    /// </summary>
+    public static async Task<Try<T>> OfAsync(Func<CancellationToken, Task<T>> func, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return Success(await func(cancellationToken).ConfigureAwait(false));
+        }
+        catch (OperationCanceledException)
+        {
+            throw; // Re-throw cancellation
         }
         catch (Exception ex)
         {
@@ -907,6 +940,72 @@ public static class TryExtensions
             return Try<U>.Failure(ex);
         }
     }
+
+    // ============================================================================
+    // CancellationToken Overloads
+    // ============================================================================
+
+    /// <summary>
+    /// Maps the value with an async function with cancellation support.
+    /// </summary>
+    public static async Task<Try<U>> MapAsync<T, U>(
+        this Try<T> @try,
+        Func<T, CancellationToken, Task<U>> mapper,
+        CancellationToken cancellationToken = default)
+    {
+        if (!@try.IsSuccess)
+            return Try<U>.Failure(@try.GetException());
+
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var result = await mapper(@try.Get(), cancellationToken).ConfigureAwait(false);
+            return Try<U>.Success(result);
+        }
+        catch (OperationCanceledException)
+        {
+            throw; // Re-throw cancellation
+        }
+        catch (Exception ex)
+        {
+            return Try<U>.Failure(ex);
+        }
+    }
+
+    /// <summary>
+    /// Chains an async operation with cancellation support.
+    /// </summary>
+    public static async Task<Try<U>> FlatMapAsync<T, U>(
+        this Try<T> @try,
+        Func<T, CancellationToken, Task<Try<U>>> binder,
+        CancellationToken cancellationToken = default)
+    {
+        if (!@try.IsSuccess)
+            return Try<U>.Failure(@try.GetException());
+
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return await binder(@try.Get(), cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            throw; // Re-throw cancellation
+        }
+        catch (Exception ex)
+        {
+            return Try<U>.Failure(ex);
+        }
+    }
+
+    /// <summary>
+    /// Alias for FlatMapAsync with cancellation support.
+    /// </summary>
+    public static Task<Try<U>> AndThenAsync<T, U>(
+        this Try<T> @try,
+        Func<T, CancellationToken, Task<Try<U>>> binder,
+        CancellationToken cancellationToken = default)
+        => @try.FlatMapAsync(binder, cancellationToken);
 }
 
 /// <summary>
