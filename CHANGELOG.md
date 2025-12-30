@@ -9,6 +9,82 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.0] - 2025-12-30
+
+### Added
+
+#### Core Library Enhancements
+
+- **Result.Filter** - Filter Ok values with predicate
+  - `Filter(Func<T, bool> predicate, TErr error)` - Returns Err if predicate fails
+  - `Filter(Func<T, bool> predicate, Func<TErr> errorFactory)` - Lazy error creation
+  - `Filter(Func<T, bool> predicate, Func<T, TErr> errorFactory)` - Error from value
+
+- **Enhanced Async Extensions**
+  - New async combinators for `Result<T, E>` in `ResultAsync.cs`
+  - New async combinators for `Option<T>` in `OptionAsync.cs`
+
+- **Option Parsing Methods** - Type-safe parsing without exceptions
+  - `Option.ParseInt`, `Option.ParseLong`, `Option.ParseDouble`, etc.
+  - `Option.ParseGuid`, `Option.ParseDateTime`, `Option.ParseEnum<T>`
+  - `ReadOnlySpan<char>` overloads for high-performance parsing
+
+- **New Methods on Either, Try, Validation**
+  - Additional combinators and convenience methods
+  - Enhanced XML documentation with cross-references
+
+#### Analyzers
+
+- **MONAD010: EmptyMatchBranchAnalyzer** - Detects empty match branches
+- **MONAD011: MissingConfigureAwaitAnalyzer** - Ensures ConfigureAwait usage
+- **MONAD012: PreferMatchAnalyzer** - Suggests Match over if/else patterns
+- **MONAD013: SomeWithPotentialNullAnalyzer** - Warns about potential null in Some()
+- **MONAD014: ValidationLinqAnalyzer** - Warns about LINQ short-circuiting in Validation
+
+#### Source Generators
+
+- **Enhanced Union Diagnostics** - Better error messages for union generation
+- **Improved Union Generator** - More robust code generation
+
+#### Documentation
+
+- **New Guides**
+  - `docs/Guides/Analyzers.md` - Complete analyzer documentation
+  - `docs/Guides/Recipes.md` - Common patterns and recipes
+
+- **Improved Documentation**
+  - Enhanced XML documentation with `<seealso>` cross-references
+  - Fixed broken documentation links
+
+#### Examples
+
+- **Restructured Example Project** - Organized by monad type
+  - Individual example files for each monad (Option, Result, Either, etc.)
+  - New real-world scenario examples
+  - Async pipeline examples
+
+#### Tests
+
+- **New Test Suites**
+  - `ApiContractTests` - Ensures API stability
+  - `BehavioralContractTests` - Validates expected behaviors
+  - `MonadLawsTests` - Property-based monad law verification
+- **Test Organization** - Reorganized tests into logical folders
+
+### Fixed
+
+- **Benchmark Data Flow Issues** - Fixed monadic pipeline benchmarks that incorrectly used static fields instead of threading data through the pipeline
+- **RetryWithBackoff Off-by-One** - Fixed retry function that performed an extra attempt without backoff delay
+- **RetryWithBackoff Edge Case** - Added guard for `maxRetries <= 0` to prevent invalid state
+- **Documentation Links** - Fixed broken anchor and file path links in README and docs
+
+### Changed
+
+- **Internal Refactoring** - Moved `ThrowHelper` to dedicated file for better organization
+- **Benchmark Improvements** - More accurate real-world comparison benchmarks
+
+---
+
 ## [1.0.0] - 2025-12-28
 
 ### First Stable Release
