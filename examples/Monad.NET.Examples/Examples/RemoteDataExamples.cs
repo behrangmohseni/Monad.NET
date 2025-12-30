@@ -9,14 +9,14 @@ public static class RemoteDataExamples
     public static void Run()
     {
         Console.WriteLine("RemoteData<T, E> tracks async data: NotAsked, Loading, Success, Failure.\n");
-        
+
         // The four states
         Console.WriteLine("1. The Four States:");
         var notAsked = RemoteData<string, string>.NotAsked();
         var loading = RemoteData<string, string>.Loading();
         var success = RemoteData<string, string>.Success("Data loaded!");
         var failure = RemoteData<string, string>.Failure("Network error");
-        
+
         Console.WriteLine($"   NotAsked: {notAsked}");
         Console.WriteLine($"   Loading:  {loading}");
         Console.WriteLine($"   Success:  {success}");
@@ -78,7 +78,7 @@ public static class RemoteDataExamples
         Console.WriteLine("\n10. Dashboard Widget Pattern:");
         var widgetData = RemoteData<DashboardData, string>.Success(
             new DashboardData(Users: 1500, Revenue: 50000m, Growth: 12.5));
-        
+
         var widgetOutput = widgetData.Match(
             notAskedFunc: () => "[Click to load]",
             loadingFunc: () => "[Loading...]",
@@ -103,10 +103,10 @@ public static class RemoteDataExamples
     {
         var state = RemoteData<string, string>.NotAsked();
         Console.WriteLine($"   Initial:     {GetStateName(state)}");
-        
+
         state = RemoteData<string, string>.Loading();
         Console.WriteLine($"   After click: {GetStateName(state)}");
-        
+
         state = RemoteData<string, string>.Success("API Response");
         Console.WriteLine($"   After load:  {GetStateName(state)}");
     }

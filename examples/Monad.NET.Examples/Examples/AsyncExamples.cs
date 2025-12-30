@@ -9,7 +9,7 @@ public static class AsyncExamples
     public static async Task RunAsync()
     {
         Console.WriteLine("Async operations integrate seamlessly with monads.\n");
-        
+
         // Async Option mapping
         Console.WriteLine("1. Async Option Mapping:");
         var asyncOption = await Option<int>.Some(42)
@@ -101,9 +101,9 @@ public static class AsyncExamples
     {
         var userTask = FetchUserAsync();
         var ordersTask = FetchOrderCountAsync();
-        
+
         await Task.WhenAll(userTask, ordersTask);
-        
+
         return (await userTask, await ordersTask);
     }
 
@@ -123,7 +123,7 @@ public static class AsyncExamples
     {
         var user = await FetchUserAsync();
         var orders = await FetchOrderCountAsync();
-        
+
         return user.Zip(orders)
             .Map(t => $"{t.Item1} has {t.Item2} orders");
     }
@@ -132,7 +132,7 @@ public static class AsyncExamples
     {
         // Simulate primary API failure
         var primary = await SimulateFailingApi();
-        
+
         // Recover with fallback
         return await primary.OrElseAsync(async err =>
         {

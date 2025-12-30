@@ -9,7 +9,7 @@ public static class IOExamples
     public static void Run()
     {
         Console.WriteLine("IO<T> defers side effects - compose now, execute later.\n");
-        
+
         // Creating IO
         Console.WriteLine("1. Creating IO:");
         var pureValue = IO.Pure(42);

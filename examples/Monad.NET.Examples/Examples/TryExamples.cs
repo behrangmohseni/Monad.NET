@@ -9,7 +9,7 @@ public static class TryExamples
     public static void Run()
     {
         Console.WriteLine("Try<T> captures exceptions and makes error handling explicit.\n");
-        
+
         // Creating Try values
         Console.WriteLine("1. Creating Try Values:");
         var success = Try<int>.Success(42);
@@ -50,9 +50,9 @@ public static class TryExamples
         var recovered = failed.Recover(ex => -1);
         Console.WriteLine($"   Recover with default: {recovered}");
 
-        var recoveredWith = failed.RecoverWith(ex => 
-            ex is FormatException 
-                ? Try<int>.Success(0) 
+        var recoveredWith = failed.RecoverWith(ex =>
+            ex is FormatException
+                ? Try<int>.Success(0)
                 : Try<int>.Failure(ex));
         Console.WriteLine($"   RecoverWith: {recoveredWith}");
 
@@ -94,7 +94,8 @@ public static class TryExamples
         var retried = RetryWithBackoff(() =>
         {
             attempt++;
-            if (attempt < 3) throw new TimeoutException("Timeout");
+            if (attempt < 3)
+                throw new TimeoutException("Timeout");
             return "Success on attempt " + attempt;
         }, maxRetries: 5);
         Console.WriteLine($"   Retry result: {retried}");
@@ -102,14 +103,16 @@ public static class TryExamples
 
     private static Try<T> RetryWithBackoff<T>(Func<T> operation, int maxRetries = 3)
     {
+        Try<T> lastResult = default!;
         for (int i = 0; i < maxRetries; i++)
         {
-            var result = Try<T>.Of(operation);
-            if (result.IsSuccess) return result;
+            lastResult = Try<T>.Of(operation);
+            if (lastResult.IsSuccess)
+                return lastResult;
             if (i < maxRetries - 1)
                 Thread.Sleep((int)Math.Pow(2, i) * 50);
         }
-        return Try<T>.Of(operation);
+        return lastResult;
     }
 }
 

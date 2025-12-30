@@ -77,8 +77,12 @@ public class AsyncPipelineBenchmarks
     public async Task<Option<string>> Option_SimpleAsyncChain()
     {
         return await GetUserOptionAsync(1)
-            .AndThenAsync(user => GetOrderOptionAsync(user.Id))
-            .MapAsync(order => $"Order {order.Id} for User");
+            .AndThenAsync(async user =>
+            {
+                var order = await GetOrderOptionAsync(user.Id);
+                return order.Map(o => (user, o));
+            })
+            .MapAsync(x => $"Order {x.o.Id} for {x.user.Name}");
     }
 
     [Benchmark]
@@ -86,8 +90,12 @@ public class AsyncPipelineBenchmarks
     public async Task<Result<string, string>> Result_SimpleAsyncChain()
     {
         return await GetUserResultAsync(1)
-            .AndThenAsync(user => GetOrderResultAsync(user.Id))
-            .MapAsync(order => $"Order {order.Id} for User");
+            .AndThenAsync(async user =>
+            {
+                var orderResult = await GetOrderResultAsync(user.Id);
+                return orderResult.Map(o => (user, o));
+            })
+            .MapAsync(x => $"Order {x.o.Id} for {x.user.Name}");
     }
 
     #endregion

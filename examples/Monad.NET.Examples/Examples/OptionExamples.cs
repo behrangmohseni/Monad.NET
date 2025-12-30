@@ -9,7 +9,7 @@ public static class OptionExamples
     public static void Run()
     {
         Console.WriteLine("Option<T> provides explicit null handling - no more NullReferenceExceptions!\n");
-        
+
         // Creating Options
         Console.WriteLine("1. Creating Options:");
         var some = Option<int>.Some(42);
@@ -51,7 +51,7 @@ public static class OptionExamples
         // Chaining with AndThen (FlatMap)
         Console.WriteLine("\n6. Chaining with AndThen:");
         Option<string> GetEmailDomain(string email) =>
-            email.Contains('@') 
+            email.Contains('@')
                 ? Option<string>.Some(email.Split('@')[1])
                 : Option<string>.None();
 

@@ -9,7 +9,7 @@ public static class CollectionExamples
     public static void Run()
     {
         Console.WriteLine("Collection extensions bridge collections with monads.\n");
-        
+
         // Sequence - all or nothing
         Console.WriteLine("1. Sequence (all Some -> Some of list):");
         var allSome = new[] { Option<int>.Some(1), Option<int>.Some(2), Option<int>.Some(3) };
@@ -128,7 +128,7 @@ public static class CollectionExamples
             int.TryParse(id, out var numId) && numId > 0
                 ? Result<string, string>.Ok($"User-{numId}")
                 : Result<string, string>.Err(id));
-        
+
         return results.Partition();
     }
 }

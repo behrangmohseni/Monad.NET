@@ -11,7 +11,7 @@ public static class ReaderExamples
     public static void Run()
     {
         Console.WriteLine("Reader<R, A> provides dependency injection in a functional way.\n");
-        
+
         // Setup configuration
         var config = new AppConfig(
             AppName: "MyApp",
@@ -53,7 +53,7 @@ public static class ReaderExamples
         // FlatMap for composing
         Console.WriteLine("\n6. FlatMap (compose readers):");
         var composed = Reader<AppConfig, string>.Asks(c => c.AppName)
-            .FlatMap(name => Reader<AppConfig, string>.Asks(c => 
+            .FlatMap(name => Reader<AppConfig, string>.Asks(c =>
                 $"{name} v1.0 (retries: {c.MaxRetries})"));
         Console.WriteLine($"   Composed: {composed.Run(config)}");
 

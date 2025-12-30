@@ -43,30 +43,30 @@ else
     while (true)
     {
         Console.WriteLine("Select an example to run:\n");
-        
+
         for (int i = 0; i < examples.Length; i++)
         {
             Console.WriteLine($"  {i + 1,2}. {examples[i].Name}");
         }
-        
+
         Console.WriteLine($"  {examples.Length + 1,2}. Run All Examples");
         Console.WriteLine($"   0. Exit\n");
-        
+
         Console.Write("Enter choice: ");
         var input = Console.ReadLine();
-        
+
         if (!int.TryParse(input, out var choice))
         {
             Console.WriteLine("\nInvalid input. Please enter a number.\n");
             continue;
         }
-        
+
         if (choice == 0)
         {
             Console.WriteLine("\nGoodbye!");
             break;
         }
-        
+
         if (choice == examples.Length + 1)
         {
             // Run all examples
@@ -88,7 +88,7 @@ else
         {
             Console.WriteLine("\nInvalid choice. Please try again.\n");
         }
-        
+
         Console.WriteLine();
     }
 }
@@ -100,7 +100,7 @@ void RunExample(int idx)
     Console.WriteLine($"  {examples[idx].Name}");
     Console.WriteLine($"═══════════════════════════════════════════════════════════════");
     Console.WriteLine();
-    
+
     try
     {
         examples[idx].Run();
@@ -109,6 +109,6 @@ void RunExample(int idx)
     {
         Console.WriteLine($"Error running example: {ex.Message}");
     }
-    
+
     Console.WriteLine();
 }

@@ -11,7 +11,7 @@ public static class ValidationExamples
     public static void Run()
     {
         Console.WriteLine("Validation<T, E> accumulates ALL errors instead of stopping at the first.\n");
-        
+
         // Creating Validations
         Console.WriteLine("1. Creating Validations:");
         var valid = Validation<int, string>.Valid(42);
@@ -35,7 +35,7 @@ public static class ValidationExamples
         var userValidation = ValidateName("")
             .Apply(ValidateEmail("invalid"), (n, e) => (Name: n, Email: e))
             .Apply(ValidateAge(-5), (partial, age) => new UserDto(partial.Name, partial.Email, age));
-        
+
         userValidation.Match(
             validAction: user => Console.WriteLine($"   Valid: {user}"),
             invalidAction: errors => Console.WriteLine($"   Errors: {string.Join("; ", errors)}")
@@ -112,7 +112,7 @@ public static class ValidationExamples
         var result = ValidateName(name)
             .Apply(ValidateEmail(email), (n, e) => (n, e))
             .Apply(ValidateAge(age), (x, a) => new UserDto(x.n, x.e, a));
-        
+
         result.Match(
             validAction: user => Console.WriteLine($"   Form valid: {user.Name}, {user.Email}, Age {user.Age}"),
             invalidAction: errors => Console.WriteLine($"   Form errors: [{string.Join(", ", errors)}]")

@@ -25,28 +25,28 @@ public sealed class SomeWithPotentialNullAnalyzer : DiagnosticAnalyzer
     private static void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
     {
         var invocation = (InvocationExpressionSyntax)context.Node;
-        
+
         // Check if this is a call to Option.Some() or Option<T>.Some()
         if (!IsSomeCall(invocation, context.SemanticModel))
         {
             return;
         }
-        
+
         // Get the argument
         if (invocation.ArgumentList.Arguments.Count != 1)
         {
             return;
         }
-        
+
         var argument = invocation.ArgumentList.Arguments[0].Expression;
-        
+
         // Check if the argument might be null
         if (MightBeNull(argument, context.SemanticModel))
         {
             var diagnostic = Diagnostic.Create(
                 DiagnosticDescriptors.SomeWithPotentialNull,
                 invocation.GetLocation());
-            
+
             context.ReportDiagnostic(diagnostic);
         }
     }
@@ -56,14 +56,14 @@ public sealed class SomeWithPotentialNullAnalyzer : DiagnosticAnalyzer
         // Match patterns like:
         // - Option<T>.Some(value)
         // - Option.Some(value)
-        
+
         if (invocation.Expression is MemberAccessExpressionSyntax memberAccess)
         {
             if (memberAccess.Name.Identifier.Text != "Some")
             {
                 return false;
             }
-            
+
             // Check if the type is Option or Option<T>
             var symbolInfo = semanticModel.GetSymbolInfo(memberAccess);
             if (symbolInfo.Symbol is IMethodSymbol methodSymbol)
@@ -75,7 +75,7 @@ public sealed class SomeWithPotentialNullAnalyzer : DiagnosticAnalyzer
                 }
             }
         }
-        
+
         return false;
     }
 
@@ -91,7 +91,7 @@ public sealed class SomeWithPotentialNullAnalyzer : DiagnosticAnalyzer
             // Non-null literals are safe
             return false;
         }
-        
+
         // Check for default expressions - default(string), default, etc.
         if (expression is DefaultExpressionSyntax)
         {
@@ -101,8 +101,8 @@ public sealed class SomeWithPotentialNullAnalyzer : DiagnosticAnalyzer
                 return true;
             }
         }
-        
-        if (expression is LiteralExpressionSyntax defaultLiteral && 
+
+        if (expression is LiteralExpressionSyntax defaultLiteral &&
             defaultLiteral.IsKind(SyntaxKind.DefaultLiteralExpression))
         {
             var typeInfo = semanticModel.GetTypeInfo(expression);
@@ -111,20 +111,20 @@ public sealed class SomeWithPotentialNullAnalyzer : DiagnosticAnalyzer
                 return true;
             }
         }
-        
+
         // Check nullable annotations
         var exprTypeInfo = semanticModel.GetTypeInfo(expression);
         if (exprTypeInfo.Nullability.FlowState == NullableFlowState.MaybeNull)
         {
             return true;
         }
-        
+
         // Check for nullable reference type annotations on the type itself
         if (exprTypeInfo.Type is { IsReferenceType: true, NullableAnnotation: NullableAnnotation.Annotated })
         {
             return true;
         }
-        
+
         // Check for method return values that might be null
         if (expression is InvocationExpressionSyntax invocation)
         {
@@ -136,7 +136,7 @@ public sealed class SomeWithPotentialNullAnalyzer : DiagnosticAnalyzer
                 {
                     return true;
                 }
-                
+
                 // Check for methods known to return null (like FirstOrDefault, etc.)
                 var methodName = methodSymbol.Name;
                 if (methodName.EndsWith("OrDefault", StringComparison.Ordinal) ||
@@ -146,7 +146,7 @@ public sealed class SomeWithPotentialNullAnalyzer : DiagnosticAnalyzer
                 }
             }
         }
-        
+
         // Check for identifier references to nullable variables
         if (expression is IdentifierNameSyntax identifier)
         {
@@ -180,7 +180,7 @@ public sealed class SomeWithPotentialNullAnalyzer : DiagnosticAnalyzer
                 }
             }
         }
-        
+
         // Check for member access that might return null
         if (expression is MemberAccessExpressionSyntax memberAccess)
         {
@@ -200,28 +200,28 @@ public sealed class SomeWithPotentialNullAnalyzer : DiagnosticAnalyzer
                 }
             }
         }
-        
+
         // Check for conditional access (?.) which implies nullable
         if (expression is ConditionalAccessExpressionSyntax)
         {
             return true;
         }
-        
+
         // Check for null-coalescing (??) right operand
-        if (expression is BinaryExpressionSyntax binary && 
+        if (expression is BinaryExpressionSyntax binary &&
             binary.IsKind(SyntaxKind.CoalesceExpression))
         {
             // The result of ?? might still be null if the right side is null
             return MightBeNull(binary.Right, semanticModel);
         }
-        
+
         // Check for as-expression (always nullable)
-        if (expression is BinaryExpressionSyntax asBinary && 
+        if (expression is BinaryExpressionSyntax asBinary &&
             asBinary.IsKind(SyntaxKind.AsExpression))
         {
             return true;
         }
-        
+
         // Check for cast to nullable type
         if (expression is CastExpressionSyntax cast)
         {
@@ -231,7 +231,7 @@ public sealed class SomeWithPotentialNullAnalyzer : DiagnosticAnalyzer
                 return true;
             }
         }
-        
+
         return false;
     }
 }

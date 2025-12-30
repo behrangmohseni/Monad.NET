@@ -11,14 +11,14 @@ public static class ErrorUnionExamples
     public static void Run()
     {
         Console.WriteLine("ErrorUnion generates typed error matching for Result<T, TError>.\n");
-        
+
         // Creating Results with typed errors
         Console.WriteLine("1. Creating Results with Typed Errors:");
         var success = GetUser(Guid.NewGuid());
         var notFound = GetUser(Guid.Empty);
         var invalidEmail = ValidateEmail("bad-email");
         var unauthorized = CheckPermissions(false);
-        
+
         Console.WriteLine($"   Success:      {success}");
         Console.WriteLine($"   NotFound:     {notFound}");
         Console.WriteLine($"   InvalidEmail: {invalidEmail}");
@@ -107,7 +107,7 @@ public static class ErrorUnionExamples
     {
         if (id == Guid.Empty)
             return UserError.NewNotFound(id).ToResult<User>();
-        
+
         return Result<User, UserError>.Ok(
             new User($"user-{id:N}@example.com", "John", "Doe", 25));
     }
@@ -116,7 +116,7 @@ public static class ErrorUnionExamples
     {
         if (!email.Contains('@'))
             return UserError.NewInvalidEmail(email).ToResult<User>();
-        
+
         return Result<User, UserError>.Ok(
             new User(email, "Valid", "User", 30));
     }
@@ -125,7 +125,7 @@ public static class ErrorUnionExamples
     {
         if (!hasPermission)
             return UserError.NewUnauthorized().ToResult<User>();
-        
+
         return Result<User, UserError>.Ok(
             new User("admin@example.com", "Admin", "User", 35));
     }

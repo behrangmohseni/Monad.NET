@@ -105,7 +105,7 @@ public static class OptionParse
     /// <param name="ignoreCase">Whether to ignore case when parsing. Default is true.</param>
     /// <returns>Some containing the parsed enum if successful; otherwise None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Option<TEnum> Enum<TEnum>(string? value, bool ignoreCase = true) where TEnum : struct, Enum 
+    public static Option<TEnum> Enum<TEnum>(string? value, bool ignoreCase = true) where TEnum : struct, Enum
         => value.ParseEnum<TEnum>(ignoreCase);
 
 #if NET6_0_OR_GREATER
@@ -159,7 +159,7 @@ public static class OptionFrom
     /// <param name="value">The nullable value.</param>
     /// <returns>Some if value has a value; otherwise None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Option<T> Nullable<T>(T? value) where T : struct 
+    public static Option<T> Nullable<T>(T? value) where T : struct
         => value.ToOption();
 
     /// <summary>
@@ -169,7 +169,7 @@ public static class OptionFrom
     /// <param name="value">The nullable value.</param>
     /// <returns>Some if value is not null; otherwise None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Option<T> Nullable<T>(T? value) where T : class 
+    public static Option<T> Nullable<T>(T? value) where T : class
         => value.ToOption();
 
     /// <summary>
@@ -178,7 +178,7 @@ public static class OptionFrom
     /// <param name="value">The string value.</param>
     /// <returns>Some if string is not null or empty; otherwise None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Option<string> String(string? value) 
+    public static Option<string> String(string? value)
         => value.ToOptionNotEmpty();
 
     /// <summary>
@@ -187,7 +187,7 @@ public static class OptionFrom
     /// <param name="value">The string value.</param>
     /// <returns>Some if string has content; otherwise None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Option<string> NonWhiteSpace(string? value) 
+    public static Option<string> NonWhiteSpace(string? value)
         => value.ToOptionNotWhiteSpace();
 
     /// <summary>
@@ -196,7 +196,7 @@ public static class OptionFrom
     /// <param name="value">The string value.</param>
     /// <returns>Some containing trimmed string if not empty; otherwise None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Option<string> Trimmed(string? value) 
+    public static Option<string> Trimmed(string? value)
         => value.ToOptionTrimmed();
 
     /// <summary>
@@ -208,7 +208,7 @@ public static class OptionFrom
     /// <param name="key">The key to look up.</param>
     /// <returns>Some if key exists; otherwise None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Option<TValue> Dictionary<TKey, TValue>(IReadOnlyDictionary<TKey, TValue> dictionary, TKey key) 
+    public static Option<TValue> Dictionary<TKey, TValue>(IReadOnlyDictionary<TKey, TValue> dictionary, TKey key)
         => dictionary.GetOption(key);
 
     /// <summary>
@@ -219,7 +219,7 @@ public static class OptionFrom
     /// <param name="value">The value to wrap if condition is true.</param>
     /// <returns>Some containing value if condition is true; otherwise None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Option<T> When<T>(bool condition, T value) 
+    public static Option<T> When<T>(bool condition, T value)
         => OptionExtensions.When(condition, value);
 
     /// <summary>
@@ -230,7 +230,7 @@ public static class OptionFrom
     /// <param name="factory">The factory to create the value if condition is true.</param>
     /// <returns>Some containing factory result if condition is true; otherwise None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Option<T> When<T>(bool condition, Func<T> factory) 
+    public static Option<T> When<T>(bool condition, Func<T> factory)
         => OptionExtensions.When(condition, factory);
 
     /// <summary>
@@ -241,7 +241,7 @@ public static class OptionFrom
     /// <param name="value">The value to wrap if condition is false.</param>
     /// <returns>Some containing value if condition is false; otherwise None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Option<T> Unless<T>(bool condition, T value) 
+    public static Option<T> Unless<T>(bool condition, T value)
         => OptionExtensions.Unless(condition, value);
 
     /// <summary>
@@ -252,7 +252,7 @@ public static class OptionFrom
     /// <param name="factory">The factory to create the value if condition is false.</param>
     /// <returns>Some containing factory result if condition is false; otherwise None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Option<T> Unless<T>(bool condition, Func<T> factory) 
+    public static Option<T> Unless<T>(bool condition, Func<T> factory)
         => OptionExtensions.Unless(condition, factory);
 }
 

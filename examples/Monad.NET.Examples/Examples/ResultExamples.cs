@@ -9,7 +9,7 @@ public static class ResultExamples
     public static void Run()
     {
         Console.WriteLine("Result<T, E> provides typed error handling without exceptions!\n");
-        
+
         // Creating Results
         Console.WriteLine("1. Creating Results:");
         var ok = Result<int, string>.Ok(42);
@@ -82,7 +82,7 @@ public static class ResultExamples
 
     private static Result<double, string> Divide(double a, double b)
     {
-        return b == 0 
+        return b == 0
             ? Result<double, string>.Err("Division by zero")
             : Result<double, string>.Ok(a / b);
     }

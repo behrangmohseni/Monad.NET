@@ -19,10 +19,10 @@ public record Address(string City, string Country);
 /// Order data transfer object.
 /// </summary>
 public record OrderDto(
-    Guid Id, 
-    string CustomerId, 
-    string ProductId, 
-    int Quantity, 
+    Guid Id,
+    string CustomerId,
+    string ProductId,
+    int Quantity,
     decimal Total);
 
 /// <summary>

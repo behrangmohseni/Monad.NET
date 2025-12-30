@@ -16,7 +16,7 @@ public static class RealWorldExamples
         Console.WriteLine("1. Railway-Oriented Pipeline:");
         var orderResult = ProcessOrder("valid-customer", "product-123", 5);
         Console.WriteLine($"   Valid order:   {orderResult}");
-        
+
         var failedOrder = ProcessOrder("invalid", "product-123", 0);
         Console.WriteLine($"   Invalid order: {failedOrder}");
 
@@ -29,7 +29,7 @@ public static class RealWorldExamples
         Console.WriteLine("\n3. Safe Navigation:");
         var validOrder = new Order(new Customer(new Address("Seattle", "USA")));
         var nullCustomer = new Order(null);
-        
+
         Console.WriteLine($"   Valid order city: {GetOrderCity(validOrder)}");
         Console.WriteLine($"   Null customer:    {GetOrderCity(nullCustomer)}");
 
@@ -99,18 +99,18 @@ public static class RealWorldExamples
     }
 
     private static Result<string, string> ValidateCustomerId(string id) =>
-        id == "invalid" 
-            ? Result<string, string>.Err("Invalid customer") 
+        id == "invalid"
+            ? Result<string, string>.Err("Invalid customer")
             : Result<string, string>.Ok(id);
 
     private static Result<string, string> ValidateProductId(string id) =>
-        id.StartsWith("product-") 
-            ? Result<string, string>.Ok(id) 
+        id.StartsWith("product-")
+            ? Result<string, string>.Ok(id)
             : Result<string, string>.Err("Invalid product ID");
 
     private static Result<int, string> ValidateQuantity(int qty) =>
-        qty > 0 
-            ? Result<int, string>.Ok(qty) 
+        qty > 0
+            ? Result<int, string>.Ok(qty)
             : Result<int, string>.Err("Quantity must be positive");
 
     // Form validation
@@ -149,8 +149,8 @@ public static class RealWorldExamples
     private static Option<int> GetConfig(string key)
     {
         var configs = new Dictionary<string, int> { ["DEFAULT_TIMEOUT"] = 60 };
-        return configs.TryGetValue(key, out var value) 
-            ? Option<int>.Some(value) 
+        return configs.TryGetValue(key, out var value)
+            ? Option<int>.Some(value)
             : Option<int>.None();
     }
 
@@ -195,8 +195,8 @@ public static class RealWorldExamples
 
     // Dependent operations
     private static Result<string, string> ValidateCredentials(string user, string pass) =>
-        pass.Length >= 8 
-            ? Result<string, string>.Ok(user) 
+        pass.Length >= 8
+            ? Result<string, string>.Ok(user)
             : Result<string, string>.Err("Password too short");
 
     private static Result<string, string> GenerateToken(string user) =>

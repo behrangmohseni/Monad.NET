@@ -9,7 +9,7 @@ public static class WriterExamples
     public static void Run()
     {
         Console.WriteLine("Writer<W, T> accumulates logs alongside computations.\n");
-        
+
         // Creating Writer
         Console.WriteLine("1. Creating Writer:");
         var writer = Writer<string, int>.Tell(42, "Created value 42");
@@ -107,9 +107,9 @@ public static class WriterExamples
     private static Writer<List<string>, string> PerformBusinessOperation(string orderId, decimal amount)
     {
         var timestamp = DateTime.Now.ToString("HH:mm:ss");
-        
+
         return Writer<List<string>, string>.Tell(
-                orderId, 
+                orderId,
                 new List<string> { $"[{timestamp}] Started processing order {orderId}" })
             .FlatMap(
                 id => Writer<List<string>, string>.Tell(

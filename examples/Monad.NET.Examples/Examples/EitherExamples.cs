@@ -9,7 +9,7 @@ public static class EitherExamples
     public static void Run()
     {
         Console.WriteLine("Either<L, R> represents one of two possible values.\n");
-        
+
         // Creating Eithers
         Console.WriteLine("1. Creating Eithers:");
         var right = Either<string, int>.Right(42);
@@ -55,8 +55,8 @@ public static class EitherExamples
         // Chaining with AndThen
         Console.WriteLine("\n7. Chaining:");
         var chained = right
-            .AndThen(x => x > 10 
-                ? Either<string, int>.Right(x * 2) 
+            .AndThen(x => x > 10
+                ? Either<string, int>.Right(x * 2)
                 : Either<string, int>.Left("too small"));
         Console.WriteLine($"   Chained: {chained}");
 
@@ -64,12 +64,12 @@ public static class EitherExamples
         Console.WriteLine("\n8. Real-World: Cache vs Database:");
         var cached = Either<FreshData, CachedData>.Right(new CachedData("cached result", DateTime.Now.AddMinutes(-5)));
         var fromDb = Either<FreshData, CachedData>.Left(new FreshData("fresh from DB"));
-        
+
         string GetValue(Either<FreshData, CachedData> data) => data.Match(
             leftFunc: fresh => $"Fresh: {fresh.Value}",
             rightFunc: cache => $"Cached ({(DateTime.Now - cache.CachedAt).Minutes}m ago): {cache.Value}"
         );
-        
+
         Console.WriteLine($"   Cached: {GetValue(cached)}");
         Console.WriteLine($"   FromDB: {GetValue(fromDb)}");
 

@@ -9,7 +9,7 @@ public static class NonEmptyListExamples
     public static void Run()
     {
         Console.WriteLine("NonEmptyList<T> guarantees at least one element - no more empty checks!\n");
-        
+
         // Creating NonEmptyList
         Console.WriteLine("1. Creating NonEmptyList:");
         var single = NonEmptyList<int>.Of(42);

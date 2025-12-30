@@ -152,8 +152,8 @@ public class ComparisonBenchmarks
             .Filter(u => u.Name.StartsWith("T"))
             .ZipWith(Option<Order>.Some(TestOrder), (user, order) => (user, order))
             .Filter(x => x.order.UserId == x.user.Id)
-            .AndThen(x => x.user.Email.ToOption())
-            .Map(email => $"Order {TestOrder.Id} for {TestUser.Name}: {TestOrder.Amount:C}");
+            .AndThen(x => x.user.Email.ToOption().Map(email => (x.user, x.order, email)))
+            .Map(x => $"Order {x.order.Id} for {x.user.Name}: {x.order.Amount:C}");
     }
 
     #endregion

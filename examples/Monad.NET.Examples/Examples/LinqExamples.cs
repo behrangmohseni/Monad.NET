@@ -9,7 +9,7 @@ public static class LinqExamples
     public static void Run()
     {
         Console.WriteLine("LINQ query syntax works with all Monad.NET types!\n");
-        
+
         // Option LINQ
         Console.WriteLine("1. Option LINQ:");
         var optionResult = from x in Option<int>.Some(10)
@@ -82,7 +82,7 @@ public static class LinqExamples
                      where age >= 18
                      from email in GetField(userInput, "email")
                      select new { Name = name, Age = age, Email = email };
-        
+
         Console.WriteLine($"   Parsed: {parsed}");
 
         // Method syntax comparison
@@ -113,15 +113,15 @@ public static class LinqExamples
 
     private static Option<string> GetField(Dictionary<string, string> data, string field)
     {
-        return data.TryGetValue(field, out var value) 
-            ? Option<string>.Some(value) 
+        return data.TryGetValue(field, out var value)
+            ? Option<string>.Some(value)
             : Option<string>.None();
     }
 
     private static Option<int> ParseInt(string value)
     {
-        return int.TryParse(value, out var result) 
-            ? Option<int>.Some(result) 
+        return int.TryParse(value, out var result)
+            ? Option<int>.Some(result)
             : Option<int>.None();
     }
 }

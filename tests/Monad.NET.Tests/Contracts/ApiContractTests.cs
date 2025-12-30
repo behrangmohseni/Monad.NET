@@ -147,7 +147,7 @@ public class ApiContractTests
         var methods = typeof(Option<int>).GetMethods(BindingFlags.Public | BindingFlags.Instance)
             .Where(m => m.Name == methodName)
             .ToList();
-        
+
         Assert.NotEmpty(methods);
     }
 
@@ -166,7 +166,7 @@ public class ApiContractTests
         var methods = typeof(Option<int>).GetMethods(BindingFlags.Public | BindingFlags.Static)
             .Where(m => m.Name == "op_Implicit")
             .ToList();
-        
+
         Assert.NotEmpty(methods);
     }
 
@@ -182,7 +182,7 @@ public class ApiContractTests
         var methods = typeof(Result<int, string>).GetMethods(BindingFlags.Public | BindingFlags.Static)
             .Where(m => m.Name == methodName)
             .ToList();
-        
+
         Assert.NotEmpty(methods);
     }
 
@@ -237,7 +237,7 @@ public class ApiContractTests
         var methods = typeof(Result<int, string>).GetMethods(BindingFlags.Public | BindingFlags.Instance)
             .Where(m => m.Name == methodName)
             .ToList();
-        
+
         Assert.NotEmpty(methods);
     }
 
@@ -262,7 +262,7 @@ public class ApiContractTests
         var methods = typeof(Either<string, int>).GetMethods(BindingFlags.Public | BindingFlags.Static)
             .Where(m => m.Name == methodName)
             .ToList();
-        
+
         Assert.NotEmpty(methods);
     }
 
@@ -309,7 +309,7 @@ public class ApiContractTests
         var methods = typeof(Either<string, int>).GetMethods(BindingFlags.Public | BindingFlags.Instance)
             .Where(m => m.Name == methodName)
             .ToList();
-        
+
         Assert.NotEmpty(methods);
     }
 
@@ -325,7 +325,7 @@ public class ApiContractTests
         var methods = typeof(Validation<int, string>).GetMethods(BindingFlags.Public | BindingFlags.Static)
             .Where(m => m.Name == methodName)
             .ToList();
-        
+
         Assert.NotEmpty(methods);
     }
 
@@ -371,7 +371,7 @@ public class ApiContractTests
         var methods = typeof(Validation<int, string>).GetMethods(BindingFlags.Public | BindingFlags.Instance)
             .Where(m => m.Name == methodName)
             .ToList();
-        
+
         Assert.NotEmpty(methods);
     }
 
@@ -389,7 +389,7 @@ public class ApiContractTests
         var methods = typeof(Try<int>).GetMethods(BindingFlags.Public | BindingFlags.Static)
             .Where(m => m.Name == methodName)
             .ToList();
-        
+
         Assert.NotEmpty(methods);
     }
 
@@ -434,7 +434,7 @@ public class ApiContractTests
         var methods = typeof(Try<int>).GetMethods(BindingFlags.Public | BindingFlags.Instance)
             .Where(m => m.Name == methodName)
             .ToList();
-        
+
         Assert.NotEmpty(methods);
     }
 
@@ -454,7 +454,7 @@ public class ApiContractTests
     {
         var type = MonadAssembly.GetTypes()
             .FirstOrDefault(t => t.Name == className && t.IsPublic);
-        
+
         Assert.NotNull(type);
         Assert.True(type.IsAbstract && type.IsSealed, $"{className} should be a static class");
     }
@@ -473,7 +473,7 @@ public class ApiContractTests
     {
         var type = MonadAssembly.GetTypes()
             .FirstOrDefault(t => t.Name == className && t.IsPublic);
-        
+
         Assert.NotNull(type);
     }
 
@@ -484,7 +484,7 @@ public class ApiContractTests
         var selectMethods = type.GetMethods(BindingFlags.Public | BindingFlags.Static)
             .Where(m => m.Name == "Select")
             .ToList();
-        
+
         Assert.NotEmpty(selectMethods);
     }
 
@@ -495,7 +495,7 @@ public class ApiContractTests
         var selectManyMethods = type.GetMethods(BindingFlags.Public | BindingFlags.Static)
             .Where(m => m.Name == "SelectMany")
             .ToList();
-        
+
         Assert.NotEmpty(selectManyMethods);
     }
 
@@ -506,7 +506,7 @@ public class ApiContractTests
         var whereMethods = type.GetMethods(BindingFlags.Public | BindingFlags.Static)
             .Where(m => m.Name == "Where")
             .ToList();
-        
+
         Assert.NotEmpty(whereMethods);
     }
 
@@ -619,11 +619,11 @@ public class ApiContractTests
         var type = typeof(MonadCollectionExtensions);
         Assert.NotNull(type);
         Assert.True(type.IsPublic);
-        
+
         var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static)
             .Where(m => m.Name == "Choose")
             .ToList();
-        
+
         Assert.NotEmpty(methods);
     }
 
@@ -631,11 +631,11 @@ public class ApiContractTests
     public void MonadCollectionExtensions_Sequence_ShouldExist()
     {
         var type = typeof(MonadCollectionExtensions);
-        
+
         var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static)
             .Where(m => m.Name == "Sequence")
             .ToList();
-        
+
         Assert.NotEmpty(methods);
     }
 
@@ -643,11 +643,11 @@ public class ApiContractTests
     public void MonadCollectionExtensions_Traverse_ShouldExist()
     {
         var type = typeof(MonadCollectionExtensions);
-        
+
         var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static)
             .Where(m => m.Name == "Traverse")
             .ToList();
-        
+
         Assert.NotEmpty(methods);
     }
 
@@ -655,11 +655,11 @@ public class ApiContractTests
     public void MonadCollectionExtensions_Partition_ShouldExist()
     {
         var type = typeof(MonadCollectionExtensions);
-        
+
         var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static)
             .Where(m => m.Name == "Partition")
             .ToList();
-        
+
         Assert.NotEmpty(methods);
     }
 
@@ -667,11 +667,11 @@ public class ApiContractTests
     public void MonadCollectionExtensions_FirstSome_ShouldExist()
     {
         var type = typeof(MonadCollectionExtensions);
-        
+
         var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static)
             .Where(m => m.Name == "FirstSome")
             .ToList();
-        
+
         Assert.NotEmpty(methods);
     }
 
@@ -679,11 +679,11 @@ public class ApiContractTests
     public void MonadCollectionExtensions_FirstOk_ShouldExist()
     {
         var type = typeof(MonadCollectionExtensions);
-        
+
         var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static)
             .Where(m => m.Name == "FirstOk")
             .ToList();
-        
+
         Assert.NotEmpty(methods);
     }
 
@@ -691,11 +691,11 @@ public class ApiContractTests
     public void MonadCollectionExtensions_CollectOk_ShouldExist()
     {
         var type = typeof(MonadCollectionExtensions);
-        
+
         var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static)
             .Where(m => m.Name == "CollectOk")
             .ToList();
-        
+
         Assert.NotEmpty(methods);
     }
 
@@ -703,11 +703,11 @@ public class ApiContractTests
     public void MonadCollectionExtensions_CollectErr_ShouldExist()
     {
         var type = typeof(MonadCollectionExtensions);
-        
+
         var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static)
             .Where(m => m.Name == "CollectErr")
             .ToList();
-        
+
         Assert.NotEmpty(methods);
     }
 
@@ -715,11 +715,11 @@ public class ApiContractTests
     public void MonadCollectionExtensions_Do_ShouldExist()
     {
         var type = typeof(MonadCollectionExtensions);
-        
+
         var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static)
             .Where(m => m.Name == "Do")
             .ToList();
-        
+
         Assert.NotEmpty(methods);
     }
 
@@ -727,11 +727,11 @@ public class ApiContractTests
     public void MonadCollectionExtensions_ForEach_ShouldExist()
     {
         var type = typeof(MonadCollectionExtensions);
-        
+
         var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static)
             .Where(m => m.Name == "ForEach")
             .ToList();
-        
+
         Assert.NotEmpty(methods);
     }
 
@@ -751,7 +751,7 @@ public class ApiContractTests
         var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static)
             .Where(m => m.Name == methodName)
             .ToList();
-        
+
         Assert.NotEmpty(methods);
     }
 
@@ -768,7 +768,7 @@ public class ApiContractTests
         var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static)
             .Where(m => m.Name == methodName)
             .ToList();
-        
+
         Assert.NotEmpty(methods);
     }
 
@@ -786,7 +786,7 @@ public class ApiContractTests
         var methods = typeof(RemoteData<int, string>).GetMethods(BindingFlags.Public | BindingFlags.Static)
             .Where(m => m.Name == methodName)
             .ToList();
-        
+
         Assert.NotEmpty(methods);
     }
 
@@ -812,7 +812,7 @@ public class ApiContractTests
         var methods = typeof(NonEmptyList<int>).GetMethods(BindingFlags.Public | BindingFlags.Static)
             .Where(m => m.Name == "Of")
             .ToList();
-        
+
         Assert.NotEmpty(methods);
     }
 
@@ -839,7 +839,7 @@ public class ApiContractTests
         var methods = typeof(NonEmptyList<int>).GetMethods(BindingFlags.Public | BindingFlags.Instance)
             .Where(m => m.Name == methodName)
             .ToList();
-        
+
         Assert.NotEmpty(methods);
     }
 
@@ -853,7 +853,7 @@ public class ApiContractTests
         var methods = typeof(Writer<string, int>).GetMethods(BindingFlags.Public | BindingFlags.Static)
             .Where(m => m.Name == "Tell")
             .ToList();
-        
+
         Assert.NotEmpty(methods);
     }
 
@@ -867,7 +867,7 @@ public class ApiContractTests
         var methods = typeof(Writer<string, int>).GetMethods(BindingFlags.Public | BindingFlags.Instance)
             .Where(m => m.Name == methodName)
             .ToList();
-        
+
         Assert.NotEmpty(methods);
     }
 
@@ -885,7 +885,7 @@ public class ApiContractTests
         var methods = typeof(Reader<string, int>).GetMethods(BindingFlags.Public | BindingFlags.Static)
             .Where(m => m.Name == methodName)
             .ToList();
-        
+
         Assert.NotEmpty(methods);
     }
 
@@ -899,7 +899,7 @@ public class ApiContractTests
         var methods = typeof(Reader<string, int>).GetMethods(BindingFlags.Public | BindingFlags.Instance)
             .Where(m => m.Name == methodName)
             .ToList();
-        
+
         Assert.NotEmpty(methods);
     }
 
@@ -918,7 +918,7 @@ public class ApiContractTests
         var methods = typeof(State<int, string>).GetMethods(BindingFlags.Public | BindingFlags.Static)
             .Where(m => m.Name == methodName)
             .ToList();
-        
+
         Assert.NotEmpty(methods);
     }
 
@@ -934,7 +934,7 @@ public class ApiContractTests
         var methods = typeof(State<int, string>).GetMethods(BindingFlags.Public | BindingFlags.Instance)
             .Where(m => m.Name == methodName)
             .ToList();
-        
+
         Assert.NotEmpty(methods);
     }
 
@@ -952,7 +952,7 @@ public class ApiContractTests
         var methods = typeof(IO<int>).GetMethods(BindingFlags.Public | BindingFlags.Static)
             .Where(m => m.Name == methodName)
             .ToList();
-        
+
         Assert.NotEmpty(methods);
     }
 
@@ -967,7 +967,7 @@ public class ApiContractTests
         var methods = typeof(IO<int>).GetMethods(BindingFlags.Public | BindingFlags.Instance)
             .Where(m => m.Name == methodName)
             .ToList();
-        
+
         Assert.NotEmpty(methods);
     }
 

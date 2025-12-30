@@ -766,7 +766,7 @@ public static class OptionAsyncExtensions
 
         cancellationToken.ThrowIfCancellationRequested();
         var option = await optionTask.ConfigureAwait(false);
-        
+
         cancellationToken.ThrowIfCancellationRequested();
         if (option.IsSome)
             return await someFunc(option.Unwrap(), cancellationToken).ConfigureAwait(false);

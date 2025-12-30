@@ -117,7 +117,7 @@ public class UnionGenerator : IIncrementalGenerator
         // Get case information
         var cases = new List<UnionCaseValidationInfo>();
         var seenNames = new HashSet<string>();
-        
+
         foreach (var member in symbol.GetTypeMembers())
         {
             if (member.BaseType?.Equals(symbol, SymbolEqualityComparer.Default) != true)

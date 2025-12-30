@@ -59,10 +59,10 @@ public sealed class MissingConfigureAwaitAnalyzer : DiagnosticAnalyzer
     private static void AnalyzeAwaitExpression(SyntaxNodeAnalysisContext context)
     {
         var awaitExpression = (AwaitExpressionSyntax)context.Node;
-        
+
         // Get the expression being awaited
         var expression = awaitExpression.Expression;
-        
+
         // Skip if already has ConfigureAwait
         if (expression is InvocationExpressionSyntax invocation)
         {
@@ -74,21 +74,21 @@ public sealed class MissingConfigureAwaitAnalyzer : DiagnosticAnalyzer
                 }
             }
         }
-        
+
         // Check if this is a monad async method
         if (!IsMonadAsyncMethod(expression, context.SemanticModel))
         {
             return;
         }
-        
+
         // Get the monad type name for the message
         var monadTypeName = GetMonadTypeName(expression, context.SemanticModel) ?? "monad";
-        
+
         var diagnostic = Diagnostic.Create(
             DiagnosticDescriptors.MissingConfigureAwait,
             awaitExpression.GetLocation(),
             monadTypeName);
-        
+
         context.ReportDiagnostic(diagnostic);
     }
 
@@ -111,7 +111,7 @@ public sealed class MissingConfigureAwaitAnalyzer : DiagnosticAnalyzer
                         {
                             return true;
                         }
-                        
+
                         // Also check for Task<Option<T>>, Task<Result<T, E>>, etc.
                         if (typeName == "Task" && typeInfo.Type is INamedTypeSymbol namedType)
                         {
@@ -128,7 +128,7 @@ public sealed class MissingConfigureAwaitAnalyzer : DiagnosticAnalyzer
                 }
             }
         }
-        
+
         return false;
     }
 
@@ -142,7 +142,7 @@ public sealed class MissingConfigureAwaitAnalyzer : DiagnosticAnalyzer
                 if (typeInfo.Type != null)
                 {
                     var typeName = typeInfo.Type.Name;
-                    
+
                     // Check for direct monad types
                     foreach (var monadType in MonadTypes)
                     {
@@ -151,7 +151,7 @@ public sealed class MissingConfigureAwaitAnalyzer : DiagnosticAnalyzer
                             return monadType;
                         }
                     }
-                    
+
                     // Check for Task<MonadType>
                     if (typeName == "Task" && typeInfo.Type is INamedTypeSymbol namedType)
                     {
@@ -170,7 +170,7 @@ public sealed class MissingConfigureAwaitAnalyzer : DiagnosticAnalyzer
                 }
             }
         }
-        
+
         return null;
     }
 }

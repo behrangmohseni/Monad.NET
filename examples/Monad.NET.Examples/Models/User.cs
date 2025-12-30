@@ -10,8 +10,8 @@ public record User(
     int Age)
 {
     public string? MiddleName { get; init; }
-    
-    public string FullName => MiddleName is not null 
+
+    public string FullName => MiddleName is not null
         ? $"{FirstName} {MiddleName} {LastName}"
         : $"{FirstName} {LastName}";
 }
