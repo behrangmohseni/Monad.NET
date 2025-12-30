@@ -980,8 +980,8 @@ public class ApiContractTests
         // Check for IsReadOnlyAttribute which indicates a readonly struct
         return type.GetCustomAttributes(false)
             .Any(attr => attr.GetType().FullName == "System.Runtime.CompilerServices.IsReadOnlyAttribute")
-            || type.IsValueType && type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
-                .All(f => f.IsInitOnly);
+            || (type.IsValueType && type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
+                .All(f => f.IsInitOnly));
     }
 
     #endregion

@@ -1413,7 +1413,6 @@ public static class OptionExtensions
     #endregion
 }
 
-
 /// <summary>
 /// Debug view proxy for <see cref="Option{T}"/> to provide a better debugging experience.
 /// </summary>
