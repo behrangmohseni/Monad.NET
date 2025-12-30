@@ -451,5 +451,5 @@ public void Migration_BehaviorPreserved()
 
 ---
 
-[← Back to Guides](../README.md) | [Pitfalls & Gotchas →](Pitfalls.md)
+[← Back to Documentation](../../README.md) | [Pitfalls & Gotchas →](Pitfalls.md)
 

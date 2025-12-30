@@ -413,5 +413,5 @@ Component Data
 
 ---
 
-[← Back to Guides](../README.md) | [Migration Guide →](MigrationGuide.md)
+[← Back to Documentation](../../README.md) | [Migration Guide →](MigrationGuide.md)
 

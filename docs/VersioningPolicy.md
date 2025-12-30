@@ -315,5 +315,5 @@ If you encounter problems during upgrade:
 
 ---
 
-[← Back to Documentation](README.md) | [Changelog →](../CHANGELOG.md)
+[← Back to Documentation](../README.md) | [Changelog →](../CHANGELOG.md)
 
