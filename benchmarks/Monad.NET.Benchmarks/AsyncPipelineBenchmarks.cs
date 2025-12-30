@@ -1,6 +1,8 @@
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Order;
 
+#pragma warning disable CS0162 // Unreachable code detected - DelayMs is intentionally 0 for benchmarks
+
 namespace Monad.NET.Benchmarks;
 
 /// <summary>
@@ -299,9 +301,9 @@ public class AsyncPipelineBenchmarks
     #endregion
 
     // Helper types and methods
-    private record User(int Id, string Name, string Email);
-    private record Order(int Id, int UserId, decimal Amount);
-    private record OrderSummary(int OrderId, string UserName, string Email, decimal Amount, decimal Discount);
+    public record User(int Id, string Name, string Email);
+    public record Order(int Id, int UserId, decimal Amount);
+    public record OrderSummary(int OrderId, string UserName, string Email, decimal Amount, decimal Discount);
 
     private static decimal CalculateDiscount(decimal amount) => amount > 50 ? amount * 0.1m : 0;
 }

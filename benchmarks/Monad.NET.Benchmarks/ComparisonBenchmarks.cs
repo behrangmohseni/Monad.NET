@@ -132,7 +132,7 @@ public class ComparisonBenchmarks
     {
         User? user = TestUser;
         if (user == null) return null;
-        if (!user.Name.StartsWith("T")) return null;
+        if (!user.Name.StartsWith('T')) return null;
 
         Order? order = TestOrder;
         if (order == null) return null;
@@ -149,7 +149,7 @@ public class ComparisonBenchmarks
     public Option<string> MonadicPipeline()
     {
         return Option<User>.Some(TestUser)
-            .Filter(u => u.Name.StartsWith("T"))
+            .Filter(u => u.Name.StartsWith('T'))
             .ZipWith(Option<Order>.Some(TestOrder), (user, order) => (user, order))
             .Filter(x => x.order.UserId == x.user.Id)
             .AndThen(x => x.user.Email.ToOption().Map(email => (x.user, x.order, email)))
