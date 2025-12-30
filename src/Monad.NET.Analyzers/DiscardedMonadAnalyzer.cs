@@ -15,12 +15,8 @@ public sealed class DiscardedMonadAnalyzer : DiagnosticAnalyzer
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
         ImmutableArray.Create(DiagnosticDescriptors.DiscardedMonad);
 
-    public override void Initialize(AnalysisContext context)
-    {
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.EnableConcurrentExecution();
-        context.RegisterSyntaxNodeAction(AnalyzeExpressionStatement, SyntaxKind.ExpressionStatement);
-    }
+    public override void Initialize(AnalysisContext context) =>
+        context.RegisterSyntaxNodeActionWithDefaults(AnalyzeExpressionStatement, SyntaxKind.ExpressionStatement);
 
     private static void AnalyzeExpressionStatement(SyntaxNodeAnalysisContext context)
     {

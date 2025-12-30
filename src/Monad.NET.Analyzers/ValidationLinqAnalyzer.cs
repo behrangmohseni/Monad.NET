@@ -16,12 +16,8 @@ public sealed class ValidationLinqAnalyzer : DiagnosticAnalyzer
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
         ImmutableArray.Create(DiagnosticDescriptors.ValidationLinqShortCircuits);
 
-    public override void Initialize(AnalysisContext context)
-    {
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.EnableConcurrentExecution();
-        context.RegisterSyntaxNodeAction(AnalyzeQueryExpression, SyntaxKind.QueryExpression);
-    }
+    public override void Initialize(AnalysisContext context) =>
+        context.RegisterSyntaxNodeActionWithDefaults(AnalyzeQueryExpression, SyntaxKind.QueryExpression);
 
     private static void AnalyzeQueryExpression(SyntaxNodeAnalysisContext context)
     {
