@@ -81,158 +81,143 @@ public sealed class SomeWithPotentialNullAnalyzer : DiagnosticAnalyzer
 
     private static bool MightBeNull(ExpressionSyntax expression, SemanticModel semanticModel)
     {
-        // Check for obvious null literals
+        return IsNullLiteral(expression)
+            || IsNullableDefault(expression, semanticModel)
+            || HasMaybeNullFlowState(expression, semanticModel)
+            || IsNullableReferenceType(expression, semanticModel)
+            || IsNullableMethodReturn(expression, semanticModel)
+            || IsNullableIdentifier(expression, semanticModel)
+            || IsNullableMemberAccess(expression, semanticModel)
+            || IsConditionalAccess(expression)
+            || IsNullableCoalesce(expression, semanticModel)
+            || IsAsExpression(expression)
+            || IsNullableCast(expression, semanticModel);
+    }
+
+    private static bool IsNullLiteral(ExpressionSyntax expression)
+    {
         if (expression is LiteralExpressionSyntax literal)
         {
+            // Null literal is always potentially null
             if (literal.IsKind(SyntaxKind.NullLiteralExpression))
-            {
                 return true;
-            }
+
             // Non-null literals are safe
             return false;
         }
+        return false;
+    }
 
+    private static bool IsNullableDefault(ExpressionSyntax expression, SemanticModel semanticModel)
+    {
         // Check for default expressions - default(string), default, etc.
         if (expression is DefaultExpressionSyntax)
         {
             var typeInfo = semanticModel.GetTypeInfo(expression);
-            if (typeInfo.Type != null && typeInfo.Type.IsReferenceType)
-            {
-                return true;
-            }
+            return typeInfo.Type is { IsReferenceType: true };
         }
 
         if (expression is LiteralExpressionSyntax defaultLiteral &&
             defaultLiteral.IsKind(SyntaxKind.DefaultLiteralExpression))
         {
             var typeInfo = semanticModel.GetTypeInfo(expression);
-            if (typeInfo.Type != null && typeInfo.Type.IsReferenceType)
-            {
-                return true;
-            }
-        }
-
-        // Check nullable annotations
-        var exprTypeInfo = semanticModel.GetTypeInfo(expression);
-        if (exprTypeInfo.Nullability.FlowState == NullableFlowState.MaybeNull)
-        {
-            return true;
-        }
-
-        // Check for nullable reference type annotations on the type itself
-        if (exprTypeInfo.Type is { IsReferenceType: true, NullableAnnotation: NullableAnnotation.Annotated })
-        {
-            return true;
-        }
-
-        // Check for method return values that might be null
-        if (expression is InvocationExpressionSyntax invocation)
-        {
-            var symbolInfo = semanticModel.GetSymbolInfo(invocation);
-            if (symbolInfo.Symbol is IMethodSymbol methodSymbol)
-            {
-                // Check if return type is nullable
-                if (methodSymbol.ReturnType.NullableAnnotation == NullableAnnotation.Annotated)
-                {
-                    return true;
-                }
-
-                // Check for methods known to return null (like FirstOrDefault, etc.)
-                var methodName = methodSymbol.Name;
-                if (methodName.EndsWith("OrDefault", StringComparison.Ordinal) ||
-                    methodName.EndsWith("OrNull", StringComparison.Ordinal))
-                {
-                    return true;
-                }
-            }
-        }
-
-        // Check for identifier references to nullable variables
-        if (expression is IdentifierNameSyntax identifier)
-        {
-            var symbolInfo = semanticModel.GetSymbolInfo(identifier);
-            if (symbolInfo.Symbol is ILocalSymbol localSymbol)
-            {
-                if (localSymbol.Type.NullableAnnotation == NullableAnnotation.Annotated)
-                {
-                    return true;
-                }
-            }
-            else if (symbolInfo.Symbol is IParameterSymbol paramSymbol)
-            {
-                if (paramSymbol.Type.NullableAnnotation == NullableAnnotation.Annotated)
-                {
-                    return true;
-                }
-            }
-            else if (symbolInfo.Symbol is IFieldSymbol fieldSymbol)
-            {
-                if (fieldSymbol.Type.NullableAnnotation == NullableAnnotation.Annotated)
-                {
-                    return true;
-                }
-            }
-            else if (symbolInfo.Symbol is IPropertySymbol propSymbol)
-            {
-                if (propSymbol.Type.NullableAnnotation == NullableAnnotation.Annotated)
-                {
-                    return true;
-                }
-            }
-        }
-
-        // Check for member access that might return null
-        if (expression is MemberAccessExpressionSyntax memberAccess)
-        {
-            var symbolInfo = semanticModel.GetSymbolInfo(memberAccess);
-            if (symbolInfo.Symbol is IPropertySymbol propSymbol)
-            {
-                if (propSymbol.Type.NullableAnnotation == NullableAnnotation.Annotated)
-                {
-                    return true;
-                }
-            }
-            else if (symbolInfo.Symbol is IFieldSymbol fieldSymbol)
-            {
-                if (fieldSymbol.Type.NullableAnnotation == NullableAnnotation.Annotated)
-                {
-                    return true;
-                }
-            }
-        }
-
-        // Check for conditional access (?.) which implies nullable
-        if (expression is ConditionalAccessExpressionSyntax)
-        {
-            return true;
-        }
-
-        // Check for null-coalescing (??) right operand
-        if (expression is BinaryExpressionSyntax binary &&
-            binary.IsKind(SyntaxKind.CoalesceExpression))
-        {
-            // The result of ?? might still be null if the right side is null
-            return MightBeNull(binary.Right, semanticModel);
-        }
-
-        // Check for as-expression (always nullable)
-        if (expression is BinaryExpressionSyntax asBinary &&
-            asBinary.IsKind(SyntaxKind.AsExpression))
-        {
-            return true;
-        }
-
-        // Check for cast to nullable type
-        if (expression is CastExpressionSyntax cast)
-        {
-            var castTypeInfo = semanticModel.GetTypeInfo(cast.Type);
-            if (castTypeInfo.Type?.NullableAnnotation == NullableAnnotation.Annotated)
-            {
-                return true;
-            }
+            return typeInfo.Type is { IsReferenceType: true };
         }
 
         return false;
     }
-}
 
+    private static bool HasMaybeNullFlowState(ExpressionSyntax expression, SemanticModel semanticModel)
+    {
+        var exprTypeInfo = semanticModel.GetTypeInfo(expression);
+        return exprTypeInfo.Nullability.FlowState == NullableFlowState.MaybeNull;
+    }
+
+    private static bool IsNullableReferenceType(ExpressionSyntax expression, SemanticModel semanticModel)
+    {
+        var exprTypeInfo = semanticModel.GetTypeInfo(expression);
+        return exprTypeInfo.Type is { IsReferenceType: true, NullableAnnotation: NullableAnnotation.Annotated };
+    }
+
+    private static bool IsNullableMethodReturn(ExpressionSyntax expression, SemanticModel semanticModel)
+    {
+        if (expression is not InvocationExpressionSyntax invocation)
+            return false;
+
+        var symbolInfo = semanticModel.GetSymbolInfo(invocation);
+        if (symbolInfo.Symbol is not IMethodSymbol methodSymbol)
+            return false;
+
+        // Check if return type is nullable
+        if (methodSymbol.ReturnType.NullableAnnotation == NullableAnnotation.Annotated)
+            return true;
+
+        // Check for methods known to return null (like FirstOrDefault, etc.)
+        var methodName = methodSymbol.Name;
+        return methodName.EndsWith("OrDefault", StringComparison.Ordinal) ||
+               methodName.EndsWith("OrNull", StringComparison.Ordinal);
+    }
+
+    private static bool IsNullableIdentifier(ExpressionSyntax expression, SemanticModel semanticModel)
+    {
+        if (expression is not IdentifierNameSyntax identifier)
+            return false;
+
+        var symbolInfo = semanticModel.GetSymbolInfo(identifier);
+        return symbolInfo.Symbol switch
+        {
+            ILocalSymbol local => local.Type.NullableAnnotation == NullableAnnotation.Annotated,
+            IParameterSymbol param => param.Type.NullableAnnotation == NullableAnnotation.Annotated,
+            IFieldSymbol field => field.Type.NullableAnnotation == NullableAnnotation.Annotated,
+            IPropertySymbol prop => prop.Type.NullableAnnotation == NullableAnnotation.Annotated,
+            _ => false
+        };
+    }
+
+    private static bool IsNullableMemberAccess(ExpressionSyntax expression, SemanticModel semanticModel)
+    {
+        if (expression is not MemberAccessExpressionSyntax memberAccess)
+            return false;
+
+        var symbolInfo = semanticModel.GetSymbolInfo(memberAccess);
+        return symbolInfo.Symbol switch
+        {
+            IPropertySymbol prop => prop.Type.NullableAnnotation == NullableAnnotation.Annotated,
+            IFieldSymbol field => field.Type.NullableAnnotation == NullableAnnotation.Annotated,
+            _ => false
+        };
+    }
+
+    private static bool IsConditionalAccess(ExpressionSyntax expression)
+    {
+        // Conditional access (?.) implies nullable
+        return expression is ConditionalAccessExpressionSyntax;
+    }
+
+    private static bool IsNullableCoalesce(ExpressionSyntax expression, SemanticModel semanticModel)
+    {
+        // Check for null-coalescing (??) - the result might still be null if the right side is null
+        if (expression is BinaryExpressionSyntax binary &&
+            binary.IsKind(SyntaxKind.CoalesceExpression))
+        {
+            return MightBeNull(binary.Right, semanticModel);
+        }
+        return false;
+    }
+
+    private static bool IsAsExpression(ExpressionSyntax expression)
+    {
+        // as-expression is always nullable
+        return expression is BinaryExpressionSyntax asBinary &&
+               asBinary.IsKind(SyntaxKind.AsExpression);
+    }
+
+    private static bool IsNullableCast(ExpressionSyntax expression, SemanticModel semanticModel)
+    {
+        if (expression is not CastExpressionSyntax cast)
+            return false;
+
+        var castTypeInfo = semanticModel.GetTypeInfo(cast.Type);
+        return castTypeInfo.Type?.NullableAnnotation == NullableAnnotation.Annotated;
+    }
+}
