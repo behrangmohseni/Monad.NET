@@ -103,6 +103,9 @@ public static class TryExamples
 
     private static Try<T> RetryWithBackoff<T>(Func<T> operation, int maxRetries = 3)
     {
+        if (maxRetries <= 0)
+            return Try<T>.Of(operation);
+
         Try<T> lastResult = default!;
         for (int i = 0; i < maxRetries; i++)
         {
