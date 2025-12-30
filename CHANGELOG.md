@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.0] - 2025-12-28
 
-### 🎉 First Stable Release
+### First Stable Release
 
 This is the first stable release of Monad.NET! The library is now production-ready with a stable API.
 

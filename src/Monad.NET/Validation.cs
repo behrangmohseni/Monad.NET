@@ -11,6 +11,21 @@ namespace Monad.NET;
 /// </summary>
 /// <typeparam name="T">The type of the valid value</typeparam>
 /// <typeparam name="TErr">The type of the error</typeparam>
+/// <remarks>
+/// <para>
+/// Use <see cref="Validation{T,TErr}"/> when you need to collect ALL errors, such as form validation.
+/// Combine multiple validations with <see cref="Apply"/> or <see cref="Zip"/> to accumulate errors.
+/// </para>
+/// <para>
+/// <strong>Warning:</strong> LINQ query syntax (from...select) will short-circuit on the first error!
+/// Use <see cref="Apply"/> or <see cref="Zip"/> for error accumulation.
+/// </para>
+/// <para>
+/// For fail-fast error handling, use <see cref="Result{T,TErr}"/> instead.
+/// </para>
+/// </remarks>
+/// <seealso cref="Result{T,TErr}"/>
+/// <seealso cref="Option{T}"/>
 [Serializable]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DebuggerTypeProxy(typeof(ValidationDebugView<,>))]
@@ -1133,6 +1148,156 @@ public static class ValidationExtensions
 
         var validation = await validationTask.ConfigureAwait(false);
         return await validation.MapAsync(mapper).ConfigureAwait(false);
+    }
+
+    #endregion
+
+    #region CancellationToken Overloads
+
+    /// <summary>
+    /// Asynchronously executes an action if the validation task results in a valid value, with cancellation support.
+    /// </summary>
+    public static async Task<Validation<T, TErr>> TapAsync<T, TErr>(
+        this Task<Validation<T, TErr>> validationTask,
+        Func<T, CancellationToken, Task> action,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(validationTask);
+        ThrowHelper.ThrowIfNull(action);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var validation = await validationTask.ConfigureAwait(false);
+        if (validation.IsValid)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            await action(validation.Unwrap(), cancellationToken).ConfigureAwait(false);
+        }
+
+        return validation;
+    }
+
+    /// <summary>
+    /// Asynchronously executes an action if the validation task results in errors, with cancellation support.
+    /// </summary>
+    public static async Task<Validation<T, TErr>> TapErrorsAsync<T, TErr>(
+        this Task<Validation<T, TErr>> validationTask,
+        Func<IReadOnlyList<TErr>, CancellationToken, Task> action,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(validationTask);
+        ThrowHelper.ThrowIfNull(action);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var validation = await validationTask.ConfigureAwait(false);
+        if (validation.IsInvalid)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            await action(validation.UnwrapErrors(), cancellationToken).ConfigureAwait(false);
+        }
+
+        return validation;
+    }
+
+    /// <summary>
+    /// Asynchronously maps the valid value using an async function with cancellation support.
+    /// </summary>
+    public static async Task<Validation<U, TErr>> MapAsync<T, U, TErr>(
+        this Validation<T, TErr> validation,
+        Func<T, CancellationToken, Task<U>> mapper,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(mapper);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (validation.IsInvalid)
+            return Validation<U, TErr>.Invalid(validation.UnwrapErrors());
+
+        var result = await mapper(validation.Unwrap(), cancellationToken).ConfigureAwait(false);
+        return Validation<U, TErr>.Valid(result);
+    }
+
+    /// <summary>
+    /// Asynchronously maps the valid value from a validation task using an async function with cancellation support.
+    /// </summary>
+    public static async Task<Validation<U, TErr>> MapAsync<T, U, TErr>(
+        this Task<Validation<T, TErr>> validationTask,
+        Func<T, CancellationToken, Task<U>> mapper,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(validationTask);
+        ThrowHelper.ThrowIfNull(mapper);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var validation = await validationTask.ConfigureAwait(false);
+        return await validation.MapAsync(mapper, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Asynchronously applies a validation with cancellation support.
+    /// </summary>
+    public static async Task<Validation<U, TErr>> ApplyAsync<T, TIntermediate, U, TErr>(
+        this Task<Validation<TIntermediate, TErr>> first,
+        Func<TIntermediate, CancellationToken, Task<Validation<T, TErr>>> second,
+        Func<TIntermediate, T, U> combiner,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(first);
+        ThrowHelper.ThrowIfNull(second);
+        ThrowHelper.ThrowIfNull(combiner);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var firstValidation = await first.ConfigureAwait(false);
+
+        if (firstValidation.IsInvalid)
+            return Validation<U, TErr>.Invalid(firstValidation.UnwrapErrors());
+
+        cancellationToken.ThrowIfCancellationRequested();
+        var secondValidation = await second(firstValidation.Unwrap(), cancellationToken).ConfigureAwait(false);
+
+        if (secondValidation.IsInvalid)
+            return Validation<U, TErr>.Invalid(secondValidation.UnwrapErrors());
+
+        return Validation<U, TErr>.Valid(combiner(firstValidation.Unwrap(), secondValidation.Unwrap()));
+    }
+
+    /// <summary>
+    /// Asynchronously zips two validations with cancellation support.
+    /// </summary>
+    public static async Task<Validation<(T, U), TErr>> ZipAsync<T, U, TErr>(
+        this Task<Validation<T, TErr>> first,
+        Func<CancellationToken, Task<Validation<U, TErr>>> second,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(first);
+        ThrowHelper.ThrowIfNull(second);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var firstValidation = await first.ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+        var secondValidation = await second(cancellationToken).ConfigureAwait(false);
+
+        return firstValidation.Zip(secondValidation);
+    }
+
+    /// <summary>
+    /// Asynchronously zips two validations with a combiner function and cancellation support.
+    /// </summary>
+    public static async Task<Validation<V, TErr>> ZipWithAsync<T, U, V, TErr>(
+        this Task<Validation<T, TErr>> first,
+        Func<CancellationToken, Task<Validation<U, TErr>>> second,
+        Func<T, U, V> combiner,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(first);
+        ThrowHelper.ThrowIfNull(second);
+        ThrowHelper.ThrowIfNull(combiner);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var firstValidation = await first.ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+        var secondValidation = await second(cancellationToken).ConfigureAwait(false);
+
+        return firstValidation.ZipWith(secondValidation, combiner);
     }
 
     #endregion

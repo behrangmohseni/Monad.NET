@@ -271,7 +271,7 @@ public Result<Data, ApiError> CallExternalApi()
 
 ## Anti-Patterns to Avoid
 
-### ❌ Don't: Use Result for truly exceptional errors
+### Don't: Use Result for truly exceptional errors
 
 ```csharp
 // Bad: OutOfMemory is exceptional, not expected
@@ -281,7 +281,7 @@ public Result<Data, OutOfMemoryException> ProcessLargeFile();
 public Data ProcessLargeFile(); // Throws OutOfMemoryException if it happens
 ```
 
-### ❌ Don't: Use Try when you can use Result
+### Don't: Use Try when you can use Result
 
 ```csharp
 // Bad: Unnecessary exception wrapping
@@ -302,7 +302,7 @@ public Result<User, UserError> GetUser(int id)
 }
 ```
 
-### ❌ Don't: Use Either when you mean Result
+### Don't: Use Either when you mean Result
 
 ```csharp
 // Bad: Using Either for error handling (confusing semantics)
@@ -315,7 +315,7 @@ public Result<User, Error> GetUser(int id);
 public Either<CachedUser, FreshUser> GetUser(int id);
 ```
 
-### ❌ Don't: Overuse Validation for single checks
+### Don't: Overuse Validation for single checks
 
 ```csharp
 // Bad: Validation for single field with no accumulation benefit
@@ -328,7 +328,7 @@ public Result<string, Error> ValidateSingleField(string input);
 public Validation<User, Error> ValidateAllFields(Form form);
 ```
 
-### ❌ Don't: Nest Options/Results unnecessarily
+### Don't: Nest Options/Results unnecessarily
 
 ```csharp
 // Bad: Nested Option

@@ -15,12 +15,12 @@ Monad.NET supports a wide range of .NET versions:
 
 | Package | .NET Standard 2.0 | .NET Standard 2.1 | .NET 8.0 | .NET 10.0 |
 |---------|-------------------|-------------------|----------|-----------|
-| Monad.NET | ✅ | ✅ | ✅ | ✅ |
-| Monad.NET.SourceGenerators | ✅ | ✅ | ✅ | ✅ |
-| Monad.NET.Analyzers | ✅ | ✅ | ✅ | ✅ |
-| Monad.NET.AspNetCore | ❌ | ❌ | ✅ | ✅ |
-| Monad.NET.EntityFrameworkCore | ❌ | ❌ | ✅ | ✅ |
-| Monad.NET.MessagePack | ✅ | ✅ | ✅ | ✅ |
+| Monad.NET | Yes | Yes | Yes | Yes |
+| Monad.NET.SourceGenerators | Yes | Yes | Yes | Yes |
+| Monad.NET.Analyzers | Yes | Yes | Yes | Yes |
+| Monad.NET.AspNetCore | No | No | Yes | Yes |
+| Monad.NET.EntityFrameworkCore | No | No | Yes | Yes |
+| Monad.NET.MessagePack | Yes | Yes | Yes | Yes |
 
 ## Dependencies
 

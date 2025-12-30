@@ -10,6 +10,22 @@ namespace Monad.NET;
 /// </summary>
 /// <typeparam name="T">The type of the success value</typeparam>
 /// <typeparam name="TErr">The type of the error value</typeparam>
+/// <remarks>
+/// <para>
+/// Use <see cref="Result{T,TErr}"/> for operations that can fail with a specific error type.
+/// This provides type-safe error handling without exceptions.
+/// </para>
+/// <para>
+/// For simple presence/absence without error info, use <see cref="Option{T}"/>.
+/// For validation with multiple accumulated errors, use <see cref="Validation{T,TErr}"/>.
+/// For wrapping exception-throwing code, use <see cref="Try{T}"/>.
+/// </para>
+/// </remarks>
+/// <seealso cref="Option{T}"/>
+/// <seealso cref="Validation{T,TErr}"/>
+/// <seealso cref="Try{T}"/>
+/// <seealso cref="Either{TLeft,TRight}"/>
+/// <seealso cref="ResultExtensions"/>
 [Serializable]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DebuggerTypeProxy(typeof(ResultDebugView<,>))]
@@ -437,6 +453,68 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     public U MapOrElse<U>(Func<TErr, U> defaultFunc, Func<T, U> mapper)
     {
         return _isOk ? mapper(_value!) : defaultFunc(_error!);
+    }
+
+    /// <summary>
+    /// Filters the Ok value based on a predicate. Returns Err if the predicate returns false.
+    /// </summary>
+    /// <param name="predicate">The predicate to test the Ok value against.</param>
+    /// <param name="error">The error to return if the predicate returns false.</param>
+    /// <returns>The original Result if Ok and predicate is true; otherwise Err.</returns>
+    /// <example>
+    /// <code>
+    /// var result = Result&lt;int, string&gt;.Ok(42);
+    /// result.Filter(x => x > 40, "Value too small"); // Ok(42)
+    /// result.Filter(x => x > 50, "Value too small"); // Err("Value too small")
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Result<T, TErr> Filter(Func<T, bool> predicate, TErr error)
+    {
+        ThrowHelper.ThrowIfNull(predicate);
+        return _isOk && predicate(_value!) ? this : Err(error);
+    }
+
+    /// <summary>
+    /// Filters the Ok value based on a predicate. Returns Err if the predicate returns false.
+    /// </summary>
+    /// <param name="predicate">The predicate to test the Ok value against.</param>
+    /// <param name="errorFactory">A function that creates the error if the predicate returns false.</param>
+    /// <returns>The original Result if Ok and predicate is true; otherwise Err.</returns>
+    /// <example>
+    /// <code>
+    /// var result = Result&lt;int, string&gt;.Ok(42);
+    /// result.Filter(x => x > 40, () => "Value too small"); // Ok(42)
+    /// result.Filter(x => x > 50, () => $"Value {x} is too small"); // Err("Value 42 is too small")
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Result<T, TErr> Filter(Func<T, bool> predicate, Func<TErr> errorFactory)
+    {
+        ThrowHelper.ThrowIfNull(predicate);
+        ThrowHelper.ThrowIfNull(errorFactory);
+        return _isOk && predicate(_value!) ? this : Err(errorFactory());
+    }
+
+    /// <summary>
+    /// Filters the Ok value based on a predicate. Returns Err if the predicate returns false.
+    /// The error factory receives the original value.
+    /// </summary>
+    /// <param name="predicate">The predicate to test the Ok value against.</param>
+    /// <param name="errorFactory">A function that creates the error from the value if the predicate returns false.</param>
+    /// <returns>The original Result if Ok and predicate is true; otherwise Err.</returns>
+    /// <example>
+    /// <code>
+    /// var result = Result&lt;int, string&gt;.Ok(42);
+    /// result.Filter(x => x > 50, x => $"Value {x} is too small"); // Err("Value 42 is too small")
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Result<T, TErr> Filter(Func<T, bool> predicate, Func<T, TErr> errorFactory)
+    {
+        ThrowHelper.ThrowIfNull(predicate);
+        ThrowHelper.ThrowIfNull(errorFactory);
+        return _isOk && predicate(_value!) ? this : _isOk ? Err(errorFactory(_value!)) : this;
     }
 
     /// <summary>

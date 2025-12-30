@@ -71,7 +71,19 @@ public class UnionGenerator : IIncrementalGenerator
         context.RegisterPostInitializationOutput(ctx =>
             ctx.AddSource("UnionAttribute.g.cs", SourceText.From(UnionAttributeSource, Encoding.UTF8)));
 
-        // Find all classes with [Union] attribute
+        // Find all classes with [Union] attribute for validation
+        var validationCandidates = context.SyntaxProvider
+            .ForAttributeWithMetadataName(
+                "Monad.NET.UnionAttribute",
+                predicate: static (node, _) => node is ClassDeclarationSyntax or RecordDeclarationSyntax,
+                transform: static (ctx, _) => GetValidationInfo(ctx))
+            .Where(static info => info is not null)
+            .Select(static (info, _) => info!);
+
+        // Report validation diagnostics
+        context.RegisterSourceOutput(validationCandidates, static (ctx, info) => ReportDiagnostics(ctx, info));
+
+        // Find all classes with [Union] attribute for code generation
         var unionTypes = context.SyntaxProvider
             .ForAttributeWithMetadataName(
                 "Monad.NET.UnionAttribute",
@@ -82,6 +94,99 @@ public class UnionGenerator : IIncrementalGenerator
 
         // Generate the source
         context.RegisterSourceOutput(unionTypes, static (ctx, info) => GenerateSource(ctx, info));
+    }
+
+    private static UnionValidationInfo? GetValidationInfo(GeneratorAttributeSyntaxContext context)
+    {
+        if (context.TargetSymbol is not INamedTypeSymbol symbol)
+            return null;
+
+        if (context.TargetNode is not TypeDeclarationSyntax syntax)
+            return null;
+
+        var isAbstract = symbol.IsAbstract;
+        var isPartial = syntax.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword));
+        var isRecord = syntax is RecordDeclarationSyntax;
+        var location = syntax.Identifier.GetLocation();
+
+        // Check for instance fields
+        var hasInstanceFields = symbol.GetMembers()
+            .OfType<IFieldSymbol>()
+            .Any(f => !f.IsStatic && !f.IsImplicitlyDeclared);
+
+        // Get case information
+        var cases = new List<UnionCaseValidationInfo>();
+        var seenNames = new HashSet<string>();
+
+        foreach (var member in symbol.GetTypeMembers())
+        {
+            if (member.BaseType?.Equals(symbol, SymbolEqualityComparer.Default) != true)
+                continue;
+
+            var caseName = member.Name;
+            var caseLocation = member.Locations.FirstOrDefault() ?? location;
+            var isSealed = member.IsSealed;
+            var isDuplicate = !seenNames.Add(caseName);
+
+            cases.Add(new UnionCaseValidationInfo(caseName, caseLocation, isSealed, isDuplicate));
+        }
+
+        return new UnionValidationInfo(
+            symbol.Name,
+            location,
+            isAbstract,
+            isPartial,
+            isRecord,
+            hasInstanceFields,
+            cases);
+    }
+
+    private static void ReportDiagnostics(SourceProductionContext context, UnionValidationInfo info)
+    {
+        // MNG001: Must be abstract
+        if (!info.IsAbstract)
+        {
+            context.ReportDiagnostic(UnionDiagnostics.CreateTypeMustBeAbstract(info.Location, info.Name));
+        }
+
+        // MNG002: Must be partial
+        if (!info.IsPartial)
+        {
+            context.ReportDiagnostic(UnionDiagnostics.CreateTypeMustBePartial(info.Location, info.Name));
+        }
+
+        // MNG003: No cases found
+        if (info.Cases.Count == 0)
+        {
+            context.ReportDiagnostic(UnionDiagnostics.CreateNoCasesFound(info.Location, info.Name));
+        }
+
+        // MNG004: Cases should be sealed
+        foreach (var caseInfo in info.Cases)
+        {
+            if (!caseInfo.IsSealed)
+            {
+                context.ReportDiagnostic(UnionDiagnostics.CreateCaseShouldBeSealed(caseInfo.Location, caseInfo.Name, info.Name));
+            }
+
+            // MNG005: Duplicate case name
+            if (caseInfo.IsDuplicate)
+            {
+                context.ReportDiagnostic(UnionDiagnostics.CreateDuplicateCaseName(caseInfo.Location, caseInfo.Name, info.Name));
+            }
+        }
+
+        // MNG007: Union has instance fields
+        if (info.HasInstanceFields)
+        {
+            context.ReportDiagnostic(UnionDiagnostics.CreateUnionHasInstanceFields(info.Location, info.Name));
+        }
+
+        // MNG008: Prefer record
+        if (!info.IsRecord && info.IsAbstract && info.IsPartial)
+        {
+            context.ReportDiagnostic(UnionDiagnostics.CreatePreferRecord(info.Location, info.Name));
+        }
     }
 
     private static UnionInfo? GetUnionInfo(GeneratorAttributeSyntaxContext context)
@@ -426,4 +531,19 @@ internal sealed record UnionCaseParameter(
     string Name,
     string FullTypeName,
     string ShortTypeName);
+
+internal sealed record UnionValidationInfo(
+    string Name,
+    Location Location,
+    bool IsAbstract,
+    bool IsPartial,
+    bool IsRecord,
+    bool HasInstanceFields,
+    List<UnionCaseValidationInfo> Cases);
+
+internal sealed record UnionCaseValidationInfo(
+    string Name,
+    Location Location,
+    bool IsSealed,
+    bool IsDuplicate);
 
