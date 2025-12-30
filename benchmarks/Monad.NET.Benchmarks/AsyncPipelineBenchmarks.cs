@@ -101,7 +101,7 @@ public class AsyncPipelineBenchmarks
         var user = await GetUserNullableAsync(1);
         if (user == null) return null;
         
-        if (!user.Email.Contains("@")) return null;
+        if (!user.Email.Contains('@')) return null;
         
         var order = await GetOrderNullableAsync(user.Id);
         if (order == null) return null;
