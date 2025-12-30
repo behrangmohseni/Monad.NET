@@ -22,12 +22,8 @@ public sealed class DoubleNegationAnalyzer : DiagnosticAnalyzer
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
         ImmutableArray.Create(DiagnosticDescriptors.DoubleNegation);
 
-    public override void Initialize(AnalysisContext context)
-    {
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.EnableConcurrentExecution();
-        context.RegisterSyntaxNodeAction(AnalyzeLogicalNot, SyntaxKind.LogicalNotExpression);
-    }
+    public override void Initialize(AnalysisContext context) =>
+        context.RegisterSyntaxNodeActionWithDefaults(AnalyzeLogicalNot, SyntaxKind.LogicalNotExpression);
 
     private static void AnalyzeLogicalNot(SyntaxNodeAnalysisContext context)
     {

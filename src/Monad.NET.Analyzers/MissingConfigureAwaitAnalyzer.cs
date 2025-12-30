@@ -49,12 +49,8 @@ public sealed class MissingConfigureAwaitAnalyzer : DiagnosticAnalyzer
         "RemoteData"
     };
 
-    public override void Initialize(AnalysisContext context)
-    {
-        context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-        context.EnableConcurrentExecution();
-        context.RegisterSyntaxNodeAction(AnalyzeAwaitExpression, SyntaxKind.AwaitExpression);
-    }
+    public override void Initialize(AnalysisContext context) =>
+        context.RegisterSyntaxNodeActionWithDefaults(AnalyzeAwaitExpression, SyntaxKind.AwaitExpression);
 
     private static void AnalyzeAwaitExpression(SyntaxNodeAnalysisContext context)
     {
