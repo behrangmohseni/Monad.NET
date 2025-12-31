@@ -316,6 +316,7 @@ var area = shape.Match(
 | [Logging Guidance](docs/Guides/Logging.md) | Best practices for logging |
 | [Type Selection Guide](docs/Guides/TypeSelectionGuide.md) | Decision flowchart for choosing the right type |
 | [Migration Guide](docs/Guides/MigrationGuide.md) | Migrate from language-ext, OneOf, FluentResults |
+| [Architectural Decisions](docs/ArchitecturalDecisions.md) | Design decisions, rationale, and trade-offs |
 
 ---
 
