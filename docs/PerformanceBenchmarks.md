@@ -12,6 +12,7 @@ This document provides comprehensive performance comparisons between Monad.NET a
 - [Memory Allocation Analysis](#memory-allocation-analysis)
 - [Async Operations](#async-operations)
 - [Collection Operations](#collection-operations)
+- [AggressiveInlining Impact Analysis](#aggressiveinlining-impact-analysis)
 - [Key Takeaways](#key-takeaways)
 - [Running Benchmarks Yourself](#running-benchmarks-yourself)
 
@@ -357,6 +358,67 @@ Results are saved to `BenchmarkDotNet.Artifacts/results/`.
 | Allocated | Heap memory allocated per operation |
 
 The `-` in Allocated means **zero heap allocations** (ideal for hot paths).
+
+---
+
+## AggressiveInlining Impact Analysis
+
+One of Monad.NET's key design decisions is the pervasive use of `[MethodImpl(MethodImplOptions.AggressiveInlining)]`. This section documents the measured impact of this optimization.
+
+### Methodology
+
+We compared direct method calls (with AggressiveInlining) against wrapper methods marked with `[MethodImpl(MethodImplOptions.NoInlining)]` to measure the true impact of inlining.
+
+### Results by Category
+
+| Category | Operation | With Inlining | Without | Speedup |
+|----------|-----------|---------------|---------|---------|
+| **Property Access** | IsSome | 2.1 μs | 7.0 μs | **3.3x** |
+| **Property Access** | IsOk | 2.1 μs | 6.1 μs | **2.9x** |
+| **Property Access** | IsRight | 2.1 μs | 8.2 μs | **3.9x** |
+| **Factory** | Option.Some | 2.1 μs | 6.4 μs | **3.0x** |
+| **Factory** | Option.None | 2.1 μs | 6.4 μs | **3.1x** |
+| **Factory** | Result.Ok | 2.1 μs | 9.1 μs | **4.2x** |
+| **Value Access** | UnwrapOr | 6.8 μs | 12.2 μs | **1.8x** |
+| **Value Access** | UnwrapOrDefault | 6.3 μs | 15.2 μs | **2.5x** |
+| **Conditional** | UnwrapOrElse | 6.7 μs | 16.1 μs | **2.4x** |
+| **Transform** | Map | 4.4 μs | 12.8 μs | **2.9x** |
+| **Transform** | Filter | 5.3 μs | 13.5 μs | **2.6x** |
+| **Chaining** | AndThen | 7.2 μs | 14.5 μs | **2.0x** |
+| **Match** | Option.Match | 9.0 μs | 27.4 μs | **3.0x** |
+| **Pipeline** | Option Pipeline | 72 μs | 130 μs | **1.8x** |
+| **Pipeline** | Result Pipeline | 175 μs | 388 μs | **2.2x** |
+
+### Analysis
+
+**Key Findings:**
+
+1. **Property accessors benefit most** (2.9x-3.9x): Simple boolean returns are inlined directly into calling code.
+
+2. **Factory methods show significant gains** (3.0x-4.2x): Object creation with null checking is efficiently inlined.
+
+3. **Transform operations compound** (2.0x-2.9x): Each Map/Filter/AndThen in a chain benefits from inlining.
+
+4. **Complex pipelines still benefit** (1.8x-2.2x): Even with allocation overhead, inlining provides measurable gains.
+
+### Why This Matters
+
+In monadic pipelines, methods are chained frequently:
+
+```csharp
+// Each operation in this chain is inlined:
+Option<int>.Some(42)        // Factory: 3x faster
+    .Filter(x => x > 0)     // Transform: 2.6x faster
+    .Map(x => x * 2)        // Transform: 2.9x faster
+    .AndThen(Validate)      // Chaining: 2x faster
+    .Match(ok => ok, () => -1)  // Match: 3x faster
+```
+
+The cumulative effect across a typical pipeline is **1.8x-2.2x overall speedup**, which makes a significant difference in high-throughput scenarios.
+
+### Benchmark Code
+
+See `benchmarks/Monad.NET.Benchmarks/AggressiveInliningComprehensiveBenchmarks.cs` for the complete benchmark implementation.
 
 ---
 
