@@ -1,10 +1,14 @@
 # CodeFactor configuration
 # Exclude generated and build artifacts, tests, and benchmarks
-exclude:
+exclude_paths:
   - "**/bin/**"
   - "**/obj/**"
   - "**/artifacts/**"
   - "tests/**"
+  - "benchmarks/**"
+
+# Alternative ignore patterns for duplication analysis
+ignore_patterns:
   - "benchmarks/**"
 
 # Enable language-specific engines if supported by CodeFactor
