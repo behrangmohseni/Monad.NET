@@ -144,7 +144,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>, ICompar
     public T Get()
     {
         if (!_isSuccess)
-            ThrowHelper.ThrowInvalidOperation($"Cannot unwrap failed Try. Exception: {_exception!.Message}");
+            ThrowHelper.ThrowTryIsFailure(_exception!);
 
         return _value!;
     }
@@ -166,7 +166,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>, ICompar
     public T Unwrap()
     {
         if (!_isSuccess)
-            ThrowHelper.ThrowInvalidOperation($"Cannot unwrap failed Try. Exception: {_exception!.Message}");
+            ThrowHelper.ThrowTryIsFailure(_exception!);
 
         return _value!;
     }
@@ -237,7 +237,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>, ICompar
     public T GetOrThrow()
     {
         if (!_isSuccess)
-            ThrowHelper.ThrowInvalidOperation($"Try is Failure. Cannot get value. Exception: {_exception!.Message}");
+            ThrowHelper.ThrowTryIsFailure(_exception!);
 
         return _value!;
     }
@@ -285,7 +285,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>, ICompar
     public Exception GetExceptionOrThrow()
     {
         if (_isSuccess)
-            ThrowHelper.ThrowInvalidOperation($"Try is Success. Cannot get exception. Value: {_value}");
+            ThrowHelper.ThrowTryIsSuccess(_value!);
 
         return _exception!;
     }
@@ -323,7 +323,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>, ICompar
     public Exception GetException()
     {
         if (_isSuccess)
-            ThrowHelper.ThrowInvalidOperation("Cannot unwrap exception from successful Try.");
+            ThrowHelper.ThrowTryIsSuccess(_value!);
 
         return _exception!;
     }

@@ -71,7 +71,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     public static Result<T, TErr> Ok(T value)
     {
         if (value is null)
-            ThrowHelper.ThrowArgumentNull(nameof(value), "Cannot create Ok with null value.");
+            ThrowHelper.ThrowCannotCreateOkWithNull();
 
         return new Result<T, TErr>(value, default!, true);
     }
@@ -83,7 +83,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     public static Result<T, TErr> Err(TErr error)
     {
         if (error is null)
-            ThrowHelper.ThrowArgumentNull(nameof(error), "Cannot create Err with null error.");
+            ThrowHelper.ThrowCannotCreateErrWithNull();
 
         return new Result<T, TErr>(default!, error, false);
     }
@@ -124,7 +124,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     public T Unwrap()
     {
         if (!_isOk)
-            ThrowHelper.ThrowInvalidOperation($"Cannot unwrap Err value. Error: {_error}");
+            ThrowHelper.ThrowResultIsErr(_error!);
 
         return _value!;
     }
@@ -137,7 +137,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     public TErr UnwrapErr()
     {
         if (_isOk)
-            ThrowHelper.ThrowInvalidOperation($"Cannot unwrap error on Ok value. Value: {_value}");
+            ThrowHelper.ThrowResultIsOk(_value!);
 
         return _error!;
     }
@@ -187,7 +187,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     public T GetOrThrow()
     {
         if (!_isOk)
-            ThrowHelper.ThrowInvalidOperation($"Result is Err. Cannot get value. Error: {_error}");
+            ThrowHelper.ThrowResultIsErr(_error!);
 
         return _value!;
     }
@@ -235,7 +235,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     public TErr GetErrorOrThrow()
     {
         if (_isOk)
-            ThrowHelper.ThrowInvalidOperation($"Result is Ok. Cannot get error. Value: {_value}");
+            ThrowHelper.ThrowResultIsOk(_value!);
 
         return _error!;
     }

@@ -129,7 +129,7 @@ internal static class DiagnosticDescriptors
         title: "Map with identity function",
         messageFormat: "Map with identity function (x => x) has no effect and can be removed",
         category: Category,
-        defaultSeverity: DiagnosticSeverity.Info,
+        defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         description: "Mapping with an identity function (x => x) returns the same value and can be safely removed.",
         helpLinkUri: "https://github.com/behrangmohseni/Monad.NET/blob/main/docs/Guides/Analyzers.md#mnt009");
@@ -189,7 +189,7 @@ internal static class DiagnosticDescriptors
         title: "Prefer Match over manual state checks",
         messageFormat: "Consider using Match() instead of checking {0} and then accessing the value",
         category: Category,
-        defaultSeverity: DiagnosticSeverity.Info,
+        defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         description: "Using Match() is more idiomatic and ensures exhaustive handling of all cases. It also prevents accidental Unwrap() calls without prior checks.",
         helpLinkUri: "https://github.com/behrangmohseni/Monad.NET/blob/main/docs/Guides/Analyzers.md#mnt014");
