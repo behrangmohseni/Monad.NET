@@ -303,6 +303,7 @@ var area = shape.Match(
 
 | Document | Description |
 |----------|-------------|
+| [NuGet Packages](docs/NuGetPackages.md) | All packages with version badges and installation instructions |
 | [Quick Start Guide](docs/QUICKSTART.md) | Get up and running in 5 minutes |
 | [Core Types](docs/CoreTypes.md) | Detailed docs for Option, Result, Either, Validation, Try, and more |
 | [Advanced Usage](docs/AdvancedUsage.md) | LINQ, async, collection operations, parallel processing |
