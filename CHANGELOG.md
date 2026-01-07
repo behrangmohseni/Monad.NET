@@ -9,6 +9,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.1] - 2026-01-07
+
+### Added
+
+- **Architecture Tests** - Automated tests enforcing design decisions
+  - Core monad types must be readonly structs
+  - Core monad types must have only readonly fields
+  - Hot path methods must have AggressiveInlining
+  - Factory methods must have AggressiveInlining
+  - ThrowHelper methods must have NoInlining
+  - Core types must be serializable
+  - Core types must implement IEquatable and IComparable
+  - Core types must have DebuggerDisplay and DebuggerTypeProxy
+  - Library must have zero runtime dependencies
+
+- **Architectural Decision Records (ADRs)** - Comprehensive documentation
+  - ADR-001: Struct-based Monad Types
+  - ADR-002: Nullable Reference Type Integration
+  - ADR-003: Aggressive Inlining Strategy
+  - ADR-004: ThrowHelper Pattern
+  - ADR-005: LINQ Query Syntax Support
+  - ADR-006: Implicit Operator Design
+  - ADR-007: Async Extension Pattern
+  - ADR-008: Multi-Target Framework Strategy
+
+### Changed
+
+- **Improved Error Messages** - Specialized ThrowHelper methods for better diagnostics
+  - `Option`: Use `ThrowCannotCreateSomeWithNull()`, `ThrowOptionIsNone()`
+  - `Result`: Use `ThrowCannotCreateOkWithNull()`, `ThrowCannotCreateErrWithNull()`, `ThrowResultIsErr()`, `ThrowResultIsOk()`
+  - `Either`: Use `ThrowEitherIsLeft()`, `ThrowEitherIsRight()`
+  - `Try`: Use `ThrowTryIsFailure()`, `ThrowTryIsSuccess()`
+  - `Validation`: Use `ThrowValidationIsInvalid()`, `ThrowValidationIsValid()`
+
+- **Upgraded Analyzer Severities** - Stronger warnings for common issues
+  - MNT009 (Map with identity function): Info → Warning
+  - MNT014 (Prefer Match over manual state checks): Info → Warning
+
+- **Code Organization** - Split `Collections.cs` (1126 lines) into focused files
+  - `Collections.cs` (276 lines): ParallelHelper + Option collections
+  - `Collections.Result.cs` (188 lines): Result collection extensions
+  - `Collections.Either.cs` (74 lines): Either collection extensions
+  - `Collections.Async.cs` (120 lines): Async collection extensions
+  - `Collections.ParallelAsync.cs` (274 lines): Parallel async extensions
+  - `Collections.Enumerable.cs` (166 lines): General enumerable extensions
+
+### Fixed
+
+- Fixed CodeFactor complexity and code quality issues
+- Fixed duplicate code in analyzer Initialize methods
+- Excluded benchmarks from CodeFactor duplicate code analysis (intentional duplication for benchmarking)
+
+---
+
 ## [1.1.0] - 2025-12-30
 
 ### Added

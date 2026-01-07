@@ -10,7 +10,7 @@
     
     <!-- Package Info -->
     <PackageId>Monad.NET.Analyzers</PackageId>
-    <Version>1.1.0</Version>
+    <Version>1.1.1</Version>
     <Authors>Behrang Mohseni</Authors>
     <Company>Behrang Mohseni</Company>
     <Product>Monad.NET.Analyzers</Product>

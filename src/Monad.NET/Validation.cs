@@ -110,7 +110,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     public T Unwrap()
     {
         if (!_isValid)
-            ThrowHelper.ThrowInvalidOperation($"Cannot unwrap Invalid validation. Errors: {string.Join(", ", _errors!)}");
+            ThrowHelper.ThrowValidationIsInvalid(_errors!);
 
         return _value!;
     }
@@ -123,7 +123,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     public IReadOnlyList<TErr> UnwrapErrors()
     {
         if (_isValid)
-            ThrowHelper.ThrowInvalidOperation("Cannot unwrap errors on Valid validation.");
+            ThrowHelper.ThrowValidationIsValid(_value!);
 
         return _errors!;
     }
@@ -203,7 +203,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     public T GetOrThrow()
     {
         if (!_isValid)
-            ThrowHelper.ThrowInvalidOperation($"Validation is Invalid. Cannot get value. Errors: {string.Join(", ", _errors!)}");
+            ThrowHelper.ThrowValidationIsInvalid(_errors!);
 
         return _value!;
     }
@@ -251,7 +251,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     public IReadOnlyList<TErr> GetErrorsOrThrow()
     {
         if (_isValid)
-            ThrowHelper.ThrowInvalidOperation($"Validation is Valid. Cannot get errors. Value: {_value}");
+            ThrowHelper.ThrowValidationIsValid(_value!);
 
         return _errors!;
     }

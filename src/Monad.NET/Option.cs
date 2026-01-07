@@ -68,7 +68,7 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     public static Option<T> Some(T value)
     {
         if (value is null)
-            ThrowHelper.ThrowArgumentNull(nameof(value), "Cannot create Some with null value. Use None instead.");
+            ThrowHelper.ThrowCannotCreateSomeWithNull();
 
         return new Option<T>(value, true);
     }
@@ -101,7 +101,7 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     public T Unwrap()
     {
         if (!_isSome)
-            ThrowHelper.ThrowInvalidOperation("Cannot unwrap None value.");
+            ThrowHelper.ThrowOptionIsNone();
 
         return _value!;
     }
@@ -151,7 +151,7 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     public T GetOrThrow()
     {
         if (!_isSome)
-            ThrowHelper.ThrowInvalidOperation("Option is None. Cannot get value from None.");
+            ThrowHelper.ThrowOptionIsNone();
 
         return _value!;
     }
