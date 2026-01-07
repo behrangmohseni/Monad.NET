@@ -7,6 +7,11 @@ exclude:
   - "tests/**"
   - "benchmarks/**"
 
+# Exclude benchmarks from duplication detection (intentional duplication for perf testing)
+duplication:
+  exclude:
+    - "benchmarks/**"
+
 # Enable language-specific engines if supported by CodeFactor
 engines:
   csharp:
