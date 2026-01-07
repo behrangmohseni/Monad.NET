@@ -27,11 +27,11 @@ public class ArchitectureTests
     public void CoreMonadTypes_ShouldBeReadonlyStructs(Type type)
     {
         Assert.True(type.IsValueType, $"{type.Name} should be a value type (struct)");
-        
+
         // Check for IsReadOnly via attributes (readonly structs have IsReadOnlyAttribute)
         var isReadOnly = type.GetCustomAttributes()
             .Any(a => a.GetType().Name == "IsReadOnlyAttribute");
-        
+
         Assert.True(isReadOnly, $"{type.Name} should be a readonly struct");
     }
 
@@ -49,10 +49,10 @@ public class ArchitectureTests
     public void CoreMonadTypes_ShouldHaveOnlyReadonlyFields(Type type)
     {
         var fields = type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-        
+
         foreach (var field in fields)
         {
-            Assert.True(field.IsInitOnly, 
+            Assert.True(field.IsInitOnly,
                 $"Field {type.Name}.{field.Name} should be readonly");
         }
     }
@@ -81,9 +81,9 @@ public class ArchitectureTests
         // Check both methods and property getters
         var member = type.GetMethod(methodOrPropertyName, BindingFlags.Instance | BindingFlags.Public)
             ?? type.GetProperty(methodOrPropertyName, BindingFlags.Instance | BindingFlags.Public)?.GetMethod;
-        
+
         Assert.NotNull(member);
-        
+
         // MethodImplOptions are stored in MethodImplAttributes, accessed via MethodImplementationFlags
         var flags = member!.MethodImplementationFlags;
         Assert.True(flags.HasFlag(MethodImplAttributes.AggressiveInlining),
@@ -109,9 +109,9 @@ public class ArchitectureTests
         var methods = type.GetMethods(BindingFlags.Static | BindingFlags.Public)
             .Where(m => m.Name == methodName)
             .ToList();
-        
+
         Assert.NotEmpty(methods);
-        
+
         foreach (var method in methods)
         {
             var flags = method.MethodImplementationFlags;
@@ -129,7 +129,7 @@ public class ArchitectureTests
     {
         var type = typeof(Validation<int, string>);
         var method = type.GetMethod("Invalid", BindingFlags.Static | BindingFlags.Public, null, new[] { typeof(string) }, null);
-        
+
         Assert.NotNull(method);
         var flags = method!.MethodImplementationFlags;
         Assert.True(flags.HasFlag(MethodImplAttributes.AggressiveInlining),
@@ -145,12 +145,12 @@ public class ArchitectureTests
     {
         var throwHelperType = MonadAssembly.GetTypes()
             .FirstOrDefault(t => t.Name == "ThrowHelper");
-        
+
         Assert.NotNull(throwHelperType);
-        
+
         var throwMethods = throwHelperType!.GetMethods(BindingFlags.Static | BindingFlags.Public)
             .Where(m => m.Name.StartsWith("Throw") && !m.Name.StartsWith("ThrowIf"));
-        
+
         foreach (var method in throwMethods)
         {
             var flags = method.MethodImplementationFlags;
@@ -188,7 +188,7 @@ public class ArchitectureTests
     {
         var equatableInterface = type.GetInterfaces()
             .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEquatable<>));
-        
+
         Assert.NotNull(equatableInterface);
     }
 
@@ -205,7 +205,7 @@ public class ArchitectureTests
     {
         var comparableInterface = type.GetInterfaces()
             .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IComparable<>));
-        
+
         Assert.NotNull(comparableInterface);
     }
 
@@ -219,7 +219,7 @@ public class ArchitectureTests
             .Where(t => t.IsClass && t.IsAbstract && t.IsSealed) // static classes
             .Where(t => t.Name.Contains("Extensions") || t.Name.Contains("Collection"))
             .ToList();
-        
+
         foreach (var type in extensionClasses)
         {
             var editorBrowsable = type.GetCustomAttribute<System.ComponentModel.EditorBrowsableAttribute>();
@@ -239,16 +239,16 @@ public class ArchitectureTests
     public void Library_ShouldHaveZeroRuntimeDependencies()
     {
         var references = MonadAssembly.GetReferencedAssemblies();
-        
+
         // Only system/runtime assemblies should be referenced
         foreach (var reference in references)
         {
-            var isSystemAssembly = reference.Name!.StartsWith("System") 
-                || reference.Name.StartsWith("Microsoft") 
+            var isSystemAssembly = reference.Name!.StartsWith("System")
+                || reference.Name.StartsWith("Microsoft")
                 || reference.Name == "netstandard"
                 || reference.Name == "mscorlib";
-            
-            Assert.True(isSystemAssembly, 
+
+            Assert.True(isSystemAssembly,
                 $"Library has unexpected dependency: {reference.Name}. " +
                 "The core library should have zero third-party dependencies.");
         }
@@ -265,11 +265,11 @@ public class ArchitectureTests
     {
         var allTypes = MonadAssembly.GetTypes();
         var extensionClasses = allTypes.Where(t => t.IsClass && t.IsAbstract && t.IsSealed);
-        
-        var hasMethod = extensionClasses.Any(t => 
+
+        var hasMethod = extensionClasses.Any(t =>
             t.GetMethods(BindingFlags.Static | BindingFlags.Public)
                 .Any(m => m.Name == methodName));
-        
+
         Assert.True(hasMethod, $"Expected async method {methodName} to exist in extension classes");
     }
 
