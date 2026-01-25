@@ -9,7 +9,7 @@
     
     <!-- Package Info -->
     <PackageId>Monad.NET.SourceGenerators</PackageId>
-    <Version>1.1.1</Version>
+    <Version>1.1.2</Version>
     <Authors>Behrang Mohseni</Authors>
     <Company>behrangmohseni.com</Company>
     <Product>Monad.NET.SourceGenerators</Product>

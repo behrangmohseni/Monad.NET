@@ -9,6 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.2] - 2026-01-25
+
+### Added
+
+- **NuGet Packages Documentation** - New comprehensive documentation page
+  - `docs/NuGetPackages.md` - Lists all packages with NuGet badges and descriptions
+  - Updated README with link to NuGet packages page
+
+### Changed
+
+- **Code Style Improvements** - Standardized expression-bodied methods in ThrowHelper
+  - Converted multi-line throw methods to expression-bodied members
+  - Improved code consistency and readability
+
+- **CodeFactor Configuration** - Enhanced duplicate code analysis exclusions
+  - Extended benchmark exclusions for more accurate code quality metrics
+
+---
+
 ## [1.1.1] - 2026-01-07
 
 ### Added
