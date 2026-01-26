@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ master, main, develop ]
+    branches: [ main, v1.x, v2.x ]
   pull_request:
-    branches: [ master, main, develop ]
+    branches: [ main, v1.x, v2.x ]
 
 env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true

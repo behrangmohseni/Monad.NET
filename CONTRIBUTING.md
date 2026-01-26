@@ -17,6 +17,37 @@ Thank you for your interest in contributing to Monad.NET! This document provides
 
 This project follows a standard code of conduct. Please be respectful and constructive in all interactions.
 
+## Branching Strategy
+
+Monad.NET uses a multi-version branching strategy to support both active development and maintenance releases:
+
+| Branch | Purpose | Version |
+|--------|---------|---------|
+| `main` | Active development of latest major version | v2.x |
+| `v1.x` | Maintenance branch for v1.x patches and fixes | v1.x |
+
+### Release Process
+
+Releases are triggered by pushing version tags:
+
+```bash
+# For v1.x maintenance releases (from v1.x branch)
+git checkout v1.x
+git tag v1.1.3
+git push origin v1.1.3
+
+# For v2.x releases (from main branch)
+git checkout main
+git tag v2.0.0
+git push origin v2.0.0
+```
+
+### Contributing to Different Versions
+
+- **New features**: Target the `main` branch (v2.x)
+- **Bug fixes for v1.x**: Target the `v1.x` branch
+- **Bug fixes for both versions**: Submit to `main` first, then we'll backport to `v1.x` if applicable
+
 ## Getting Started
 
 1. **Fork the repository** on GitHub
