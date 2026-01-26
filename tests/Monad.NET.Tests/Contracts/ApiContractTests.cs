@@ -811,7 +811,7 @@ public class ApiContractTests
     [Theory]
     [InlineData("Last")]
     [InlineData("Map")]
-    
+
     [InlineData("Filter")]
     [InlineData("Append")]
     [InlineData("Prepend")]
@@ -843,7 +843,7 @@ public class ApiContractTests
 
     [Theory]
     [InlineData("Map")]
-    
+
     [InlineData("BiMap")]
     [InlineData("Match")]
     public void Writer_InstanceMethods_ShouldExist(string methodName)
@@ -876,7 +876,7 @@ public class ApiContractTests
     [Theory]
     [InlineData("Run")]
     [InlineData("Map")]
-    
+
     [InlineData("WithEnvironment")]
     public void Reader_InstanceMethods_ShouldExist(string methodName)
     {
@@ -910,7 +910,7 @@ public class ApiContractTests
     [InlineData("Eval")]
     [InlineData("Exec")]
     [InlineData("Map")]
-    
+
     [InlineData("Bind")]
     public void State_InstanceMethods_ShouldExist(string methodName)
     {
@@ -941,7 +941,7 @@ public class ApiContractTests
     [InlineData("Run")]
     [InlineData("RunAsync")]
     [InlineData("Map")]
-    
+
     [InlineData("Bind")]
     public void IO_InstanceMethods_ShouldExist(string methodName)
     {
