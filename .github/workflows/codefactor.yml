@@ -2,9 +2,9 @@ name: CodeFactor
 
 on:
   pull_request:
-    branches: [ master, main, develop ]
+    branches: [ main, v1.x, v2.x ]
   push:
-    branches: [ master, main, develop ]
+    branches: [ main, v1.x, v2.x ]
 
 jobs:
   codefactor:
