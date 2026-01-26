@@ -274,61 +274,6 @@ public class CollectionTests
 
     #endregion
 
-    #region Either Collection Tests
-
-    [Fact]
-    public void Either_CollectRights_FiltersRightValues()
-    {
-        var eithers = new[]
-        {
-            Either<string, int>.Right(1),
-            Either<string, int>.Left("error"),
-            Either<string, int>.Right(3),
-            Either<string, int>.Left("error2"),
-            Either<string, int>.Right(5)
-        };
-
-        var rights = eithers.CollectRights().ToList();
-
-        Assert.Equal(new[] { 1, 3, 5 }, rights);
-    }
-
-    [Fact]
-    public void Either_CollectLefts_FiltersLeftValues()
-    {
-        var eithers = new[]
-        {
-            Either<string, int>.Right(1),
-            Either<string, int>.Left("error1"),
-            Either<string, int>.Right(3),
-            Either<string, int>.Left("error2")
-        };
-
-        var lefts = eithers.CollectLefts().ToList();
-
-        Assert.Equal(new[] { "error1", "error2" }, lefts);
-    }
-
-    [Fact]
-    public void Either_Partition_SeparatesLeftsAndRights()
-    {
-        var eithers = new[]
-        {
-            Either<string, int>.Right(1),
-            Either<string, int>.Left("error1"),
-            Either<string, int>.Right(2),
-            Either<string, int>.Left("error2"),
-            Either<string, int>.Right(3)
-        };
-
-        var (lefts, rights) = eithers.Partition();
-
-        Assert.Equal(new[] { "error1", "error2" }, lefts);
-        Assert.Equal(new[] { 1, 2, 3 }, rights);
-    }
-
-    #endregion
-
     #region Async Collection Tests
 
     [Fact]

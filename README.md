@@ -9,7 +9,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET_Standard-2.0%2B-512BD4.svg)](https://dotnet.microsoft.com/)
 
-**Monad.NET** is a functional programming library for .NET. Option, Result, Either, Validation, and more — with zero dependencies.
+**Monad.NET** is a functional programming library for .NET. Option, Result, Validation, Try, and more — with zero dependencies.
 
 ```csharp
 // Transform nullable chaos into composable clarity
@@ -187,7 +187,6 @@ result.Match(
 | Wrapping code that throws exceptions | `Try<T>` |
 | A list must have at least one item | `NonEmptyList<T>` |
 | UI state for async data loading (Blazor) | `RemoteData<T, E>` |
-| Return one of two different types | `Either<L, R>` |
 | Compose async operations with shared dependencies | `ReaderAsync<R, A>` |
 | Dependency injection without DI container | `Reader<R, A>` |
 | Need to accumulate logs/traces alongside results | `Writer<W, T>` |
@@ -202,7 +201,6 @@ These types come from functional programming languages. Here's the lineage:
 |-----------|-----|------|---------|
 | `Option<T>` | `Option<'T>` | `Option<T>` | `Maybe a` |
 | `Result<T,E>` | `Result<'T,'E>` | `Result<T,E>` | `Either a b` |
-| `Either<L,R>` | `Choice<'T1,'T2>` | — | `Either a b` |
 | `Validation<T,E>` | — | — | `Validation e a` |
 | `Try<T>` | — | — | — (Scala) |
 | `RemoteData<T,E>` | — | — | — (Elm) |
@@ -305,7 +303,7 @@ var area = shape.Match(
 |----------|-------------|
 | [NuGet Packages](docs/NuGetPackages.md) | All packages with version badges and installation instructions |
 | [Quick Start Guide](docs/QUICKSTART.md) | Get up and running in 5 minutes |
-| [Core Types](docs/CoreTypes.md) | Detailed docs for Option, Result, Either, Validation, Try, and more |
+| [Core Types](docs/CoreTypes.md) | Detailed docs for Option, Result, Validation, Try, and more |
 | [Advanced Usage](docs/AdvancedUsage.md) | LINQ, async, collection operations, parallel processing |
 | [Examples](docs/Examples.md) | Real-world code samples |
 | [Integrations](docs/Integrations.md) | Source Generators, ASP.NET Core, Entity Framework Core |
@@ -354,7 +352,7 @@ Want to dive deeper into functional programming and these patterns?
 
 | Book | Author | Why Read It |
 |------|--------|-------------|
-| [Functional Programming in C#](https://www.manning.com/books/functional-programming-in-c-sharp-second-edition) | Enrico Buonanno | The definitive guide to FP in C#. Covers Option, Either, validation, and more. |
+| [Functional Programming in C#](https://www.manning.com/books/functional-programming-in-c-sharp-second-edition) | Enrico Buonanno | The definitive guide to FP in C#. Covers Option, Result, Validation, and more. |
 | [Domain Modeling Made Functional](https://pragprog.com/titles/swdddf/domain-modeling-made-functional/) | Scott Wlaschin | Uses F# but concepts translate directly. Excellent on making illegal states unrepresentable. |
 | [Programming Rust](https://www.oreilly.com/library/view/programming-rust-2nd/9781492052586/) | Blandy, Orendorff, Tindall | Rust's `Option` and `Result` are nearly identical to Monad.NET's versions. |
 
@@ -364,7 +362,7 @@ Want to dive deeper into functional programming and these patterns?
 |----------|-------------|
 | [F# for Fun and Profit](https://fsharpforfunandprofit.com/) | Scott Wlaschin's legendary site. Start with [Railway Oriented Programming](https://fsharpforfunandprofit.com/rop/). |
 | [Rust Error Handling](https://doc.rust-lang.org/book/ch09-00-error-handling.html) | Official Rust book chapter on `Option` and `Result`. |
-| [Haskell Maybe/Either](https://wiki.haskell.org/Handling_errors_in_Haskell) | Haskell wiki on error handling patterns. |
+| [Haskell Error Handling](https://wiki.haskell.org/Handling_errors_in_Haskell) | Haskell wiki on error handling patterns. |
 | [Parse, Don't Validate](https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/) | Alexis King's influential post on type-driven design. |
 
 ### Videos & Talks
@@ -418,13 +416,6 @@ Yes! Use `Option<T>` for optional relationships and `Result<T, E>` for operation
 ### Can I use Monad.NET with ASP.NET Core?
 
 Absolutely. See [ASP.NET Core Integration](docs/Integrations.md#aspnet-core-integration).
-
-### What's the difference between `Result` and `Either`?
-
-- **`Result<T, E>`** — Semantically means success or failure. Right-biased (operations work on `Ok`).
-- **`Either<L, R>`** — General "one of two types" with no success/failure implication. Can work on either side.
-
-Use `Result` for error handling. Use `Either` when both sides are valid outcomes.
 
 ### What's the difference between `Result` and `Validation`?
 

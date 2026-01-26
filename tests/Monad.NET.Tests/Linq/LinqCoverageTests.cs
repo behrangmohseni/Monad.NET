@@ -71,40 +71,6 @@ public class LinqCoverageTests
 
     #endregion
 
-    #region Either Where Tests
-
-    [Fact]
-    public void EitherLinq_Where_Right_PredicateTrue_ReturnsRight()
-    {
-        var either = Either<string, int>.Right(42);
-        var filtered = either.Where(x => x > 40, "Value too small");
-
-        Assert.True(filtered.IsRight);
-        Assert.Equal(42, filtered.GetRight());
-    }
-
-    [Fact]
-    public void EitherLinq_Where_Right_PredicateFalse_ReturnsLeft()
-    {
-        var either = Either<string, int>.Right(42);
-        var filtered = either.Where(x => x > 50, "Value too small");
-
-        Assert.True(filtered.IsLeft);
-        Assert.Equal("Value too small", filtered.GetLeft());
-    }
-
-    [Fact]
-    public void EitherLinq_Where_Left_ReturnsLeft()
-    {
-        var either = Either<string, int>.Left("original error");
-        var filtered = either.Where(x => x > 50, "Value too small");
-
-        Assert.True(filtered.IsLeft);
-        Assert.Equal("original error", filtered.GetLeft());
-    }
-
-    #endregion
-
     #region Try Where Tests
 
     [Fact]

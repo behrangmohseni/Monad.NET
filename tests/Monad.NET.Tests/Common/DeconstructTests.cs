@@ -96,43 +96,6 @@ public class DeconstructTests
 
     #endregion
 
-    #region Either Deconstruction Tests
-
-    [Fact]
-    public void Either_Deconstruct_Right_ReturnsComponents()
-    {
-        var either = Either<string, int>.Right(42);
-        var (left, right, isRight) = either;
-
-        Assert.Null(left);
-        Assert.Equal(42, right);
-        Assert.True(isRight);
-    }
-
-    [Fact]
-    public void Either_Deconstruct_Left_ReturnsComponents()
-    {
-        var either = Either<string, int>.Left("error");
-        var (left, right, isRight) = either;
-
-        Assert.Equal("error", left);
-        Assert.Equal(default, right);
-        Assert.False(isRight);
-    }
-
-    [Fact]
-    public void Either_Deconstruct_WithPatternMatching()
-    {
-        var either = Either<string, int>.Right(99);
-        var (left, right, isRight) = either;
-
-        var message = isRight ? $"Right: {right}" : $"Left: {left}";
-
-        Assert.Equal("Right: 99", message);
-    }
-
-    #endregion
-
     #region Try Deconstruction Tests
 
     [Fact]

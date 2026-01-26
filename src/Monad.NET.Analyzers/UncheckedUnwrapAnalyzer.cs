@@ -15,7 +15,6 @@ public sealed class UncheckedUnwrapAnalyzer : DiagnosticAnalyzer
     private static readonly ImmutableHashSet<string> MonadTypes = ImmutableHashSet.Create(
         "Option",
         "Result",
-        "Either",
         "Try",
         "Validation"
     );

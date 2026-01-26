@@ -65,38 +65,6 @@ public class ImplicitOperatorTests
 
     #endregion
 
-    #region Either Implicit Operators
-
-    [Fact]
-    public void Either_ImplicitFromRightValue_CreatesRight()
-    {
-        Either<string, int> either = 42;
-
-        Assert.True(either.IsRight);
-        Assert.Equal(42, either.GetRight());
-    }
-
-    [Fact]
-    public void Either_ImplicitInMethodCall()
-    {
-        static string Process(Either<string, int> either) =>
-            either.Match(l => $"Left: {l}", r => $"Right: {r}");
-
-        Assert.Equal("Right: 42", Process(42));
-    }
-
-    [Fact]
-    public void Either_ImplicitFromRightInReturn()
-    {
-        static Either<string, int> GetValue() => 100;
-
-        var either = GetValue();
-        Assert.True(either.IsRight);
-        Assert.Equal(100, either.GetRight());
-    }
-
-    #endregion
-
     #region Try Implicit Operators
 
     [Fact]
