@@ -46,7 +46,7 @@ public class OptionValueConverterTests
 
         // Assert
         Assert.True(result.IsSome);
-        Assert.Equal("test", result.Unwrap());
+        Assert.Equal("test", result.GetValue());
     }
 
     [Fact]
@@ -106,7 +106,7 @@ public class OptionValueConverterTests
 
         // Assert
         Assert.True(result.IsSome);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]

@@ -130,9 +130,10 @@ public readonly struct Writer<TLog, T> : IEquatable<Writer<TLog, T>>
     /// <summary>
     /// Chains Writer computations, combining their logs.
     /// Requires a function to combine logs (append operation).
+    /// This is the monadic bind operation.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Writer<TLog, U> FlatMap<U>(Func<T, Writer<TLog, U>> binder, Func<TLog, TLog, TLog> combine)
+    public Writer<TLog, U> Bind<U>(Func<T, Writer<TLog, U>> binder, Func<TLog, TLog, TLog> combine)
     {
         ThrowHelper.ThrowIfNull(binder);
         ThrowHelper.ThrowIfNull(combine);
@@ -290,25 +291,25 @@ public static class WriterExtensions
     }
 
     /// <summary>
-    /// FlatMap for string-based Writers (concatenates logs).
+    /// Bind for string-based Writers (concatenates logs).
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Writer<string, U> FlatMap<T, U>(
+    public static Writer<string, U> Bind<T, U>(
         this Writer<string, T> writer,
         Func<T, Writer<string, U>> binder)
     {
-        return writer.FlatMap(binder, static (log1, log2) => log1 + log2);
+        return writer.Bind(binder, static (log1, log2) => log1 + log2);
     }
 
     /// <summary>
-    /// FlatMap for List-based Writers (concatenates lists).
+    /// Bind for List-based Writers (concatenates lists).
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Writer<List<TLog>, U> FlatMap<T, U, TLog>(
+    public static Writer<List<TLog>, U> Bind<T, U, TLog>(
         this Writer<List<TLog>, T> writer,
         Func<T, Writer<List<TLog>, U>> binder)
     {
-        return writer.FlatMap(binder, static (log1, log2) =>
+        return writer.Bind(binder, static (log1, log2) =>
         {
             var combined = new List<TLog>(log1);
             combined.AddRange(log2);
@@ -380,7 +381,7 @@ public static class StringWriter
     /// Creates a Writer with a value and no log.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Writer<string, T> Pure<T>(T value)
+    public static Writer<string, T> Return<T>(T value)
     {
         ThrowHelper.ThrowIfNull(value);
 
@@ -417,7 +418,7 @@ public static class ListWriter
     /// Creates a Writer with a value and empty log list.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Writer<List<TLog>, T> Pure<T, TLog>(T value)
+    public static Writer<List<TLog>, T> Return<T, TLog>(T value)
     {
         ThrowHelper.ThrowIfNull(value);
 

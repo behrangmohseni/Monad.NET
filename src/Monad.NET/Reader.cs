@@ -36,7 +36,7 @@ public sealed class Reader<R, A>
     /// Creates a Reader that returns a constant value, ignoring the environment.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Reader<R, A> Pure(A value)
+    public static Reader<R, A> Return(A value)
     {
         return new Reader<R, A>(_ => value);
     }
@@ -138,7 +138,7 @@ public sealed class Reader<R, A>
     /// This is the monadic bind operation.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Reader<R, B> FlatMap<B>(Func<A, Reader<R, B>> binder)
+    public Reader<R, B> Bind<B>(Func<A, Reader<R, B>> binder)
     {
         ThrowHelper.ThrowIfNull(binder);
 
@@ -149,20 +149,6 @@ public sealed class Reader<R, A>
             return binder(a).Run(env);
         });
     }
-
-    /// <summary>
-    /// Chains Reader computations.
-    /// Alias for <see cref="FlatMap{B}"/>.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Reader<R, B> AndThen<B>(Func<A, Reader<R, B>> binder) => FlatMap(binder);
-
-    /// <summary>
-    /// Chains Reader computations.
-    /// Alias for <see cref="FlatMap{B}"/>.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Reader<R, B> Bind<B>(Func<A, Reader<R, B>> binder) => FlatMap(binder);
 
     /// <summary>
     /// Transforms the environment before running the computation.
@@ -235,7 +221,7 @@ public static class ReaderExtensions
         this Reader<R, A> reader,
         Func<A, Reader<R, B>> selector)
     {
-        return reader.FlatMap(selector);
+        return reader.Bind(selector);
     }
 
     /// <summary>
@@ -249,7 +235,7 @@ public static class ReaderExtensions
     {
         ThrowHelper.ThrowIfNull(resultSelector);
 
-        return reader.FlatMap(a =>
+        return reader.Bind(a =>
             selector(a).Map(b =>
                 resultSelector(a, b)));
     }
@@ -300,9 +286,9 @@ public static class Reader
     /// Creates a Reader that returns a constant value.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Reader<R, A> Pure<R, A>(A value)
+    public static Reader<R, A> Return<R, A>(A value)
     {
-        return Reader<R, A>.Pure(value);
+        return Reader<R, A>.Return(value);
     }
 
     /// <summary>

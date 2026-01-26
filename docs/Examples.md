@@ -21,7 +21,7 @@ public async Task<Result<UserDto, ApiError>> GetUserProfileAsync(int userId)
 {
     // Chain multiple API calls with automatic error propagation
     return await _httpClient.GetUserAsync(userId)
-        .AndThenAsync(user => _httpClient.GetUserPreferencesAsync(user.Id))
+        .BindAsync(user => _httpClient.GetUserPreferencesAsync(user.Id))
         .MapAsync(prefs => new UserDto(user, prefs))
         .TapAsync(dto => _cache.SetAsync($"user:{userId}", dto))
         .TapErrAsync(err => _logger.LogError("Failed to get user {Id}: {Error}", userId, err));
@@ -173,9 +173,9 @@ var enrichedUsers = await workflow.RunAsync(config);
 public Try<ProcessedData> ProcessDataPipeline(string rawInput)
 {
     return Try<string>.Of(() => ValidateInput(rawInput))
-        .FlatMap(input => Try<ParsedData>.Of(() => JsonSerializer.Deserialize<ParsedData>(input)!))
-        .FlatMap(parsed => Try<EnrichedData>.Of(() => EnrichWithExternalData(parsed)))
-        .FlatMap(enriched => Try<ProcessedData>.Of(() => ApplyBusinessRules(enriched)))
+        .Bind(input => Try<ParsedData>.Of(() => JsonSerializer.Deserialize<ParsedData>(input)!))
+        .Bind(parsed => Try<EnrichedData>.Of(() => EnrichWithExternalData(parsed)))
+        .Bind(enriched => Try<ProcessedData>.Of(() => ApplyBusinessRules(enriched)))
         .Recover(ex => ex switch
         {
             JsonException => new ProcessedData { Error = "Invalid JSON format" },

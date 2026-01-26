@@ -11,7 +11,7 @@ public class OptionTests
 
         Assert.True(option.IsSome);
         Assert.False(option.IsNone);
-        Assert.Equal(42, option.Unwrap());
+        Assert.Equal(42, option.GetValue());
     }
 
     [Fact]
@@ -34,7 +34,7 @@ public class OptionTests
     {
         var option = Option<int>.None();
 
-        Assert.Throws<InvalidOperationException>(() => option.Unwrap());
+        Assert.Throws<InvalidOperationException>(() => option.GetValue());
     }
 
     [Fact]
@@ -43,7 +43,7 @@ public class OptionTests
         var option = Option<int>.None();
 
         var exception = Assert.Throws<InvalidOperationException>(
-            () => option.Expect("Expected a value"));
+            () => option.GetOrThrow("Expected a value"));
         Assert.Contains("Expected a value", exception.Message);
     }
 
@@ -52,7 +52,7 @@ public class OptionTests
     {
         var option = Option<int>.Some(42);
 
-        Assert.Equal(42, option.UnwrapOr(0));
+        Assert.Equal(42, option.GetValueOr(0));
     }
 
     [Fact]
@@ -60,7 +60,7 @@ public class OptionTests
     {
         var option = Option<int>.None();
 
-        Assert.Equal(0, option.UnwrapOr(0));
+        Assert.Equal(0, option.GetValueOr(0));
     }
 
     [Fact]
@@ -68,7 +68,7 @@ public class OptionTests
     {
         var option = Option<int>.Some(42);
 
-        Assert.Equal(42, option.UnwrapOrElse(() => 0));
+        Assert.Equal(42, option.GetValueOrElse(() => 0));
     }
 
     [Fact]
@@ -76,7 +76,7 @@ public class OptionTests
     {
         var option = Option<int>.None();
 
-        Assert.Equal(100, option.UnwrapOrElse(() => 100));
+        Assert.Equal(100, option.GetValueOrElse(() => 100));
     }
 
     [Fact]
@@ -86,7 +86,7 @@ public class OptionTests
         var mapped = option.Map(x => x * 2);
 
         Assert.True(mapped.IsSome);
-        Assert.Equal(84, mapped.Unwrap());
+        Assert.Equal(84, mapped.GetValue());
     }
 
     [Fact]
@@ -105,7 +105,7 @@ public class OptionTests
         var filtered = option.Filter(x => x > 40);
 
         Assert.True(filtered.IsSome);
-        Assert.Equal(42, filtered.Unwrap());
+        Assert.Equal(42, filtered.GetValue());
     }
 
     [Fact]
@@ -121,17 +121,17 @@ public class OptionTests
     public void AndThen_OnSome_ExecutesFunction()
     {
         var option = Option<int>.Some(42);
-        var result = option.AndThen(x => Option<string>.Some(x.ToString()));
+        var result = option.Bind(x => Option<string>.Some(x.ToString()));
 
         Assert.True(result.IsSome);
-        Assert.Equal("42", result.Unwrap());
+        Assert.Equal("42", result.GetValue());
     }
 
     [Fact]
     public void AndThen_OnNone_ReturnsNone()
     {
         var option = Option<int>.None();
-        var result = option.AndThen(x => Option<string>.Some(x.ToString()));
+        var result = option.Bind(x => Option<string>.Some(x.ToString()));
 
         Assert.True(result.IsNone);
     }
@@ -145,7 +145,7 @@ public class OptionTests
         var result = option1.Zip(option2);
 
         Assert.True(result.IsSome);
-        Assert.Equal((42, "hello"), result.Unwrap());
+        Assert.Equal((42, "hello"), result.GetValue());
     }
 
     [Fact]
@@ -179,7 +179,7 @@ public class OptionTests
         var result = option1.ZipWith(option2, (a, b) => a + b);
 
         Assert.True(result.IsSome);
-        Assert.Equal(30, result.Unwrap());
+        Assert.Equal(30, result.GetValue());
     }
 
     [Fact]
@@ -211,7 +211,7 @@ public class OptionTests
         var option2 = Option<int>.Some(2);
         var result = option1.Or(option2);
 
-        Assert.Equal(1, result.Unwrap());
+        Assert.Equal(1, result.GetValue());
     }
 
     [Fact]
@@ -221,7 +221,7 @@ public class OptionTests
         var option2 = Option<int>.Some(2);
         var result = option1.Or(option2);
 
-        Assert.Equal(2, result.Unwrap());
+        Assert.Equal(2, result.GetValue());
     }
 
     [Fact]
@@ -231,7 +231,7 @@ public class OptionTests
         var option2 = Option<int>.None();
         var result = option1.Xor(option2);
 
-        Assert.Equal(1, result.Unwrap());
+        Assert.Equal(1, result.GetValue());
     }
 
     [Fact]
@@ -291,7 +291,7 @@ public class OptionTests
         var result = option.OkOr("error");
 
         Assert.True(result.IsOk);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -301,7 +301,7 @@ public class OptionTests
         var result = option.OkOr("error");
 
         Assert.True(result.IsErr);
-        Assert.Equal("error", result.UnwrapErr());
+        Assert.Equal("error", result.GetError());
     }
 
     [Fact]
@@ -311,7 +311,7 @@ public class OptionTests
         var option = value.ToOption();
 
         Assert.True(option.IsSome);
-        Assert.Equal(42, option.Unwrap());
+        Assert.Equal(42, option.GetValue());
     }
 
     [Fact]
@@ -330,7 +330,7 @@ public class OptionTests
         var option = value.ToOption();
 
         Assert.True(option.IsSome);
-        Assert.Equal("hello", option.Unwrap());
+        Assert.Equal("hello", option.GetValue());
     }
 
     [Fact]
@@ -349,7 +349,7 @@ public class OptionTests
         var flattened = nested.Flatten();
 
         Assert.True(flattened.IsSome);
-        Assert.Equal(42, flattened.Unwrap());
+        Assert.Equal(42, flattened.GetValue());
     }
 
     [Fact]
@@ -414,7 +414,7 @@ public class OptionTests
         Option<int> option = 42;
 
         Assert.True(option.IsSome);
-        Assert.Equal(42, option.Unwrap());
+        Assert.Equal(42, option.GetValue());
     }
 }
 

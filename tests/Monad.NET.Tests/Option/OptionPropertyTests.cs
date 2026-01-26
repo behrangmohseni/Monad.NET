@@ -43,8 +43,8 @@ public class OptionPropertyTests
         Option<int> f(int x) => Option<int>.Some(x + 1);
         Option<int> g(int x) => Option<int>.Some(x * 2);
 
-        var lhs = some.AndThen(f).AndThen(g);
-        var rhs = some.AndThen(x => f(x).AndThen(g));
+        var lhs = some.Bind(f).Bind(g);
+        var rhs = some.Bind(x => f(x).Bind(g));
 
         Assert.Equal(lhs, rhs);
     }
@@ -54,7 +54,7 @@ public class OptionPropertyTests
     {
         var none = Option<int>.None();
         Option<int> f(int x) => Option<int>.Some(x + 1);
-        Assert.True(none.AndThen(f).IsNone);
+        Assert.True(none.Bind(f).IsNone);
     }
 }
 

@@ -128,16 +128,16 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>, IC
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if not in Success state</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T Unwrap()
+    public T GetValue()
     {
         if (_state == RemoteDataState.Success)
             return _data!;
 
         var stateMessage = _state switch
         {
-            RemoteDataState.NotAsked => "RemoteData is NotAsked. Cannot unwrap value.",
-            RemoteDataState.Loading => "RemoteData is Loading. Cannot unwrap value.",
-            RemoteDataState.Failure => $"RemoteData is Failure. Cannot unwrap value. Error: {_error}",
+            RemoteDataState.NotAsked => "RemoteData is NotAsked. Cannot get value.",
+            RemoteDataState.Loading => "RemoteData is Loading. Cannot get value.",
+            RemoteDataState.Failure => $"RemoteData is Failure. Cannot get value. Error: {_error}",
             _ => "RemoteData is in invalid state."
         };
         ThrowHelper.ThrowInvalidOperation(stateMessage);
@@ -149,10 +149,10 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>, IC
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if not in Failure state</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public TErr UnwrapError()
+    public TErr GetError()
     {
         if (_state != RemoteDataState.Failure)
-            ThrowHelper.ThrowInvalidOperation("Cannot unwrap error on non-Failure state.");
+            ThrowHelper.ThrowInvalidOperation("Cannot get error on non-Failure state.");
 
         return _error!;
     }
@@ -161,7 +161,7 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>, IC
     /// Returns the data if successful, otherwise returns a default value.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T UnwrapOr(T defaultValue)
+    public T GetValueOr(T defaultValue)
     {
         return _state == RemoteDataState.Success ? _data! : defaultValue;
     }
@@ -170,7 +170,7 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>, IC
     /// Returns the data if successful, otherwise computes a default value.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T UnwrapOrElse(Func<T> defaultFunc)
+    public T GetValueOrElse(Func<T> defaultFunc)
     {
         ThrowHelper.ThrowIfNull(defaultFunc);
 
@@ -255,9 +255,10 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>, IC
 
     /// <summary>
     /// Chains a remote data operation.
+    /// This is the monadic bind operation.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public RemoteData<U, TErr> AndThen<U>(Func<T, RemoteData<U, TErr>> binder)
+    public RemoteData<U, TErr> Bind<U>(Func<T, RemoteData<U, TErr>> binder)
     {
         ThrowHelper.ThrowIfNull(binder);
 
@@ -270,20 +271,6 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>, IC
             _ => throw new InvalidOperationException("Invalid state")
         };
     }
-
-    /// <summary>
-    /// Chains a remote data operation.
-    /// Alias for <see cref="AndThen{U}"/>.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public RemoteData<U, TErr> FlatMap<U>(Func<T, RemoteData<U, TErr>> binder) => AndThen(binder);
-
-    /// <summary>
-    /// Chains a remote data operation.
-    /// Alias for <see cref="AndThen{U}"/>.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public RemoteData<U, TErr> Bind<U>(Func<T, RemoteData<U, TErr>> binder) => AndThen(binder);
 
     /// <summary>
     /// Maps both the data and error values.
@@ -611,7 +598,7 @@ public static class RemoteDataExtensions
         ThrowHelper.ThrowIfNull(action);
 
         if (remoteData.IsSuccess)
-            action(remoteData.Unwrap());
+            action(remoteData.GetValue());
 
         return remoteData;
     }
@@ -627,7 +614,7 @@ public static class RemoteDataExtensions
         ThrowHelper.ThrowIfNull(action);
 
         if (remoteData.IsFailure)
-            action(remoteData.UnwrapError());
+            action(remoteData.GetError());
 
         return remoteData;
     }
@@ -663,15 +650,6 @@ public static class RemoteDataExtensions
 
         return remoteData;
     }
-
-    /// <summary>
-    /// Executes an action if the data is in Failure state, allowing method chaining.
-    /// Alias for <see cref="TapFailure{T, TErr}"/> for backward compatibility.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RemoteData<T, TErr> TapError<T, TErr>(
-        this RemoteData<T, TErr> remoteData,
-        Action<TErr> action) => remoteData.TapFailure(action);
 
     /// <summary>
     /// Converts a Result to RemoteData in Success or Failure state.
@@ -715,7 +693,7 @@ public static class RemoteDataExtensions
         if (!remoteData.IsSuccess)
             return remoteData.Map(static _ => default(U)!); // Preserves state
 
-        var result = await mapper(remoteData.Unwrap()).ConfigureAwait(false);
+        var result = await mapper(remoteData.GetValue()).ConfigureAwait(false);
         return RemoteData<U, TErr>.Success(result);
     }
 
@@ -756,7 +734,7 @@ internal sealed class RemoteDataDebugView<T, TErr>
     public bool IsFailure => _remoteData.IsFailure;
 
     [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-    public object? Data => _remoteData.IsSuccess ? _remoteData.Unwrap() : null;
+    public object? Data => _remoteData.IsSuccess ? _remoteData.GetValue() : null;
 
-    public object? Error => _remoteData.IsFailure ? _remoteData.UnwrapError() : null;
+    public object? Error => _remoteData.IsFailure ? _remoteData.GetError() : null;
 }

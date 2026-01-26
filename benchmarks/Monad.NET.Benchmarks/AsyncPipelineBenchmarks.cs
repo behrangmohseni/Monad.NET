@@ -79,7 +79,7 @@ public class AsyncPipelineBenchmarks
     public async Task<Option<string>> Option_SimpleAsyncChain()
     {
         return await GetUserOptionAsync(1)
-            .AndThenAsync(async user =>
+            .BindAsync(async user =>
             {
                 var order = await GetOrderOptionAsync(user.Id);
                 return order.Map(o => (user, o));
@@ -92,7 +92,7 @@ public class AsyncPipelineBenchmarks
     public async Task<Result<string, string>> Result_SimpleAsyncChain()
     {
         return await GetUserResultAsync(1)
-            .AndThenAsync(async user =>
+            .BindAsync(async user =>
             {
                 var orderResult = await GetOrderResultAsync(user.Id);
                 return orderResult.Map(o => (user, o));
@@ -137,7 +137,7 @@ public class AsyncPipelineBenchmarks
     {
         return await GetUserOptionAsync(1)
             .FilterAsync(user => Task.FromResult(user.Email.Contains("@")))
-            .AndThenAsync(async user =>
+            .BindAsync(async user =>
             {
                 var order = await GetOrderOptionAsync(user.Id);
                 return order.Map(o => (user, order: o));
@@ -157,18 +157,18 @@ public class AsyncPipelineBenchmarks
     public async Task<Result<OrderSummary, string>> Result_ComplexPipeline()
     {
         return await GetUserResultAsync(1)
-            .AndThenAsync(async user =>
+            .BindAsync(async user =>
             {
                 if (!user.Email.Contains("@"))
                     return Result<User, string>.Err("Invalid email");
                 return Result<User, string>.Ok(user);
             })
-            .AndThenAsync(async user =>
+            .BindAsync(async user =>
             {
                 var orderResult = await GetOrderResultAsync(user.Id);
                 return orderResult.Map(o => (user, order: o));
             })
-            .AndThenAsync(async x =>
+            .BindAsync(async x =>
             {
                 if (x.order.Amount <= 0)
                     return Result<(User user, Order order), string>.Err("Invalid order amount");
@@ -252,7 +252,7 @@ public class AsyncPipelineBenchmarks
         {
             var result = await task;
             if (result.IsNone) return Option<IReadOnlyList<User>>.None();
-            results.Add(result.Unwrap());
+            results.Add(result.GetValue());
         }
         
         return Option<IReadOnlyList<User>>.Some(results);

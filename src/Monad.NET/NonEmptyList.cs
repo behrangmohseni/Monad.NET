@@ -201,8 +201,9 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
 
     /// <summary>
     /// Applies a function that returns a NonEmptyList to each element and flattens the result.
+    /// This is the monadic bind operation.
     /// </summary>
-    public NonEmptyList<U> FlatMap<U>(Func<T, NonEmptyList<U>> binder)
+    public NonEmptyList<U> Bind<U>(Func<T, NonEmptyList<U>> binder)
     {
         ThrowHelper.ThrowIfNull(binder);
 

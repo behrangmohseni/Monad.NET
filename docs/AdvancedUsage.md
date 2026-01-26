@@ -108,7 +108,7 @@ Seamless async/await integration:
 ```csharp
 var result = await Option<int>.Some(userId)
     .MapAsync(async id => await _repo.FindAsync(id))
-    .AndThenAsync(async user => await ValidateAsync(user))
+    .BindAsync(async user => await ValidateAsync(user))
     .MapAsync(async user => await EnrichAsync(user));
 ```
 

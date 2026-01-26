@@ -15,7 +15,7 @@ public class ResultAsyncTests
         });
 
         Assert.True(mapped.IsOk);
-        Assert.Equal(84, mapped.Unwrap());
+        Assert.Equal(84, mapped.GetValue());
     }
 
     [Fact]
@@ -29,7 +29,7 @@ public class ResultAsyncTests
         });
 
         Assert.True(mapped.IsErr);
-        Assert.Equal("error", mapped.UnwrapErr());
+        Assert.Equal("error", mapped.GetError());
     }
 
     [Fact]
@@ -43,7 +43,7 @@ public class ResultAsyncTests
         });
 
         Assert.True(mapped.IsOk);
-        Assert.Equal("42", mapped.Unwrap());
+        Assert.Equal("42", mapped.GetValue());
     }
 
     [Fact]
@@ -51,42 +51,42 @@ public class ResultAsyncTests
     {
         var result = Result<int, string>.Err("error");
         var resultTask = Task.FromResult(result);
-        var mapped = await resultTask.MapErrAsync(async err =>
+        var mapped = await resultTask.MapErrorAsync(async err =>
         {
             await Task.Delay(1);
             return err.Length;
         });
 
         Assert.True(mapped.IsErr);
-        Assert.Equal(5, mapped.UnwrapErr());
+        Assert.Equal(5, mapped.GetError());
     }
 
     [Fact]
-    public async Task AndThenAsync_WithAsyncFunc_ChainsCorrectly()
+    public async Task BindAsync_WithAsyncFunc_ChainsCorrectly()
     {
         var result = Result<int, string>.Ok(42);
-        var chained = await result.AndThenAsync(async x =>
+        var chained = await result.BindAsync(async x =>
         {
             await Task.Delay(1);
             return Result<string, string>.Ok(x.ToString());
         });
 
         Assert.True(chained.IsOk);
-        Assert.Equal("42", chained.Unwrap());
+        Assert.Equal("42", chained.GetValue());
     }
 
     [Fact]
-    public async Task AndThenAsync_OnErr_ReturnsErr()
+    public async Task BindAsync_OnErr_ReturnsErr()
     {
         var result = Result<int, string>.Err("error");
-        var chained = await result.AndThenAsync(async x =>
+        var chained = await result.BindAsync(async x =>
         {
             await Task.Delay(1);
             return Result<string, string>.Ok(x.ToString());
         });
 
         Assert.True(chained.IsErr);
-        Assert.Equal("error", chained.UnwrapErr());
+        Assert.Equal("error", chained.GetError());
     }
 
     [Fact]
@@ -100,7 +100,7 @@ public class ResultAsyncTests
         });
 
         Assert.True(recovered.IsOk);
-        Assert.Equal(100, recovered.Unwrap());
+        Assert.Equal(100, recovered.GetValue());
     }
 
     [Fact]
@@ -114,7 +114,7 @@ public class ResultAsyncTests
         });
 
         Assert.True(recovered.IsOk);
-        Assert.Equal(42, recovered.Unwrap());
+        Assert.Equal(42, recovered.GetValue());
     }
 
     [Fact]
@@ -171,7 +171,7 @@ public class ResultAsyncTests
 
         Assert.True(executed);
         Assert.True(result.IsOk);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -210,7 +210,7 @@ public class ResultAsyncTests
     public async Task UnwrapOrElseAsync_OnOk_ReturnsValue()
     {
         var resultTask = Task.FromResult(Result<int, string>.Ok(42));
-        var value = await resultTask.UnwrapOrElseAsync(async err =>
+        var value = await resultTask.GetValueOrElseAsync(async err =>
         {
             await Task.Delay(1);
             return 0;
@@ -223,7 +223,7 @@ public class ResultAsyncTests
     public async Task UnwrapOrElseAsync_OnErr_ExecutesFunc()
     {
         var resultTask = Task.FromResult(Result<int, string>.Err("error"));
-        var value = await resultTask.UnwrapOrElseAsync(async err =>
+        var value = await resultTask.GetValueOrElseAsync(async err =>
         {
             await Task.Delay(1);
             return 100;
@@ -240,7 +240,7 @@ public class ResultAsyncTests
 
         var unwrapped = await task;
         Assert.True(unwrapped.IsOk);
-        Assert.Equal(42, unwrapped.Unwrap());
+        Assert.Equal(42, unwrapped.GetValue());
     }
 
     [Fact]
@@ -252,7 +252,7 @@ public class ResultAsyncTests
                 await Task.Delay(1);
                 return x * 2;
             })
-            .AndThenAsync(async x =>
+            .BindAsync(async x =>
             {
                 await Task.Delay(1);
                 return x > 15
@@ -266,7 +266,7 @@ public class ResultAsyncTests
             });
 
         Assert.True(result.IsOk);
-        Assert.Equal(20, result.Unwrap());
+        Assert.Equal(20, result.GetValue());
     }
 
     [Fact]
@@ -285,7 +285,7 @@ public class ResultAsyncTests
             });
 
         Assert.True(result.IsOk);
-        Assert.Equal(84, result.Unwrap());
+        Assert.Equal(84, result.GetValue());
     }
 }
 

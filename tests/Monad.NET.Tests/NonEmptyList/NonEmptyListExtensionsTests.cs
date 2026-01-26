@@ -33,7 +33,7 @@ public class NonEmptyListExtensionsTests
         var result = NonEmptyList<int>.FromEnumerable(enumerable);
 
         Assert.True(result.IsSome);
-        Assert.Equal(3, result.Unwrap().Count);
+        Assert.Equal(3, result.GetValue().Count);
     }
 
     [Fact]
@@ -77,7 +77,7 @@ public class NonEmptyListExtensionsTests
     public void FlatMap_TransformsAndFlattens()
     {
         var list = NonEmptyList<int>.Of(1, 2);
-        var result = list.FlatMap(x => NonEmptyList<int>.Of(x, x * 10));
+        var result = list.Bind(x => NonEmptyList<int>.Of(x, x * 10));
 
         Assert.Equal(4, result.Count);
         Assert.Equal(1, result[0]);
@@ -93,7 +93,7 @@ public class NonEmptyListExtensionsTests
         var result = list.Filter(x => x > 2);
 
         Assert.True(result.IsSome);
-        Assert.Equal(3, result.Unwrap().Count);
+        Assert.Equal(3, result.GetValue().Count);
     }
 
     [Fact]

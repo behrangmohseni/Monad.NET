@@ -27,9 +27,9 @@ public static partial class MonadCollectionExtensions
         foreach (var result in results)
         {
             if (result.IsErr)
-                return Result<IReadOnlyList<T>, TErr>.Err(result.UnwrapErr());
+                return Result<IReadOnlyList<T>, TErr>.Err(result.GetError());
 
-            list.Add(result.Unwrap());
+            list.Add(result.GetValue());
         }
 
         return Result<IReadOnlyList<T>, TErr>.Ok(list);
@@ -60,9 +60,9 @@ public static partial class MonadCollectionExtensions
         {
             var result = selector(item);
             if (result.IsErr)
-                return Result<IReadOnlyList<U>, TErr>.Err(result.UnwrapErr());
+                return Result<IReadOnlyList<U>, TErr>.Err(result.GetError());
 
-            list.Add(result.Unwrap());
+            list.Add(result.GetValue());
         }
 
         return Result<IReadOnlyList<U>, TErr>.Ok(list);
@@ -83,7 +83,7 @@ public static partial class MonadCollectionExtensions
         foreach (var result in results)
         {
             if (result.IsOk)
-                yield return result.Unwrap();
+                yield return result.GetValue();
         }
     }
 
@@ -103,7 +103,7 @@ public static partial class MonadCollectionExtensions
         foreach (var result in results)
         {
             if (result.IsErr)
-                yield return result.UnwrapErr();
+                yield return result.GetError();
         }
     }
 
@@ -127,9 +127,9 @@ public static partial class MonadCollectionExtensions
         foreach (var result in results)
         {
             if (result.IsOk)
-                oks.Add(result.Unwrap());
+                oks.Add(result.GetValue());
             else
-                errors.Add(result.UnwrapErr());
+                errors.Add(result.GetError());
         }
 
         return (oks, errors);

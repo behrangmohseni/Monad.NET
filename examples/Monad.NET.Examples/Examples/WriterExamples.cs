@@ -25,7 +25,7 @@ public static class WriterExamples
         // FlatMap combines logs
         Console.WriteLine("\n3. FlatMap (combines logs):");
         var chained = Writer<string, int>.Tell(10, "Step 1: Start with 10")
-            .FlatMap(
+            .Bind(
                 x => Writer<string, int>.Tell(x * 2, $"Step 2: Doubled to {x * 2}"),
                 (log1, log2) => $"{log1} | {log2}"
             );
@@ -35,11 +35,11 @@ public static class WriterExamples
         // List-based logging
         Console.WriteLine("\n4. List-Based Logging:");
         var listWriter = Writer<List<string>, int>.Tell(1, new List<string> { "Started" })
-            .FlatMap(
+            .Bind(
                 x => Writer<List<string>, int>.Tell(x + 1, new List<string> { "Incremented" }),
                 (log1, log2) => log1.Concat(log2).ToList()
             )
-            .FlatMap(
+            .Bind(
                 x => Writer<List<string>, int>.Tell(x * 2, new List<string> { "Doubled" }),
                 (log1, log2) => log1.Concat(log2).ToList()
             );
@@ -83,11 +83,11 @@ public static class WriterExamples
     private static Writer<string, decimal> ComputeWithLogging(decimal initial)
     {
         return Writer<string, decimal>.Tell(initial, $"   [LOG] Started with {initial}\n")
-            .FlatMap(
+            .Bind(
                 x => Writer<string, decimal>.Tell(x * 1.1m, $"   [LOG] Applied 10% increase: {x * 1.1m}\n"),
                 (a, b) => a + b
             )
-            .FlatMap(
+            .Bind(
                 x => Writer<string, decimal>.Tell(Math.Round(x, 2), $"   [LOG] Rounded to {Math.Round(x, 2)}\n"),
                 (a, b) => a + b
             );
@@ -111,13 +111,13 @@ public static class WriterExamples
         return Writer<List<string>, string>.Tell(
                 orderId,
                 new List<string> { $"[{timestamp}] Started processing order {orderId}" })
-            .FlatMap(
+            .Bind(
                 id => Writer<List<string>, string>.Tell(
                     $"{id}-VALIDATED",
                     new List<string> { $"[{timestamp}] Validated order {id} for ${amount:N2}" }),
                 (log1, log2) => log1.Concat(log2).ToList()
             )
-            .FlatMap(
+            .Bind(
                 id => Writer<List<string>, string>.Tell(
                     $"{id}-COMPLETED",
                     new List<string> { $"[{timestamp}] Completed order {id}" }),

@@ -130,7 +130,7 @@ public async Task<Option<User>> FindUserByEmail(string email)
 public async Task<Option<OrderSummary>> GetUserOrderSummary(int userId)
 {
     return await FindUser(userId)
-        .AndThenAsync(async user => await GetLatestOrder(user.Id))
+        .BindAsync(async user => await GetLatestOrder(user.Id))
         .MapAsync(order => new OrderSummary(order.Id, order.Total));
 }
 
@@ -144,11 +144,11 @@ public async Task<UserProfile> GetUserProfile(int userId)
         Name = user.Name,
         Email = user.Email,
         // Optional fields handled gracefully
-        PhoneNumber = user.PhoneNumber.UnwrapOr("Not provided"),
-        ProfileImage = await GetProfileImage(userId).UnwrapOrAsync(defaultImage),
+        PhoneNumber = user.PhoneNumber.GetValueOr("Not provided"),
+        ProfileImage = await GetProfileImage(userId).GetValueOrAsync(defaultImage),
         LastOrder = await GetLatestOrder(userId)
             .MapAsync(o => o.Summary)
-            .UnwrapOrAsync("No orders yet")
+            .GetValueOrAsync("No orders yet")
     };
 }
 ```
@@ -165,7 +165,7 @@ public Result<AppConfig, ConfigError> LoadConfiguration()
     return LoadFromEnvironment()
         .OrElse(_ => LoadFromJsonFile("appsettings.json"))
         .OrElse(_ => LoadFromJsonFile("appsettings.default.json"))
-        .AndThen(ValidateConfiguration);
+        .Bind(ValidateConfiguration);
 }
 
 Result<AppConfig, ConfigError> LoadFromEnvironment()
@@ -188,7 +188,7 @@ Result<AppConfig, ConfigError> ValidateConfiguration(AppConfig config)
         .Ensure(c => !string.IsNullOrEmpty(c.ConnectionString), "Connection string required")
         .Ensure(c => c.ApiKey.Length >= 32, "API key must be at least 32 characters")
         .ToResult()
-        .MapErr(errors => new ConfigError(string.Join("; ", errors)));
+        .MapError(errors => new ConfigError(string.Join("; ", errors)));
 }
 ```
 
@@ -231,7 +231,7 @@ Try<User> tried = user.Match(
 // Chaining different types
 var result = await GetUserOption(id)           // Option<User>
     .OkOrElse(() => "User not found")          // Result<User, string>
-    .AndThenAsync(ValidateUserAsync)           // Task<Result<ValidUser, string>>
+    .BindAsync(ValidateUserAsync)              // Task<Result<ValidUser, string>>
     .MapAsync(user => user.ToDto());           // Task<Result<UserDto, string>>
 ```
 
@@ -321,14 +321,14 @@ public record Order(string Id, string CustomerId, Product Product, int Quantity,
 public async Task<Result<Order, OrderError>> ProcessOrder(OrderRequest request)
 {
     return await ValidateRequest(request)
-        .AndThenAsync(req => FindCustomer(req.CustomerId))
-        .AndThenAsync(customer => FindProduct(request.ProductId)
+        .BindAsync(req => FindCustomer(req.CustomerId))
+        .BindAsync(customer => FindProduct(request.ProductId)
             .MapAsync(product => (customer, product)))
-        .AndThenAsync(pair => CheckInventory(pair.product, request.Quantity)
+        .BindAsync(pair => CheckInventory(pair.product, request.Quantity)
             .MapAsync(available => (pair.customer, pair.product, available)))
-        .AndThenAsync(data => CalculatePrice(data.product, request.Quantity)
+        .BindAsync(data => CalculatePrice(data.product, request.Quantity)
             .MapAsync(total => (data.customer, data.product, total)))
-        .AndThenAsync(data => ChargePayment(data.customer, data.total)
+        .BindAsync(data => ChargePayment(data.customer, data.total)
             .MapAsync(paymentId => CreateOrder(data.customer.Id, data.product, request.Quantity, data.total)))
         .TapAsync(order => SendConfirmationEmail(order))
         .TapErrAsync(error => LogOrderFailure(request, error));
@@ -341,7 +341,7 @@ Result<OrderRequest, OrderError> ValidateRequest(OrderRequest req) =>
         .Ensure(r => !string.IsNullOrEmpty(r.ProductId), "Product ID required")
         .Ensure(r => r.Quantity > 0, "Quantity must be positive")
         .ToResult()
-        .MapErr(errors => new OrderError.Validation(errors));
+        .MapError(errors => new OrderError.Validation(errors));
 ```
 
 ---
@@ -451,7 +451,7 @@ var structuredComputation =
     { 
         new(DateTime.UtcNow, "INFO", "Order received") 
     })
-    .FlatMap(o => ProcessOrder(o), (log1, log2) => log1.Concat(log2).ToList())
+    .Bind(o => ProcessOrder(o), (log1, log2) => log1.Concat(log2).ToList())
     .Tap(o => Console.WriteLine($"Order {o.Id} processed"));
 ```
 
@@ -480,7 +480,7 @@ public async Task<IActionResult> GetUserEndpoint(int id)
 public IActionResult CreateUser(CreateUserRequest request)
 {
     return ValidateUser(request)
-        .AndThen(CreateAndSaveUser)
+        .Bind(CreateAndSaveUser)
         .Match(
             ok: user => CreatedAtAction(nameof(GetUser), new { id = user.Id }, user),
             err: errors => BadRequest(new ValidationProblemDetails(
@@ -508,14 +508,15 @@ var missing = config.GetOption("not_exists");        // None
 
 // Chain with parsing
 var timeout = config.GetOption("timeout")
-    .AndThen(s => s.ParseInt())
+    .Bind(s => s.ParseInt())
     .Map(t => TimeSpan.FromSeconds(t))
-    .UnwrapOr(TimeSpan.FromSeconds(10));
+    .GetValueOr(TimeSpan.FromSeconds(10));
 
 // Multiple optional config values
 var serverConfig = config.GetOption("host")
-    .Zip(config.GetOption("port").AndThen(s => s.ParseInt()))
+    .Zip(config.GetOption("port").Bind(s => s.ParseInt()))
     .Map(pair => new ServerConfig(pair.Item1, pair.Item2));
+
 ```
 
 ---
@@ -546,8 +547,8 @@ Option<DayOfWeek> parsedEnum = "Monday".ParseEnum<DayOfWeek>();
 // From object graph
 User? user = GetUser();
 Option<string> email = user.ToOption()
-    .AndThen(u => u.Profile.ToOption())
-    .AndThen(p => p.Email.ToOption());
+    .Bind(u => u.Profile.ToOption())
+    .Bind(p => p.Email.ToOption());
 ```
 
 ---
@@ -585,9 +586,9 @@ Try<Connection> Connect() =>
 // Map error type for recovery
 Result<User, DomainError> GetUserWithRecovery(int id) =>
     _repository.FindUser(id)                          // Result<User, DbError>
-        .MapErr(dbErr => new DomainError.Database(dbErr))
+        .MapError(dbErr => new DomainError.Database(dbErr))
         .OrElse(err => _cache.GetUser(id)             // Result<User, CacheError>
-            .MapErr(cacheErr => new DomainError.Cache(cacheErr)));
+            .MapError(cacheErr => new DomainError.Cache(cacheErr)));
 ```
 
 ---

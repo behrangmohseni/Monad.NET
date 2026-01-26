@@ -15,7 +15,7 @@ public class ValidationExtendedTests
         var validation = Validation<int, string>.Valid(42);
 
         Assert.True(validation.IsValid);
-        Assert.Equal(42, validation.Unwrap());
+        Assert.Equal(42, validation.GetValue());
     }
 
     [Fact]
@@ -52,7 +52,7 @@ public class ValidationExtendedTests
         var result = validation.Map(x => x * 2);
 
         Assert.True(result.IsValid);
-        Assert.Equal(84, result.Unwrap());
+        Assert.Equal(84, result.GetValue());
     }
 
     [Fact]
@@ -72,17 +72,17 @@ public class ValidationExtendedTests
     public void AndThen_ValidToValid_ReturnsValid()
     {
         var validation = Validation<int, string>.Valid(42);
-        var result = validation.AndThen(x => Validation<string, string>.Valid(x.ToString()));
+        var result = validation.Bind(x => Validation<string, string>.Valid(x.ToString()));
 
         Assert.True(result.IsValid);
-        Assert.Equal("42", result.Unwrap());
+        Assert.Equal("42", result.GetValue());
     }
 
     [Fact]
     public void AndThen_ValidToInvalid_ReturnsInvalid()
     {
         var validation = Validation<int, string>.Valid(42);
-        var result = validation.AndThen(_ => Validation<string, string>.Invalid("error"));
+        var result = validation.Bind(_ => Validation<string, string>.Invalid("error"));
 
         Assert.True(result.IsInvalid);
     }
@@ -91,7 +91,7 @@ public class ValidationExtendedTests
     public void AndThen_InvalidToAny_ReturnsInvalid()
     {
         var validation = Validation<int, string>.Invalid("first error");
-        var result = validation.AndThen(x => Validation<string, string>.Valid(x.ToString()));
+        var result = validation.Bind(x => Validation<string, string>.Valid(x.ToString()));
 
         Assert.True(result.IsInvalid);
     }
@@ -109,7 +109,7 @@ public class ValidationExtendedTests
         var result = v1.Zip(v2);
 
         Assert.True(result.IsValid);
-        var (a, b) = result.Unwrap();
+        var (a, b) = result.GetValue();
         Assert.Equal(42, a);
         Assert.Equal("hello", b);
     }
@@ -160,7 +160,7 @@ public class ValidationExtendedTests
         var result = v1.ZipWith(v2, (a, b) => a + b);
 
         Assert.True(result.IsValid);
-        Assert.Equal(50, result.Unwrap());
+        Assert.Equal(50, result.GetValue());
     }
 
     #endregion
@@ -280,7 +280,7 @@ public class ValidationExtendedTests
         var result = first.Apply(second, (a, b) => a + b);
 
         Assert.True(result.IsValid);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -314,7 +314,7 @@ public class ValidationExtendedTests
         var result = first.Apply(second, (a, b) => a + b);
 
         Assert.True(result.IsInvalid);
-        var errors = result.UnwrapErrors();
+        var errors = result.GetErrors();
         Assert.Equal(2, errors.Count);
     }
 

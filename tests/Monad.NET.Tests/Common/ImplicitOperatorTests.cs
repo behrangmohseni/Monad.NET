@@ -12,7 +12,7 @@ public class ImplicitOperatorTests
         Option<int> option = 42;
 
         Assert.True(option.IsSome);
-        Assert.Equal(42, option.Unwrap());
+        Assert.Equal(42, option.GetValue());
     }
 
     [Fact]
@@ -41,7 +41,7 @@ public class ImplicitOperatorTests
         Result<int, string> result = 42;
 
         Assert.True(result.IsOk);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -60,7 +60,7 @@ public class ImplicitOperatorTests
 
         var result = GetValue();
         Assert.True(result.IsOk);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     #endregion
@@ -73,7 +73,7 @@ public class ImplicitOperatorTests
         Either<string, int> either = 42;
 
         Assert.True(either.IsRight);
-        Assert.Equal(42, either.UnwrapRight());
+        Assert.Equal(42, either.GetRight());
     }
 
     [Fact]
@@ -92,7 +92,7 @@ public class ImplicitOperatorTests
 
         var either = GetValue();
         Assert.True(either.IsRight);
-        Assert.Equal(100, either.UnwrapRight());
+        Assert.Equal(100, either.GetRight());
     }
 
     #endregion
@@ -105,7 +105,7 @@ public class ImplicitOperatorTests
         Try<int> tryResult = 42;
 
         Assert.True(tryResult.IsSuccess);
-        Assert.Equal(42, tryResult.Get());
+        Assert.Equal(42, tryResult.GetValue());
     }
 
     [Fact]
@@ -148,7 +148,7 @@ public class ImplicitOperatorTests
         Validation<int, string> validation = 42;
 
         Assert.True(validation.IsValid);
-        Assert.Equal(42, validation.Unwrap());
+        Assert.Equal(42, validation.GetValue());
     }
 
     [Fact]
@@ -167,7 +167,7 @@ public class ImplicitOperatorTests
 
         var validation = GetValue();
         Assert.True(validation.IsValid);
-        Assert.Equal(42, validation.Unwrap());
+        Assert.Equal(42, validation.GetValue());
     }
 
     #endregion
@@ -211,7 +211,7 @@ public class ImplicitOperatorTests
         RemoteData<int, string> data = 42;
 
         Assert.True(data.IsSuccess);
-        Assert.Equal(42, data.Unwrap());
+        Assert.Equal(42, data.GetValue());
     }
 
     [Fact]
@@ -235,7 +235,7 @@ public class ImplicitOperatorTests
 
         var data = GetData();
         Assert.True(data.IsSuccess);
-        Assert.Equal(42, data.Unwrap());
+        Assert.Equal(42, data.GetValue());
     }
 
     #endregion
@@ -254,7 +254,7 @@ public class ImplicitOperatorTests
             .Map(x => $"Result: {x}");
 
         Assert.True(result.IsSome);
-        Assert.Equal("Result: 20", result.Unwrap());
+        Assert.Equal("Result: 20", result.GetValue());
     }
 
     [Fact]
@@ -282,7 +282,7 @@ public class ImplicitOperatorTests
         }
 
         Assert.True(SafeDivide(10, 2).IsSuccess);
-        Assert.Equal(5, SafeDivide(10, 2).Get());
+        Assert.Equal(5, SafeDivide(10, 2).GetValue());
         Assert.True(SafeDivide(10, 0).IsFailure);
     }
 

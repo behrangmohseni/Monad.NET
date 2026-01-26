@@ -12,7 +12,7 @@ public class StateExtendedTests
     [Fact]
     public void Pure_ReturnsValueWithoutModifyingState()
     {
-        var state = State<int, string>.Pure("hello");
+        var state = State<int, string>.Return("hello");
         var result = state.Run(42);
 
         Assert.Equal("hello", result.Value);
@@ -76,7 +76,7 @@ public class StateExtendedTests
     [Fact]
     public void Eval_ReturnsOnlyValue()
     {
-        var state = State<int, string>.Pure("hello");
+        var state = State<int, string>.Return("hello");
         var value = state.Eval(42);
 
         Assert.Equal("hello", value);
@@ -98,7 +98,7 @@ public class StateExtendedTests
     [Fact]
     public void Map_TransformsValue()
     {
-        var state = State<int, int>.Pure(10).Map(x => x * 2);
+        var state = State<int, int>.Return(10).Map(x => x * 2);
         var result = state.Run(0);
 
         Assert.Equal(20, result.Value);
@@ -112,7 +112,7 @@ public class StateExtendedTests
     public void Tap_ExecutesActionWithValue()
     {
         var capturedValue = 0;
-        var state = State<int, int>.Pure(42).Tap(v => capturedValue = v);
+        var state = State<int, int>.Return(42).Tap(v => capturedValue = v);
         var result = state.Run(0);
 
         Assert.Equal(42, capturedValue);
@@ -123,7 +123,7 @@ public class StateExtendedTests
     public void TapState_ExecutesActionWithState()
     {
         var capturedState = 0;
-        var state = State<int, string>.Pure("hello").TapState(s => capturedState = s);
+        var state = State<int, string>.Return("hello").TapState(s => capturedState = s);
         var result = state.Run(42);
 
         Assert.Equal(42, capturedState);
@@ -138,7 +138,7 @@ public class StateExtendedTests
     public void AndThen_ChainsComputations()
     {
         var state = State<int, int>.Get()
-            .AndThen(x => State<int, string>.Pure($"Value: {x}"));
+            .Bind(x => State<int, string>.Return($"Value: {x}"));
         var result = state.Run(42);
 
         Assert.Equal("Value: 42", result.Value);
@@ -148,7 +148,7 @@ public class StateExtendedTests
     public void FlatMap_ChainsComputations()
     {
         var state = State<int, int>.Get()
-            .FlatMap(x => State<int, string>.Pure($"Value: {x}"));
+            .Bind(x => State<int, string>.Return($"Value: {x}"));
         var result = state.Run(42);
 
         Assert.Equal("Value: 42", result.Value);
@@ -158,7 +158,7 @@ public class StateExtendedTests
     public void Bind_ChainsComputations()
     {
         var state = State<int, int>.Get()
-            .Bind(x => State<int, string>.Pure($"Value: {x}"));
+            .Bind(x => State<int, string>.Return($"Value: {x}"));
         var result = state.Run(42);
 
         Assert.Equal("Value: 42", result.Value);
@@ -171,8 +171,8 @@ public class StateExtendedTests
     [Fact]
     public void Apply_AppliesWrappedFunction()
     {
-        var stateFunc = State<int, Func<int, int>>.Pure(x => x * 2);
-        var stateValue = State<int, int>.Pure(21);
+        var stateFunc = State<int, Func<int, int>>.Return(x => x * 2);
+        var stateValue = State<int, int>.Return(21);
         var result = stateValue.Apply(stateFunc).Run(0);
 
         Assert.Equal(42, result.Value);
@@ -185,8 +185,8 @@ public class StateExtendedTests
     [Fact]
     public void Zip_CombinesTwoStates()
     {
-        var state1 = State<int, string>.Pure("hello");
-        var state2 = State<int, int>.Pure(42);
+        var state1 = State<int, string>.Return("hello");
+        var state2 = State<int, int>.Return(42);
         var result = state1.Zip(state2).Run(0);
 
         Assert.Equal(("hello", 42), result.Value);
@@ -195,8 +195,8 @@ public class StateExtendedTests
     [Fact]
     public void ZipWith_CombinesWithFunction()
     {
-        var state1 = State<int, int>.Pure(10);
-        var state2 = State<int, int>.Pure(32);
+        var state1 = State<int, int>.Return(10);
+        var state2 = State<int, int>.Return(32);
         var result = state1.ZipWith(state2, (a, b) => a + b).Run(0);
 
         Assert.Equal(42, result.Value);
@@ -209,7 +209,7 @@ public class StateExtendedTests
     [Fact]
     public void As_ReplacesValue()
     {
-        var state = State<int, int>.Pure(10).As("replaced");
+        var state = State<int, int>.Return(10).As("replaced");
         var result = state.Run(0);
 
         Assert.Equal("replaced", result.Value);
@@ -218,7 +218,7 @@ public class StateExtendedTests
     [Fact]
     public void Void_ReplacesValueWithUnit()
     {
-        var state = State<int, int>.Pure(42).Void();
+        var state = State<int, int>.Return(42).Void();
         var result = state.Run(0);
 
         Assert.Equal(Unit.Default, result.Value);
@@ -295,7 +295,7 @@ public class StateExtendedTests
     [Fact]
     public void Flatten_UnwrapsNestedState()
     {
-        var nested = State<int, State<int, string>>.Pure(State<int, string>.Pure("inner"));
+        var nested = State<int, State<int, string>>.Return(State<int, string>.Return("inner"));
         var flattened = nested.Flatten();
         var result = flattened.Run(0);
 
@@ -334,7 +334,7 @@ public class StateExtendedTests
     [Fact]
     public void Replicate_RepeatsComputation()
     {
-        var counter = State<int, int>.Modify(s => s + 1).AndThen(_ => State<int, int>.Get());
+        var counter = State<int, int>.Modify(s => s + 1).Bind(_ => State<int, int>.Get());
         var replicated = counter.Replicate(3);
         var result = replicated.Run(0);
 
@@ -345,7 +345,7 @@ public class StateExtendedTests
     [Fact]
     public void WhileM_RunsWhileConditionHolds()
     {
-        var increment = State<int, int>.Modify(s => s + 1).AndThen(_ => State<int, int>.Get());
+        var increment = State<int, int>.Modify(s => s + 1).Bind(_ => State<int, int>.Get());
         var result = increment.WhileM(s => s < 5).Run(0);
 
         Assert.Equal(new[] { 1, 2, 3, 4, 5 }, result.Value);

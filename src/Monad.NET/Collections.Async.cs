@@ -27,7 +27,7 @@ public static partial class MonadCollectionExtensions
             if (option.IsNone)
                 return Option<IReadOnlyList<T>>.None();
 
-            result.Add(option.Unwrap());
+            result.Add(option.GetValue());
         }
 
         return Option<IReadOnlyList<T>>.Some(result);
@@ -58,7 +58,7 @@ public static partial class MonadCollectionExtensions
             if (option.IsNone)
                 return Option<IReadOnlyList<U>>.None();
 
-            result.Add(option.Unwrap());
+            result.Add(option.GetValue());
         }
 
         return Option<IReadOnlyList<U>>.Some(result);
@@ -84,9 +84,9 @@ public static partial class MonadCollectionExtensions
         {
             var result = await task.ConfigureAwait(false);
             if (result.IsErr)
-                return Result<IReadOnlyList<T>, TErr>.Err(result.UnwrapErr());
+                return Result<IReadOnlyList<T>, TErr>.Err(result.GetError());
 
-            list.Add(result.Unwrap());
+            list.Add(result.GetValue());
         }
 
         return Result<IReadOnlyList<T>, TErr>.Ok(list);
@@ -116,9 +116,9 @@ public static partial class MonadCollectionExtensions
         {
             var result = await selector(item).ConfigureAwait(false);
             if (result.IsErr)
-                return Result<IReadOnlyList<U>, TErr>.Err(result.UnwrapErr());
+                return Result<IReadOnlyList<U>, TErr>.Err(result.GetError());
 
-            list.Add(result.Unwrap());
+            list.Add(result.GetValue());
         }
 
         return Result<IReadOnlyList<U>, TErr>.Ok(list);

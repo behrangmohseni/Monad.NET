@@ -86,7 +86,7 @@ public class NonEmptyListTests
     public void FlatMap_FlattensCorrectly()
     {
         var list = NonEmptyList<int>.Of(1, 2);
-        var result = list.FlatMap(x => NonEmptyList<int>.Of(x, x * 10));
+        var result = list.Bind(x => NonEmptyList<int>.Of(x, x * 10));
 
         Assert.Equal(1, result.Head);
         Assert.Equal(new[] { 10, 2, 20 }, result.Tail);
@@ -99,7 +99,7 @@ public class NonEmptyListTests
         var filtered = list.Filter(x => x % 2 == 0);
 
         Assert.True(filtered.IsSome);
-        Assert.Equal(new[] { 2, 4, 6 }, filtered.Unwrap().ToList());
+        Assert.Equal(new[] { 2, 4, 6 }, filtered.GetValue().ToList());
     }
 
     [Fact]
@@ -195,7 +195,7 @@ public class NonEmptyListTests
         var result = NonEmptyList<int>.FromEnumerable(items);
 
         Assert.True(result.IsSome);
-        Assert.Equal(3, result.Unwrap().Count);
+        Assert.Equal(3, result.GetValue().Count);
     }
 
     [Fact]
@@ -214,7 +214,7 @@ public class NonEmptyListTests
         var result = NonEmptyList<int>.FromEnumerable(items, "List is empty");
 
         Assert.True(result.IsOk);
-        Assert.Equal(3, result.Unwrap().Count);
+        Assert.Equal(3, result.GetValue().Count);
     }
 
     [Fact]
@@ -224,7 +224,7 @@ public class NonEmptyListTests
         var result = NonEmptyList<int>.FromEnumerable(items, "List is empty");
 
         Assert.True(result.IsErr);
-        Assert.Equal("List is empty", result.UnwrapErr());
+        Assert.Equal("List is empty", result.GetError());
     }
 
     [Fact]

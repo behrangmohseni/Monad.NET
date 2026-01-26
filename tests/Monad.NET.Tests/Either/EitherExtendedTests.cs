@@ -62,7 +62,7 @@ public class EitherExtendedTests
         var result = either.BiMap(l => l.ToUpper(), r => r * 2);
 
         Assert.True(result.IsRight);
-        Assert.Equal(84, result.UnwrapRight());
+        Assert.Equal(84, result.GetRight());
     }
 
     [Fact]
@@ -72,7 +72,7 @@ public class EitherExtendedTests
         var result = either.BiMap(l => l.ToUpper(), r => r * 2);
 
         Assert.True(result.IsLeft);
-        Assert.Equal("ERROR", result.UnwrapLeft());
+        Assert.Equal("ERROR", result.GetLeft());
     }
 
     #endregion
@@ -232,7 +232,7 @@ public class EitherExtendedTests
         var result = either.MapRight(x => x * 2);
 
         Assert.True(result.IsRight);
-        Assert.Equal(84, result.UnwrapRight());
+        Assert.Equal(84, result.GetRight());
     }
 
     [Fact]
@@ -242,7 +242,7 @@ public class EitherExtendedTests
         var result = either.MapRight(x => x * 2);
 
         Assert.True(result.IsLeft);
-        Assert.Equal("error", result.UnwrapLeft());
+        Assert.Equal("error", result.GetLeft());
     }
 
     [Fact]
@@ -252,7 +252,7 @@ public class EitherExtendedTests
         var result = either.MapLeft(x => x.ToUpper());
 
         Assert.True(result.IsLeft);
-        Assert.Equal("ERROR", result.UnwrapLeft());
+        Assert.Equal("ERROR", result.GetLeft());
     }
 
     [Fact]
@@ -262,7 +262,7 @@ public class EitherExtendedTests
         var result = either.MapLeft(x => x.ToUpper());
 
         Assert.True(result.IsRight);
-        Assert.Equal(42, result.UnwrapRight());
+        Assert.Equal(42, result.GetRight());
     }
 
     #endregion

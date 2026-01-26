@@ -72,8 +72,8 @@ Monadic types have many small methods (property getters, factory methods, transf
 Apply `[MethodImpl(MethodImplOptions.AggressiveInlining)]` to **all** public methods on monadic types, including:
 - Property getters (`IsSome`, `IsOk`, `IsRight`, etc.)
 - Factory methods (`Some()`, `None()`, `Ok()`, `Err()`, etc.)
-- Value accessors (`UnwrapOr()`, `UnwrapOrDefault()`, `UnwrapOrElse()`)
-- Transform operations (`Map()`, `Filter()`, `AndThen()`)
+- Value accessors (`GetValueOr()`, `GetValueOrDefault()`, `GetValueOrElse()`)
+- Transform operations (`Map()`, `Filter()`, `Bind()`)
 - Pattern matching (`Match()`)
 
 ### Rationale
@@ -87,7 +87,7 @@ Comprehensive benchmarking demonstrates **1.8x to 4.2x performance improvements*
 | Value Access | 6.5 μs | 14.5 μs | **2.2x** |
 | Transform (Map) | 4.4 μs | 12.8 μs | **2.9x** |
 | Transform (Filter) | 5.3 μs | 13.5 μs | **2.6x** |
-| Chaining (AndThen) | 7.2 μs | 14.5 μs | **2.0x** |
+| Chaining (Bind) | 7.2 μs | 14.5 μs | **2.0x** |
 | Pattern Match | 9.0 μs | 27.4 μs | **3.0x** |
 | Complete Pipeline | 72 μs | 130 μs | **1.8x** |
 
@@ -98,7 +98,7 @@ The benefits compound in real-world usage where multiple operations are chained:
 var result = Option<User>.Some(user)
     .Filter(u => u.IsActive)        // Inlined
     .Map(u => u.Email)              // Inlined
-    .AndThen(ValidateEmail)         // Inlined
+    .Bind(ValidateEmail)         // Inlined
     .Match(                         // Inlined
         email => $"Valid: {email}",
         () => "No valid email"
@@ -159,7 +159,7 @@ internal static class ThrowHelper
 Usage in hot path:
 ```csharp
 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-public T Unwrap()
+public T GetValue()
 {
     if (!_isSome)
         ThrowHelper.ThrowOptionIsNone(); // NoInlining keeps exception path out
@@ -206,7 +206,7 @@ Enable nullable reference types throughout the library and design APIs that work
 1. `Option<T>.Some(T value)` requires non-null value (analyzer warning if nullable passed)
 2. `Result<T, E>.Ok(T value)` requires non-null value
 3. Provide `ToOption()` extension for `T?` to safely convert nullable values
-4. Use `T?` in places where absence is represented (e.g., `UnwrapOrDefault()`)
+4. Use `T?` in places where absence is represented (e.g., `GetValueOrDefault()`)
 
 ### Implementation
 
@@ -302,8 +302,8 @@ Ship analyzers as a separate NuGet package (`Monad.NET.Analyzers`) that can be o
 |----|-------------|
 | MONAD001 | Missing null check before Option.Some() |
 | MONAD002 | Potential null passed to Option.Some() |
-| MONAD003 | Unsafe Unwrap() without prior IsSome check |
-| MONAD004 | Redundant .Map().AndThen() chain |
+| MONAD003 | Unsafe GetValue() without prior IsSome check |
+| MONAD004 | Redundant .Map().Bind() chain |
 | MONAD005 | throw expression inside Match() |
 | MONAD006 | Empty Match branch |
 | MONAD007 | Nullable value in Validation.Valid() |
@@ -334,7 +334,7 @@ Ship analyzers as a separate NuGet package (`Monad.NET.Analyzers`) that can be o
 Accepted
 
 ### Context
-Async variants of monadic operations (e.g., `MapAsync`, `AndThenAsync`) follow predictable patterns. Manually maintaining both sync and async versions leads to code duplication and potential inconsistencies.
+Async variants of monadic operations (e.g., `MapAsync`, `BindAsync`) follow predictable patterns. Manually maintaining both sync and async versions leads to code duplication and potential inconsistencies.
 
 ### Decision
 Use a Roslyn Source Generator to automatically generate async extension methods from sync implementations.

@@ -44,7 +44,7 @@ public static class NonEmptyListExamples
         // FlatMap
         Console.WriteLine("\n6. FlatMap:");
         var expanded = NonEmptyList<int>.Of(1, 2)
-            .FlatMap(x => NonEmptyList<int>.Of(x, x * 10));
+            .Bind(x => NonEmptyList<int>.Of(x, x * 10));
         Console.WriteLine($"   Expanded: {expanded}");
 
         // Reduce (no initial value needed!)

@@ -78,7 +78,7 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the value is Left</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public TRight UnwrapRight()
+    public TRight GetRight()
     {
         if (!_isRight)
             ThrowHelper.ThrowEitherIsLeft(_left!);
@@ -91,7 +91,7 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the value is Right</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public TLeft UnwrapLeft()
+    public TLeft GetLeft()
     {
         if (_isRight)
             ThrowHelper.ThrowEitherIsRight(_right!);
@@ -100,67 +100,9 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
     }
 
     /// <summary>
-    /// Returns the contained Right value with a custom error message if Left.
-    /// Similar to Rust's expect() method.
-    /// </summary>
-    /// <param name="message">The error message if the value is Left</param>
-    /// <exception cref="InvalidOperationException">Thrown if the value is Left</exception>
-    /// <example>
-    /// <code>
-    /// var either = Either&lt;string, int&gt;.Right(42);
-    /// var value = either.ExpectRight("Expected a Right value"); // 42
-    /// 
-    /// var left = Either&lt;string, int&gt;.Left("error");
-    /// left.ExpectRight("Must have value"); // throws with "Must have value: error"
-    /// </code>
-    /// </example>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public TRight ExpectRight(string message)
-    {
-        if (!_isRight)
-            ThrowHelper.ThrowInvalidOperation($"{message}: {_left}");
-
-        return _right!;
-    }
-
-    /// <summary>
-    /// Returns the contained Left value with a custom error message if Right.
-    /// Similar to Rust's expect() method.
-    /// </summary>
-    /// <param name="message">The error message if the value is Right</param>
-    /// <exception cref="InvalidOperationException">Thrown if the value is Right</exception>
-    /// <example>
-    /// <code>
-    /// var either = Either&lt;string, int&gt;.Left("error");
-    /// var value = either.ExpectLeft("Expected a Left value"); // "error"
-    /// 
-    /// var right = Either&lt;string, int&gt;.Right(42);
-    /// right.ExpectLeft("Must be error"); // throws with "Must be error: 42"
-    /// </code>
-    /// </example>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public TLeft ExpectLeft(string message)
-    {
-        if (_isRight)
-            ThrowHelper.ThrowInvalidOperation($"{message}: {_right}");
-
-        return _left!;
-    }
-
-    /// <summary>
     /// Returns the contained Right value, or throws an <see cref="InvalidOperationException"/> if Left.
-    /// This is an alias for <see cref="UnwrapRight"/> with more explicit C# naming.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the value is Left</exception>
-    /// <example>
-    /// <code>
-    /// var either = Either&lt;string, int&gt;.Right(42);
-    /// var value = either.GetRightOrThrow(); // 42
-    /// 
-    /// var left = Either&lt;string, int&gt;.Left("error");
-    /// left.GetRightOrThrow(); // throws InvalidOperationException
-    /// </code>
-    /// </example>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public TRight GetRightOrThrow()
     {
@@ -173,19 +115,9 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
     /// <summary>
     /// Returns the contained Right value, or throws an <see cref="InvalidOperationException"/> 
     /// with the specified message if Left.
-    /// This is an alias for <see cref="ExpectRight"/> with more explicit C# naming.
     /// </summary>
-    /// <param name="message">The exception message if Left</param>
+    /// <param name="message">The error message if the value is Left</param>
     /// <exception cref="InvalidOperationException">Thrown if the value is Left</exception>
-    /// <example>
-    /// <code>
-    /// var either = Either&lt;string, int&gt;.Right(42);
-    /// var value = either.GetRightOrThrow("Expected success"); // 42
-    /// 
-    /// var left = Either&lt;string, int&gt;.Left("error");
-    /// left.GetRightOrThrow("Operation must succeed"); // throws with "Operation must succeed: error"
-    /// </code>
-    /// </example>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public TRight GetRightOrThrow(string message)
     {
@@ -197,18 +129,8 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
 
     /// <summary>
     /// Returns the contained Left value, or throws an <see cref="InvalidOperationException"/> if Right.
-    /// This is an alias for <see cref="UnwrapLeft"/> with more explicit C# naming.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the value is Right</exception>
-    /// <example>
-    /// <code>
-    /// var either = Either&lt;string, int&gt;.Left("error");
-    /// var value = either.GetLeftOrThrow(); // "error"
-    /// 
-    /// var right = Either&lt;string, int&gt;.Right(42);
-    /// right.GetLeftOrThrow(); // throws InvalidOperationException
-    /// </code>
-    /// </example>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public TLeft GetLeftOrThrow()
     {
@@ -221,19 +143,9 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
     /// <summary>
     /// Returns the contained Left value, or throws an <see cref="InvalidOperationException"/> 
     /// with the specified message if Right.
-    /// This is an alias for <see cref="ExpectLeft"/> with more explicit C# naming.
     /// </summary>
-    /// <param name="message">The exception message if Right</param>
+    /// <param name="message">The error message if the value is Right</param>
     /// <exception cref="InvalidOperationException">Thrown if the value is Right</exception>
-    /// <example>
-    /// <code>
-    /// var either = Either&lt;string, int&gt;.Left("error");
-    /// var value = either.GetLeftOrThrow("Expected error"); // "error"
-    /// 
-    /// var right = Either&lt;string, int&gt;.Right(42);
-    /// right.GetLeftOrThrow("Should have failed"); // throws with "Should have failed: 42"
-    /// </code>
-    /// </example>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public TLeft GetLeftOrThrow(string message)
     {
@@ -459,26 +371,13 @@ public readonly struct Either<TLeft, TRight> : IEquatable<Either<TLeft, TRight>>
 
     /// <summary>
     /// Binds the Right value if it exists.
+    /// This is the monadic bind operation.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Either<TLeft, U> AndThen<U>(Func<TRight, Either<TLeft, U>> binder)
+    public Either<TLeft, U> Bind<U>(Func<TRight, Either<TLeft, U>> binder)
     {
         return _isRight ? binder(_right!) : Either<TLeft, U>.Left(_left!);
     }
-
-    /// <summary>
-    /// Binds the Right value if it exists.
-    /// Alias for <see cref="AndThen{U}"/>.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Either<TLeft, U> FlatMap<U>(Func<TRight, Either<TLeft, U>> binder) => AndThen(binder);
-
-    /// <summary>
-    /// Binds the Right value if it exists.
-    /// Alias for <see cref="AndThen{U}"/>.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Either<TLeft, U> Bind<U>(Func<TRight, Either<TLeft, U>> binder) => AndThen(binder);
 
     /// <summary>
     /// Binds the Left value if it exists.
@@ -673,7 +572,7 @@ public static class EitherExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Either<TLeft, T> Flatten<TLeft, T>(this Either<TLeft, Either<TLeft, T>> either)
     {
-        return either.AndThen(static inner => inner);
+        return either.Bind(static inner => inner);
     }
 
     /// <summary>
@@ -685,7 +584,7 @@ public static class EitherExtensions
         Action<TRight> action)
     {
         if (either.IsRight)
-            action(either.UnwrapRight());
+            action(either.GetRight());
 
         return either;
     }
@@ -699,7 +598,7 @@ public static class EitherExtensions
         Action<TLeft> action)
     {
         if (either.IsLeft)
-            action(either.UnwrapLeft());
+            action(either.GetLeft());
 
         return either;
     }
@@ -733,7 +632,7 @@ internal sealed class EitherDebugView<TLeft, TRight>
     public bool IsLeft => _either.IsLeft;
 
     [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-    public object? Value => _either.IsRight ? _either.UnwrapRight() : null;
+    public object? Value => _either.IsRight ? _either.GetRight() : null;
 
-    public object? Left => _either.IsLeft ? _either.UnwrapLeft() : null;
+    public object? Left => _either.IsLeft ? _either.GetLeft() : null;
 }

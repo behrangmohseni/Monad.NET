@@ -53,16 +53,16 @@ internal static class DiagnosticDescriptors
         helpLinkUri: "https://github.com/behrangmohseni/Monad.NET/blob/main/docs/Guides/Analyzers.md#mnt003");
 
     /// <summary>
-    /// MNT004: FlatMap returning Some/Ok can be simplified to Map.
+    /// MNT004: Bind returning Some/Ok can be simplified to Map.
     /// </summary>
-    public static readonly DiagnosticDescriptor FlatMapToMap = new(
+    public static readonly DiagnosticDescriptor BindToMap = new(
         id: "MNT004",
-        title: "FlatMap can be simplified to Map",
-        messageFormat: "FlatMap returning {0} can be simplified to Map",
+        title: "Bind can be simplified to Map",
+        messageFormat: "Bind returning {0} can be simplified to Map",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Info,
         isEnabledByDefault: true,
-        description: "When FlatMap's lambda always wraps the result in Some/Ok, it can be simplified to a Map call.",
+        description: "When Bind's lambda always wraps the result in Some/Ok, it can be simplified to a Map call.",
         helpLinkUri: "https://github.com/behrangmohseni/Monad.NET/blob/main/docs/Guides/Analyzers.md#mnt004");
 
     /// <summary>

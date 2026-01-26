@@ -121,9 +121,9 @@ public readonly struct StateResult<TState, T> : IEquatable<StateResult<TState, T
 /// var getCount = State&lt;int, int&gt;.Get();
 /// 
 /// var computation = increment
-///     .AndThen(_ => increment)
-///     .AndThen(_ => increment)
-///     .AndThen(_ => getCount);
+///     .Bind(_ => increment)
+///     .Bind(_ => increment)
+///     .Bind(_ => getCount);
 /// 
 /// var (value, finalState) = computation.Run(0);
 /// // value = 3, finalState = 3
@@ -178,17 +178,10 @@ public readonly struct State<TState, T>
     /// <param name="value">The value to return.</param>
     /// <returns>A State computation that returns the value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static State<TState, T> Pure(T value)
+    public static State<TState, T> Return(T value)
     {
         return new State<TState, T>(state => new StateResult<TState, T>(value, state));
     }
-
-    /// <summary>
-    /// Creates a State that returns the given value without modifying the state.
-    /// Alias for <see cref="Pure"/>.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static State<TState, T> Return(T value) => Pure(value);
 
     /// <summary>
     /// Gets the current state as the value.
@@ -336,12 +329,13 @@ public readonly struct State<TState, T>
 
     /// <summary>
     /// Chains this computation with another that depends on the result.
+    /// This is the monadic bind operation.
     /// </summary>
     /// <typeparam name="U">The type of the new value.</typeparam>
     /// <param name="binder">A function that produces a new State based on the value.</param>
     /// <returns>A new State computation.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public State<TState, U> AndThen<U>(Func<T, State<TState, U>> binder)
+    public State<TState, U> Bind<U>(Func<T, State<TState, U>> binder)
     {
         ThrowHelper.ThrowIfNull(binder);
 
@@ -352,20 +346,6 @@ public readonly struct State<TState, T>
             return binder(result.Value).Run(result.State);
         });
     }
-
-    /// <summary>
-    /// Chains this computation with another that depends on the result.
-    /// Alias for <see cref="AndThen{U}"/>.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public State<TState, U> FlatMap<U>(Func<T, State<TState, U>> binder) => AndThen(binder);
-
-    /// <summary>
-    /// Chains this computation with another that depends on the result.
-    /// Alias for <see cref="AndThen{U}"/>.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public State<TState, U> Bind<U>(Func<T, State<TState, U>> binder) => AndThen(binder);
 
     /// <summary>
     /// Applies a function wrapped in a State to this State's value.
@@ -394,7 +374,7 @@ public readonly struct State<TState, T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public State<TState, (T, U)> Zip<U>(State<TState, U> other)
     {
-        return AndThen(a => other.Map(b => (a, b)));
+        return Bind(a => other.Map(b => (a, b)));
     }
 
     /// <summary>
@@ -410,7 +390,7 @@ public readonly struct State<TState, T>
     {
         ThrowHelper.ThrowIfNull(combiner);
 
-        return AndThen(a => other.Map(b => combiner(a, b)));
+        return Bind(a => other.Map(b => combiner(a, b)));
     }
 
     /// <summary>
@@ -448,7 +428,7 @@ public static class StateExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static State<TState, T> Flatten<TState, T>(this State<TState, State<TState, T>> nested)
     {
-        return nested.AndThen(static inner => inner);
+        return nested.Bind(static inner => inner);
     }
 
     /// <summary>
@@ -542,7 +522,7 @@ public static class StateExtensions
         this State<TState, T> state,
         Func<T, State<TState, U>> selector)
     {
-        return state.AndThen(selector);
+        return state.Bind(selector);
     }
 
     /// <summary>
@@ -556,7 +536,7 @@ public static class StateExtensions
     {
         ThrowHelper.ThrowIfNull(resultSelector);
 
-        return state.AndThen(a => selector(a).Map(b => resultSelector(a, b)));
+        return state.Bind(a => selector(a).Map(b => resultSelector(a, b)));
     }
 }
 

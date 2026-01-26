@@ -14,7 +14,7 @@ public class OptionParsingTests
     {
         var result = "42".ParseInt();
         Assert.True(result.IsSome);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -48,7 +48,7 @@ public class OptionParsingTests
     {
         var result = "9223372036854775807".ParseLong();
         Assert.True(result.IsSome);
-        Assert.Equal(long.MaxValue, result.Unwrap());
+        Assert.Equal(long.MaxValue, result.GetValue());
     }
 
     [Fact]
@@ -67,7 +67,7 @@ public class OptionParsingTests
     {
         var result = "3.14159".ParseDouble();
         Assert.True(result.IsSome);
-        Assert.True(Math.Abs(result.Unwrap() - 3.14159) < 0.0001);
+        Assert.True(Math.Abs(result.GetValue() - 3.14159) < 0.0001);
     }
 
     [Fact]
@@ -86,7 +86,7 @@ public class OptionParsingTests
     {
         var result = "123.45".ParseDecimal();
         Assert.True(result.IsSome);
-        Assert.Equal(123.45m, result.Unwrap());
+        Assert.Equal(123.45m, result.GetValue());
     }
 
     [Fact]
@@ -105,7 +105,7 @@ public class OptionParsingTests
     {
         var result = "true".ParseBool();
         Assert.True(result.IsSome);
-        Assert.True(result.Unwrap());
+        Assert.True(result.GetValue());
     }
 
     [Fact]
@@ -113,7 +113,7 @@ public class OptionParsingTests
     {
         var result = "false".ParseBool();
         Assert.True(result.IsSome);
-        Assert.False(result.Unwrap());
+        Assert.False(result.GetValue());
     }
 
     [Fact]
@@ -133,7 +133,7 @@ public class OptionParsingTests
         var guid = Guid.NewGuid();
         var result = guid.ToString().ParseGuid();
         Assert.True(result.IsSome);
-        Assert.Equal(guid, result.Unwrap());
+        Assert.Equal(guid, result.GetValue());
     }
 
     [Fact]
@@ -152,7 +152,7 @@ public class OptionParsingTests
     {
         var result = "2024-01-15".ParseDateTime();
         Assert.True(result.IsSome);
-        Assert.Equal(new DateTime(2024, 1, 15), result.Unwrap().Date);
+        Assert.Equal(new DateTime(2024, 1, 15), result.GetValue().Date);
     }
 
     [Fact]
@@ -189,7 +189,7 @@ public class OptionParsingTests
     {
         var result = "01:30:00".ParseTimeSpan();
         Assert.True(result.IsSome);
-        Assert.Equal(TimeSpan.FromMinutes(90), result.Unwrap());
+        Assert.Equal(TimeSpan.FromMinutes(90), result.GetValue());
     }
 
     [Fact]
@@ -210,7 +210,7 @@ public class OptionParsingTests
     {
         var result = "Green".ParseEnum<TestColor>();
         Assert.True(result.IsSome);
-        Assert.Equal(TestColor.Green, result.Unwrap());
+        Assert.Equal(TestColor.Green, result.GetValue());
     }
 
     [Fact]
@@ -218,7 +218,7 @@ public class OptionParsingTests
     {
         var result = "green".ParseEnum<TestColor>();
         Assert.True(result.IsSome);
-        Assert.Equal(TestColor.Green, result.Unwrap());
+        Assert.Equal(TestColor.Green, result.GetValue());
     }
 
     [Fact]
@@ -244,7 +244,7 @@ public class OptionParsingTests
     {
         var result = "hello".ToOptionNotEmpty();
         Assert.True(result.IsSome);
-        Assert.Equal("hello", result.Unwrap());
+        Assert.Equal("hello", result.GetValue());
     }
 
     [Fact]
@@ -271,7 +271,7 @@ public class OptionParsingTests
     {
         var result = "hello".ToOptionNotWhiteSpace();
         Assert.True(result.IsSome);
-        Assert.Equal("hello", result.Unwrap());
+        Assert.Equal("hello", result.GetValue());
     }
 
     [Fact]
@@ -290,7 +290,7 @@ public class OptionParsingTests
     {
         var result = "  hello  ".ToOptionTrimmed();
         Assert.True(result.IsSome);
-        Assert.Equal("hello", result.Unwrap());
+        Assert.Equal("hello", result.GetValue());
     }
 
     [Fact]

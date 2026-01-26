@@ -65,11 +65,11 @@ public class ArchitectureTests
     [Theory]
     [InlineData(typeof(Option<int>), "IsSome")]
     [InlineData(typeof(Option<int>), "IsNone")]
-    [InlineData(typeof(Option<int>), "Unwrap")]
-    [InlineData(typeof(Option<int>), "UnwrapOr")]
+    [InlineData(typeof(Option<int>), "GetValue")]
+    [InlineData(typeof(Option<int>), "GetValueOr")]
     [InlineData(typeof(Result<int, string>), "IsOk")]
     [InlineData(typeof(Result<int, string>), "IsErr")]
-    [InlineData(typeof(Result<int, string>), "Unwrap")]
+    [InlineData(typeof(Result<int, string>), "GetValue")]
     [InlineData(typeof(Either<string, int>), "IsLeft")]
     [InlineData(typeof(Either<string, int>), "IsRight")]
     [InlineData(typeof(Try<int>), "IsSuccess")]
@@ -259,7 +259,7 @@ public class ArchitectureTests
     /// </summary>
     [Theory]
     [InlineData("MapAsync")]
-    [InlineData("FlatMapAsync")]
+    [InlineData("BindAsync")]
     [InlineData("MatchAsync")]
     public void AsyncMethods_ShouldFollowNamingConventions(string methodName)
     {

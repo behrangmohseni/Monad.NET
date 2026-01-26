@@ -35,7 +35,7 @@ public class NonEmptyListExtendedTests
         var option = NonEmptyList<int>.FromEnumerable(new[] { 1, 2, 3 });
 
         Assert.True(option.IsSome);
-        Assert.Equal(3, option.Unwrap().Count);
+        Assert.Equal(3, option.GetValue().Count);
     }
 
     [Fact]
@@ -60,7 +60,7 @@ public class NonEmptyListExtendedTests
         var result = NonEmptyList<int>.FromEnumerable(Array.Empty<int>(), "empty");
 
         Assert.True(result.IsErr);
-        Assert.Equal("empty", result.UnwrapErr());
+        Assert.Equal("empty", result.GetError());
     }
 
     #endregion
@@ -102,7 +102,7 @@ public class NonEmptyListExtendedTests
     public void FlatMap_ChainsCorrectly()
     {
         var list = NonEmptyList<int>.Of(1, 2, 3);
-        var result = list.FlatMap(x => NonEmptyList<int>.Of(x, x * 10));
+        var result = list.Bind(x => NonEmptyList<int>.Of(x, x * 10));
 
         Assert.Equal(new[] { 1, 10, 2, 20, 3, 30 }, result.ToArray());
     }
@@ -231,7 +231,7 @@ public class NonEmptyListExtendedTests
         var result = list.Filter(x => x > 2);
 
         Assert.True(result.IsSome);
-        Assert.Equal(new[] { 3, 4, 5 }, result.Unwrap().ToArray());
+        Assert.Equal(new[] { 3, 4, 5 }, result.GetValue().ToArray());
     }
 
     [Fact]
@@ -406,7 +406,7 @@ public class NonEmptyListExtendedTests
         var result = list.TakeFirst(3);
 
         Assert.True(result.IsSome);
-        Assert.Equal(new[] { 1, 2, 3 }, result.Unwrap().ToArray());
+        Assert.Equal(new[] { 1, 2, 3 }, result.GetValue().ToArray());
     }
 
     [Fact]
@@ -425,7 +425,7 @@ public class NonEmptyListExtendedTests
         var result = list.TakeFirst(10);
 
         Assert.True(result.IsSome);
-        Assert.Same(list, result.Unwrap());
+        Assert.Same(list, result.GetValue());
     }
 
     #endregion

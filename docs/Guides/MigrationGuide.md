@@ -68,10 +68,10 @@ var opt = Option<int>.Some(42);
 var none = Option<int>.None();
 var result = opt.Match(some: x => x.ToString(), none: () => "empty");
 var mapped = opt.Map(x => x * 2);
-var bound = opt.AndThen(x => Option<int>.Some(x + 1));  // or FlatMap
+var bound = opt.Bind(x => Option<int>.Some(x + 1));
 var filtered = opt.Filter(x => x > 0);
-var value = opt.UnwrapOr(0);
-var value2 = opt.UnwrapOrElse(() => ComputeDefault());
+var value = opt.GetValueOr(0);
+var value2 = opt.GetValueOrElse(() => ComputeDefault());
 ```
 
 #### Either
@@ -89,7 +89,7 @@ var result = Either<Error, User>.Right(user);
 result.Match(left: err => HandleError(err), right: user => Process(user));
 result.Map(u => u.Name);           // Maps right
 result.MapLeft(e => e.Message);    // Maps left  
-result.AndThen(u => GetProfile(u));
+result.Bind(u => GetProfile(u));
 ```
 
 #### Try
@@ -107,7 +107,7 @@ t.Bind(x => Try(() => x / 2));
 var t = Try<int>.Of(() => int.Parse("42"));
 var result = t.Match(success: x => x, failure: ex => -1);
 t.Map(x => x * 2);
-t.AndThen(x => Try<int>.Of(() => x / 2));
+t.Bind(x => Try<int>.Of(() => x / 2));
 ```
 
 #### Validation
@@ -157,8 +157,8 @@ var result = from user in GetUser(id)
 1. **Type parameter order in Validation**: language-ext uses `Validation<FAIL, SUCCESS>`, Monad.NET uses `Validation<T, E>` (success type first)
 
 2. **Naming conventions**:
-   - `Bind` → `AndThen` / `FlatMap`
-   - `IfNone` → `UnwrapOr` / `UnwrapOrElse`
+   - `Bind` → `Bind` (same in Monad.NET v2.0)
+   - `IfNone` → `GetValueOr` / `GetValueOrElse`
    - `Match(Some:, None:)` → `Match(some:, none:)`
 
 3. **No Prelude class**: Monad.NET doesn't use static imports like `Some(42)`. Instead use `Option<int>.Some(42)` or extension methods like `42.ToOption()`.
@@ -294,8 +294,8 @@ var result = GetUser(id)
 
 // Monad.NET
 var result = GetUser(id)
-    .AndThen(user => GetProfile(user.Id))
-    .AndThen(profile => ValidateProfile(profile));
+    .Bind(user => GetProfile(user.Id))
+    .Bind(profile => ValidateProfile(profile));
 ```
 
 ---
@@ -369,8 +369,8 @@ Begin by migrating `Option` and `Result` usages first. These are the most common
 
 Some common replacements:
 ```
-Bind(          →  AndThen(
-IfNone(        →  UnwrapOr( or UnwrapOrElse(
+Bind(          →  Bind(
+IfNone(        →  GetValueOr( or GetValueOrElse(
 Match(Some:    →  Match(some:
 Match(None:    →  Match(none:
 Match(Succ:    →  Match(success:

@@ -28,7 +28,7 @@ Monad.NET is designed with performance in mind:
 | `[MethodImpl(AggressiveInlining)]` | Eliminates call overhead on hot paths |
 | No boxing of value types | Avoids GC pressure |
 | `ConfigureAwait(false)` | Optimal async performance |
-| Lazy evaluation (`UnwrapOrElse`) | Avoids unnecessary computations |
+| Lazy evaluation (`GetValueOrElse`) | Avoids unnecessary computations |
 
 ---
 
@@ -61,7 +61,7 @@ var result = Option<int>.Some(i)
     .Map(x => x * 2)
     .Filter(x => x % 4 == 0)
     .Map(x => x + 1)
-    .UnwrapOr(0);
+    .GetValueOr(0);
 
 // Nullable equivalent
 int? value = i;
@@ -96,8 +96,8 @@ When operations succeed without errors:
 // Result<T, E> approach
 var result = Divide(100, i + 1)
     .Map(x => x * 2)
-    .AndThen(x => Divide(x, 2))
-    .UnwrapOr(0);
+    .Bind(x => Divide(x, 2))
+    .GetValueOr(0);
 
 // Exception approach
 try
@@ -379,12 +379,12 @@ We compared direct method calls (with AggressiveInlining) against wrapper method
 | **Factory** | Option.Some | 2.1 μs | 6.4 μs | **3.0x** |
 | **Factory** | Option.None | 2.1 μs | 6.4 μs | **3.1x** |
 | **Factory** | Result.Ok | 2.1 μs | 9.1 μs | **4.2x** |
-| **Value Access** | UnwrapOr | 6.8 μs | 12.2 μs | **1.8x** |
-| **Value Access** | UnwrapOrDefault | 6.3 μs | 15.2 μs | **2.5x** |
-| **Conditional** | UnwrapOrElse | 6.7 μs | 16.1 μs | **2.4x** |
+| **Value Access** | GetValueOr | 6.8 μs | 12.2 μs | **1.8x** |
+| **Value Access** | GetValueOrDefault | 6.3 μs | 15.2 μs | **2.5x** |
+| **Conditional** | GetValueOrElse | 6.7 μs | 16.1 μs | **2.4x** |
 | **Transform** | Map | 4.4 μs | 12.8 μs | **2.9x** |
 | **Transform** | Filter | 5.3 μs | 13.5 μs | **2.6x** |
-| **Chaining** | AndThen | 7.2 μs | 14.5 μs | **2.0x** |
+| **Chaining** | Bind | 7.2 μs | 14.5 μs | **2.0x** |
 | **Match** | Option.Match | 9.0 μs | 27.4 μs | **3.0x** |
 | **Pipeline** | Option Pipeline | 72 μs | 130 μs | **1.8x** |
 | **Pipeline** | Result Pipeline | 175 μs | 388 μs | **2.2x** |
@@ -397,7 +397,7 @@ We compared direct method calls (with AggressiveInlining) against wrapper method
 
 2. **Factory methods show significant gains** (3.0x-4.2x): Object creation with null checking is efficiently inlined.
 
-3. **Transform operations compound** (2.0x-2.9x): Each Map/Filter/AndThen in a chain benefits from inlining.
+3. **Transform operations compound** (2.0x-2.9x): Each Map/Filter/Bind in a chain benefits from inlining.
 
 4. **Complex pipelines still benefit** (1.8x-2.2x): Even with allocation overhead, inlining provides measurable gains.
 
@@ -410,7 +410,7 @@ In monadic pipelines, methods are chained frequently:
 Option<int>.Some(42)        // Factory: 3x faster
     .Filter(x => x > 0)     // Transform: 2.6x faster
     .Map(x => x * 2)        // Transform: 2.9x faster
-    .AndThen(Validate)      // Chaining: 2x faster
+    .Bind(Validate)      // Chaining: 2x faster
     .Match(ok => ok, () => -1)  // Match: 3x faster
 ```
 

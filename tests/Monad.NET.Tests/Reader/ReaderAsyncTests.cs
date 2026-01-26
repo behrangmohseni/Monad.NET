@@ -16,7 +16,7 @@ public class ReaderAsyncTests
     [Fact]
     public async Task Pure_CreatesReaderAsyncWithConstantValue()
     {
-        var reader = ReaderAsync<TestEnvironment, int>.Pure(42);
+        var reader = ReaderAsync<TestEnvironment, int>.Return(42);
         var env = new TestEnvironment();
 
         var result = await reader.RunAsync(env);
@@ -95,7 +95,7 @@ public class ReaderAsyncTests
     [Fact]
     public async Task Map_TransformsResultSynchronously()
     {
-        var reader = ReaderAsync<TestEnvironment, int>.Pure(42);
+        var reader = ReaderAsync<TestEnvironment, int>.Return(42);
         var mapped = reader.Map(x => x * 2);
         var env = new TestEnvironment();
 
@@ -107,7 +107,7 @@ public class ReaderAsyncTests
     [Fact]
     public async Task MapAsync_TransformsResultAsynchronously()
     {
-        var reader = ReaderAsync<TestEnvironment, int>.Pure(42);
+        var reader = ReaderAsync<TestEnvironment, int>.Return(42);
         var mapped = reader.MapAsync(async x =>
         {
             await Task.Delay(1);
@@ -128,8 +128,8 @@ public class ReaderAsyncTests
     public async Task FlatMap_ChainsReaderAsyncComputations()
     {
         var reader1 = ReaderAsync<TestEnvironment, int>.Asks(env => env.Timeout);
-        var reader2 = reader1.FlatMap(timeout =>
-            ReaderAsync<TestEnvironment, string>.Pure($"Timeout: {timeout}")
+        var reader2 = reader1.Bind(timeout =>
+            ReaderAsync<TestEnvironment, string>.Return($"Timeout: {timeout}")
         );
         var env = new TestEnvironment { Timeout = 30 };
 
@@ -139,13 +139,13 @@ public class ReaderAsyncTests
     }
 
     [Fact]
-    public async Task FlatMapAsync_ChainsWithAsyncBinder()
+    public async Task BindAsync_ChainsWithAsyncBinder()
     {
-        var reader1 = ReaderAsync<TestEnvironment, int>.Pure(10);
-        var reader2 = reader1.FlatMapAsync(async x =>
+        var reader1 = ReaderAsync<TestEnvironment, int>.Return(10);
+        var reader2 = reader1.BindAsync(async x =>
         {
             await Task.Delay(1);
-            return ReaderAsync<TestEnvironment, int>.Pure(x * 2);
+            return ReaderAsync<TestEnvironment, int>.Return(x * 2);
         });
         var env = new TestEnvironment();
 
@@ -157,9 +157,9 @@ public class ReaderAsyncTests
     [Fact]
     public async Task AndThen_IsSameAsFlatMap()
     {
-        var reader1 = ReaderAsync<TestEnvironment, int>.Pure(10);
-        var reader2 = reader1.AndThen(x =>
-            ReaderAsync<TestEnvironment, int>.Pure(x + 5)
+        var reader1 = ReaderAsync<TestEnvironment, int>.Return(10);
+        var reader2 = reader1.Bind(x =>
+            ReaderAsync<TestEnvironment, int>.Return(x + 5)
         );
         var env = new TestEnvironment();
 
@@ -171,9 +171,9 @@ public class ReaderAsyncTests
     [Fact]
     public async Task Bind_IsSameAsFlatMap()
     {
-        var reader1 = ReaderAsync<TestEnvironment, int>.Pure(10);
+        var reader1 = ReaderAsync<TestEnvironment, int>.Return(10);
         var reader2 = reader1.Bind(x =>
-            ReaderAsync<TestEnvironment, int>.Pure(x + 5)
+            ReaderAsync<TestEnvironment, int>.Return(x + 5)
         );
         var env = new TestEnvironment();
 
@@ -190,7 +190,7 @@ public class ReaderAsyncTests
     public async Task Tap_ExecutesActionWithoutModifyingResult()
     {
         var sideEffect = 0;
-        var reader = ReaderAsync<TestEnvironment, int>.Pure(42)
+        var reader = ReaderAsync<TestEnvironment, int>.Return(42)
             .Tap(x => sideEffect = x);
         var env = new TestEnvironment();
 
@@ -204,7 +204,7 @@ public class ReaderAsyncTests
     public async Task TapAsync_ExecutesAsyncActionWithoutModifyingResult()
     {
         var sideEffect = 0;
-        var reader = ReaderAsync<TestEnvironment, int>.Pure(42)
+        var reader = ReaderAsync<TestEnvironment, int>.Return(42)
             .TapAsync(async x =>
             {
                 await Task.Delay(1);
@@ -222,7 +222,7 @@ public class ReaderAsyncTests
     public async Task TapEnv_ExecutesActionWithEnvironment()
     {
         var capturedTimeout = 0;
-        var reader = ReaderAsync<TestEnvironment, int>.Pure(42)
+        var reader = ReaderAsync<TestEnvironment, int>.Return(42)
             .TapEnv(env => capturedTimeout = env.Timeout);
         var env = new TestEnvironment { Timeout = 100 };
 
@@ -236,7 +236,7 @@ public class ReaderAsyncTests
     public async Task TapEnvAsync_ExecutesAsyncActionWithEnvironment()
     {
         var capturedTimeout = 0;
-        var reader = ReaderAsync<TestEnvironment, int>.Pure(42)
+        var reader = ReaderAsync<TestEnvironment, int>.Return(42)
             .TapEnvAsync(async env =>
             {
                 await Task.Delay(1);
@@ -327,14 +327,14 @@ public class ReaderAsyncTests
     [Fact]
     public async Task Attempt_WrapsSuccessInTry()
     {
-        var reader = ReaderAsync<TestEnvironment, int>.Pure(42);
+        var reader = ReaderAsync<TestEnvironment, int>.Return(42);
         var attempted = reader.Attempt();
         var env = new TestEnvironment();
 
         var result = await attempted.RunAsync(env);
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -354,8 +354,8 @@ public class ReaderAsyncTests
     [Fact]
     public async Task OrElse_ReturnsOriginalValueOnSuccess()
     {
-        var reader = ReaderAsync<TestEnvironment, int>.Pure(42);
-        var withFallback = reader.OrElse(ReaderAsync<TestEnvironment, int>.Pure(0));
+        var reader = ReaderAsync<TestEnvironment, int>.Return(42);
+        var withFallback = reader.OrElse(ReaderAsync<TestEnvironment, int>.Return(0));
         var env = new TestEnvironment();
 
         var result = await withFallback.RunAsync(env);
@@ -368,7 +368,7 @@ public class ReaderAsyncTests
     {
         var reader = ReaderAsync<TestEnvironment, int>.From(
             _ => Task.FromException<int>(new InvalidOperationException()));
-        var withFallback = reader.OrElse(ReaderAsync<TestEnvironment, int>.Pure(100));
+        var withFallback = reader.OrElse(ReaderAsync<TestEnvironment, int>.Return(100));
         var env = new TestEnvironment();
 
         var result = await withFallback.RunAsync(env);
@@ -462,7 +462,7 @@ public class ReaderAsyncTests
     [Fact]
     public async Task Select_WorksLikeMap()
     {
-        var reader = ReaderAsync<TestEnvironment, int>.Pure(10)
+        var reader = ReaderAsync<TestEnvironment, int>.Return(10)
             .Select(x => x * 2);
         var env = new TestEnvironment();
 
@@ -474,8 +474,8 @@ public class ReaderAsyncTests
     [Fact]
     public async Task SelectMany_WorksLikeFlatMap()
     {
-        var reader = ReaderAsync<TestEnvironment, int>.Pure(10)
-            .SelectMany(x => ReaderAsync<TestEnvironment, int>.Pure(x * 2));
+        var reader = ReaderAsync<TestEnvironment, int>.Return(10)
+            .SelectMany(x => ReaderAsync<TestEnvironment, int>.Return(x * 2));
         var env = new TestEnvironment();
 
         var result = await reader.RunAsync(env);
@@ -492,9 +492,9 @@ public class ReaderAsyncTests
     {
         var readers = new[]
         {
-            ReaderAsync<TestEnvironment, int>.Pure(1),
-            ReaderAsync<TestEnvironment, int>.Pure(2),
-            ReaderAsync<TestEnvironment, int>.Pure(3)
+            ReaderAsync<TestEnvironment, int>.Return(1),
+            ReaderAsync<TestEnvironment, int>.Return(2),
+            ReaderAsync<TestEnvironment, int>.Return(3)
         };
 
         var sequenced = readers.Sequence();
@@ -556,8 +556,8 @@ public class ReaderAsyncTests
     [Fact]
     public async Task Flatten_UnwrapsNestedReaderAsync()
     {
-        var nested = ReaderAsync<TestEnvironment, ReaderAsync<TestEnvironment, int>>.Pure(
-            ReaderAsync<TestEnvironment, int>.Pure(42));
+        var nested = ReaderAsync<TestEnvironment, ReaderAsync<TestEnvironment, int>>.Return(
+            ReaderAsync<TestEnvironment, int>.Return(42));
         var flattened = nested.Flatten();
         var env = new TestEnvironment();
 
@@ -588,7 +588,7 @@ public class ReaderAsyncTests
     [Fact]
     public async Task ReaderAsyncStatic_FromReader_ConvertsReader()
     {
-        var syncReader = Reader<TestEnvironment, int>.Pure(42);
+        var syncReader = Reader<TestEnvironment, int>.Return(42);
         var asyncReader = ReaderAsync.FromReader(syncReader);
         var env = new TestEnvironment();
 
@@ -600,7 +600,7 @@ public class ReaderAsyncTests
     [Fact]
     public async Task ReaderAsyncStatic_Pure_CreatesConstantReader()
     {
-        var reader = ReaderAsync.Pure<TestEnvironment, int>(42);
+        var reader = ReaderAsync.Return<TestEnvironment, int>(42);
         var env = new TestEnvironment();
 
         var result = await reader.RunAsync(env);
@@ -677,9 +677,9 @@ public class ReaderAsyncTests
     {
         var readers = new[]
         {
-            ReaderAsync<TestEnvironment, int>.Pure(1),
-            ReaderAsync<TestEnvironment, int>.Pure(2),
-            ReaderAsync<TestEnvironment, int>.Pure(3)
+            ReaderAsync<TestEnvironment, int>.Return(1),
+            ReaderAsync<TestEnvironment, int>.Return(2),
+            ReaderAsync<TestEnvironment, int>.Return(3)
         };
         var parallel = ReaderAsync.Parallel(readers);
         var env = new TestEnvironment();
@@ -696,7 +696,7 @@ public class ReaderAsyncTests
     [Fact]
     public async Task Void_ReturnsUnit()
     {
-        var reader = ReaderAsync<TestEnvironment, int>.Pure(42).Void();
+        var reader = ReaderAsync<TestEnvironment, int>.Return(42).Void();
         var env = new TestEnvironment();
 
         var result = await reader.RunAsync(env);

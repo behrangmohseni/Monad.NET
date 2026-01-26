@@ -20,14 +20,14 @@ public class MonadLawsTests
     public Property Option_LeftIdentity_Law()
     {
         // return a >>= f ≡ f a
-        // Some(a).AndThen(f) should equal f(a)
+        // Some(a).Bind(f) should equal f(a)
         Func<int, Option<string>> f = x => x >= 0
             ? Option<string>.Some(x.ToString())
             : Option<string>.None();
 
         return Prop.ForAll<int>(a =>
         {
-            var left = Option<int>.Some(a).AndThen(f);
+            var left = Option<int>.Some(a).Bind(f);
             var right = f(a);
             return left.Equals(right);
         });
@@ -37,11 +37,11 @@ public class MonadLawsTests
     public Property Option_RightIdentity_Law()
     {
         // m >>= return ≡ m
-        // option.AndThen(Some) should equal option
+        // option.Bind(Some) should equal option
         return Prop.ForAll<int>(a =>
         {
             var option = a >= 0 ? Option<int>.Some(a) : Option<int>.None();
-            var result = option.AndThen(x => Option<int>.Some(x));
+            var result = option.Bind(x => Option<int>.Some(x));
             return result.Equals(option);
         });
     }
@@ -60,8 +60,8 @@ public class MonadLawsTests
         return Prop.ForAll<int>(a =>
         {
             var option = a >= 0 ? Option<int>.Some(a) : Option<int>.None();
-            var left = option.AndThen(f).AndThen(g);
-            var right = option.AndThen(x => f(x).AndThen(g));
+            var left = option.Bind(f).Bind(g);
+            var right = option.Bind(x => f(x).Bind(g));
             return left.Equals(right);
         });
     }
@@ -112,7 +112,7 @@ public class MonadLawsTests
 
         return Prop.ForAll<int>(a =>
         {
-            var left = Result<int, string>.Ok(a).AndThen(f);
+            var left = Result<int, string>.Ok(a).Bind(f);
             var right = f(a);
             return left.Equals(right);
         });
@@ -126,7 +126,7 @@ public class MonadLawsTests
             var result = a >= 0
                 ? Result<int, string>.Ok(a)
                 : Result<int, string>.Err("negative");
-            var computed = result.AndThen(x => Result<int, string>.Ok(x));
+            var computed = result.Bind(x => Result<int, string>.Ok(x));
             return computed.Equals(result);
         });
     }
@@ -146,8 +146,8 @@ public class MonadLawsTests
             var result = a >= 0
                 ? Result<int, string>.Ok(a)
                 : Result<int, string>.Err("initial error");
-            var left = result.AndThen(f).AndThen(g);
-            var right = result.AndThen(x => f(x).AndThen(g));
+            var left = result.Bind(f).Bind(g);
+            var right = result.Bind(x => f(x).Bind(g));
             return left.Equals(right);
         });
     }
@@ -199,7 +199,7 @@ public class MonadLawsTests
 
         return Prop.ForAll<int>(a =>
         {
-            var left = Either<string, int>.Right(a).AndThen(f);
+            var left = Either<string, int>.Right(a).Bind(f);
             var right = f(a);
             return left.Equals(right);
         });
@@ -213,7 +213,7 @@ public class MonadLawsTests
             var either = a >= 0
                 ? Either<string, int>.Right(a)
                 : Either<string, int>.Left("negative");
-            var result = either.AndThen(x => Either<string, int>.Right(x));
+            var result = either.Bind(x => Either<string, int>.Right(x));
             return result.Equals(either);
         });
     }
@@ -231,10 +231,10 @@ public class MonadLawsTests
 
         return Prop.ForAll<int>(a =>
         {
-            var left = Try<int>.Success(a).AndThen(f);
+            var left = Try<int>.Success(a).Bind(f);
             var right = f(a);
             return left.IsSuccess == right.IsSuccess &&
-                   (!left.IsSuccess || left.Get() == right.Get());
+                   (!left.IsSuccess || left.GetValue() == right.GetValue());
         });
     }
 
@@ -246,9 +246,9 @@ public class MonadLawsTests
             var @try = a >= 0
                 ? Try<int>.Success(a)
                 : Try<int>.Failure(new InvalidOperationException("negative"));
-            var result = @try.AndThen(x => Try<int>.Success(x));
+            var result = @try.Bind(x => Try<int>.Success(x));
             return result.IsSuccess == @try.IsSuccess &&
-                   (!result.IsSuccess || result.Get() == @try.Get());
+                   (!result.IsSuccess || result.GetValue() == @try.GetValue());
         });
     }
 
@@ -298,9 +298,9 @@ public class MonadLawsTests
             var result = v1.Apply(v2, (a, b) => a + b);
 
             return result.IsInvalid &&
-                   result.UnwrapErrors().Count == 2 &&
-                   result.UnwrapErrors().Contains(err1.Get) &&
-                   result.UnwrapErrors().Contains(err2.Get);
+                   result.GetErrors().Count == 2 &&
+                   result.GetErrors().Contains(err1.Get) &&
+                   result.GetErrors().Contains(err2.Get);
         });
     }
 
@@ -311,12 +311,12 @@ public class MonadLawsTests
     [Property]
     public Property Option_NoneIsAbsorbingElement()
     {
-        // None.AndThen(f) should always be None
+        // None.Bind(f) should always be None
         Func<int, Option<string>> f = x => Option<string>.Some(x.ToString());
 
         return Prop.ForAll<int>(_ =>
         {
-            var result = Option<int>.None().AndThen(f);
+            var result = Option<int>.None().Bind(f);
             return result.IsNone;
         });
     }
@@ -369,7 +369,7 @@ public class MonadLawsTests
                 return true; // Skip invalid inputs
 
             var option = Option<int>.Some(a);
-            return option.UnwrapOr(defaultVal) == a;
+            return option.GetValueOr(defaultVal) == a;
         });
     }
 
@@ -379,7 +379,7 @@ public class MonadLawsTests
         return Prop.ForAll<int>(defaultVal =>
         {
             var option = Option<int>.None();
-            return option.UnwrapOr(defaultVal) == defaultVal;
+            return option.GetValueOr(defaultVal) == defaultVal;
         });
     }
 
@@ -390,13 +390,13 @@ public class MonadLawsTests
     [Property]
     public Property Result_ErrIsAbsorbingElement()
     {
-        // Err.AndThen(f) should always be Err
+        // Err.Bind(f) should always be Err
         Func<int, Result<string, string>> f = x => Result<string, string>.Ok(x.ToString());
 
         return Prop.ForAll<NonEmptyString>(err =>
         {
-            var result = Result<int, string>.Err(err.Get).AndThen(f);
-            return result.IsErr && result.UnwrapErr() == err.Get;
+            var result = Result<int, string>.Err(err.Get).Bind(f);
+            return result.IsErr && result.GetError() == err.Get;
         });
     }
 
@@ -409,8 +409,8 @@ public class MonadLawsTests
                 return true; // Skip invalid inputs
 
             var result = Result<int, string>.Ok(a);
-            var mapped = result.MapErr(e => e.ToUpper());
-            return mapped.IsOk && mapped.Unwrap() == a;
+            var mapped = result.MapError(e => e.ToUpper());
+            return mapped.IsOk && mapped.GetValue() == a;
         });
     }
 
@@ -430,7 +430,7 @@ public class MonadLawsTests
             var opt2 = Option<int>.Some(b);
             var result = opt1.Zip(opt2);
 
-            return result.IsSome && result.Unwrap() == (a, b);
+            return result.IsSome && result.GetValue() == (a, b);
         });
     }
 

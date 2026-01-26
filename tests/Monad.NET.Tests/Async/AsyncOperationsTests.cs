@@ -15,7 +15,7 @@ public class AsyncOperationsTests
         var result = await ResultExtensions.CombineAsync(first, second);
 
         Assert.True(result.IsOk);
-        Assert.Equal((1, "hello"), result.Unwrap());
+        Assert.Equal((1, "hello"), result.GetValue());
     }
 
     [Fact]
@@ -27,7 +27,7 @@ public class AsyncOperationsTests
         var result = await ResultExtensions.CombineAsync(first, second);
 
         Assert.True(result.IsErr);
-        Assert.Equal("error1", result.UnwrapErr());
+        Assert.Equal("error1", result.GetError());
     }
 
     [Fact]
@@ -39,7 +39,7 @@ public class AsyncOperationsTests
         var result = await ResultExtensions.CombineAsync(first, second);
 
         Assert.True(result.IsErr);
-        Assert.Equal("error2", result.UnwrapErr());
+        Assert.Equal("error2", result.GetError());
     }
 
     [Fact]
@@ -51,7 +51,7 @@ public class AsyncOperationsTests
         var result = await ResultExtensions.CombineAsync(first, second, (a, b) => a + b);
 
         Assert.True(result.IsOk);
-        Assert.Equal(15, result.Unwrap());
+        Assert.Equal(15, result.GetValue());
     }
 
     [Fact]
@@ -64,7 +64,7 @@ public class AsyncOperationsTests
         var result = await ResultExtensions.CombineAsync(first, second, third);
 
         Assert.True(result.IsOk);
-        Assert.Equal((1, "two", 3.0), result.Unwrap());
+        Assert.Equal((1, "two", 3.0), result.GetValue());
     }
 
     [Fact]
@@ -80,7 +80,7 @@ public class AsyncOperationsTests
         var result = await ResultExtensions.CombineAsync(tasks);
 
         Assert.True(result.IsOk);
-        Assert.Equal(new[] { 1, 2, 3 }, result.Unwrap());
+        Assert.Equal(new[] { 1, 2, 3 }, result.GetValue());
     }
 
     [Fact]
@@ -96,7 +96,7 @@ public class AsyncOperationsTests
         var result = await ResultExtensions.CombineAsync(tasks);
 
         Assert.True(result.IsErr);
-        Assert.Equal("error", result.UnwrapErr());
+        Assert.Equal("error", result.GetError());
     }
 
     [Fact]
@@ -111,7 +111,7 @@ public class AsyncOperationsTests
         var result = await ResultExtensions.CombineAllAsync(tasks);
 
         Assert.True(result.IsOk);
-        Assert.Equal(Unit.Value, result.Unwrap());
+        Assert.Equal(Unit.Value, result.GetValue());
     }
 
     #endregion
@@ -127,7 +127,7 @@ public class AsyncOperationsTests
         var result = await ValidationExtensions.ApplyAsync(first, second, (a, b) => a + b);
 
         Assert.True(result.IsValid);
-        Assert.Equal(15, result.Unwrap());
+        Assert.Equal(15, result.GetValue());
     }
 
     [Fact]
@@ -139,7 +139,7 @@ public class AsyncOperationsTests
         var result = await ValidationExtensions.ApplyAsync(first, second, (a, b) => a + b);
 
         Assert.True(result.IsInvalid);
-        Assert.Equal(new[] { "error1", "error2" }, result.UnwrapErrors());
+        Assert.Equal(new[] { "error1", "error2" }, result.GetErrors());
     }
 
     [Fact]
@@ -151,7 +151,7 @@ public class AsyncOperationsTests
         var result = await ValidationExtensions.ZipAsync(first, second);
 
         Assert.True(result.IsValid);
-        Assert.Equal((1, "hello"), result.Unwrap());
+        Assert.Equal((1, "hello"), result.GetValue());
     }
 
     [Fact]
@@ -163,7 +163,7 @@ public class AsyncOperationsTests
         var result = await ValidationExtensions.ZipWithAsync(first, second, (a, b) => a * b);
 
         Assert.True(result.IsValid);
-        Assert.Equal(50, result.Unwrap());
+        Assert.Equal(50, result.GetValue());
     }
 
     [Fact]
@@ -176,7 +176,7 @@ public class AsyncOperationsTests
         var result = await ValidationExtensions.ZipAsync(first, second, third);
 
         Assert.True(result.IsValid);
-        Assert.Equal((1, "two", 3.0), result.Unwrap());
+        Assert.Equal((1, "two", 3.0), result.GetValue());
     }
 
     [Fact]
@@ -189,7 +189,7 @@ public class AsyncOperationsTests
         var result = await ValidationExtensions.ZipAsync(first, second, third);
 
         Assert.True(result.IsInvalid);
-        Assert.Equal(new[] { "e1", "e2", "e3" }, result.UnwrapErrors());
+        Assert.Equal(new[] { "e1", "e2", "e3" }, result.GetErrors());
     }
 
     [Fact]
@@ -205,7 +205,7 @@ public class AsyncOperationsTests
         var result = await tasks.CombineAsync();
 
         Assert.True(result.IsValid);
-        Assert.Equal(new[] { 1, 2, 3 }, result.Unwrap());
+        Assert.Equal(new[] { 1, 2, 3 }, result.GetValue());
     }
 
     [Fact]
@@ -221,7 +221,7 @@ public class AsyncOperationsTests
         var result = await tasks.CombineAsync();
 
         Assert.True(result.IsInvalid);
-        Assert.Equal(new[] { "e1", "e2" }, result.UnwrapErrors());
+        Assert.Equal(new[] { "e1", "e2" }, result.GetErrors());
     }
 
     [Fact]
@@ -284,7 +284,7 @@ public class AsyncOperationsTests
         });
 
         Assert.True(result.IsValid);
-        Assert.Equal(10, result.Unwrap());
+        Assert.Equal(10, result.GetValue());
     }
 
     [Fact]
@@ -299,7 +299,7 @@ public class AsyncOperationsTests
         });
 
         Assert.True(result.IsValid);
-        Assert.Equal(10, result.Unwrap());
+        Assert.Equal(10, result.GetValue());
     }
 
     #endregion
@@ -347,7 +347,7 @@ public class AsyncOperationsTests
         var result = await OptionAsyncExtensions.ZipAsync(first, second);
 
         Assert.True(result.IsSome);
-        Assert.Equal((1, "hello"), result.Unwrap());
+        Assert.Equal((1, "hello"), result.GetValue());
     }
 
     [Fact]
@@ -381,7 +381,7 @@ public class AsyncOperationsTests
         var result = await OptionAsyncExtensions.ZipWithAsync(first, second, (a, b) => a + b);
 
         Assert.True(result.IsSome);
-        Assert.Equal(15, result.Unwrap());
+        Assert.Equal(15, result.GetValue());
     }
 
     [Fact]
@@ -397,7 +397,7 @@ public class AsyncOperationsTests
         var result = await tasks.FirstSomeAsync();
 
         Assert.True(result.IsSome);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]

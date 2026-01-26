@@ -16,7 +16,7 @@
 var result = user.ToOption()
     .Filter(u => u.IsActive)
     .Map(u => u.Email)
-    .AndThen(email => SendWelcome(email))
+    .Bind(email => SendWelcome(email))
     .Match(
         some: _ => "Email sent",
         none: () => "User not found or inactive"
@@ -70,9 +70,9 @@ return "default@example.com";
 **With Monad.NET:**
 ```csharp
 return FindUser(id)
-    .AndThen(user => user.GetProfile())
+    .Bind(user => user.GetProfile())
     .Map(profile => profile.Email)
-    .UnwrapOr("default@example.com");
+    .GetValueOr("default@example.com");
 ```
 
 **Verdict:** NRTs catch null issues at compile time—use them! But `Option<T>` shines when you need to *chain* operations or *transform* optional values. If you're writing nested null checks, Option is cleaner.
@@ -103,9 +103,9 @@ public Order ProcessOrder(OrderRequest request)
 public Result<Order, OrderError> ProcessOrder(OrderRequest request)
 {
     return ValidateOrder(request)
-        .AndThen(ReserveInventory)
-        .AndThen(ChargePayment)
-        .AndThen(CreateOrder);
+        .Bind(ReserveInventory)
+        .Bind(ChargePayment)
+        .Bind(CreateOrder);
 }
 ```
 
@@ -248,7 +248,7 @@ var email = FindUser(id)
 var email = FindUser(id)
     .Map(user => user.Email)
     .Filter(email => email.Contains("@"))
-    .AndThen(email => ValidateEmail(email));
+    .Bind(email => ValidateEmail(email));
 ```
 
 ### Result — Handle expected failures
@@ -257,8 +257,8 @@ var email = FindUser(id)
 public Result<Order, OrderError> ProcessOrder(OrderRequest request)
 {
     return ValidateOrder(request)
-        .AndThen(order => CheckInventory(order))
-        .AndThen(order => ChargePayment(order))
+        .Bind(order => CheckInventory(order))
+        .Bind(order => ChargePayment(order))
         .Tap(order => _logger.LogInfo($"Order {order.Id} created"))
         .TapErr(err => _logger.LogError($"Order failed: {err}"));
 }

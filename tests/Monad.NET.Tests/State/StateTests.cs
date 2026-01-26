@@ -113,7 +113,7 @@ public class StateTests
     [Fact]
     public void Pure_ReturnsValueWithoutModifyingState()
     {
-        var state = State<int, string>.Pure("hello");
+        var state = State<int, string>.Return("hello");
         var result = state.Run(42);
 
         Assert.Equal("hello", result.Value);
@@ -219,7 +219,7 @@ public class StateTests
     [Fact]
     public void Map_TransformsValue()
     {
-        var state = State<int, int>.Pure(10).Map(x => x * 2);
+        var state = State<int, int>.Return(10).Map(x => x * 2);
         var result = state.Run(0);
 
         Assert.Equal(20, result.Value);
@@ -246,7 +246,7 @@ public class StateTests
         var increment = State<int, Unit>.Modify(s => s + 1);
         var getState = State<int, int>.Get();
 
-        var computation = increment.AndThen(_ => getState);
+        var computation = increment.Bind(_ => getState);
         var result = computation.Run(0);
 
         Assert.Equal(1, result.Value);
@@ -256,8 +256,8 @@ public class StateTests
     [Fact]
     public void FlatMap_ChainsComputations()
     {
-        var state = State<int, int>.Pure(10)
-            .FlatMap(x => State<int, int>.Of(s => (x + s, s + 1)));
+        var state = State<int, int>.Return(10)
+            .Bind(x => State<int, int>.Of(s => (x + s, s + 1)));
 
         var result = state.Run(5);
 
@@ -268,8 +268,8 @@ public class StateTests
     [Fact]
     public void Bind_ChainsComputations()
     {
-        var state = State<int, int>.Pure(10)
-            .Bind(x => State<int, int>.Pure(x * 2));
+        var state = State<int, int>.Return(10)
+            .Bind(x => State<int, int>.Return(x * 2));
 
         var result = state.Run(0);
 
@@ -283,9 +283,9 @@ public class StateTests
         var increment = State<int, int>.Modify(s => s + 1).Map(_ => 0);
 
         var computation = increment
-            .AndThen(_ => increment)
-            .AndThen(_ => increment)
-            .AndThen(_ => State<int, int>.Get());
+            .Bind(_ => increment)
+            .Bind(_ => increment)
+            .Bind(_ => State<int, int>.Get());
 
         var result = computation.Run(0);
 
@@ -300,8 +300,8 @@ public class StateTests
     [Fact]
     public void Apply_AppliesWrappedFunction()
     {
-        var stateValue = State<int, int>.Pure(10);
-        var stateFunc = State<int, Func<int, int>>.Pure(x => x * 2);
+        var stateValue = State<int, int>.Return(10);
+        var stateFunc = State<int, Func<int, int>>.Return(x => x * 2);
 
         var result = stateValue.Apply(stateFunc).Run(0);
 
@@ -328,8 +328,8 @@ public class StateTests
     [Fact]
     public void ZipWith_CombinesValuesWithFunction()
     {
-        var state1 = State<int, int>.Pure(10);
-        var state2 = State<int, int>.Pure(20);
+        var state1 = State<int, int>.Return(10);
+        var state2 = State<int, int>.Return(20);
 
         var result = state1.ZipWith(state2, (a, b) => a + b).Run(0);
 
@@ -343,7 +343,7 @@ public class StateTests
     [Fact]
     public void Flatten_UnwrapsNestedState()
     {
-        var nested = State<int, State<int, string>>.Pure(State<int, string>.Pure("inner"));
+        var nested = State<int, State<int, string>>.Return(State<int, string>.Return("inner"));
         var flattened = nested.Flatten();
 
         var result = flattened.Run(0);
@@ -404,7 +404,7 @@ public class StateTests
     [Fact]
     public void Select_WorksWithLinqSyntax()
     {
-        var state = from x in State<int, int>.Pure(10)
+        var state = from x in State<int, int>.Return(10)
                     select x * 2;
 
         var result = state.Run(0);
@@ -414,8 +414,8 @@ public class StateTests
     [Fact]
     public void SelectMany_WorksWithLinqSyntax()
     {
-        var state = from x in State<int, int>.Pure(10)
-                    from y in State<int, int>.Pure(20)
+        var state = from x in State<int, int>.Return(10)
+                    from y in State<int, int>.Return(20)
                     select x + y;
 
         var result = state.Run(0);
@@ -496,9 +496,9 @@ public class StateTests
         var result = computation.Run(new List<int>());
 
         Assert.True(result.Value.a.IsSome);
-        Assert.Equal(3, result.Value.a.Unwrap());
+        Assert.Equal(3, result.Value.a.GetValue());
         Assert.True(result.Value.b.IsSome);
-        Assert.Equal(2, result.Value.b.Unwrap());
+        Assert.Equal(2, result.Value.b.GetValue());
         Assert.Single(result.State);
         Assert.Equal(1, result.State[0]);
     }

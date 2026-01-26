@@ -35,7 +35,7 @@ public class RemoteDataTests
         Assert.False(remoteData.IsLoading);
         Assert.True(remoteData.IsSuccess);
         Assert.False(remoteData.IsFailure);
-        Assert.Equal(42, remoteData.Unwrap());
+        Assert.Equal(42, remoteData.GetValue());
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public class RemoteDataTests
         Assert.False(remoteData.IsLoading);
         Assert.False(remoteData.IsSuccess);
         Assert.True(remoteData.IsFailure);
-        Assert.Equal("error", remoteData.UnwrapError());
+        Assert.Equal("error", remoteData.GetError());
     }
 
     [Fact]
@@ -66,56 +66,56 @@ public class RemoteDataTests
     public void Unwrap_OnSuccess_ReturnsData()
     {
         var remoteData = RemoteData<int, string>.Success(42);
-        Assert.Equal(42, remoteData.Unwrap());
+        Assert.Equal(42, remoteData.GetValue());
     }
 
     [Fact]
     public void Unwrap_OnNotAsked_ThrowsException()
     {
         var remoteData = RemoteData<int, string>.NotAsked();
-        Assert.Throws<InvalidOperationException>(() => remoteData.Unwrap());
+        Assert.Throws<InvalidOperationException>(() => remoteData.GetValue());
     }
 
     [Fact]
     public void Unwrap_OnLoading_ThrowsException()
     {
         var remoteData = RemoteData<int, string>.Loading();
-        Assert.Throws<InvalidOperationException>(() => remoteData.Unwrap());
+        Assert.Throws<InvalidOperationException>(() => remoteData.GetValue());
     }
 
     [Fact]
     public void Unwrap_OnFailure_ThrowsException()
     {
         var remoteData = RemoteData<int, string>.Failure("error");
-        Assert.Throws<InvalidOperationException>(() => remoteData.Unwrap());
+        Assert.Throws<InvalidOperationException>(() => remoteData.GetValue());
     }
 
     [Fact]
     public void UnwrapError_OnFailure_ReturnsError()
     {
         var remoteData = RemoteData<int, string>.Failure("error");
-        Assert.Equal("error", remoteData.UnwrapError());
+        Assert.Equal("error", remoteData.GetError());
     }
 
     [Fact]
     public void UnwrapError_OnSuccess_ThrowsException()
     {
         var remoteData = RemoteData<int, string>.Success(42);
-        Assert.Throws<InvalidOperationException>(() => remoteData.UnwrapError());
+        Assert.Throws<InvalidOperationException>(() => remoteData.GetError());
     }
 
     [Fact]
     public void UnwrapOr_OnSuccess_ReturnsData()
     {
         var remoteData = RemoteData<int, string>.Success(42);
-        Assert.Equal(42, remoteData.UnwrapOr(0));
+        Assert.Equal(42, remoteData.GetValueOr(0));
     }
 
     [Fact]
     public void UnwrapOr_OnLoading_ReturnsDefault()
     {
         var remoteData = RemoteData<int, string>.Loading();
-        Assert.Equal(0, remoteData.UnwrapOr(0));
+        Assert.Equal(0, remoteData.GetValueOr(0));
     }
 
     [Fact]
@@ -125,7 +125,7 @@ public class RemoteDataTests
         var mapped = remoteData.Map(x => x * 2);
 
         Assert.True(mapped.IsSuccess);
-        Assert.Equal(84, mapped.Unwrap());
+        Assert.Equal(84, mapped.GetValue());
     }
 
     [Fact]
@@ -144,7 +144,7 @@ public class RemoteDataTests
         var mapped = remoteData.Map(x => x * 2);
 
         Assert.True(mapped.IsFailure);
-        Assert.Equal("error", mapped.UnwrapError());
+        Assert.Equal("error", mapped.GetError());
     }
 
     [Fact]
@@ -154,7 +154,7 @@ public class RemoteDataTests
         var mapped = remoteData.MapError(e => e.ToUpper());
 
         Assert.True(mapped.IsFailure);
-        Assert.Equal("ERROR", mapped.UnwrapError());
+        Assert.Equal("ERROR", mapped.GetError());
     }
 
     [Fact]
@@ -164,24 +164,24 @@ public class RemoteDataTests
         var mapped = remoteData.MapError(e => e.ToUpper());
 
         Assert.True(mapped.IsSuccess);
-        Assert.Equal(42, mapped.Unwrap());
+        Assert.Equal(42, mapped.GetValue());
     }
 
     [Fact]
     public void AndThen_OnSuccess_ExecutesFunction()
     {
         var remoteData = RemoteData<int, string>.Success(42);
-        var result = remoteData.AndThen(x => RemoteData<string, string>.Success(x.ToString()));
+        var result = remoteData.Bind(x => RemoteData<string, string>.Success(x.ToString()));
 
         Assert.True(result.IsSuccess);
-        Assert.Equal("42", result.Unwrap());
+        Assert.Equal("42", result.GetValue());
     }
 
     [Fact]
     public void AndThen_OnLoading_ReturnsLoading()
     {
         var remoteData = RemoteData<int, string>.Loading();
-        var result = remoteData.AndThen(x => RemoteData<string, string>.Success(x.ToString()));
+        var result = remoteData.Bind(x => RemoteData<string, string>.Success(x.ToString()));
 
         Assert.True(result.IsLoading);
     }
@@ -193,7 +193,7 @@ public class RemoteDataTests
         var remoteData2 = RemoteData<int, string>.Success(100);
         var result = remoteData1.Or(remoteData2);
 
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -203,7 +203,7 @@ public class RemoteDataTests
         var remoteData2 = RemoteData<int, string>.Success(100);
         var result = remoteData1.Or(remoteData2);
 
-        Assert.Equal(100, result.Unwrap());
+        Assert.Equal(100, result.GetValue());
     }
 
     [Fact]
@@ -213,7 +213,7 @@ public class RemoteDataTests
         var recovered = remoteData.OrElse(err => RemoteData<int, string>.Success(100));
 
         Assert.True(recovered.IsSuccess);
-        Assert.Equal(100, recovered.Unwrap());
+        Assert.Equal(100, recovered.GetValue());
     }
 
     [Fact]
@@ -222,7 +222,7 @@ public class RemoteDataTests
         var remoteData = RemoteData<int, string>.Success(42);
         var recovered = remoteData.OrElse(err => RemoteData<int, string>.Success(100));
 
-        Assert.Equal(42, recovered.Unwrap());
+        Assert.Equal(42, recovered.GetValue());
     }
 
     [Fact]
@@ -310,7 +310,7 @@ public class RemoteDataTests
         var option = remoteData.ToOption();
 
         Assert.True(option.IsSome);
-        Assert.Equal(42, option.Unwrap());
+        Assert.Equal(42, option.GetValue());
     }
 
     [Fact]
@@ -329,7 +329,7 @@ public class RemoteDataTests
         var result = remoteData.ToResult();
 
         Assert.True(result.IsOk);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -339,7 +339,7 @@ public class RemoteDataTests
         var result = remoteData.ToResult();
 
         Assert.True(result.IsErr);
-        Assert.Equal("error", result.UnwrapErr());
+        Assert.Equal("error", result.GetError());
     }
 
     [Fact]
@@ -356,7 +356,7 @@ public class RemoteDataTests
         var result = remoteData.ToResult("not asked error", "loading error");
 
         Assert.True(result.IsErr);
-        Assert.Equal("loading error", result.UnwrapErr());
+        Assert.Equal("loading error", result.GetError());
     }
 
     [Fact]
@@ -389,7 +389,7 @@ public class RemoteDataTests
         var remoteData = RemoteData<int, string>.Failure("error");
         var executed = false;
 
-        var result = remoteData.TapError(err => executed = true);
+        var result = remoteData.TapFailure(err => executed = true);
 
         Assert.True(executed);
         Assert.True(result.IsFailure);
@@ -402,7 +402,7 @@ public class RemoteDataTests
         var remoteData = result.ToRemoteData();
 
         Assert.True(remoteData.IsSuccess);
-        Assert.Equal(42, remoteData.Unwrap());
+        Assert.Equal(42, remoteData.GetValue());
     }
 
     [Fact]
@@ -412,7 +412,7 @@ public class RemoteDataTests
         var remoteData = result.ToRemoteData();
 
         Assert.True(remoteData.IsFailure);
-        Assert.Equal("error", remoteData.UnwrapError());
+        Assert.Equal("error", remoteData.GetError());
     }
 
     [Fact]
@@ -425,7 +425,7 @@ public class RemoteDataTests
         });
 
         Assert.True(remoteData.IsSuccess);
-        Assert.Equal(42, remoteData.Unwrap());
+        Assert.Equal(42, remoteData.GetValue());
     }
 
     [Fact]
@@ -438,7 +438,7 @@ public class RemoteDataTests
         });
 
         Assert.True(remoteData.IsFailure);
-        Assert.IsType<InvalidOperationException>(remoteData.UnwrapError());
+        Assert.IsType<InvalidOperationException>(remoteData.GetError());
     }
 
     [Fact]
@@ -452,7 +452,7 @@ public class RemoteDataTests
         });
 
         Assert.True(mapped.IsSuccess);
-        Assert.Equal(84, mapped.Unwrap());
+        Assert.Equal(84, mapped.GetValue());
     }
 
     [Fact]
@@ -552,7 +552,7 @@ public class RemoteDataTests
         // Success
         userData = RemoteData<User, string>.Success(new User { Name = "John", Age = 30 });
         Assert.True(userData.IsSuccess);
-        Assert.Equal("John", userData.Unwrap().Name);
+        Assert.Equal("John", userData.GetValue().Name);
     }
 
     private class User

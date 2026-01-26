@@ -92,7 +92,7 @@ public class ComparisonBenchmarks
     [BenchmarkCategory("Result vs Exception - Success Path")]
     public int Result_SuccessPath()
     {
-        return DivideWithResult(100, 5).UnwrapOr(0);
+        return DivideWithResult(100, 5).GetValueOr(0);
     }
 
     [Benchmark(Baseline = true)]
@@ -113,7 +113,7 @@ public class ComparisonBenchmarks
     [BenchmarkCategory("Result vs Exception - Error Path")]
     public int Result_ErrorPath()
     {
-        return DivideWithResult(100, 0).UnwrapOr(-1);
+        return DivideWithResult(100, 0).GetValueOr(-1);
     }
 
     #endregion
@@ -152,7 +152,7 @@ public class ComparisonBenchmarks
             .Filter(u => u.Name.StartsWith('T'))
             .ZipWith(Option<Order>.Some(TestOrder), (user, order) => (user, order))
             .Filter(x => x.order.UserId == x.user.Id)
-            .AndThen(x => x.user.Email.ToOption().Map(email => (x.user, x.order, email)))
+            .Bind(x => x.user.Email.ToOption().Map(email => (x.user, x.order, email)))
             .Map(x => $"Order {x.order.Id} for {x.user.Name}: {x.order.Amount:C}");
     }
 
@@ -167,7 +167,7 @@ public class ComparisonBenchmarks
         var options = Enumerable.Range(0, Iterations)
             .Select(i => i % 2 == 0 ? Option<int>.Some(i) : Option<int>.None());
 
-        return options.Where(o => o.IsSome).Select(o => o.Unwrap()).ToList();
+        return options.Where(o => o.IsSome).Select(o => o.GetValue()).ToList();
     }
 
     [Benchmark]

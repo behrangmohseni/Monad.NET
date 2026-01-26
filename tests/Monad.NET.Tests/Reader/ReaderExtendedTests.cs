@@ -27,7 +27,7 @@ public class ReaderExtendedTests
     [Fact]
     public void Reader_Pure_CreatesConstantReader()
     {
-        var reader = Reader.Pure<TestConfig, int>(100);
+        var reader = Reader.Return<TestConfig, int>(100);
         var config = new TestConfig();
 
         Assert.Equal(100, reader.Run(config));
@@ -73,36 +73,36 @@ public class ReaderExtendedTests
     [Fact]
     public void Reader_Run_ThrowsOnNullEnvironment()
     {
-        var reader = Reader<TestConfig, int>.Pure(42);
+        var reader = Reader<TestConfig, int>.Return(42);
         Assert.Throws<ArgumentNullException>(() => reader.Run(null!));
     }
 
     [Fact]
     public void Reader_Map_ThrowsOnNullMapper()
     {
-        var reader = Reader<TestConfig, int>.Pure(42);
+        var reader = Reader<TestConfig, int>.Return(42);
         Assert.Throws<ArgumentNullException>(() => reader.Map<int>(null!));
     }
 
     [Fact]
     public void Reader_FlatMap_ThrowsOnNullBinder()
     {
-        var reader = Reader<TestConfig, int>.Pure(42);
-        Assert.Throws<ArgumentNullException>(() => reader.FlatMap<int>(null!));
+        var reader = Reader<TestConfig, int>.Return(42);
+        Assert.Throws<ArgumentNullException>(() => reader.Bind<int>(null!));
     }
 
     [Fact]
     public void Reader_WithEnvironment_ThrowsOnNullTransform()
     {
-        var reader = Reader<int, string>.Pure("test");
+        var reader = Reader<int, string>.Return("test");
         Assert.Throws<ArgumentNullException>(() => reader.WithEnvironment<TestConfig>(null!));
     }
 
     [Fact]
     public void Reader_Zip_ThrowsOnNullCombiner()
     {
-        var reader1 = Reader<TestConfig, int>.Pure(1);
-        var reader2 = Reader<TestConfig, int>.Pure(2);
+        var reader1 = Reader<TestConfig, int>.Return(1);
+        var reader2 = Reader<TestConfig, int>.Return(2);
         Assert.Throws<ArgumentNullException>(() => reader1.Zip(reader2, (Func<int, int, int>)null!));
     }
 
@@ -128,7 +128,7 @@ public class ReaderExtendedTests
     [Fact]
     public void Reader_Tap_ThrowsOnNullAction()
     {
-        var reader = Reader<TestConfig, int>.Pure(42);
+        var reader = Reader<TestConfig, int>.Return(42);
         Assert.Throws<ArgumentNullException>(() => reader.Tap(null!));
     }
 
@@ -137,7 +137,7 @@ public class ReaderExtendedTests
     {
         TestConfig? captured = null;
         var reader = Reader<TestConfig, int>
-            .Pure(42)
+            .Return(42)
             .TapEnv(env => captured = env);
 
         var config = new TestConfig { Name = "captured", Value = 99 };
@@ -151,7 +151,7 @@ public class ReaderExtendedTests
     [Fact]
     public void Reader_TapEnv_ThrowsOnNullAction()
     {
-        var reader = Reader<TestConfig, int>.Pure(42);
+        var reader = Reader<TestConfig, int>.Return(42);
         Assert.Throws<ArgumentNullException>(() => reader.TapEnv(null!));
     }
 
@@ -164,7 +164,7 @@ public class ReaderExtendedTests
     {
         var reader = Reader<TestConfig, int>
             .Asks(cfg => cfg.Value)
-            .AndThen(x => Reader<TestConfig, string>.Pure($"Value: {x}"));
+            .Bind(x => Reader<TestConfig, string>.Return($"Value: {x}"));
 
         var config = new TestConfig { Value = 42 };
         Assert.Equal("Value: 42", reader.Run(config));
@@ -175,7 +175,7 @@ public class ReaderExtendedTests
     {
         var reader = Reader<TestConfig, int>
             .Asks(cfg => cfg.Value)
-            .Bind(x => Reader<TestConfig, string>.Pure($"Value: {x}"));
+            .Bind(x => Reader<TestConfig, string>.Return($"Value: {x}"));
 
         var config = new TestConfig { Value = 42 };
         Assert.Equal("Value: 42", reader.Run(config));
@@ -216,7 +216,7 @@ public class ReaderExtendedTests
     {
         var reader = Reader<TestConfig, int>
             .Asks(cfg => cfg.Value)
-            .SelectMany(x => Reader<TestConfig, string>.Pure($"Value: {x}"));
+            .SelectMany(x => Reader<TestConfig, string>.Return($"Value: {x}"));
 
         var config = new TestConfig { Value = 42 };
         Assert.Equal("Value: 42", reader.Run(config));
@@ -238,10 +238,10 @@ public class ReaderExtendedTests
     [Fact]
     public void Reader_SelectMany_WithResultSelector_ThrowsOnNullSelector()
     {
-        var reader = Reader<TestConfig, int>.Pure(42);
+        var reader = Reader<TestConfig, int>.Return(42);
         Assert.Throws<ArgumentNullException>(() =>
             reader.SelectMany(
-                x => Reader<TestConfig, string>.Pure("test"),
+                x => Reader<TestConfig, string>.Return("test"),
                 (Func<int, string, string>)null!));
     }
 
@@ -257,7 +257,7 @@ public class ReaderExtendedTests
     {
         IEnumerable<int> nullItems = null!;
         Assert.Throws<ArgumentNullException>(() =>
-            nullItems.Traverse(x => Reader<TestConfig, int>.Pure(x)));
+            nullItems.Traverse(x => Reader<TestConfig, int>.Return(x)));
     }
 
     [Fact]

@@ -204,7 +204,7 @@ public static partial class MonadCollectionExtensions
             if (option.IsNone)
                 return Option<IReadOnlyList<T>>.None();
 
-            result.Add(option.Unwrap());
+            result.Add(option.GetValue());
         }
 
         return Option<IReadOnlyList<T>>.Some(result);
@@ -236,7 +236,7 @@ public static partial class MonadCollectionExtensions
             if (option.IsNone)
                 return Option<IReadOnlyList<U>>.None();
 
-            result.Add(option.Unwrap());
+            result.Add(option.GetValue());
         }
 
         return Option<IReadOnlyList<U>>.Some(result);
@@ -256,7 +256,7 @@ public static partial class MonadCollectionExtensions
         foreach (var option in options)
         {
             if (option.IsSome)
-                yield return option.Unwrap();
+                yield return option.GetValue();
         }
     }
 
@@ -279,7 +279,7 @@ public static partial class MonadCollectionExtensions
         {
             var option = selector(item);
             if (option.IsSome)
-                yield return option.Unwrap();
+                yield return option.GetValue();
         }
     }
 

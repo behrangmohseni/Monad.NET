@@ -11,7 +11,7 @@ public class ValidationTests
 
         Assert.True(validation.IsValid);
         Assert.False(validation.IsInvalid);
-        Assert.Equal(42, validation.Unwrap());
+        Assert.Equal(42, validation.GetValue());
     }
 
     [Fact]
@@ -21,8 +21,8 @@ public class ValidationTests
 
         Assert.False(validation.IsValid);
         Assert.True(validation.IsInvalid);
-        Assert.Single(validation.UnwrapErrors());
-        Assert.Equal("error", validation.UnwrapErrors()[0]);
+        Assert.Single(validation.GetErrors());
+        Assert.Equal("error", validation.GetErrors()[0]);
     }
 
     [Fact]
@@ -32,8 +32,8 @@ public class ValidationTests
         var validation = Validation<int, string>.Invalid(errors);
 
         Assert.False(validation.IsValid);
-        Assert.Equal(3, validation.UnwrapErrors().Count);
-        Assert.Equal(errors, validation.UnwrapErrors());
+        Assert.Equal(3, validation.GetErrors().Count);
+        Assert.Equal(errors, validation.GetErrors());
     }
 
     [Fact]
@@ -52,21 +52,21 @@ public class ValidationTests
     public void Unwrap_OnValid_ReturnsValue()
     {
         var validation = Validation<int, string>.Valid(42);
-        Assert.Equal(42, validation.Unwrap());
+        Assert.Equal(42, validation.GetValue());
     }
 
     [Fact]
     public void Unwrap_OnInvalid_ThrowsException()
     {
         var validation = Validation<int, string>.Invalid("error");
-        Assert.Throws<InvalidOperationException>(() => validation.Unwrap());
+        Assert.Throws<InvalidOperationException>(() => validation.GetValue());
     }
 
     [Fact]
     public void UnwrapErrors_OnInvalid_ReturnsErrors()
     {
         var validation = Validation<int, string>.Invalid(new[] { "error1", "error2" });
-        var errors = validation.UnwrapErrors();
+        var errors = validation.GetErrors();
 
         Assert.Equal(2, errors.Count);
         Assert.Contains("error1", errors);
@@ -77,7 +77,7 @@ public class ValidationTests
     public void UnwrapErrors_OnValid_ThrowsException()
     {
         var validation = Validation<int, string>.Valid(42);
-        Assert.Throws<InvalidOperationException>(() => validation.UnwrapErrors());
+        Assert.Throws<InvalidOperationException>(() => validation.GetErrors());
     }
 
     [Fact]
@@ -87,7 +87,7 @@ public class ValidationTests
         var mapped = validation.Map(x => x * 2);
 
         Assert.True(mapped.IsValid);
-        Assert.Equal(84, mapped.Unwrap());
+        Assert.Equal(84, mapped.GetValue());
     }
 
     [Fact]
@@ -97,7 +97,7 @@ public class ValidationTests
         var mapped = validation.Map(x => x * 2);
 
         Assert.True(mapped.IsInvalid);
-        Assert.Equal("error", mapped.UnwrapErrors()[0]);
+        Assert.Equal("error", mapped.GetErrors()[0]);
     }
 
     [Fact]
@@ -153,7 +153,7 @@ public class ValidationTests
         var mapped = validation.MapErrors(e => e.ToUpper());
 
         Assert.True(mapped.IsInvalid);
-        Assert.Equal(new[] { "ERROR1", "ERROR2" }, mapped.UnwrapErrors());
+        Assert.Equal(new[] { "ERROR1", "ERROR2" }, mapped.GetErrors());
     }
 
     [Fact]
@@ -165,7 +165,7 @@ public class ValidationTests
         var result = val1.Apply(val2, (a, b) => a + b);
 
         Assert.True(result.IsValid);
-        Assert.Equal(30, result.Unwrap());
+        Assert.Equal(30, result.GetValue());
     }
 
     [Fact]
@@ -177,9 +177,9 @@ public class ValidationTests
         var result = val1.Apply(val2, (a, b) => a + b);
 
         Assert.True(result.IsInvalid);
-        Assert.Equal(2, result.UnwrapErrors().Count);
-        Assert.Contains("error1", result.UnwrapErrors());
-        Assert.Contains("error2", result.UnwrapErrors());
+        Assert.Equal(2, result.GetErrors().Count);
+        Assert.Contains("error1", result.GetErrors());
+        Assert.Contains("error2", result.GetErrors());
     }
 
     [Fact]
@@ -191,8 +191,8 @@ public class ValidationTests
         var result = val1.Apply(val2, (a, b) => a + b);
 
         Assert.True(result.IsInvalid);
-        Assert.Single(result.UnwrapErrors());
-        Assert.Equal("error1", result.UnwrapErrors()[0]);
+        Assert.Single(result.GetErrors());
+        Assert.Equal("error1", result.GetErrors()[0]);
     }
 
     [Fact]
@@ -204,7 +204,7 @@ public class ValidationTests
         var result = val1.Zip(val2);
 
         Assert.True(result.IsValid);
-        Assert.Equal((42, "hello"), result.Unwrap());
+        Assert.Equal((42, "hello"), result.GetValue());
     }
 
     [Fact]
@@ -216,10 +216,10 @@ public class ValidationTests
         var result = val1.Zip(val2);
 
         Assert.True(result.IsInvalid);
-        Assert.Equal(3, result.UnwrapErrors().Count);
-        Assert.Contains("error1", result.UnwrapErrors());
-        Assert.Contains("error2", result.UnwrapErrors());
-        Assert.Contains("error3", result.UnwrapErrors());
+        Assert.Equal(3, result.GetErrors().Count);
+        Assert.Contains("error1", result.GetErrors());
+        Assert.Contains("error2", result.GetErrors());
+        Assert.Contains("error3", result.GetErrors());
     }
 
     [Fact]
@@ -231,8 +231,8 @@ public class ValidationTests
         var result = val1.Zip(val2);
 
         Assert.True(result.IsInvalid);
-        Assert.Single(result.UnwrapErrors());
-        Assert.Equal("error1", result.UnwrapErrors()[0]);
+        Assert.Single(result.GetErrors());
+        Assert.Equal("error1", result.GetErrors()[0]);
     }
 
     [Fact]
@@ -244,8 +244,8 @@ public class ValidationTests
         var result = val1.Zip(val2);
 
         Assert.True(result.IsInvalid);
-        Assert.Single(result.UnwrapErrors());
-        Assert.Equal("error2", result.UnwrapErrors()[0]);
+        Assert.Single(result.GetErrors());
+        Assert.Equal("error2", result.GetErrors()[0]);
     }
 
     [Fact]
@@ -257,7 +257,7 @@ public class ValidationTests
         var result = val1.ZipWith(val2, (a, b) => a + b);
 
         Assert.True(result.IsValid);
-        Assert.Equal(30, result.Unwrap());
+        Assert.Equal(30, result.GetValue());
     }
 
     [Fact]
@@ -269,9 +269,9 @@ public class ValidationTests
         var result = val1.ZipWith(val2, (a, b) => a + b);
 
         Assert.True(result.IsInvalid);
-        Assert.Equal(2, result.UnwrapErrors().Count);
-        Assert.Contains("error1", result.UnwrapErrors());
-        Assert.Contains("error2", result.UnwrapErrors());
+        Assert.Equal(2, result.GetErrors().Count);
+        Assert.Contains("error1", result.GetErrors());
+        Assert.Contains("error2", result.GetErrors());
     }
 
     [Fact]
@@ -283,7 +283,7 @@ public class ValidationTests
         var result = val1.And(val2);
 
         Assert.True(result.IsValid);
-        Assert.Equal(20, result.Unwrap());
+        Assert.Equal(20, result.GetValue());
     }
 
     [Fact]
@@ -295,31 +295,31 @@ public class ValidationTests
         var result = val1.And(val2);
 
         Assert.True(result.IsInvalid);
-        Assert.Equal(4, result.UnwrapErrors().Count);
-        Assert.Equal(new[] { "error1", "error2", "error3", "error4" }, result.UnwrapErrors());
+        Assert.Equal(4, result.GetErrors().Count);
+        Assert.Equal(new[] { "error1", "error2", "error3", "error4" }, result.GetErrors());
     }
 
     [Fact]
     public void AndThen_OnValid_ExecutesFunction()
     {
         var validation = Validation<int, string>.Valid(42);
-        var result = validation.AndThen(x =>
+        var result = validation.Bind(x =>
             x > 40
                 ? Validation<string, string>.Valid("large")
                 : Validation<string, string>.Invalid("small"));
 
         Assert.True(result.IsValid);
-        Assert.Equal("large", result.Unwrap());
+        Assert.Equal("large", result.GetValue());
     }
 
     [Fact]
     public void AndThen_OnInvalid_ReturnsInvalid()
     {
         var validation = Validation<int, string>.Invalid("error");
-        var result = validation.AndThen(x => Validation<string, string>.Valid(x.ToString()));
+        var result = validation.Bind(x => Validation<string, string>.Valid(x.ToString()));
 
         Assert.True(result.IsInvalid);
-        Assert.Equal("error", result.UnwrapErrors()[0]);
+        Assert.Equal("error", result.GetErrors()[0]);
     }
 
     [Fact]
@@ -381,7 +381,7 @@ public class ValidationTests
         var result = validation.ToResult();
 
         Assert.True(result.IsOk);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -391,7 +391,7 @@ public class ValidationTests
         var result = validation.ToResult();
 
         Assert.True(result.IsErr);
-        Assert.Equal("error1", result.UnwrapErr());
+        Assert.Equal("error1", result.GetError());
     }
 
     [Fact]
@@ -401,7 +401,7 @@ public class ValidationTests
         var result = validation.ToResult(errors => string.Join("; ", errors));
 
         Assert.True(result.IsErr);
-        Assert.Equal("error1; error2", result.UnwrapErr());
+        Assert.Equal("error1; error2", result.GetError());
     }
 
     [Fact]
@@ -411,7 +411,7 @@ public class ValidationTests
         var option = validation.ToOption();
 
         Assert.True(option.IsSome);
-        Assert.Equal(42, option.Unwrap());
+        Assert.Equal(42, option.GetValue());
     }
 
     [Fact]
@@ -436,7 +436,7 @@ public class ValidationTests
         var combined = validations.Combine();
 
         Assert.True(combined.IsValid);
-        Assert.Equal(30, combined.Unwrap());
+        Assert.Equal(30, combined.GetValue());
     }
 
     [Fact]
@@ -452,8 +452,8 @@ public class ValidationTests
         var combined = validations.Combine();
 
         Assert.True(combined.IsInvalid);
-        Assert.Equal(3, combined.UnwrapErrors().Count);
-        Assert.Equal(new[] { "error1", "error2", "error3" }, combined.UnwrapErrors());
+        Assert.Equal(3, combined.GetErrors().Count);
+        Assert.Equal(new[] { "error1", "error2", "error3" }, combined.GetErrors());
     }
 
     [Fact]
@@ -486,7 +486,7 @@ public class ValidationTests
         var validation = Validation<int, string>.Invalid("error");
         var executed = false;
 
-        var result = validation.TapInvalid(errors => executed = true);
+        var result = validation.TapErrors(errors => executed = true);
 
         Assert.True(executed);
         Assert.True(result.IsInvalid);
@@ -498,7 +498,7 @@ public class ValidationTests
         var validation = Validation<int, string>.Valid(42);
         var executed = false;
 
-        var result = validation.TapInvalid(errors => executed = true);
+        var result = validation.TapErrors(errors => executed = true);
 
         Assert.False(executed);
         Assert.True(result.IsValid);
@@ -511,7 +511,7 @@ public class ValidationTests
         var validation = result.ToValidation();
 
         Assert.True(validation.IsValid);
-        Assert.Equal(42, validation.Unwrap());
+        Assert.Equal(42, validation.GetValue());
     }
 
     [Fact]
@@ -521,8 +521,8 @@ public class ValidationTests
         var validation = result.ToValidation();
 
         Assert.True(validation.IsInvalid);
-        Assert.Single(validation.UnwrapErrors());
-        Assert.Equal("error", validation.UnwrapErrors()[0]);
+        Assert.Single(validation.GetErrors());
+        Assert.Equal("error", validation.GetErrors()[0]);
     }
 
     [Fact]
@@ -536,11 +536,11 @@ public class ValidationTests
         // Manually accumulate errors
         var errors = new List<string>();
         if (nameValid.IsInvalid)
-            errors.AddRange(nameValid.UnwrapErrors());
+            errors.AddRange(nameValid.GetErrors());
         if (emailValid.IsInvalid)
-            errors.AddRange(emailValid.UnwrapErrors());
+            errors.AddRange(emailValid.GetErrors());
         if (ageValid.IsInvalid)
-            errors.AddRange(ageValid.UnwrapErrors());
+            errors.AddRange(ageValid.GetErrors());
 
         Assert.Equal(3, errors.Count);
         Assert.Contains("Name is required", errors);
@@ -557,11 +557,11 @@ public class ValidationTests
 
         var errors = new List<string>();
         if (nameValidation.IsInvalid)
-            errors.AddRange(nameValidation.UnwrapErrors());
+            errors.AddRange(nameValidation.GetErrors());
         if (emailValidation.IsInvalid)
-            errors.AddRange(emailValidation.UnwrapErrors());
+            errors.AddRange(emailValidation.GetErrors());
         if (ageValidation.IsInvalid)
-            errors.AddRange(ageValidation.UnwrapErrors());
+            errors.AddRange(ageValidation.GetErrors());
 
         Assert.Empty(errors);
     }

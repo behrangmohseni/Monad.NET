@@ -28,7 +28,7 @@ public static class AsyncEnumerableExtensions
         {
             if (option.IsSome)
             {
-                yield return option.Unwrap();
+                yield return option.GetValue();
             }
         }
     }
@@ -56,7 +56,7 @@ public static class AsyncEnumerableExtensions
             var result = selector(item);
             if (result.IsSome)
             {
-                yield return result.Unwrap();
+                yield return result.GetValue();
             }
         }
     }
@@ -84,7 +84,7 @@ public static class AsyncEnumerableExtensions
             var result = await selector(item).ConfigureAwait(false);
             if (result.IsSome)
             {
-                yield return result.Unwrap();
+                yield return result.GetValue();
             }
         }
     }
@@ -185,7 +185,7 @@ public static class AsyncEnumerableExtensions
             {
                 return Option<IReadOnlyList<T>>.None();
             }
-            results.Add(option.Unwrap());
+            results.Add(option.GetValue());
         }
 
         return Option<IReadOnlyList<T>>.Some(results);
@@ -213,7 +213,7 @@ public static class AsyncEnumerableExtensions
         {
             if (result.IsOk)
             {
-                yield return result.Unwrap();
+                yield return result.GetValue();
             }
         }
     }
@@ -236,7 +236,7 @@ public static class AsyncEnumerableExtensions
         {
             if (result.IsErr)
             {
-                yield return result.UnwrapErr();
+                yield return result.GetError();
             }
         }
     }
@@ -262,11 +262,11 @@ public static class AsyncEnumerableExtensions
         {
             if (result.IsOk)
             {
-                oks.Add(result.Unwrap());
+                oks.Add(result.GetValue());
             }
             else
             {
-                errs.Add(result.UnwrapErr());
+                errs.Add(result.GetError());
             }
         }
 
@@ -294,9 +294,9 @@ public static class AsyncEnumerableExtensions
         {
             if (result.IsErr)
             {
-                return Result<IReadOnlyList<T>, E>.Err(result.UnwrapErr());
+                return Result<IReadOnlyList<T>, E>.Err(result.GetError());
             }
-            results.Add(result.Unwrap());
+            results.Add(result.GetValue());
         }
 
         return Result<IReadOnlyList<T>, E>.Ok(results);
@@ -323,7 +323,7 @@ public static class AsyncEnumerableExtensions
         {
             if (result.IsSuccess)
             {
-                yield return result.Get();
+                yield return result.GetValue();
             }
         }
     }

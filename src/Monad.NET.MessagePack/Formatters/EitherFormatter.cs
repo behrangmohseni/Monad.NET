@@ -14,12 +14,12 @@ public sealed class EitherFormatter<TLeft, TRight> : IMessagePackFormatter<Eithe
         if (value.IsRight)
         {
             var formatter = options.Resolver.GetFormatterWithVerify<TRight>();
-            formatter.Serialize(ref writer, value.UnwrapRight(), options);
+            formatter.Serialize(ref writer, value.GetRight(), options);
         }
         else
         {
             var formatter = options.Resolver.GetFormatterWithVerify<TLeft>();
-            formatter.Serialize(ref writer, value.UnwrapLeft(), options);
+            formatter.Serialize(ref writer, value.GetLeft(), options);
         }
     }
 

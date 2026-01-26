@@ -29,13 +29,13 @@ public sealed class RemoteDataFormatter<T, TErr> : IMessagePackFormatter<RemoteD
         {
             writer.Write(Success);
             var formatter = options.Resolver.GetFormatterWithVerify<T>();
-            formatter.Serialize(ref writer, value.Unwrap(), options);
+            formatter.Serialize(ref writer, value.GetValue(), options);
         }
         else // IsFailure
         {
             writer.Write(Failure);
             var formatter = options.Resolver.GetFormatterWithVerify<TErr>();
-            formatter.Serialize(ref writer, value.UnwrapError(), options);
+            formatter.Serialize(ref writer, value.GetError(), options);
         }
     }
 

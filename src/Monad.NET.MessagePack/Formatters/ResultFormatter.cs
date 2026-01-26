@@ -14,12 +14,12 @@ public sealed class ResultFormatter<T, TErr> : IMessagePackFormatter<Result<T, T
         if (value.IsOk)
         {
             var formatter = options.Resolver.GetFormatterWithVerify<T>();
-            formatter.Serialize(ref writer, value.Unwrap(), options);
+            formatter.Serialize(ref writer, value.GetValue(), options);
         }
         else
         {
             var formatter = options.Resolver.GetFormatterWithVerify<TErr>();
-            formatter.Serialize(ref writer, value.UnwrapErr(), options);
+            formatter.Serialize(ref writer, value.GetError(), options);
         }
     }
 

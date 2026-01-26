@@ -27,7 +27,7 @@ public class IOTests
     [Fact]
     public void Pure_CreatesIOWithValue()
     {
-        var io = IO<int>.Pure(42);
+        var io = IO<int>.Return(42);
         Assert.Equal(42, io.Run());
     }
 
@@ -42,7 +42,7 @@ public class IOTests
     public void Delay_DefersExecution()
     {
         var counter = 0;
-        var io = IO<int>.Delay(() =>
+        var io = IO.Of(() =>
         {
             counter++;
             return 42;
@@ -87,14 +87,14 @@ public class IOTests
     [Fact]
     public void Map_TransformsResult()
     {
-        var io = IO<int>.Pure(21).Map(x => x * 2);
+        var io = IO<int>.Return(21).Map(x => x * 2);
         Assert.Equal(42, io.Run());
     }
 
     [Fact]
     public void Map_ChainedTransformations()
     {
-        var io = IO<int>.Pure(10)
+        var io = IO<int>.Return(10)
             .Map(x => x + 5)
             .Map(x => x * 2)
             .Map(x => x.ToString());
@@ -133,9 +133,9 @@ public class IOTests
     [Fact]
     public void AndThen_ChainsIOActions()
     {
-        var io = IO<int>.Pure(10)
-            .AndThen(x => IO<int>.Pure(x + 5))
-            .AndThen(x => IO<string>.Pure(x.ToString()));
+        var io = IO<int>.Return(10)
+            .Bind(x => IO<int>.Return(x + 5))
+            .Bind(x => IO<string>.Return(x.ToString()));
 
         Assert.Equal("15", io.Run());
     }
@@ -143,14 +143,14 @@ public class IOTests
     [Fact]
     public void FlatMap_AliasForAndThen()
     {
-        var io = IO<int>.Pure(10).FlatMap(x => IO<int>.Pure(x * 2));
+        var io = IO<int>.Return(10).Bind(x => IO<int>.Return(x * 2));
         Assert.Equal(20, io.Run());
     }
 
     [Fact]
     public void Bind_AliasForAndThen()
     {
-        var io = IO<int>.Pure(10).Bind(x => IO<int>.Pure(x * 2));
+        var io = IO<int>.Return(10).Bind(x => IO<int>.Return(x * 2));
         Assert.Equal(20, io.Run());
     }
 
@@ -171,7 +171,7 @@ public class IOTests
             return 2;
         });
 
-        var combined = io1.AndThen(_ => io2);
+        var combined = io1.Bind(_ => io2);
         combined.Run();
 
         Assert.Equal(new[] { "io1", "io2" }, log);
@@ -185,7 +185,7 @@ public class IOTests
     public void Tap_ExecutesSideEffectWithoutChangingValue()
     {
         var log = new List<int>();
-        var io = IO<int>.Pure(42)
+        var io = IO<int>.Return(42)
             .Tap(x => log.Add(x))
             .Map(x => x * 2);
 
@@ -201,8 +201,8 @@ public class IOTests
     [Fact]
     public void Apply_AppliesFunctionInIO()
     {
-        var ioFunc = IO<Func<int, int>>.Pure(x => x * 2);
-        var ioValue = IO<int>.Pure(21);
+        var ioFunc = IO<Func<int, int>>.Return(x => x * 2);
+        var ioValue = IO<int>.Return(21);
 
         var result = ioValue.Apply(ioFunc);
         Assert.Equal(42, result.Run());
@@ -215,8 +215,8 @@ public class IOTests
     [Fact]
     public void Zip_CombinesTwoIOs()
     {
-        var io1 = IO<int>.Pure(1);
-        var io2 = IO<string>.Pure("hello");
+        var io1 = IO<int>.Return(1);
+        var io2 = IO<string>.Return("hello");
 
         var combined = io1.Zip(io2);
         Assert.Equal((1, "hello"), combined.Run());
@@ -225,8 +225,8 @@ public class IOTests
     [Fact]
     public void ZipWith_CombinesWithFunction()
     {
-        var io1 = IO<int>.Pure(10);
-        var io2 = IO<int>.Pure(5);
+        var io1 = IO<int>.Return(10);
+        var io2 = IO<int>.Return(5);
 
         var combined = io1.ZipWith(io2, (a, b) => a + b);
         Assert.Equal(15, combined.Run());
@@ -239,14 +239,14 @@ public class IOTests
     [Fact]
     public void As_ReplacesValue()
     {
-        var io = IO<int>.Pure(42).As("hello");
+        var io = IO<int>.Return(42).As("hello");
         Assert.Equal("hello", io.Run());
     }
 
     [Fact]
     public void Void_ReplacesValueWithUnit()
     {
-        var io = IO<int>.Pure(42).Void();
+        var io = IO<int>.Return(42).Void();
         Assert.Equal(Unit.Default, io.Run());
     }
 
@@ -257,10 +257,10 @@ public class IOTests
     [Fact]
     public void Attempt_ReturnsSuccessOnSuccess()
     {
-        var io = IO<int>.Pure(42).Attempt();
+        var io = IO<int>.Return(42).Attempt();
         var result = io.Run();
         Assert.True(result.IsSuccess);
-        Assert.Equal(42, result.GetOrElse(-1));
+        Assert.Equal(42, result.GetValueOr(-1));
     }
 
     [Fact]
@@ -278,7 +278,7 @@ public class IOTests
     [Fact]
     public async Task ToAsync_ConvertsToAsyncIO()
     {
-        var io = IO<int>.Pure(42);
+        var io = IO<int>.Return(42);
         var asyncIo = io.ToAsync();
         var result = await asyncIo.RunAsync();
         Assert.Equal(42, result);
@@ -291,7 +291,7 @@ public class IOTests
     [Fact]
     public void OrElse_ReturnsOriginalOnSuccess()
     {
-        var io = IO<int>.Pure(42).OrElse(IO<int>.Pure(0));
+        var io = IO<int>.Return(42).OrElse(IO<int>.Return(0));
         Assert.Equal(42, io.Run());
     }
 
@@ -299,7 +299,7 @@ public class IOTests
     public void OrElse_ReturnsFallbackOnException()
     {
         var io = IO<int>.Of(() => throw new InvalidOperationException())
-            .OrElse(IO<int>.Pure(0));
+            .OrElse(IO<int>.Return(0));
         Assert.Equal(0, io.Run());
     }
 
@@ -329,7 +329,7 @@ public class IOTests
     [Fact]
     public void Replicate_ZeroTimes()
     {
-        var io = IO<int>.Pure(42).Replicate(0);
+        var io = IO<int>.Return(42).Replicate(0);
         Assert.Empty(io.Run());
     }
 
@@ -340,7 +340,7 @@ public class IOTests
     [Fact]
     public void Retry_SucceedsOnFirstAttempt()
     {
-        var io = IO<int>.Pure(42).Retry(3);
+        var io = IO<int>.Return(42).Retry(3);
         Assert.Equal(42, io.Run());
     }
 
@@ -396,7 +396,7 @@ public class IOTests
     [Fact]
     public void LinqQuery_SelectWorks()
     {
-        var io = from x in IO<int>.Pure(21)
+        var io = from x in IO<int>.Return(21)
                  select x * 2;
 
         Assert.Equal(42, io.Run());
@@ -405,8 +405,8 @@ public class IOTests
     [Fact]
     public void LinqQuery_SelectManyWorks()
     {
-        var io = from x in IO<int>.Pure(10)
-                 from y in IO<int>.Pure(5)
+        var io = from x in IO<int>.Return(10)
+                 from y in IO<int>.Return(5)
                  select x + y;
 
         Assert.Equal(15, io.Run());
@@ -415,9 +415,9 @@ public class IOTests
     [Fact]
     public void LinqQuery_ComplexQuery()
     {
-        var io = from a in IO<int>.Pure(1)
-                 from b in IO<int>.Pure(2)
-                 from c in IO<int>.Pure(3)
+        var io = from a in IO<int>.Return(1)
+                 from b in IO<int>.Return(2)
+                 from c in IO<int>.Return(3)
                  let sum = a + b + c
                  select sum * 2;
 
@@ -431,7 +431,7 @@ public class IOTests
     [Fact]
     public void Flatten_UnwrapsNestedIO()
     {
-        var nested = IO<IO<int>>.Pure(IO<int>.Pure(42));
+        var nested = IO<IO<int>>.Return(IO<int>.Return(42));
         var flattened = nested.Flatten();
         Assert.Equal(42, flattened.Run());
     }
@@ -466,7 +466,7 @@ public class IOTests
     public void Traverse_MapsAndSequences()
     {
         var numbers = new[] { 1, 2, 3 };
-        var io = numbers.Traverse(x => IO<int>.Pure(x * 2));
+        var io = numbers.Traverse(x => IO<int>.Return(x * 2));
 
         var results = io.Run();
         Assert.Equal(new[] { 2, 4, 6 }, results);
@@ -486,7 +486,7 @@ public class IOTests
     [Fact]
     public void IO_Pure_CreatesPureIO()
     {
-        var io = IO.Pure(42);
+        var io = IO.Return(42);
         Assert.Equal(42, io.Run());
     }
 
@@ -578,8 +578,8 @@ public class IOTests
     [Fact]
     public void IO_Parallel_TwoIOs()
     {
-        var io1 = IO<int>.Pure(1);
-        var io2 = IO<int>.Pure(2);
+        var io1 = IO<int>.Return(1);
+        var io2 = IO<int>.Return(2);
 
         var result = IO.Parallel(io1, io2).Run();
         Assert.Equal((1, 2), result);
@@ -588,9 +588,9 @@ public class IOTests
     [Fact]
     public void IO_Parallel_ThreeIOs()
     {
-        var io1 = IO<int>.Pure(1);
-        var io2 = IO<int>.Pure(2);
-        var io3 = IO<int>.Pure(3);
+        var io1 = IO<int>.Return(1);
+        var io2 = IO<int>.Return(2);
+        var io3 = IO<int>.Return(3);
 
         var result = IO.Parallel(io1, io2, io3).Run();
         Assert.Equal((1, 2, 3), result);
@@ -599,7 +599,7 @@ public class IOTests
     [Fact]
     public void IO_Parallel_Collection()
     {
-        var ios = new[] { IO<int>.Pure(1), IO<int>.Pure(2), IO<int>.Pure(3) };
+        var ios = new[] { IO<int>.Return(1), IO<int>.Return(2), IO<int>.Return(3) };
         var result = IO.Parallel(ios).Run();
         Assert.Equal(new[] { 1, 2, 3 }, result);
     }
@@ -612,7 +612,7 @@ public class IOTests
             Thread.Sleep(100);
             return 1;
         });
-        var io2 = IO<int>.Pure(2); // This should complete first
+        var io2 = IO<int>.Return(2); // This should complete first
 
         var result = IO.Race(io1, io2).Run();
         Assert.Equal(2, result);
@@ -641,7 +641,7 @@ public class IOAsyncTests
     [Fact]
     public async Task Pure_CreatesPureAsyncIO()
     {
-        var io = IOAsync<int>.Pure(42);
+        var io = IOAsync<int>.Return(42);
         var result = await io.RunAsync();
         Assert.Equal(42, result);
     }
@@ -649,7 +649,7 @@ public class IOAsyncTests
     [Fact]
     public async Task FromIO_ConvertsFromSyncIO()
     {
-        var syncIo = IO<int>.Pure(42);
+        var syncIo = IO<int>.Return(42);
         var asyncIo = IOAsync<int>.FromIO(syncIo);
         var result = await asyncIo.RunAsync();
         Assert.Equal(42, result);
@@ -662,7 +662,7 @@ public class IOAsyncTests
     [Fact]
     public async Task Map_TransformsResult()
     {
-        var io = IOAsync<int>.Pure(21).Map(x => x * 2);
+        var io = IOAsync<int>.Return(21).Map(x => x * 2);
         var result = await io.RunAsync();
         Assert.Equal(42, result);
     }
@@ -670,7 +670,7 @@ public class IOAsyncTests
     [Fact]
     public async Task MapAsync_TransformsWithAsyncMapper()
     {
-        var io = IOAsync<int>.Pure(21).MapAsync(async x =>
+        var io = IOAsync<int>.Return(21).MapAsync(async x =>
         {
             await Task.Delay(1);
             return x * 2;
@@ -687,8 +687,8 @@ public class IOAsyncTests
     [Fact]
     public async Task AndThen_ChainsAsyncIOs()
     {
-        var io = IOAsync<int>.Pure(10)
-            .AndThen(x => IOAsync<int>.Pure(x + 5));
+        var io = IOAsync<int>.Return(10)
+            .Bind(x => IOAsync<int>.Return(x + 5));
 
         var result = await io.RunAsync();
         Assert.Equal(15, result);
@@ -697,7 +697,7 @@ public class IOAsyncTests
     [Fact]
     public async Task FlatMap_AliasForAndThen()
     {
-        var io = IOAsync<int>.Pure(10).FlatMap(x => IOAsync<int>.Pure(x * 2));
+        var io = IOAsync<int>.Return(10).Bind(x => IOAsync<int>.Return(x * 2));
         var result = await io.RunAsync();
         Assert.Equal(20, result);
     }
@@ -710,7 +710,7 @@ public class IOAsyncTests
     public async Task Tap_ExecutesSideEffect()
     {
         var log = new List<int>();
-        var io = IOAsync<int>.Pure(42).Tap(x => log.Add(x));
+        var io = IOAsync<int>.Return(42).Tap(x => log.Add(x));
 
         await io.RunAsync();
         Assert.Equal(new[] { 42 }, log);
@@ -720,7 +720,7 @@ public class IOAsyncTests
     public async Task TapAsync_ExecutesAsyncSideEffect()
     {
         var log = new List<int>();
-        var io = IOAsync<int>.Pure(42).TapAsync(async x =>
+        var io = IOAsync<int>.Return(42).TapAsync(async x =>
         {
             await Task.Delay(1);
             log.Add(x);
@@ -737,8 +737,8 @@ public class IOAsyncTests
     [Fact]
     public async Task Zip_CombinesTwoAsyncIOs()
     {
-        var io1 = IOAsync<int>.Pure(1);
-        var io2 = IOAsync<string>.Pure("hello");
+        var io1 = IOAsync<int>.Return(1);
+        var io2 = IOAsync<string>.Return("hello");
 
         var combined = io1.Zip(io2);
         var result = await combined.RunAsync();
@@ -752,7 +752,7 @@ public class IOAsyncTests
     [Fact]
     public async Task Void_ReplacesValueWithUnit()
     {
-        var io = IOAsync<int>.Pure(42).Void();
+        var io = IOAsync<int>.Return(42).Void();
         var result = await io.RunAsync();
         Assert.Equal(Unit.Default, result);
     }
@@ -764,10 +764,10 @@ public class IOAsyncTests
     [Fact]
     public async Task Attempt_ReturnsSuccessOnSuccess()
     {
-        var io = IOAsync<int>.Pure(42).Attempt();
+        var io = IOAsync<int>.Return(42).Attempt();
         var result = await io.RunAsync();
         Assert.True(result.IsSuccess);
-        Assert.Equal(42, result.GetOrElse(-1));
+        Assert.Equal(42, result.GetValueOr(-1));
     }
 
     [Fact]
@@ -801,7 +801,7 @@ public class IOAsyncTests
                 return 0;
 #pragma warning restore CS0162
             })
-            .OrElse(IOAsync<int>.Pure(99));
+            .OrElse(IOAsync<int>.Return(99));
 
         var result = await io.RunAsync();
         Assert.Equal(99, result);
@@ -814,7 +814,7 @@ public class IOAsyncTests
     [Fact]
     public async Task LinqQuery_SelectWorks()
     {
-        var io = from x in IOAsync<int>.Pure(21)
+        var io = from x in IOAsync<int>.Return(21)
                  select x * 2;
 
         var result = await io.RunAsync();
@@ -824,8 +824,8 @@ public class IOAsyncTests
     [Fact]
     public async Task LinqQuery_SelectManyWorks()
     {
-        var io = from x in IOAsync<int>.Pure(10)
-                 from y in IOAsync<int>.Pure(5)
+        var io = from x in IOAsync<int>.Return(10)
+                 from y in IOAsync<int>.Return(5)
                  select x + y;
 
         var result = await io.RunAsync();
@@ -839,7 +839,7 @@ public class IOAsyncTests
     [Fact]
     public async Task Flatten_UnwrapsNestedAsyncIO()
     {
-        var nested = IOAsync<IOAsync<int>>.Pure(IOAsync<int>.Pure(42));
+        var nested = IOAsync<IOAsync<int>>.Return(IOAsync<int>.Return(42));
         var flattened = nested.Flatten();
         var result = await flattened.RunAsync();
         Assert.Equal(42, result);
@@ -850,9 +850,9 @@ public class IOAsyncTests
     {
         var ios = new[]
         {
-            IOAsync<int>.Pure(1),
-            IOAsync<int>.Pure(2),
-            IOAsync<int>.Pure(3)
+            IOAsync<int>.Return(1),
+            IOAsync<int>.Return(2),
+            IOAsync<int>.Return(3)
         };
 
         var sequenced = ios.Sequence();
@@ -864,7 +864,7 @@ public class IOAsyncTests
     public async Task Traverse_MapsAndSequences()
     {
         var numbers = new[] { 1, 2, 3 };
-        var io = numbers.Traverse(x => IOAsync<int>.Pure(x * 2));
+        var io = numbers.Traverse(x => IOAsync<int>.Return(x * 2));
 
         var results = await io.RunAsync();
         Assert.Equal(new[] { 2, 4, 6 }, results);
@@ -889,7 +889,7 @@ public class IOAsyncTests
     [Fact]
     public async Task IOAsync_Pure_CreatesPureAsyncIO()
     {
-        var io = IOAsync.Pure(42);
+        var io = IOAsync.Return(42);
         var result = await io.RunAsync();
         Assert.Equal(42, result);
     }
@@ -897,7 +897,7 @@ public class IOAsyncTests
     [Fact]
     public async Task IOAsync_FromIO_ConvertsFromSyncIO()
     {
-        var syncIo = IO<int>.Pure(42);
+        var syncIo = IO<int>.Return(42);
         var asyncIo = IOAsync.FromIO(syncIo);
         var result = await asyncIo.RunAsync();
         Assert.Equal(42, result);
@@ -932,8 +932,8 @@ public class IOAsyncTests
     [Fact]
     public async Task IOAsync_Parallel_TwoIOs()
     {
-        var io1 = IOAsync<int>.Pure(1);
-        var io2 = IOAsync<int>.Pure(2);
+        var io1 = IOAsync<int>.Return(1);
+        var io2 = IOAsync<int>.Return(2);
 
         var result = await IOAsync.Parallel(io1, io2).RunAsync();
         Assert.Equal((1, 2), result);
@@ -942,7 +942,7 @@ public class IOAsyncTests
     [Fact]
     public async Task IOAsync_Parallel_Collection()
     {
-        var ios = new[] { IOAsync<int>.Pure(1), IOAsync<int>.Pure(2), IOAsync<int>.Pure(3) };
+        var ios = new[] { IOAsync<int>.Return(1), IOAsync<int>.Return(2), IOAsync<int>.Return(3) };
         var result = await IOAsync.Parallel(ios).RunAsync();
         Assert.Equal(new[] { 1, 2, 3 }, result);
     }
@@ -955,7 +955,7 @@ public class IOAsyncTests
             await Task.Delay(100);
             return 1;
         });
-        var io2 = IOAsync<int>.Pure(2); // This should complete first
+        var io2 = IOAsync<int>.Return(2); // This should complete first
 
         var result = await IOAsync.Race(io1, io2).RunAsync();
         Assert.Equal(2, result);

@@ -62,7 +62,7 @@ public class OptionExtendedTests
         var result = option.OrElse(() => Option<int>.Some(99));
 
         Assert.True(result.IsSome);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -72,7 +72,7 @@ public class OptionExtendedTests
         var result = option.OrElse(() => Option<int>.Some(99));
 
         Assert.True(result.IsSome);
-        Assert.Equal(99, result.Unwrap());
+        Assert.Equal(99, result.GetValue());
     }
 
     [Fact]
@@ -82,7 +82,7 @@ public class OptionExtendedTests
         var result = option.Or(Option<int>.Some(99));
 
         Assert.True(result.IsSome);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -92,7 +92,7 @@ public class OptionExtendedTests
         var result = option.Or(Option<int>.Some(99));
 
         Assert.True(result.IsSome);
-        Assert.Equal(99, result.Unwrap());
+        Assert.Equal(99, result.GetValue());
     }
 
     #endregion
@@ -117,7 +117,7 @@ public class OptionExtendedTests
         var result = option1.Xor(option2);
 
         Assert.True(result.IsSome);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -128,7 +128,7 @@ public class OptionExtendedTests
         var result = option1.Xor(option2);
 
         Assert.True(result.IsSome);
-        Assert.Equal(99, result.Unwrap());
+        Assert.Equal(99, result.GetValue());
     }
 
     [Fact]
@@ -152,7 +152,7 @@ public class OptionExtendedTests
         var result = nested.Flatten();
 
         Assert.True(result.IsSome);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -276,7 +276,7 @@ public class OptionExtendedTests
         Option<int> option = 42;
 
         Assert.True(option.IsSome);
-        Assert.Equal(42, option.Unwrap());
+        Assert.Equal(42, option.GetValue());
     }
 
     #endregion
@@ -344,7 +344,7 @@ public class OptionExtendedTests
         var result = option1.Zip(option2);
 
         Assert.True(result.IsSome);
-        var (a, b) = result.Unwrap();
+        var (a, b) = result.GetValue();
         Assert.Equal(42, a);
         Assert.Equal("hello", b);
     }
@@ -358,7 +358,7 @@ public class OptionExtendedTests
         var result = option1.ZipWith(option2, (a, b) => a + b);
 
         Assert.True(result.IsSome);
-        Assert.Equal(50, result.Unwrap());
+        Assert.Equal(50, result.GetValue());
     }
 
     #endregion
@@ -387,7 +387,7 @@ public class OptionExtendedTests
         var result = option.OkOrElse(() => "error");
 
         Assert.True(result.IsErr);
-        Assert.Equal("error", result.UnwrapErr());
+        Assert.Equal("error", result.GetError());
     }
 
     #endregion
@@ -398,7 +398,7 @@ public class OptionExtendedTests
     public void Expect_OnSome_ReturnsValue()
     {
         var option = Option<int>.Some(42);
-        var value = option.Expect("Should have value");
+        var value = option.GetOrThrow("Should have value");
 
         Assert.Equal(42, value);
     }
@@ -408,7 +408,7 @@ public class OptionExtendedTests
     {
         var option = Option<int>.None();
 
-        var ex = Assert.Throws<InvalidOperationException>(() => option.Expect("Custom message"));
+        var ex = Assert.Throws<InvalidOperationException>(() => option.GetOrThrow("Custom message"));
         Assert.Contains("Custom message", ex.Message);
     }
 

@@ -183,7 +183,7 @@ public class NewMethodsBenchmarks
     [Benchmark]
     public Result<string, int> SeparateMaps_Comparison()
     {
-        return _ok.Map(x => x.ToString()).MapErr(e => e.Length);
+        return _ok.Map(x => x.ToString()).MapError(e => e.Length);
     }
 
     /// <summary>
@@ -213,7 +213,7 @@ public class NewMethodsBenchmarks
     [Benchmark]
     public Validation<int, string> AndThenValidation_Comparison()
     {
-        return _valid.AndThen(x => x > 0 
+        return _valid.Bind(x => x > 0 
             ? Validation<int, string>.Valid(x) 
             : Validation<int, string>.Invalid("Must be positive"));
     }

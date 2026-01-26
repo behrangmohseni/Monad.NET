@@ -41,20 +41,20 @@ public static class ResultExamples
         // Chaining with AndThen
         Console.WriteLine("\n5. Chaining with AndThen:");
         var pipeline = Divide(20, 4)
-            .AndThen(x => Divide((int)x, 2))
-            .AndThen(x => Divide((int)x + 10, 3));
+            .Bind(x => Divide((int)x, 2))
+            .Bind(x => Divide((int)x + 10, 3));
         Console.WriteLine($"   Pipeline result: {pipeline}");
 
         // Error propagation
         Console.WriteLine("\n6. Error Propagation:");
         var shortCircuit = Divide(10, 0)
-            .AndThen(x => Divide(x, 2))  // Never executes
-            .AndThen(x => Divide(x, 3)); // Never executes
+            .Bind(x => Divide(x, 2))  // Never executes
+            .Bind(x => Divide(x, 3)); // Never executes
         Console.WriteLine($"   Short-circuit: {shortCircuit}");
 
         // Error transformation with MapErr
         Console.WriteLine("\n7. Error Transformation:");
-        var withHttpCode = failure.MapErr(msg => (Code: 500, Message: msg));
+        var withHttpCode = failure.MapError(msg => (Code: 500, Message: msg));
         Console.WriteLine($"   MapErr to HTTP: {withHttpCode}");
 
         // Recovery with OrElse
@@ -64,8 +64,8 @@ public static class ResultExamples
 
         // Default values
         Console.WriteLine("\n9. Default Values:");
-        Console.WriteLine($"   Ok(5).UnwrapOr(0): {success.UnwrapOr(0)}");
-        Console.WriteLine($"   Err.UnwrapOr(0):   {failure.UnwrapOr(0)}");
+        Console.WriteLine($"   Ok(5).GetValueOr(0): {success.GetValueOr(0)}");
+        Console.WriteLine($"   Err.GetValueOr(0):   {failure.GetValueOr(0)}");
 
         // From exceptions with Try
         Console.WriteLine("\n10. From Exceptions:");

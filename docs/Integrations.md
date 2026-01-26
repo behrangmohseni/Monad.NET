@@ -62,7 +62,7 @@ if (shape.IsCircle)
 // As{Case}() methods - safe casting (returns Option<T>)
 var circleArea = shape.AsCircle()
     .Map(c => Math.PI * c.Radius * c.Radius)
-    .UnwrapOr(0);
+    .GetValueOr(0);
 
 // Map - transform cases
 var doubled = shape.Map(

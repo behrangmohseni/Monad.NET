@@ -11,7 +11,7 @@ public class EitherTests
 
         Assert.True(either.IsLeft);
         Assert.False(either.IsRight);
-        Assert.Equal("error", either.UnwrapLeft());
+        Assert.Equal("error", either.GetLeft());
     }
 
     [Fact]
@@ -21,7 +21,7 @@ public class EitherTests
 
         Assert.True(either.IsRight);
         Assert.False(either.IsLeft);
-        Assert.Equal(42, either.UnwrapRight());
+        Assert.Equal(42, either.GetRight());
     }
 
     [Fact]
@@ -41,7 +41,7 @@ public class EitherTests
     {
         var either = Either<string, int>.Left("error");
 
-        Assert.Throws<InvalidOperationException>(() => either.UnwrapRight());
+        Assert.Throws<InvalidOperationException>(() => either.GetRight());
     }
 
     [Fact]
@@ -49,7 +49,7 @@ public class EitherTests
     {
         var either = Either<string, int>.Right(42);
 
-        Assert.Throws<InvalidOperationException>(() => either.UnwrapLeft());
+        Assert.Throws<InvalidOperationException>(() => either.GetLeft());
     }
 
     [Fact]
@@ -135,7 +135,7 @@ public class EitherTests
         var mapped = either.MapRight(x => x * 2);
 
         Assert.True(mapped.IsRight);
-        Assert.Equal(84, mapped.UnwrapRight());
+        Assert.Equal(84, mapped.GetRight());
     }
 
     [Fact]
@@ -145,7 +145,7 @@ public class EitherTests
         var mapped = either.MapRight(x => x * 2);
 
         Assert.True(mapped.IsLeft);
-        Assert.Equal("error", mapped.UnwrapLeft());
+        Assert.Equal("error", mapped.GetLeft());
     }
 
     [Fact]
@@ -155,7 +155,7 @@ public class EitherTests
         var mapped = either.MapLeft(x => x.Length);
 
         Assert.True(mapped.IsLeft);
-        Assert.Equal(5, mapped.UnwrapLeft());
+        Assert.Equal(5, mapped.GetLeft());
     }
 
     [Fact]
@@ -165,7 +165,7 @@ public class EitherTests
         var mapped = either.MapLeft(x => x.Length);
 
         Assert.True(mapped.IsRight);
-        Assert.Equal(42, mapped.UnwrapRight());
+        Assert.Equal(42, mapped.GetRight());
     }
 
     [Fact]
@@ -178,7 +178,7 @@ public class EitherTests
         );
 
         Assert.True(mapped.IsRight);
-        Assert.Equal(84, mapped.UnwrapRight());
+        Assert.Equal(84, mapped.GetRight());
     }
 
     [Fact]
@@ -191,27 +191,27 @@ public class EitherTests
         );
 
         Assert.True(mapped.IsLeft);
-        Assert.Equal(5, mapped.UnwrapLeft());
+        Assert.Equal(5, mapped.GetLeft());
     }
 
     [Fact]
     public void AndThen_OnRight_ExecutesFunction()
     {
         var either = Either<string, int>.Right(42);
-        var result = either.AndThen(x => Either<string, string>.Right(x.ToString()));
+        var result = either.Bind(x => Either<string, string>.Right(x.ToString()));
 
         Assert.True(result.IsRight);
-        Assert.Equal("42", result.UnwrapRight());
+        Assert.Equal("42", result.GetRight());
     }
 
     [Fact]
     public void AndThen_OnLeft_ReturnsLeft()
     {
         var either = Either<string, int>.Left("error");
-        var result = either.AndThen(x => Either<string, string>.Right(x.ToString()));
+        var result = either.Bind(x => Either<string, string>.Right(x.ToString()));
 
         Assert.True(result.IsLeft);
-        Assert.Equal("error", result.UnwrapLeft());
+        Assert.Equal("error", result.GetLeft());
     }
 
     [Fact]
@@ -221,7 +221,7 @@ public class EitherTests
         var result = either.OrElse(x => Either<int, int>.Right(100));
 
         Assert.True(result.IsRight);
-        Assert.Equal(100, result.UnwrapRight());
+        Assert.Equal(100, result.GetRight());
     }
 
     [Fact]
@@ -231,7 +231,7 @@ public class EitherTests
         var result = either.OrElse(x => Either<int, int>.Right(100));
 
         Assert.True(result.IsRight);
-        Assert.Equal(42, result.UnwrapRight());
+        Assert.Equal(42, result.GetRight());
     }
 
     [Fact]
@@ -241,7 +241,7 @@ public class EitherTests
         var swapped = either.Swap();
 
         Assert.True(swapped.IsLeft);
-        Assert.Equal(42, swapped.UnwrapLeft());
+        Assert.Equal(42, swapped.GetLeft());
     }
 
     [Fact]
@@ -251,7 +251,7 @@ public class EitherTests
         var swapped = either.Swap();
 
         Assert.True(swapped.IsRight);
-        Assert.Equal("error", swapped.UnwrapRight());
+        Assert.Equal("error", swapped.GetRight());
     }
 
     [Fact]
@@ -313,7 +313,7 @@ public class EitherTests
         var option = either.RightOption();
 
         Assert.True(option.IsSome);
-        Assert.Equal(42, option.Unwrap());
+        Assert.Equal(42, option.GetValue());
     }
 
     [Fact]
@@ -332,7 +332,7 @@ public class EitherTests
         var option = either.LeftOption();
 
         Assert.True(option.IsSome);
-        Assert.Equal("error", option.Unwrap());
+        Assert.Equal("error", option.GetValue());
     }
 
     [Fact]
@@ -351,7 +351,7 @@ public class EitherTests
         var result = either.ToResult();
 
         Assert.True(result.IsOk);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -361,7 +361,7 @@ public class EitherTests
         var result = either.ToResult();
 
         Assert.True(result.IsErr);
-        Assert.Equal("error", result.UnwrapErr());
+        Assert.Equal("error", result.GetError());
     }
 
     [Fact]
@@ -371,7 +371,7 @@ public class EitherTests
         var flattened = nested.Flatten();
 
         Assert.True(flattened.IsRight);
-        Assert.Equal(42, flattened.UnwrapRight());
+        Assert.Equal(42, flattened.GetRight());
     }
 
     [Fact]
@@ -381,7 +381,7 @@ public class EitherTests
         var flattened = nested.Flatten();
 
         Assert.True(flattened.IsLeft);
-        Assert.Equal("inner error", flattened.UnwrapLeft());
+        Assert.Equal("inner error", flattened.GetLeft());
     }
 
     [Fact]
@@ -439,7 +439,7 @@ public class EitherTests
         var either = result.ToEither();
 
         Assert.True(either.IsRight);
-        Assert.Equal(42, either.UnwrapRight());
+        Assert.Equal(42, either.GetRight());
     }
 
     [Fact]
@@ -449,7 +449,7 @@ public class EitherTests
         var either = result.ToEither();
 
         Assert.True(either.IsLeft);
-        Assert.Equal("error", either.UnwrapLeft());
+        Assert.Equal("error", either.GetLeft());
     }
 
     [Fact]

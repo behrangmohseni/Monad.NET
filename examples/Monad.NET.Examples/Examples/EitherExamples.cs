@@ -55,7 +55,7 @@ public static class EitherExamples
         // Chaining with AndThen
         Console.WriteLine("\n7. Chaining:");
         var chained = right
-            .AndThen(x => x > 10
+            .Bind(x => x > 10
                 ? Either<string, int>.Right(x * 2)
                 : Either<string, int>.Left("too small"));
         Console.WriteLine($"   Chained: {chained}");

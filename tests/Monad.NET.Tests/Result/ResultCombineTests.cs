@@ -15,7 +15,7 @@ public class ResultCombineTests
         var combined = ResultExtensions.Combine(r1, r2);
 
         Assert.True(combined.IsOk);
-        Assert.Equal((1, 2), combined.Unwrap());
+        Assert.Equal((1, 2), combined.GetValue());
     }
 
     [Fact]
@@ -27,7 +27,7 @@ public class ResultCombineTests
         var combined = ResultExtensions.Combine(r1, r2);
 
         Assert.True(combined.IsErr);
-        Assert.Equal("error1", combined.UnwrapErr());
+        Assert.Equal("error1", combined.GetError());
     }
 
     [Fact]
@@ -39,7 +39,7 @@ public class ResultCombineTests
         var combined = ResultExtensions.Combine(r1, r2);
 
         Assert.True(combined.IsErr);
-        Assert.Equal("error2", combined.UnwrapErr());
+        Assert.Equal("error2", combined.GetError());
     }
 
     [Fact]
@@ -51,7 +51,7 @@ public class ResultCombineTests
         var combined = ResultExtensions.Combine(r1, r2);
 
         Assert.True(combined.IsErr);
-        Assert.Equal("error1", combined.UnwrapErr());
+        Assert.Equal("error1", combined.GetError());
     }
 
     [Fact]
@@ -63,7 +63,7 @@ public class ResultCombineTests
         var combined = ResultExtensions.Combine(r1, r2, (a, b) => a + b);
 
         Assert.True(combined.IsOk);
-        Assert.Equal(30, combined.Unwrap());
+        Assert.Equal(30, combined.GetValue());
     }
 
     [Fact]
@@ -75,7 +75,7 @@ public class ResultCombineTests
         var combined = ResultExtensions.Combine(r1, r2, (a, b) => a + b);
 
         Assert.True(combined.IsErr);
-        Assert.Equal("error", combined.UnwrapErr());
+        Assert.Equal("error", combined.GetError());
     }
 
     #endregion
@@ -92,7 +92,7 @@ public class ResultCombineTests
         var combined = ResultExtensions.Combine(r1, r2, r3);
 
         Assert.True(combined.IsOk);
-        Assert.Equal((1, "hello", 3.14), combined.Unwrap());
+        Assert.Equal((1, "hello", 3.14), combined.GetValue());
     }
 
     [Fact]
@@ -105,7 +105,7 @@ public class ResultCombineTests
         var combined = ResultExtensions.Combine(r1, r2, r3);
 
         Assert.True(combined.IsErr);
-        Assert.Equal("error3", combined.UnwrapErr());
+        Assert.Equal("error3", combined.GetError());
     }
 
     [Fact]
@@ -118,7 +118,7 @@ public class ResultCombineTests
         var combined = ResultExtensions.Combine(r1, r2, r3, (a, b, c) => a + b + c);
 
         Assert.True(combined.IsOk);
-        Assert.Equal("Hello World", combined.Unwrap());
+        Assert.Equal("Hello World", combined.GetValue());
     }
 
     #endregion
@@ -136,7 +136,7 @@ public class ResultCombineTests
         var combined = ResultExtensions.Combine(r1, r2, r3, r4);
 
         Assert.True(combined.IsOk);
-        Assert.Equal((1, 2, 3, 4), combined.Unwrap());
+        Assert.Equal((1, 2, 3, 4), combined.GetValue());
     }
 
     [Fact]
@@ -150,7 +150,7 @@ public class ResultCombineTests
         var combined = ResultExtensions.Combine(r1, r2, r3, r4);
 
         Assert.True(combined.IsErr);
-        Assert.Equal("error4", combined.UnwrapErr());
+        Assert.Equal("error4", combined.GetError());
     }
 
     [Fact]
@@ -164,7 +164,7 @@ public class ResultCombineTests
         var combined = ResultExtensions.Combine(r1, r2, r3, r4, (a, b, c, d) => a + b + c + d);
 
         Assert.True(combined.IsOk);
-        Assert.Equal(10, combined.Unwrap());
+        Assert.Equal(10, combined.GetValue());
     }
 
     #endregion
@@ -184,7 +184,7 @@ public class ResultCombineTests
         var combined = ResultExtensions.Combine(results);
 
         Assert.True(combined.IsOk);
-        Assert.Equal(new[] { 1, 2, 3 }, combined.Unwrap());
+        Assert.Equal(new[] { 1, 2, 3 }, combined.GetValue());
     }
 
     [Fact]
@@ -200,7 +200,7 @@ public class ResultCombineTests
         var combined = ResultExtensions.Combine(results);
 
         Assert.True(combined.IsErr);
-        Assert.Equal("error", combined.UnwrapErr());
+        Assert.Equal("error", combined.GetError());
     }
 
     [Fact]
@@ -211,7 +211,7 @@ public class ResultCombineTests
         var combined = ResultExtensions.Combine(results);
 
         Assert.True(combined.IsOk);
-        Assert.Empty(combined.Unwrap());
+        Assert.Empty(combined.GetValue());
     }
 
     [Fact]
@@ -227,7 +227,7 @@ public class ResultCombineTests
         var combined = ResultExtensions.Combine(results);
 
         Assert.True(combined.IsErr);
-        Assert.Equal("first", combined.UnwrapErr());
+        Assert.Equal("first", combined.GetError());
     }
 
     #endregion
@@ -247,7 +247,7 @@ public class ResultCombineTests
         var combined = ResultExtensions.CombineAll(results);
 
         Assert.True(combined.IsOk);
-        Assert.Equal(Unit.Value, combined.Unwrap());
+        Assert.Equal(Unit.Value, combined.GetValue());
     }
 
     [Fact]
@@ -263,7 +263,7 @@ public class ResultCombineTests
         var combined = ResultExtensions.CombineAll(results);
 
         Assert.True(combined.IsErr);
-        Assert.Equal("validation failed", combined.UnwrapErr());
+        Assert.Equal("validation failed", combined.GetError());
     }
 
     [Fact]
@@ -329,7 +329,7 @@ public class ResultCombineTests
         );
 
         Assert.True(result.IsOk);
-        Assert.Equal("User1 placed Order100", result.Unwrap());
+        Assert.Equal("User1 placed Order100", result.GetValue());
     }
 
     [Fact]
@@ -351,7 +351,7 @@ public class ResultCombineTests
             ValidateEmail("john@example.com")
         );
         Assert.True(valid.IsOk);
-        Assert.Equal(("John", 25, "john@example.com"), valid.Unwrap());
+        Assert.Equal(("John", 25, "john@example.com"), valid.GetValue());
 
         // One invalid
         var invalid = ResultExtensions.Combine(
@@ -360,7 +360,7 @@ public class ResultCombineTests
             ValidateEmail("john@example.com")
         );
         Assert.True(invalid.IsErr);
-        Assert.Equal("Age invalid", invalid.UnwrapErr());
+        Assert.Equal("Age invalid", invalid.GetError());
     }
 
     [Fact]
@@ -373,7 +373,7 @@ public class ResultCombineTests
         var results = ResultExtensions.Combine(inputs.Select(Process));
 
         Assert.True(results.IsOk);
-        Assert.Equal(new[] { 2, 4, 6, 8, 10 }, results.Unwrap());
+        Assert.Equal(new[] { 2, 4, 6, 8, 10 }, results.GetValue());
     }
 
     #endregion

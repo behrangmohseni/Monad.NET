@@ -18,11 +18,11 @@ public class BehavioralContractTests
     public void Option_LeftIdentity_Law()
     {
         // Left Identity: return a >>= f ≡ f a
-        // Some(a).AndThen(f) should equal f(a)
+        // Some(a).Bind(f) should equal f(a)
         var value = 42;
         Func<int, Option<string>> f = x => Option<string>.Some(x.ToString());
 
-        var left = Option<int>.Some(value).AndThen(f);
+        var left = Option<int>.Some(value).Bind(f);
         var right = f(value);
 
         Assert.Equal(left, right);
@@ -32,10 +32,10 @@ public class BehavioralContractTests
     public void Option_RightIdentity_Law()
     {
         // Right Identity: m >>= return ≡ m
-        // option.AndThen(Some) should equal option
+        // option.Bind(Some) should equal option
         var option = Option<int>.Some(42);
 
-        var result = option.AndThen(x => Option<int>.Some(x));
+        var result = option.Bind(x => Option<int>.Some(x));
 
         Assert.Equal(option, result);
     }
@@ -48,8 +48,8 @@ public class BehavioralContractTests
         Func<int, Option<int>> f = x => Option<int>.Some(x * 2);
         Func<int, Option<string>> g = x => Option<string>.Some(x.ToString());
 
-        var left = option.AndThen(f).AndThen(g);
-        var right = option.AndThen(x => f(x).AndThen(g));
+        var left = option.Bind(f).Bind(g);
+        var right = option.Bind(x => f(x).Bind(g));
 
         Assert.Equal(left, right);
     }
@@ -64,7 +64,7 @@ public class BehavioralContractTests
         var value = 42;
         Func<int, Result<string, string>> f = x => Result<string, string>.Ok(x.ToString());
 
-        var left = Result<int, string>.Ok(value).AndThen(f);
+        var left = Result<int, string>.Ok(value).Bind(f);
         var right = f(value);
 
         Assert.Equal(left, right);
@@ -75,7 +75,7 @@ public class BehavioralContractTests
     {
         var result = Result<int, string>.Ok(42);
 
-        var applied = result.AndThen(x => Result<int, string>.Ok(x));
+        var applied = result.Bind(x => Result<int, string>.Ok(x));
 
         Assert.Equal(result, applied);
     }
@@ -87,8 +87,8 @@ public class BehavioralContractTests
         Func<int, Result<int, string>> f = x => Result<int, string>.Ok(x * 2);
         Func<int, Result<string, string>> g = x => Result<string, string>.Ok(x.ToString());
 
-        var left = result.AndThen(f).AndThen(g);
-        var right = result.AndThen(x => f(x).AndThen(g));
+        var left = result.Bind(f).Bind(g);
+        var right = result.Bind(x => f(x).Bind(g));
 
         Assert.Equal(left, right);
     }
@@ -104,7 +104,7 @@ public class BehavioralContractTests
 
         Assert.True(option.IsSome);
         Assert.False(option.IsNone);
-        Assert.Equal(42, option.Unwrap());
+        Assert.Equal(42, option.GetValue());
     }
 
     [Fact]
@@ -128,7 +128,7 @@ public class BehavioralContractTests
         Option<int> option = 42;
 
         Assert.True(option.IsSome);
-        Assert.Equal(42, option.Unwrap());
+        Assert.Equal(42, option.GetValue());
     }
 
     [Fact]
@@ -151,7 +151,7 @@ public class BehavioralContractTests
 
         Assert.True(result.IsOk);
         Assert.False(result.IsErr);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -161,7 +161,7 @@ public class BehavioralContractTests
 
         Assert.False(result.IsOk);
         Assert.True(result.IsErr);
-        Assert.Equal("error", result.UnwrapErr());
+        Assert.Equal("error", result.GetError());
     }
 
     [Fact]
@@ -188,7 +188,7 @@ public class BehavioralContractTests
         var result = option.Map(x => x * 2);
 
         Assert.True(result.IsSome);
-        Assert.Equal(84, result.Unwrap());
+        Assert.Equal(84, result.GetValue());
     }
 
     [Fact]
@@ -209,7 +209,7 @@ public class BehavioralContractTests
         var result = option.Filter(x => x > 10);
 
         Assert.True(result.IsSome);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -227,10 +227,10 @@ public class BehavioralContractTests
     {
         var option = Option<int>.Some(42);
 
-        var result = option.AndThen(x => Option<string>.Some(x.ToString()));
+        var result = option.Bind(x => Option<string>.Some(x.ToString()));
 
         Assert.True(result.IsSome);
-        Assert.Equal("42", result.Unwrap());
+        Assert.Equal("42", result.GetValue());
     }
 
     [Fact]
@@ -239,7 +239,7 @@ public class BehavioralContractTests
         var option = Option<int>.None();
         var executed = false;
 
-        var result = option.AndThen(x =>
+        var result = option.Bind(x =>
         {
             executed = true;
             return Option<string>.Some(x.ToString());
@@ -280,7 +280,7 @@ public class BehavioralContractTests
     {
         var option = Option<int>.Some(42);
 
-        var result = option.UnwrapOr(0);
+        var result = option.GetValueOr(0);
 
         Assert.Equal(42, result);
     }
@@ -290,7 +290,7 @@ public class BehavioralContractTests
     {
         var option = Option<int>.None();
 
-        var result = option.UnwrapOr(0);
+        var result = option.GetValueOr(0);
 
         Assert.Equal(0, result);
     }
@@ -300,7 +300,7 @@ public class BehavioralContractTests
     {
         var option = Option<int>.None();
 
-        Assert.Throws<InvalidOperationException>(() => option.Unwrap());
+        Assert.Throws<InvalidOperationException>(() => option.GetValue());
     }
 
     #endregion
@@ -315,7 +315,7 @@ public class BehavioralContractTests
         var mapped = result.Map(x => x * 2);
 
         Assert.True(mapped.IsOk);
-        Assert.Equal(84, mapped.Unwrap());
+        Assert.Equal(84, mapped.GetValue());
     }
 
     [Fact]
@@ -326,7 +326,7 @@ public class BehavioralContractTests
         var mapped = result.Map(x => x * 2);
 
         Assert.True(mapped.IsErr);
-        Assert.Equal("error", mapped.UnwrapErr());
+        Assert.Equal("error", mapped.GetError());
     }
 
     [Fact]
@@ -334,10 +334,10 @@ public class BehavioralContractTests
     {
         var result = Result<int, string>.Err("error");
 
-        var mapped = result.MapErr(e => e.ToUpper());
+        var mapped = result.MapError(e => e.ToUpper());
 
         Assert.True(mapped.IsErr);
-        Assert.Equal("ERROR", mapped.UnwrapErr());
+        Assert.Equal("ERROR", mapped.GetError());
     }
 
     [Fact]
@@ -345,10 +345,10 @@ public class BehavioralContractTests
     {
         var result = Result<int, string>.Ok(42);
 
-        var mapped = result.MapErr(e => e.ToUpper());
+        var mapped = result.MapError(e => e.ToUpper());
 
         Assert.True(mapped.IsOk);
-        Assert.Equal(42, mapped.Unwrap());
+        Assert.Equal(42, mapped.GetValue());
     }
 
     [Fact]
@@ -356,10 +356,10 @@ public class BehavioralContractTests
     {
         var result = Result<int, string>.Ok(42);
 
-        var chained = result.AndThen(x => Result<string, string>.Ok(x.ToString()));
+        var chained = result.Bind(x => Result<string, string>.Ok(x.ToString()));
 
         Assert.True(chained.IsOk);
-        Assert.Equal("42", chained.Unwrap());
+        Assert.Equal("42", chained.GetValue());
     }
 
     [Fact]
@@ -368,7 +368,7 @@ public class BehavioralContractTests
         var result = Result<int, string>.Err("error");
         var executed = false;
 
-        var chained = result.AndThen(x =>
+        var chained = result.Bind(x =>
         {
             executed = true;
             return Result<string, string>.Ok(x.ToString());
@@ -409,7 +409,7 @@ public class BehavioralContractTests
     {
         var result = Result<int, string>.Err("error");
 
-        Assert.Throws<InvalidOperationException>(() => result.Unwrap());
+        Assert.Throws<InvalidOperationException>(() => result.GetValue());
     }
 
     [Fact]
@@ -417,7 +417,7 @@ public class BehavioralContractTests
     {
         var result = Result<int, string>.Ok(42);
 
-        Assert.Throws<InvalidOperationException>(() => result.UnwrapErr());
+        Assert.Throws<InvalidOperationException>(() => result.GetError());
     }
 
     #endregion
@@ -431,7 +431,7 @@ public class BehavioralContractTests
 
         Assert.True(validation.IsValid);
         Assert.False(validation.IsInvalid);
-        Assert.Equal(42, validation.Unwrap());
+        Assert.Equal(42, validation.GetValue());
     }
 
     [Fact]
@@ -452,7 +452,7 @@ public class BehavioralContractTests
         var result = v1.Apply(v2, (a, b) => a + b);
 
         Assert.True(result.IsValid);
-        Assert.Equal(30, result.Unwrap());
+        Assert.Equal(30, result.GetValue());
     }
 
     [Fact]
@@ -464,7 +464,7 @@ public class BehavioralContractTests
         var result = v1.Apply(v2, (a, b) => a + b);
 
         Assert.True(result.IsInvalid);
-        var errors = result.UnwrapErrors();
+        var errors = result.GetErrors();
         Assert.Contains("error1", errors);
         Assert.Contains("error2", errors);
     }
@@ -478,7 +478,7 @@ public class BehavioralContractTests
         var result = v1.Apply(v2, (a, b) => a + b);
 
         Assert.True(result.IsInvalid);
-        Assert.Contains("error1", result.UnwrapErrors());
+        Assert.Contains("error1", result.GetErrors());
     }
 
     #endregion
@@ -492,7 +492,7 @@ public class BehavioralContractTests
 
         Assert.True(either.IsLeft);
         Assert.False(either.IsRight);
-        Assert.Equal("error", either.UnwrapLeft());
+        Assert.Equal("error", either.GetLeft());
     }
 
     [Fact]
@@ -502,7 +502,7 @@ public class BehavioralContractTests
 
         Assert.False(either.IsLeft);
         Assert.True(either.IsRight);
-        Assert.Equal(42, either.UnwrapRight());
+        Assert.Equal(42, either.GetRight());
     }
 
     [Fact]
@@ -513,7 +513,7 @@ public class BehavioralContractTests
         var result = either.MapRight(x => x * 2);
 
         Assert.True(result.IsRight);
-        Assert.Equal(84, result.UnwrapRight());
+        Assert.Equal(84, result.GetRight());
     }
 
     [Fact]
@@ -524,7 +524,7 @@ public class BehavioralContractTests
         var result = either.MapLeft(e => e.ToUpper());
 
         Assert.True(result.IsLeft);
-        Assert.Equal("ERROR", result.UnwrapLeft());
+        Assert.Equal("ERROR", result.GetLeft());
     }
 
     [Fact]
@@ -535,7 +535,7 @@ public class BehavioralContractTests
         var swapped = either.Swap();
 
         Assert.True(swapped.IsLeft);
-        Assert.Equal(42, swapped.UnwrapLeft());
+        Assert.Equal(42, swapped.GetLeft());
     }
 
     #endregion
@@ -549,7 +549,7 @@ public class BehavioralContractTests
 
         Assert.True(tryValue.IsSuccess);
         Assert.False(tryValue.IsFailure);
-        Assert.Equal(42, tryValue.Get());
+        Assert.Equal(42, tryValue.GetValue());
     }
 
     [Fact]
@@ -569,7 +569,7 @@ public class BehavioralContractTests
         var tryValue = Try<int>.Of(() => 42);
 
         Assert.True(tryValue.IsSuccess);
-        Assert.Equal(42, tryValue.Get());
+        Assert.Equal(42, tryValue.GetValue());
     }
 
     [Fact]
@@ -588,7 +588,7 @@ public class BehavioralContractTests
         var result = tryValue.Recover(_ => 0);
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(0, result.Get());
+        Assert.Equal(0, result.GetValue());
     }
 
     [Fact]
@@ -599,7 +599,7 @@ public class BehavioralContractTests
         var result = tryValue.Recover(_ => 0);
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(42, result.Get());
+        Assert.Equal(42, result.GetValue());
     }
 
     #endregion
@@ -686,7 +686,7 @@ public class BehavioralContractTests
         var result = options.Sequence();
 
         Assert.True(result.IsSome);
-        Assert.Equal(new[] { 1, 2, 3 }, result.Unwrap());
+        Assert.Equal(new[] { 1, 2, 3 }, result.GetValue());
     }
 
     [Fact]

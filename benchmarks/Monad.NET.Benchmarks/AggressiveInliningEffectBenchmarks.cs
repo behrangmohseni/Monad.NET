@@ -139,7 +139,7 @@ public class AggressiveInliningEffectBenchmarks
         var opt = _inlinedSome;
         for (var i = 0; i < Iterations; i++)
         {
-            sum += opt.UnwrapOr(0);
+            sum += opt.GetValueOr(0);
         }
         return sum;
     }
@@ -152,7 +152,7 @@ public class AggressiveInliningEffectBenchmarks
         var opt = _noInlineSome;
         for (var i = 0; i < Iterations; i++)
         {
-            sum += opt.UnwrapOr(0);
+            sum += opt.GetValueOr(0);
         }
         return sum;
     }
@@ -169,7 +169,7 @@ public class AggressiveInliningEffectBenchmarks
         var opt = _inlinedSome;
         for (var i = 0; i < Iterations; i++)
         {
-            sum += opt.UnwrapOrElse(() => 0);
+            sum += opt.GetValueOrElse(() => 0);
         }
         return sum;
     }
@@ -182,7 +182,7 @@ public class AggressiveInliningEffectBenchmarks
         var opt = _noInlineSome;
         for (var i = 0; i < Iterations; i++)
         {
-            sum += opt.UnwrapOrElse(() => 0);
+            sum += opt.GetValueOrElse(() => 0);
         }
         return sum;
     }
@@ -287,7 +287,7 @@ public class AggressiveInliningEffectBenchmarks
         TestOption_Inlined<int> result = default;
         for (var i = 0; i < Iterations; i++)
         {
-            result = opt.AndThen(x => TestOption_Inlined<int>.Some(x * 2));
+            result = opt.Bind(x => TestOption_Inlined<int>.Some(x * 2));
         }
         return result;
     }
@@ -300,7 +300,7 @@ public class AggressiveInliningEffectBenchmarks
         TestOption_NoInline<int> result = default;
         for (var i = 0; i < Iterations; i++)
         {
-            result = opt.AndThen(x => TestOption_NoInline<int>.Some(x * 2));
+            result = opt.Bind(x => TestOption_NoInline<int>.Some(x * 2));
         }
         return result;
     }
@@ -378,7 +378,7 @@ public class AggressiveInliningEffectBenchmarks
                 .Map(x => x + i)
                 .Filter(x => x > 0)
                 .Map(x => x * 2)
-                .UnwrapOr(0);
+                .GetValueOr(0);
         }
         return sum;
     }
@@ -394,7 +394,7 @@ public class AggressiveInliningEffectBenchmarks
                 .Map(x => x + i)
                 .Filter(x => x > 0)
                 .Map(x => x * 2)
-                .UnwrapOr(0);
+                .GetValueOr(0);
         }
         return sum;
     }
@@ -439,10 +439,10 @@ public readonly struct TestOption_Inlined<T>
     public static TestOption_Inlined<T> None() => new(default!, false);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T UnwrapOr(T defaultValue) => _isSome ? _value : defaultValue;
+    public T GetValueOr(T defaultValue) => _isSome ? _value : defaultValue;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T UnwrapOrElse(Func<T> defaultFunc) => _isSome ? _value : defaultFunc();
+    public T GetValueOrElse(Func<T> defaultFunc) => _isSome ? _value : defaultFunc();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public TestOption_Inlined<U> Map<U>(Func<T, U> mapper) =>
@@ -457,7 +457,7 @@ public readonly struct TestOption_Inlined<T>
         _isSome ? some(_value) : none();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public TestOption_Inlined<U> AndThen<U>(Func<T, TestOption_Inlined<U>> binder) =>
+    public TestOption_Inlined<U> Bind<U>(Func<T, TestOption_Inlined<U>> binder) =>
         _isSome ? binder(_value) : TestOption_Inlined<U>.None();
 }
 
@@ -485,9 +485,9 @@ public readonly struct TestOption_NoInline<T>
 
     public static TestOption_NoInline<T> None() => new(default!, false);
 
-    public T UnwrapOr(T defaultValue) => _isSome ? _value : defaultValue;
+    public T GetValueOr(T defaultValue) => _isSome ? _value : defaultValue;
 
-    public T UnwrapOrElse(Func<T> defaultFunc) => _isSome ? _value : defaultFunc();
+    public T GetValueOrElse(Func<T> defaultFunc) => _isSome ? _value : defaultFunc();
 
     public TestOption_NoInline<U> Map<U>(Func<T, U> mapper) =>
         _isSome ? TestOption_NoInline<U>.Some(mapper(_value)) : TestOption_NoInline<U>.None();
@@ -498,7 +498,7 @@ public readonly struct TestOption_NoInline<T>
     public U Match<U>(Func<T, U> some, Func<U> none) =>
         _isSome ? some(_value) : none();
 
-    public TestOption_NoInline<U> AndThen<U>(Func<T, TestOption_NoInline<U>> binder) =>
+    public TestOption_NoInline<U> Bind<U>(Func<T, TestOption_NoInline<U>> binder) =>
         _isSome ? binder(_value) : TestOption_NoInline<U>.None();
 }
 
@@ -538,7 +538,7 @@ public readonly struct TestResult_Inlined<T, E>
     public static TestResult_Inlined<T, E> Err(E error) => new(default!, error, false);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T UnwrapOr(T defaultValue) => _isOk ? _value : defaultValue;
+    public T GetValueOr(T defaultValue) => _isOk ? _value : defaultValue;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public TestResult_Inlined<U, E> Map<U>(Func<T, U> mapper) =>
@@ -573,7 +573,7 @@ public readonly struct TestResult_NoInline<T, E>
 
     public static TestResult_NoInline<T, E> Err(E error) => new(default!, error, false);
 
-    public T UnwrapOr(T defaultValue) => _isOk ? _value : defaultValue;
+    public T GetValueOr(T defaultValue) => _isOk ? _value : defaultValue;
 
     public TestResult_NoInline<U, E> Map<U>(Func<T, U> mapper) =>
         _isOk ? TestResult_NoInline<U, E>.Ok(mapper(_value)) : TestResult_NoInline<U, E>.Err(_error);

@@ -12,7 +12,7 @@ public class OptionExtensionsTests
         var result = OptionExtensions.When(true, () => 42);
 
         Assert.True(result.IsSome);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -43,7 +43,7 @@ public class OptionExtensionsTests
         var result = OptionExtensions.When(true, "hello");
 
         Assert.True(result.IsSome);
-        Assert.Equal("hello", result.Unwrap());
+        Assert.Equal("hello", result.GetValue());
     }
 
     [Fact]
@@ -66,7 +66,7 @@ public class OptionExtensionsTests
         var result = OptionExtensions.Unless(false, () => 42);
 
         Assert.True(result.IsSome);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -97,7 +97,7 @@ public class OptionExtensionsTests
         var result = OptionExtensions.Unless(false, "hello");
 
         Assert.True(result.IsSome);
-        Assert.Equal("hello", result.Unwrap());
+        Assert.Equal("hello", result.GetValue());
     }
 
     [Fact]
@@ -115,7 +115,7 @@ public class OptionExtensionsTests
         var discount = OptionExtensions.When(orderTotal > 100, () => 0.1m);
 
         Assert.True(discount.IsSome);
-        Assert.Equal(0.1m, discount.Unwrap());
+        Assert.Equal(0.1m, discount.GetValue());
 
         var noDiscount = OptionExtensions.When(orderTotal < 100, () => 0.1m);
         Assert.True(noDiscount.IsNone);
@@ -128,7 +128,7 @@ public class OptionExtensionsTests
         var fallback = OptionExtensions.Unless(cacheHasValue, () => "loaded from db");
 
         Assert.True(fallback.IsSome);
-        Assert.Equal("loaded from db", fallback.Unwrap());
+        Assert.Equal("loaded from db", fallback.GetValue());
 
         cacheHasValue = true;
         var noFallback = OptionExtensions.Unless(cacheHasValue, () => "loaded from db");
@@ -146,7 +146,7 @@ public class OptionExtensionsTests
         var option = nullable.ToOption();
 
         Assert.True(option.IsSome);
-        Assert.Equal(42, option.Unwrap());
+        Assert.Equal(42, option.GetValue());
     }
 
     [Fact]
@@ -165,7 +165,7 @@ public class OptionExtensionsTests
         var option = value.ToOption();
 
         Assert.True(option.IsSome);
-        Assert.Equal("hello", option.Unwrap());
+        Assert.Equal("hello", option.GetValue());
     }
 
     [Fact]
@@ -188,7 +188,7 @@ public class OptionExtensionsTests
         var flattened = nested.Flatten();
 
         Assert.True(flattened.IsSome);
-        Assert.Equal(42, flattened.Unwrap());
+        Assert.Equal(42, flattened.GetValue());
     }
 
     [Fact]
