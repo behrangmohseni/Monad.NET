@@ -14,7 +14,7 @@ namespace Monad.NET.Analyzers;
 public sealed class EmptyMatchBranchAnalyzer : DiagnosticAnalyzer
 {
     private static readonly ImmutableHashSet<string> MonadTypes = ImmutableHashSet.Create(
-        "Option", "Result", "Either", "Try", "Validation", "RemoteData");
+        "Option", "Result", "Try", "Validation", "RemoteData");
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
         ImmutableArray.Create(DiagnosticDescriptors.EmptyMatchBranch);
@@ -134,7 +134,6 @@ public sealed class EmptyMatchBranchAnalyzer : DiagnosticAnalyzer
             "Result" => isFirstBranch ? "ok" : "err",
             "Try" => isFirstBranch ? "success" : "failure",
             "Validation" => isFirstBranch ? "valid" : "invalid",
-            "Either" => isFirstBranch ? "left" : "right",
             "RemoteData" => isFirstBranch ? "success" : "other",
             _ => isFirstBranch ? "first" : "second"
         };

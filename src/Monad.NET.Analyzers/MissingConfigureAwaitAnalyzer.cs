@@ -43,7 +43,6 @@ public sealed class MissingConfigureAwaitAnalyzer : DiagnosticAnalyzer
     {
         "Option",
         "Result",
-        "Either",
         "Try",
         "Validation",
         "RemoteData"

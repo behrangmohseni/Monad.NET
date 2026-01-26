@@ -10,7 +10,7 @@ namespace Monad.NET.Analyzers;
 public sealed class OptionNullComparisonAnalyzer : DiagnosticAnalyzer
 {
     private static readonly ImmutableHashSet<string> StructMonadTypes = ImmutableHashSet.Create(
-        "Option", "Result", "Either", "Try", "Validation", "RemoteData");
+        "Option", "Result", "Try", "Validation", "RemoteData");
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
         ImmutableArray.Create(DiagnosticDescriptors.OptionNullComparison);

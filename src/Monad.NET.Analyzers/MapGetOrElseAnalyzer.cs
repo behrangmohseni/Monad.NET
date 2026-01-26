@@ -10,7 +10,7 @@ namespace Monad.NET.Analyzers;
 public sealed class MapGetOrElseAnalyzer : DiagnosticAnalyzer
 {
     private static readonly ImmutableHashSet<string> MonadTypes = ImmutableHashSet.Create(
-        "Option", "Result", "Either", "Try", "Validation", "RemoteData");
+        "Option", "Result", "Try", "Validation", "RemoteData");
 
     private static readonly ImmutableHashSet<string> GetOrElseMethods = ImmutableHashSet.Create(
         "GetOrElse", "UnwrapOr", "UnwrapOrDefault", "UnwrapOrElse");

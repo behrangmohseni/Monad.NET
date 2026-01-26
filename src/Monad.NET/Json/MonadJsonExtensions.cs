@@ -18,7 +18,6 @@ public static class MonadJsonExtensions
 
         options.Converters.Add(new OptionJsonConverterFactory());
         options.Converters.Add(new ResultJsonConverterFactory());
-        options.Converters.Add(new EitherJsonConverterFactory());
         options.Converters.Add(new TryJsonConverterFactory());
         options.Converters.Add(new ValidationJsonConverterFactory());
         options.Converters.Add(new NonEmptyListJsonConverterFactory());

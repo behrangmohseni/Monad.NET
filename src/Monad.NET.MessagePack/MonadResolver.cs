@@ -4,7 +4,7 @@ namespace Monad.NET.MessagePack;
 
 /// <summary>
 /// MessagePack resolver for Monad.NET types.
-/// Provides formatters for Option, Result, Either, Try, Validation, NonEmptyList, RemoteData, and Unit.
+/// Provides formatters for Option, Result, Try, Validation, NonEmptyList, RemoteData, and Unit.
 /// </summary>
 /// <example>
 /// <code>
@@ -73,12 +73,6 @@ internal static class MonadResolverGetFormatterHelper
         if (genericType == typeof(Result<,>))
         {
             return CreateFormatter(typeof(ResultFormatter<,>), typeArgs);
-        }
-
-        // Either<TLeft, TRight>
-        if (genericType == typeof(Either<,>))
-        {
-            return CreateFormatter(typeof(EitherFormatter<,>), typeArgs);
         }
 
         // Try<T>

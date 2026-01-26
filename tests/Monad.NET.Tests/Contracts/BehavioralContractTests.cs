@@ -483,63 +483,6 @@ public class BehavioralContractTests
 
     #endregion
 
-    #region Either<L, R> Operation Contracts
-
-    [Fact]
-    public void Either_Left_ShouldCreateLeftValue()
-    {
-        var either = Either<string, int>.Left("error");
-
-        Assert.True(either.IsLeft);
-        Assert.False(either.IsRight);
-        Assert.Equal("error", either.GetLeft());
-    }
-
-    [Fact]
-    public void Either_Right_ShouldCreateRightValue()
-    {
-        var either = Either<string, int>.Right(42);
-
-        Assert.False(either.IsLeft);
-        Assert.True(either.IsRight);
-        Assert.Equal(42, either.GetRight());
-    }
-
-    [Fact]
-    public void Either_MapRight_OnRight_ShouldTransformValue()
-    {
-        var either = Either<string, int>.Right(42);
-
-        var result = either.MapRight(x => x * 2);
-
-        Assert.True(result.IsRight);
-        Assert.Equal(84, result.GetRight());
-    }
-
-    [Fact]
-    public void Either_MapLeft_OnLeft_ShouldTransformValue()
-    {
-        var either = Either<string, int>.Left("error");
-
-        var result = either.MapLeft(e => e.ToUpper());
-
-        Assert.True(result.IsLeft);
-        Assert.Equal("ERROR", result.GetLeft());
-    }
-
-    [Fact]
-    public void Either_Swap_ShouldSwapLeftAndRight()
-    {
-        var either = Either<string, int>.Right(42);
-
-        var swapped = either.Swap();
-
-        Assert.True(swapped.IsLeft);
-        Assert.Equal(42, swapped.GetLeft());
-    }
-
-    #endregion
-
     #region Try<T> Operation Contracts
 
     [Fact]

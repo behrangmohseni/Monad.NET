@@ -102,48 +102,6 @@ public class JsonSerializationTests
 
     #endregion
 
-    #region Either<L, R> Tests
-
-    [Fact]
-    public void Either_Right_Serializes()
-    {
-        var either = Either<string, int>.Right(42);
-        var json = JsonSerializer.Serialize(either, _options);
-        Assert.Contains("\"isRight\":true", json);
-        Assert.Contains("\"right\":42", json);
-    }
-
-    [Fact]
-    public void Either_Left_Serializes()
-    {
-        var either = Either<string, int>.Left("left value");
-        var json = JsonSerializer.Serialize(either, _options);
-        Assert.Contains("\"isRight\":false", json);
-        Assert.Contains("\"left\":\"left value\"", json);
-    }
-
-    [Fact]
-    public void Either_Right_Roundtrip()
-    {
-        var original = Either<string, int>.Right(100);
-        var json = JsonSerializer.Serialize(original, _options);
-        var deserialized = JsonSerializer.Deserialize<Either<string, int>>(json, _options);
-        Assert.True(deserialized.IsRight);
-        Assert.Equal(100, deserialized.Match(_ => 0, r => r));
-    }
-
-    [Fact]
-    public void Either_Left_Roundtrip()
-    {
-        var original = Either<string, int>.Left("error");
-        var json = JsonSerializer.Serialize(original, _options);
-        var deserialized = JsonSerializer.Deserialize<Either<string, int>>(json, _options);
-        Assert.True(deserialized.IsLeft);
-        Assert.Equal("error", deserialized.Match(l => l, _ => ""));
-    }
-
-    #endregion
-
     #region Try<T> Tests
 
     [Fact]

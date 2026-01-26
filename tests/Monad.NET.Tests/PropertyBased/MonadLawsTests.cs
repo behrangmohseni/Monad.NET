@@ -188,38 +188,6 @@ public class MonadLawsTests
 
     #endregion
 
-    #region Either<L, R> Monad Laws
-
-    [Property]
-    public Property Either_LeftIdentity_Law()
-    {
-        Func<int, Either<string, string>> f = x => x >= 0
-            ? Either<string, string>.Right(x.ToString())
-            : Either<string, string>.Left("negative");
-
-        return Prop.ForAll<int>(a =>
-        {
-            var left = Either<string, int>.Right(a).Bind(f);
-            var right = f(a);
-            return left.Equals(right);
-        });
-    }
-
-    [Property]
-    public Property Either_RightIdentity_Law()
-    {
-        return Prop.ForAll<int>(a =>
-        {
-            var either = a >= 0
-                ? Either<string, int>.Right(a)
-                : Either<string, int>.Left("negative");
-            var result = either.Bind(x => Either<string, int>.Right(x));
-            return result.Equals(either);
-        });
-    }
-
-    #endregion
-
     #region Try<T> Monad Laws
 
     [Property]

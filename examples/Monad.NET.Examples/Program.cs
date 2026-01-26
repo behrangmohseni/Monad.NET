@@ -19,7 +19,6 @@ internal class ExampleRunner
     [
         ("Option<T>", OptionExamples.Run),
         ("Result<T, E>", ResultExamples.Run),
-        ("Either<L, R>", EitherExamples.Run),
         ("Validation<T, E>", ValidationExamples.Run),
         ("Try<T>", TryExamples.Run),
         ("RemoteData<T, E>", RemoteDataExamples.Run),

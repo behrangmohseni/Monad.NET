@@ -325,17 +325,6 @@ public class TapTests
     }
 
     [Fact]
-    public void Either_TapRight_StillWorks()
-    {
-        var either = Either<string, int>.Right(42);
-        var executed = false;
-
-        either.TapRight(x => executed = true);
-
-        Assert.True(executed);
-    }
-
-    [Fact]
     public void Validation_Tap_StillWorks()
     {
         var validation = Validation<int, string>.Valid(42);

@@ -36,7 +36,6 @@ dotnet run -c Release -- --exporters json markdown html
 |-------|-------------|
 | `OptionBenchmarks` | Benchmarks for `Option<T>` operations |
 | `ResultBenchmarks` | Benchmarks for `Result<T, E>` operations |
-| `EitherBenchmarks` | Benchmarks for `Either<L, R>` operations |
 | `TryBenchmarks` | Benchmarks for `Try<T>` operations |
 | `NonEmptyListBenchmarks` | Benchmarks for `NonEmptyList<T>` operations |
 | `ComparisonBenchmarks` | Compares Monad.NET with nullable types and exceptions |

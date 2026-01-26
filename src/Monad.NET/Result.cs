@@ -24,7 +24,6 @@ namespace Monad.NET;
 /// <seealso cref="Option{T}"/>
 /// <seealso cref="Validation{T,TErr}"/>
 /// <seealso cref="Try{T}"/>
-/// <seealso cref="Either{TLeft,TRight}"/>
 /// <seealso cref="ResultExtensions"/>
 [Serializable]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]

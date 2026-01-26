@@ -21,7 +21,6 @@ public class ApiContractTests
     [Theory]
     [InlineData(typeof(Option<>))]
     [InlineData(typeof(Result<,>))]
-    [InlineData(typeof(Either<,>))]
     [InlineData(typeof(Validation<,>))]
     [InlineData(typeof(Try<>))]
     [InlineData(typeof(RemoteData<,>))]
@@ -52,14 +51,6 @@ public class ApiContractTests
         var type = typeof(Result<int, string>);
         Assert.True(type.IsValueType, "Result<T, E> should be a value type (struct)");
         Assert.True(IsReadOnlyStruct(type), "Result<T, E> should be a readonly struct");
-    }
-
-    [Fact]
-    public void Either_ShouldBeReadOnlyStruct()
-    {
-        var type = typeof(Either<int, string>);
-        Assert.True(type.IsValueType, "Either<L, R> should be a value type (struct)");
-        Assert.True(IsReadOnlyStruct(type), "Either<L, R> should be a readonly struct");
     }
 
     [Fact]
@@ -247,65 +238,6 @@ public class ApiContractTests
 
     #endregion
 
-    #region Either<TLeft, TRight> API Contract
-
-    [Theory]
-    [InlineData("Left")]
-    [InlineData("Right")]
-    public void Either_StaticFactoryMethods_ShouldExist(string methodName)
-    {
-        var methods = typeof(Either<string, int>).GetMethods(BindingFlags.Public | BindingFlags.Static)
-            .Where(m => m.Name == methodName)
-            .ToList();
-
-        Assert.NotEmpty(methods);
-    }
-
-    [Theory]
-    [InlineData("IsLeft", typeof(bool))]
-    [InlineData("IsRight", typeof(bool))]
-    public void Either_Properties_ShouldExist(string propertyName, Type propertyType)
-    {
-        var property = typeof(Either<string, int>).GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance);
-        Assert.NotNull(property);
-        Assert.Equal(propertyType, property.PropertyType);
-    }
-
-    [Theory]
-    [InlineData("GetLeft")]
-    [InlineData("GetRight")]
-    [InlineData("GetLeftOrThrow")]
-    [InlineData("GetRightOrThrow")]
-    [InlineData("TryGetLeft")]
-    [InlineData("TryGetRight")]
-    [InlineData("LeftOr")]
-    [InlineData("RightOr")]
-    [InlineData("MapLeft")]
-    [InlineData("MapRight")]
-    [InlineData("BiMap")]
-    [InlineData("Bind")]
-    [InlineData("OrElse")]
-    [InlineData("Swap")]
-    [InlineData("Match")]
-    [InlineData("LeftOption")]
-    [InlineData("RightOption")]
-    [InlineData("ToResult")]
-    [InlineData("ContainsLeft")]
-    [InlineData("ContainsRight")]
-    [InlineData("ExistsLeft")]
-    [InlineData("ExistsRight")]
-    [InlineData("Deconstruct")]
-    public void Either_InstanceMethods_ShouldExist(string methodName)
-    {
-        var methods = typeof(Either<string, int>).GetMethods(BindingFlags.Public | BindingFlags.Instance)
-            .Where(m => m.Name == methodName)
-            .ToList();
-
-        Assert.NotEmpty(methods);
-    }
-
-    #endregion
-
     #region Validation<T, TErr> API Contract
 
     [Theory]
@@ -429,7 +361,6 @@ public class ApiContractTests
     [Theory]
     [InlineData("OptionExtensions")]
     [InlineData("ResultExtensions")]
-    [InlineData("EitherExtensions")]
     [InlineData("ValidationExtensions")]
     [InlineData("TryExtensions")]
     [InlineData("OptionAsyncExtensions")]
@@ -450,7 +381,6 @@ public class ApiContractTests
     [Theory]
     [InlineData("OptionLinq")]
     [InlineData("ResultLinq")]
-    [InlineData("EitherLinq")]
     [InlineData("TryLinq")]
     [InlineData("ValidationLinq")]
     public void LinqClasses_ShouldExist(string className)
@@ -569,13 +499,6 @@ public class ApiContractTests
     public void Result_ShouldBeSerializable()
     {
         var type = typeof(Result<int, string>);
-        Assert.True(type.GetCustomAttributes(typeof(SerializableAttribute), false).Length > 0);
-    }
-
-    [Fact]
-    public void Either_ShouldBeSerializable()
-    {
-        var type = typeof(Either<int, string>);
         Assert.True(type.GetCustomAttributes(typeof(SerializableAttribute), false).Length > 0);
     }
 

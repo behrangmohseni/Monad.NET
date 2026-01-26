@@ -21,9 +21,7 @@ public sealed class PreferMatchAnalyzer : DiagnosticAnalyzer
         { "IsSuccess", "Try" },
         { "IsFailure", "Try" },
         { "IsValid", "Validation" },
-        { "IsInvalid", "Validation" },
-        { "IsRight", "Either" },
-        { "IsLeft", "Either" }
+        { "IsInvalid", "Validation" }
     }.ToImmutableDictionary();
 
     private static readonly ImmutableHashSet<string> UnwrapMethods = ImmutableHashSet.Create(

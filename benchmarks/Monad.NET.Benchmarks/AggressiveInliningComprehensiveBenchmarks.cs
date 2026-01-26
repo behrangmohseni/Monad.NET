@@ -32,8 +32,6 @@ public class AggressiveInliningComprehensiveBenchmarks
     private Option<int> _noneOption;
     private Result<int, string> _okResult;
     private Result<int, string> _errResult;
-    private Either<string, int> _rightEither;
-    private Either<string, int> _leftEither;
     private Try<int> _successTry;
     private Try<int> _failureTry;
     private Validation<int, string> _validValidation;
@@ -46,8 +44,6 @@ public class AggressiveInliningComprehensiveBenchmarks
         _noneOption = Option<int>.None();
         _okResult = Result<int, string>.Ok(42);
         _errResult = Result<int, string>.Err("error");
-        _rightEither = Either<string, int>.Right(42);
-        _leftEither = Either<string, int>.Left("left");
         _successTry = Try<int>.Of(() => 42);
         _failureTry = Try<int>.Of(() => throw new InvalidOperationException("test"));
         _validValidation = Validation<int, string>.Valid(42);
@@ -108,32 +104,6 @@ public class AggressiveInliningComprehensiveBenchmarks
         return count;
     }
     
-    [Benchmark(Baseline = true)]
-    [BenchmarkCategory("1-PropertyAccessor", "Either")]
-    public int Either_IsRight_Direct()
-    {
-        int count = 0;
-        for (int i = 0; i < Iterations; i++)
-        {
-            if (_rightEither.IsRight) count++;
-            if (_leftEither.IsRight) count++;
-        }
-        return count;
-    }
-    
-    [Benchmark]
-    [BenchmarkCategory("1-PropertyAccessor", "Either")]
-    public int Either_IsRight_NoInline()
-    {
-        int count = 0;
-        for (int i = 0; i < Iterations; i++)
-        {
-            if (GetIsRight_NoInline(_rightEither)) count++;
-            if (GetIsRight_NoInline(_leftEither)) count++;
-        }
-        return count;
-    }
-
     #endregion
 
     #region Category 2: Factory Methods
@@ -556,9 +526,6 @@ public class AggressiveInliningComprehensiveBenchmarks
     
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static bool GetIsOk_NoInline<T, E>(Result<T, E> result) => result.IsOk;
-    
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static bool GetIsRight_NoInline<L, R>(Either<L, R> either) => either.IsRight;
     
     // Factory methods
     [MethodImpl(MethodImplOptions.NoInlining)]

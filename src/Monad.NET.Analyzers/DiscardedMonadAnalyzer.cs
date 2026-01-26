@@ -10,7 +10,7 @@ namespace Monad.NET.Analyzers;
 public sealed class DiscardedMonadAnalyzer : DiagnosticAnalyzer
 {
     private static readonly ImmutableHashSet<string> MonadTypes = ImmutableHashSet.Create(
-        "Option", "Result", "Either", "Try", "Validation");
+        "Option", "Result", "Try", "Validation");
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
         ImmutableArray.Create(DiagnosticDescriptors.DiscardedMonad);

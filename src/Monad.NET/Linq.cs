@@ -143,68 +143,6 @@ public static class ResultLinq
 }
 
 /// <summary>
-/// LINQ query syntax support for Either&lt;L, R&gt;.
-/// </summary>
-[EditorBrowsable(EditorBrowsableState.Never)]
-public static class EitherLinq
-{
-    /// <summary>
-    /// Enables LINQ Select (projection) for Either&lt;L, R&gt; on the Right side.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Either<TLeft, U> Select<TLeft, TRight, U>(
-        this Either<TLeft, TRight> either,
-        Func<TRight, U> selector)
-    {
-        return either.MapRight(selector);
-    }
-
-    /// <summary>
-    /// Enables LINQ SelectMany (monadic bind) for Either&lt;L, R&gt;.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Either<TLeft, U> SelectMany<TLeft, TRight, U>(
-        this Either<TLeft, TRight> either,
-        Func<TRight, Either<TLeft, U>> selector)
-    {
-        return either.Bind(selector);
-    }
-
-    /// <summary>
-    /// Enables LINQ SelectMany with result selector for Either&lt;L, R&gt;.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Either<TLeft, V> SelectMany<TLeft, TRight, U, V>(
-        this Either<TLeft, TRight> either,
-        Func<TRight, Either<TLeft, U>> selector,
-        Func<TRight, U, V> resultSelector)
-    {
-        return either.Bind(t =>
-            selector(t).MapRight(u =>
-                resultSelector(t, u)));
-    }
-
-    /// <summary>
-    /// Enables LINQ Where (filtering) for Either&lt;L, R&gt;.
-    /// Converts Right to Left if the predicate is not satisfied.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Either<TLeft, TRight> Where<TLeft, TRight>(
-        this Either<TLeft, TRight> either,
-        Func<TRight, bool> predicate,
-        TLeft leftIfFalse)
-    {
-        if (!either.IsRight)
-            return either;
-
-        var value = either.GetRight();
-        return predicate(value)
-            ? either
-            : Either<TLeft, TRight>.Left(leftIfFalse);
-    }
-}
-
-/// <summary>
 /// LINQ query syntax support for RemoteData&lt;T, E&gt;.
 /// </summary>
 [EditorBrowsable(EditorBrowsableState.Never)]

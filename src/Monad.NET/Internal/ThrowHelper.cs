@@ -166,30 +166,6 @@ internal static class ThrowHelper
     }
 
     /// <summary>
-    /// Throws when attempting to get Right from a Left Either.
-    /// </summary>
-    [DoesNotReturn]
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    public static void ThrowEitherIsLeft<TLeft>(TLeft left)
-    {
-        throw new InvalidOperationException(
-            $"Cannot get Right from Either because it is Left: {left}. " +
-            "Use Match() or check IsRight before calling UnwrapRight().");
-    }
-
-    /// <summary>
-    /// Throws when attempting to get Left from a Right Either.
-    /// </summary>
-    [DoesNotReturn]
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    public static void ThrowEitherIsRight<TRight>(TRight right)
-    {
-        throw new InvalidOperationException(
-            $"Cannot get Left from Either because it is Right: {right}. " +
-            "Use Match() or check IsLeft before calling UnwrapLeft().");
-    }
-
-    /// <summary>
     /// Throws when attempting to unwrap RemoteData that is not in Success state.
     /// </summary>
     [DoesNotReturn]

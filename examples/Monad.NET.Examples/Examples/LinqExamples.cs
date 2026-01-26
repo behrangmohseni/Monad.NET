@@ -52,15 +52,8 @@ public static class LinqExamples
                        select x + y;
         Console.WriteLine($"   Parse \"10\" + \"20\": {tryQuery}");
 
-        // Either LINQ
-        Console.WriteLine("\n5. Either LINQ:");
-        var eitherQuery = from x in Either<string, int>.Right(10)
-                          from y in Either<string, int>.Right(20)
-                          select x + y;
-        Console.WriteLine($"   Right(10) + Right(20): {eitherQuery}");
-
         // Writer LINQ
-        Console.WriteLine("\n6. Writer LINQ:");
+        Console.WriteLine("\n5. Writer LINQ:");
         var writerQuery = from a in Writer<string, int>.Tell(10, "Got 10\n")
                           from b in Writer<string, int>.Tell(20, "Got 20\n")
                           select a + b;
@@ -68,7 +61,7 @@ public static class LinqExamples
         Console.WriteLine($"   Log: {writerQuery.Log}");
 
         // Real-world: Parse and validate
-        Console.WriteLine("\n7. Parse and Validate:");
+        Console.WriteLine("\n6. Parse and Validate:");
         var userInput = new Dictionary<string, string>
         {
             ["name"] = "John",
@@ -86,14 +79,14 @@ public static class LinqExamples
         Console.WriteLine($"   Parsed: {parsed}");
 
         // Method syntax comparison
-        Console.WriteLine("\n8. Method Syntax (equivalent):");
+        Console.WriteLine("\n7. Method Syntax (equivalent):");
         var methodSyntax = Option<int>.Some(10)
             .SelectMany(x => Option<int>.Some(20), (x, y) => x + y)
             .Where(sum => sum > 20);
         Console.WriteLine($"   Method syntax result: {methodSyntax}");
 
         // Combining different operations
-        Console.WriteLine("\n9. Mixing Operations:");
+        Console.WriteLine("\n8. Mixing Operations:");
         var mixedResult = from value in Option<int>.Some(100)
                           let doubled = value * 2
                           from divisor in Option<int>.Some(4)
@@ -103,7 +96,7 @@ public static class LinqExamples
         Console.WriteLine($"   Result: {mixedResult}");
 
         // Short-circuit demonstration
-        Console.WriteLine("\n10. Short-Circuit Behavior:");
+        Console.WriteLine("\n9. Short-Circuit Behavior:");
         var shortCircuit = from a in Option<int>.Some(1)
                            from b in Option<int>.None()  // Stops here
                            from c in Option<int>.Some(3)
