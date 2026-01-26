@@ -28,7 +28,7 @@ public static class ReaderExamples
 
         // Pure (constant value)
         Console.WriteLine("\n2. Pure (ignores environment):");
-        var pure = Reader<AppConfig, int>.Pure(42);
+        var pure = Reader<AppConfig, int>.Return(42);
         Console.WriteLine($"   Pure value: {pure.Run(config)}");
 
         // Ask (get entire environment)
@@ -53,7 +53,7 @@ public static class ReaderExamples
         // FlatMap for composing
         Console.WriteLine("\n6. FlatMap (compose readers):");
         var composed = Reader<AppConfig, string>.Asks(c => c.AppName)
-            .FlatMap(name => Reader<AppConfig, string>.Asks(c =>
+            .Bind(name => Reader<AppConfig, string>.Asks(c =>
                 $"{name} v1.0 (retries: {c.MaxRetries})"));
         Console.WriteLine($"   Composed: {composed.Run(config)}");
 
@@ -67,7 +67,7 @@ public static class ReaderExamples
         // Service composition
         Console.WriteLine("\n8. Service Composition:");
         var userService = GetUserReader(1);
-        var greeting = userService.FlatMap(user =>
+        var greeting = userService.Bind(user =>
             Reader<AppConfig, string>.Asks(c => $"Welcome to {c.AppName}, {user}!"));
         Console.WriteLine($"   Greeting: {greeting.Run(config)}");
 

@@ -12,7 +12,7 @@ public static class IOExamples
 
         // Creating IO
         Console.WriteLine("1. Creating IO:");
-        var pureValue = IO.Pure(42);
+        var pureValue = IO.Return(42);
         Console.WriteLine($"   Pure(42).Run(): {pureValue.Run()}");
 
         // IO with side effects
@@ -28,14 +28,14 @@ public static class IOExamples
 
         // Map
         Console.WriteLine("\n3. Map:");
-        var mapped = IO.Pure(10).Map(x => x * 2);
+        var mapped = IO.Return(10).Map(x => x * 2);
         Console.WriteLine($"   Pure(10).Map(x * 2).Run(): {mapped.Run()}");
 
         // FlatMap for sequencing effects
         Console.WriteLine("\n4. FlatMap (sequence effects):");
         var sequence = IO.Of(() => { Console.WriteLine("   Step 1"); return 10; })
-            .FlatMap(x => IO.Of(() => { Console.WriteLine("   Step 2"); return x * 2; }))
-            .FlatMap(x => IO.Of(() => { Console.WriteLine("   Step 3"); return x.ToString(); }));
+            .Bind(x => IO.Of(() => { Console.WriteLine("   Step 2"); return x * 2; }))
+            .Bind(x => IO.Of(() => { Console.WriteLine("   Step 3"); return x.ToString(); }));
         Console.WriteLine("   Running sequence:");
         Console.WriteLine($"   Result: {sequence.Run()}");
 
@@ -47,8 +47,8 @@ public static class IOExamples
         // Combining with Select/SelectMany (LINQ)
         Console.WriteLine("\n6. LINQ Query Syntax:");
         var program = from _ in IO.WriteLine("   [IO] Starting computation")
-                      from a in IO.Pure(10)
-                      from b in IO.Pure(20)
+                      from a in IO.Return(10)
+                      from b in IO.Return(20)
                       from __ in IO.WriteLine($"   [IO] Adding {a} + {b}")
                       select a + b;
         Console.WriteLine("   Running LINQ program:");
@@ -85,9 +85,9 @@ public static class IOExamples
 
         // Combining multiple IOs
         Console.WriteLine("\n10. Combining IOs:");
-        var combined = IO.Pure(1)
-            .Zip(IO.Pure(2))
-            .Zip(IO.Pure(3))
+        var combined = IO.Return(1)
+            .Zip(IO.Return(2))
+            .Zip(IO.Return(3))
             .Map(t => t.Item1.Item1 + t.Item1.Item2 + t.Item2);
         Console.WriteLine($"   1 + 2 + 3 = {combined.Run()}");
     }
@@ -95,7 +95,7 @@ public static class IOExamples
     private static IO<Unit> SimulateFileOperation()
     {
         return from _ in IO.WriteLine("   [FILE] Opening file...")
-               from content in IO.Pure("File contents here")
+               from content in IO.Return("File contents here")
                from __ in IO.WriteLine($"   [FILE] Read: {content}")
                from ___ in IO.WriteLine("   [FILE] Closing file...")
                select Unit.Default;

@@ -29,7 +29,7 @@ public static class OptionLinq
         this Option<T> option,
         Func<T, Option<U>> selector)
     {
-        return option.AndThen(selector);
+        return option.Bind(selector);
     }
 
     /// <summary>
@@ -42,7 +42,7 @@ public static class OptionLinq
         Func<T, Option<U>> selector,
         Func<T, U, V> resultSelector)
     {
-        return option.AndThen(t =>
+        return option.Bind(t =>
             selector(t).Map(u =>
                 resultSelector(t, u)));
     }
@@ -85,7 +85,7 @@ public static class ResultLinq
         this Result<T, TErr> result,
         Func<T, Result<U, TErr>> selector)
     {
-        return result.AndThen(selector);
+        return result.Bind(selector);
     }
 
     /// <summary>
@@ -98,7 +98,7 @@ public static class ResultLinq
         Func<T, Result<U, TErr>> selector,
         Func<T, U, V> resultSelector)
     {
-        return result.AndThen(t =>
+        return result.Bind(t =>
             selector(t).Map(u =>
                 resultSelector(t, u)));
     }
@@ -116,7 +116,7 @@ public static class ResultLinq
         if (!result.IsOk)
             return result;
 
-        var value = result.Unwrap();
+        var value = result.GetValue();
         return predicate(value)
             ? result
             : Result<T, TErr>.Err(errorIfFalse);
@@ -135,7 +135,7 @@ public static class ResultLinq
         if (!result.IsOk)
             return result;
 
-        var value = result.Unwrap();
+        var value = result.GetValue();
         return predicate(value)
             ? result
             : Result<T, TErr>.Err(errorFactory(value));
@@ -167,7 +167,7 @@ public static class EitherLinq
         this Either<TLeft, TRight> either,
         Func<TRight, Either<TLeft, U>> selector)
     {
-        return either.AndThen(selector);
+        return either.Bind(selector);
     }
 
     /// <summary>
@@ -179,7 +179,7 @@ public static class EitherLinq
         Func<TRight, Either<TLeft, U>> selector,
         Func<TRight, U, V> resultSelector)
     {
-        return either.AndThen(t =>
+        return either.Bind(t =>
             selector(t).MapRight(u =>
                 resultSelector(t, u)));
     }
@@ -197,7 +197,7 @@ public static class EitherLinq
         if (!either.IsRight)
             return either;
 
-        var value = either.UnwrapRight();
+        var value = either.GetRight();
         return predicate(value)
             ? either
             : Either<TLeft, TRight>.Left(leftIfFalse);
@@ -230,7 +230,7 @@ public static class RemoteDataLinq
         this RemoteData<T, TErr> remoteData,
         Func<T, RemoteData<U, TErr>> selector)
     {
-        return remoteData.AndThen(selector);
+        return remoteData.Bind(selector);
     }
 
     /// <summary>
@@ -242,7 +242,7 @@ public static class RemoteDataLinq
         Func<T, RemoteData<U, TErr>> selector,
         Func<T, U, V> resultSelector)
     {
-        return remoteData.AndThen(t =>
+        return remoteData.Bind(t =>
             selector(t).Map(u =>
                 resultSelector(t, u)));
     }
@@ -281,7 +281,7 @@ public static class TryLinq
         this Try<T> @try,
         Func<T, Try<U>> selector)
     {
-        return @try.FlatMap(selector);
+        return @try.Bind(selector);
     }
 
     /// <summary>
@@ -294,7 +294,7 @@ public static class TryLinq
         Func<T, Try<U>> selector,
         Func<T, U, V> resultSelector)
     {
-        return @try.FlatMap(t =>
+        return @try.Bind(t =>
             selector(t).Map(u =>
                 resultSelector(t, u)));
     }
@@ -346,7 +346,7 @@ public static class ValidationLinq
         this Validation<T, TErr> validation,
         Func<T, Validation<U, TErr>> selector)
     {
-        return validation.AndThen(selector);
+        return validation.Bind(selector);
     }
 
     /// <summary>
@@ -361,7 +361,7 @@ public static class ValidationLinq
         Func<T, Validation<U, TErr>> selector,
         Func<T, U, V> resultSelector)
     {
-        return validation.AndThen(t =>
+        return validation.Bind(t =>
             selector(t).Map(u =>
                 resultSelector(t, u)));
     }
@@ -403,7 +403,7 @@ public static class WriterLinq
         this Writer<string, T> writer,
         Func<T, Writer<string, U>> selector)
     {
-        return writer.FlatMap(selector, (a, b) => a + b);
+        return writer.Bind(selector, (a, b) => a + b);
     }
 
     /// <summary>
@@ -417,7 +417,7 @@ public static class WriterLinq
         Func<T, Writer<string, U>> selector,
         Func<T, U, V> resultSelector)
     {
-        return writer.FlatMap(t =>
+        return writer.Bind(t =>
             selector(t).Map(u =>
                 resultSelector(t, u)), (a, b) => a + b);
     }
@@ -431,7 +431,7 @@ public static class WriterLinq
         this Writer<List<TLog>, T> writer,
         Func<T, Writer<List<TLog>, U>> selector)
     {
-        return writer.FlatMap(selector, (a, b) => a.Concat(b).ToList());
+        return writer.Bind(selector, (a, b) => a.Concat(b).ToList());
     }
 
     /// <summary>
@@ -444,7 +444,7 @@ public static class WriterLinq
         Func<T, Writer<List<TLog>, U>> selector,
         Func<T, U, V> resultSelector)
     {
-        return writer.FlatMap(t =>
+        return writer.Bind(t =>
             selector(t).Map(u =>
                 resultSelector(t, u)), (a, b) => a.Concat(b).ToList());
     }

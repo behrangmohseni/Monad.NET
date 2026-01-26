@@ -14,7 +14,7 @@ public class ReaderTests
     [Fact]
     public void Pure_CreatesReaderWithConstantValue()
     {
-        var reader = Reader<TestEnvironment, int>.Pure(42);
+        var reader = Reader<TestEnvironment, int>.Return(42);
         var env = new TestEnvironment();
 
         Assert.Equal(42, reader.Run(env));
@@ -42,7 +42,7 @@ public class ReaderTests
     [Fact]
     public void Map_TransformsResult()
     {
-        var reader = Reader<TestEnvironment, int>.Pure(42);
+        var reader = Reader<TestEnvironment, int>.Return(42);
         var mapped = reader.Map(x => x * 2);
         var env = new TestEnvironment();
 
@@ -53,8 +53,8 @@ public class ReaderTests
     public void FlatMap_ChainsReaders()
     {
         var reader1 = Reader<TestEnvironment, int>.Asks(env => env.Timeout);
-        var reader2 = reader1.FlatMap(timeout =>
-            Reader<TestEnvironment, string>.Pure($"Timeout: {timeout}")
+        var reader2 = reader1.Bind(timeout =>
+            Reader<TestEnvironment, string>.Return($"Timeout: {timeout}")
         );
         var env = new TestEnvironment { Timeout = 30 };
 
@@ -98,9 +98,9 @@ public class ReaderTests
     {
         var readers = new[]
         {
-            Reader<TestEnvironment, int>.Pure(1),
-            Reader<TestEnvironment, int>.Pure(2),
-            Reader<TestEnvironment, int>.Pure(3)
+            Reader<TestEnvironment, int>.Return(1),
+            Reader<TestEnvironment, int>.Return(2),
+            Reader<TestEnvironment, int>.Return(3)
         };
 
         var sequenced = readers.Sequence();

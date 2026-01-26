@@ -41,8 +41,8 @@ public static class TryExamples
         // Chaining with FlatMap
         Console.WriteLine("\n5. Chaining with FlatMap:");
         var flatMapped = Try<string>.Of(() => "42")
-            .FlatMap(s => Try<int>.Of(() => int.Parse(s)))
-            .FlatMap(n => Try<double>.Of(() => n / 2.0));
+            .Bind(s => Try<int>.Of(() => int.Parse(s)))
+            .Bind(n => Try<double>.Of(() => n / 2.0));
         Console.WriteLine($"   \"42\" -> parse -> divide: {flatMapped}");
 
         // Recovery
@@ -58,9 +58,9 @@ public static class TryExamples
 
         // GetOrElse
         Console.WriteLine("\n7. Default Values:");
-        Console.WriteLine($"   Success.GetOrElse(0):    {success.GetOrElse(0)}");
-        Console.WriteLine($"   Failure.GetOrElse(0):    {failed.GetOrElse(0)}");
-        Console.WriteLine($"   Failure.GetOrElse(fn):   {failed.GetOrElse(() => DateTime.Now.Second)}");
+        Console.WriteLine($"   Success.GetValueOr(0):    {success.GetValueOr(0)}");
+        Console.WriteLine($"   Failure.GetValueOr(0):    {failed.GetValueOr(0)}");
+        Console.WriteLine($"   Failure.GetValueOr(fn):   {failed.GetValueOrElse(() => DateTime.Now.Second)}");
 
         // Filter
         Console.WriteLine("\n8. Filtering:");

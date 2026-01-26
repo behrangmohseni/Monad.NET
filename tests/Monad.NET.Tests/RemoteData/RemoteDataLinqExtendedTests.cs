@@ -17,7 +17,7 @@ public class RemoteDataLinqExtendedTests
                      select x * 2;
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -48,7 +48,7 @@ public class RemoteDataLinqExtendedTests
                      select x * 2;
 
         Assert.True(result.IsFailure);
-        Assert.Equal("error", result.UnwrapError());
+        Assert.Equal("error", result.GetError());
     }
 
     #endregion
@@ -66,7 +66,7 @@ public class RemoteDataLinqExtendedTests
                      select x + y;
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -125,7 +125,7 @@ public class RemoteDataLinqExtendedTests
                      select $"{n}, {a}, {c}";
 
         Assert.True(result.IsSuccess);
-        Assert.Equal("John, 30, NYC", result.Unwrap());
+        Assert.Equal("John, 30, NYC", result.GetValue());
     }
 
     [Fact]

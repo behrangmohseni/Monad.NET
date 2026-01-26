@@ -56,15 +56,15 @@ public static class OptionExamples
                 : Option<string>.None();
 
         var email = Option<string>.Some("user@example.com");
-        var domain = email.AndThen(GetEmailDomain);
+        var domain = email.Bind(GetEmailDomain);
         Console.WriteLine($"   Email: {email}");
         Console.WriteLine($"   Domain: {domain}");
 
         // Default values with UnwrapOr
         Console.WriteLine("\n7. Default Values:");
-        Console.WriteLine($"   Some(42).UnwrapOr(0): {some.UnwrapOr(0)}");
-        Console.WriteLine($"   None.UnwrapOr(0):     {none.UnwrapOr(0)}");
-        Console.WriteLine($"   None.UnwrapOrElse(() => GetDefault()): {none.UnwrapOrElse(() => 100)}");
+        Console.WriteLine($"   Some(42).GetValueOr(0): {some.GetValueOr(0)}");
+        Console.WriteLine($"   None.GetValueOr(0):     {none.GetValueOr(0)}");
+        Console.WriteLine($"   None.GetValueOrElse(() => GetDefault()): {none.GetValueOrElse(() => 100)}");
 
         // Method chaining
         Console.WriteLine("\n8. Method Chaining:");
@@ -72,7 +72,7 @@ public static class OptionExamples
             .Map(s => s.Trim())
             .Filter(s => s.Length > 5)
             .Map(s => s.ToUpper())
-            .UnwrapOr("DEFAULT");
+            .GetValueOr("DEFAULT");
         Console.WriteLine($"   Result: {result}");
 
         // Combining Options with Zip

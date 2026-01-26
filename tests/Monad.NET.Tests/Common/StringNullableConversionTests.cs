@@ -11,7 +11,7 @@ public class StringNullableConversionTests
     {
         var result = "hello".ToOptionNotEmpty();
         Assert.True(result.IsSome);
-        Assert.Equal("hello", result.Unwrap());
+        Assert.Equal("hello", result.GetValue());
     }
 
     [Fact]
@@ -35,7 +35,7 @@ public class StringNullableConversionTests
         // Whitespace is not empty
         var result = "   ".ToOptionNotEmpty();
         Assert.True(result.IsSome);
-        Assert.Equal("   ", result.Unwrap());
+        Assert.Equal("   ", result.GetValue());
     }
 
     [Fact]
@@ -43,7 +43,7 @@ public class StringNullableConversionTests
     {
         var result = "hello".ToOptionNotWhiteSpace();
         Assert.True(result.IsSome);
-        Assert.Equal("hello", result.Unwrap());
+        Assert.Equal("hello", result.GetValue());
     }
 
     [Fact]
@@ -73,7 +73,7 @@ public class StringNullableConversionTests
     {
         var result = "  hello  ".ToOptionTrimmed();
         Assert.True(result.IsSome);
-        Assert.Equal("hello", result.Unwrap());
+        Assert.Equal("hello", result.GetValue());
     }
 
     [Fact]
@@ -103,7 +103,7 @@ public class StringNullableConversionTests
     {
         var result = "hello".ToOptionTrimmed();
         Assert.True(result.IsSome);
-        Assert.Equal("hello", result.Unwrap());
+        Assert.Equal("hello", result.GetValue());
     }
 
     #endregion
@@ -115,7 +115,7 @@ public class StringNullableConversionTests
     {
         var result = "42".ParseInt();
         Assert.True(result.IsSome);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -138,7 +138,7 @@ public class StringNullableConversionTests
     {
         var result = "-42".ParseInt();
         Assert.True(result.IsSome);
-        Assert.Equal(-42, result.Unwrap());
+        Assert.Equal(-42, result.GetValue());
     }
 
     [Fact]
@@ -146,7 +146,7 @@ public class StringNullableConversionTests
     {
         var result = "9223372036854775807".ParseLong();
         Assert.True(result.IsSome);
-        Assert.Equal(long.MaxValue, result.Unwrap());
+        Assert.Equal(long.MaxValue, result.GetValue());
     }
 
     [Fact]
@@ -161,7 +161,7 @@ public class StringNullableConversionTests
     {
         var result = "3.14".ParseDouble();
         Assert.True(result.IsSome);
-        Assert.Equal(3.14, result.Unwrap(), 2);
+        Assert.Equal(3.14, result.GetValue(), 2);
     }
 
     [Fact]
@@ -176,7 +176,7 @@ public class StringNullableConversionTests
     {
         var result = "123.45".ParseDecimal();
         Assert.True(result.IsSome);
-        Assert.Equal(123.45m, result.Unwrap());
+        Assert.Equal(123.45m, result.GetValue());
     }
 
     [Fact]
@@ -191,7 +191,7 @@ public class StringNullableConversionTests
     {
         var result = "true".ParseBool();
         Assert.True(result.IsSome);
-        Assert.True(result.Unwrap());
+        Assert.True(result.GetValue());
     }
 
     [Fact]
@@ -199,7 +199,7 @@ public class StringNullableConversionTests
     {
         var result = "false".ParseBool();
         Assert.True(result.IsSome);
-        Assert.False(result.Unwrap());
+        Assert.False(result.GetValue());
     }
 
     [Fact]
@@ -215,7 +215,7 @@ public class StringNullableConversionTests
         var guidString = "550e8400-e29b-41d4-a716-446655440000";
         var result = guidString.ParseGuid();
         Assert.True(result.IsSome);
-        Assert.Equal(Guid.Parse(guidString), result.Unwrap());
+        Assert.Equal(Guid.Parse(guidString), result.GetValue());
     }
 
     [Fact]
@@ -230,7 +230,7 @@ public class StringNullableConversionTests
     {
         var result = "2024-01-15".ParseDateTime();
         Assert.True(result.IsSome);
-        Assert.Equal(new DateTime(2024, 1, 15), result.Unwrap().Date);
+        Assert.Equal(new DateTime(2024, 1, 15), result.GetValue().Date);
     }
 
     [Fact]
@@ -259,7 +259,7 @@ public class StringNullableConversionTests
     {
         var result = "01:30:00".ParseTimeSpan();
         Assert.True(result.IsSome);
-        Assert.Equal(TimeSpan.FromHours(1.5), result.Unwrap());
+        Assert.Equal(TimeSpan.FromHours(1.5), result.GetValue());
     }
 
     [Fact]
@@ -274,7 +274,7 @@ public class StringNullableConversionTests
     {
         var result = "Monday".ParseEnum<DayOfWeek>();
         Assert.True(result.IsSome);
-        Assert.Equal(DayOfWeek.Monday, result.Unwrap());
+        Assert.Equal(DayOfWeek.Monday, result.GetValue());
     }
 
     [Fact]
@@ -282,7 +282,7 @@ public class StringNullableConversionTests
     {
         var result = "monday".ParseEnum<DayOfWeek>();
         Assert.True(result.IsSome);
-        Assert.Equal(DayOfWeek.Monday, result.Unwrap());
+        Assert.Equal(DayOfWeek.Monday, result.GetValue());
     }
 
     [Fact]
@@ -309,7 +309,7 @@ public class StringNullableConversionTests
         var dict = new Dictionary<string, int> { ["a"] = 1, ["b"] = 2 };
         var result = dict.GetOption("a");
         Assert.True(result.IsSome);
-        Assert.Equal(1, result.Unwrap());
+        Assert.Equal(1, result.GetValue());
     }
 
     [Fact]
@@ -326,7 +326,7 @@ public class StringNullableConversionTests
         var dict = new Dictionary<int, string> { [1] = "one", [2] = "two" };
         var result = dict.GetOption(1);
         Assert.True(result.IsSome);
-        Assert.Equal("one", result.Unwrap());
+        Assert.Equal("one", result.GetValue());
     }
 
     [Fact]
@@ -346,7 +346,7 @@ public class StringNullableConversionTests
     {
         var result = new[] { 1, 2, 3 }.FirstOption();
         Assert.True(result.IsSome);
-        Assert.Equal(1, result.Unwrap());
+        Assert.Equal(1, result.GetValue());
     }
 
     [Fact]
@@ -361,7 +361,7 @@ public class StringNullableConversionTests
     {
         var result = new[] { 1, 2, 3 }.FirstOption(x => x > 1);
         Assert.True(result.IsSome);
-        Assert.Equal(2, result.Unwrap());
+        Assert.Equal(2, result.GetValue());
     }
 
     [Fact]
@@ -377,7 +377,7 @@ public class StringNullableConversionTests
         var list = new List<int> { 1, 2, 3 };
         var result = list.FirstOption();
         Assert.True(result.IsSome);
-        Assert.Equal(1, result.Unwrap());
+        Assert.Equal(1, result.GetValue());
     }
 
     [Fact]
@@ -385,7 +385,7 @@ public class StringNullableConversionTests
     {
         var result = new[] { 1, 2, 3 }.LastOption();
         Assert.True(result.IsSome);
-        Assert.Equal(3, result.Unwrap());
+        Assert.Equal(3, result.GetValue());
     }
 
     [Fact]
@@ -400,7 +400,7 @@ public class StringNullableConversionTests
     {
         var result = new[] { 42 }.LastOption();
         Assert.True(result.IsSome);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -409,7 +409,7 @@ public class StringNullableConversionTests
         var list = new List<int> { 1, 2, 3 };
         var result = list.LastOption();
         Assert.True(result.IsSome);
-        Assert.Equal(3, result.Unwrap());
+        Assert.Equal(3, result.GetValue());
     }
 
     [Fact]
@@ -417,7 +417,7 @@ public class StringNullableConversionTests
     {
         var result = new[] { 42 }.SingleOption();
         Assert.True(result.IsSome);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -440,7 +440,7 @@ public class StringNullableConversionTests
         var list = new List<int> { 42 };
         var result = list.SingleOption();
         Assert.True(result.IsSome);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -448,7 +448,7 @@ public class StringNullableConversionTests
     {
         var result = new[] { 1, 2, 3 }.ElementAtOption(1);
         Assert.True(result.IsSome);
-        Assert.Equal(2, result.Unwrap());
+        Assert.Equal(2, result.GetValue());
     }
 
     [Fact]
@@ -471,7 +471,7 @@ public class StringNullableConversionTests
         var list = new List<int> { 1, 2, 3 };
         var result = list.ElementAtOption(1);
         Assert.True(result.IsSome);
-        Assert.Equal(2, result.Unwrap());
+        Assert.Equal(2, result.GetValue());
     }
 
     [Fact]
@@ -479,7 +479,7 @@ public class StringNullableConversionTests
     {
         var result = Enumerable.Range(1, 5).ElementAtOption(2);
         Assert.True(result.IsSome);
-        Assert.Equal(3, result.Unwrap());
+        Assert.Equal(3, result.GetValue());
     }
 
     #endregion
@@ -491,10 +491,10 @@ public class StringNullableConversionTests
     {
         var result = "42"
             .ToOptionNotWhiteSpace()
-            .AndThen(s => s.ParseInt());
+            .Bind(s => s.ParseInt());
 
         Assert.True(result.IsSome);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -502,7 +502,7 @@ public class StringNullableConversionTests
     {
         var result = "   "
             .ToOptionNotWhiteSpace()
-            .AndThen(s => s.ParseInt());
+            .Bind(s => s.ParseInt());
 
         Assert.True(result.IsNone);
     }
@@ -513,11 +513,11 @@ public class StringNullableConversionTests
         var dict = new Dictionary<string, string> { ["name"] = "  john  " };
 
         var result = dict.GetOption("name")
-            .AndThen(s => s.ToOptionTrimmed())
+            .Bind(s => s.ToOptionTrimmed())
             .Map(s => s.ToUpper());
 
         Assert.True(result.IsSome);
-        Assert.Equal("JOHN", result.Unwrap());
+        Assert.Equal("JOHN", result.GetValue());
     }
 
     #endregion

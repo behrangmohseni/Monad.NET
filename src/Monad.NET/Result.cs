@@ -91,37 +91,9 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// <summary>
     /// Returns the contained Ok value.
     /// </summary>
-    /// <param name="message">The panic message if Err</param>
     /// <exception cref="InvalidOperationException">Thrown if the value is Err</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T Expect(string message)
-    {
-        if (!_isOk)
-            ThrowHelper.ThrowInvalidOperation($"{message}: {_error}");
-
-        return _value!;
-    }
-
-    /// <summary>
-    /// Returns the contained Err value.
-    /// </summary>
-    /// <param name="message">The panic message if Ok</param>
-    /// <exception cref="InvalidOperationException">Thrown if the value is Ok</exception>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public TErr ExpectErr(string message)
-    {
-        if (_isOk)
-            ThrowHelper.ThrowInvalidOperation($"{message}: {_value}");
-
-        return _error!;
-    }
-
-    /// <summary>
-    /// Returns the contained Ok value.
-    /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the value is Err</exception>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T Unwrap()
+    public T GetValue()
     {
         if (!_isOk)
             ThrowHelper.ThrowResultIsErr(_error!);
@@ -134,7 +106,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the value is Ok</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public TErr UnwrapErr()
+    public TErr GetError()
     {
         if (_isOk)
             ThrowHelper.ThrowResultIsOk(_value!);
@@ -146,7 +118,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// Returns the contained Ok value or a default value.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T UnwrapOr(T defaultValue)
+    public T GetValueOr(T defaultValue)
     {
         return _isOk ? _value! : defaultValue;
     }
@@ -155,7 +127,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// Returns the contained Ok value or computes it from the error.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T UnwrapOrElse(Func<TErr, T> op)
+    public T GetValueOrElse(Func<TErr, T> op)
     {
         return _isOk ? _value! : op(_error!);
     }
@@ -164,14 +136,13 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// Returns the contained Ok value or a default value of type T.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T? UnwrapOrDefault()
+    public T? GetValueOrDefault()
     {
         return _isOk ? _value : default;
     }
 
     /// <summary>
     /// Returns the contained Ok value, or throws an <see cref="InvalidOperationException"/> if Err.
-    /// This is an alias for <see cref="Unwrap"/> with more explicit C# naming.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the Result is Err</exception>
     /// <example>
@@ -195,7 +166,6 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// <summary>
     /// Returns the contained Ok value, or throws an <see cref="InvalidOperationException"/> 
     /// with the specified message if Err.
-    /// This is an alias for <see cref="Expect"/> with more explicit C# naming.
     /// </summary>
     /// <param name="message">The exception message if Err</param>
     /// <exception cref="InvalidOperationException">Thrown if the Result is Err</exception>
@@ -219,7 +189,6 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
 
     /// <summary>
     /// Returns the contained Err value, or throws an <see cref="InvalidOperationException"/> if Ok.
-    /// This is an alias for <see cref="UnwrapErr"/> with more explicit C# naming.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the Result is Ok</exception>
     /// <example>
@@ -243,7 +212,6 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// <summary>
     /// Returns the contained Err value, or throws an <see cref="InvalidOperationException"/> 
     /// with the specified message if Ok.
-    /// This is an alias for <see cref="ExpectErr"/> with more explicit C# naming.
     /// </summary>
     /// <param name="message">The exception message if Ok</param>
     /// <exception cref="InvalidOperationException">Thrown if the Result is Ok</exception>
@@ -397,7 +365,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// Maps a Result&lt;T, TErr&gt; to Result&lt;T, F&gt; by applying a function to a contained Err value.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Result<T, F> MapErr<F>(Func<TErr, F> mapper)
+    public Result<T, F> MapError<F>(Func<TErr, F> mapper)
     {
         return _isOk ? Result<T, F>.Ok(_value!) : Result<T, F>.Err(mapper(_error!));
     }
@@ -519,27 +487,13 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
 
     /// <summary>
     /// Calls the function if the result is Ok, otherwise returns the Err value.
-    /// This function can be used for control flow based on Result values.
+    /// This is the monadic bind operation for control flow based on Result values.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Result<U, TErr> AndThen<U>(Func<T, Result<U, TErr>> binder)
+    public Result<U, TErr> Bind<U>(Func<T, Result<U, TErr>> binder)
     {
         return _isOk ? binder(_value!) : Result<U, TErr>.Err(_error!);
     }
-
-    /// <summary>
-    /// Chains operations that may fail.
-    /// Alias for <see cref="AndThen{U}"/>.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Result<U, TErr> FlatMap<U>(Func<T, Result<U, TErr>> binder) => AndThen(binder);
-
-    /// <summary>
-    /// Chains operations that may fail.
-    /// Alias for <see cref="AndThen{U}"/>.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Result<U, TErr> Bind<U>(Func<T, Result<U, TErr>> binder) => AndThen(binder);
 
     /// <summary>
     /// Combines this Result with another into a tuple.
@@ -561,8 +515,8 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
         if (!_isOk)
             return Result<(T, U), TErr>.Err(_error!);
         if (!other.IsOk)
-            return Result<(T, U), TErr>.Err(other.UnwrapErr());
-        return Result<(T, U), TErr>.Ok((_value!, other.Unwrap()));
+            return Result<(T, U), TErr>.Err(other.GetError());
+        return Result<(T, U), TErr>.Ok((_value!, other.GetValue()));
     }
 
     /// <summary>
@@ -587,8 +541,8 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
         if (!_isOk)
             return Result<V, TErr>.Err(_error!);
         if (!other.IsOk)
-            return Result<V, TErr>.Err(other.UnwrapErr());
-        return Result<V, TErr>.Ok(combiner(_value!, other.Unwrap()));
+            return Result<V, TErr>.Err(other.GetError());
+        return Result<V, TErr>.Ok(combiner(_value!, other.GetValue()));
     }
 
     /// <summary>
@@ -846,7 +800,7 @@ public static class ResultExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Result<T, TErr> Flatten<T, TErr>(this Result<Result<T, TErr>, TErr> result)
     {
-        return result.AndThen(static inner => inner);
+        return result.Bind(static inner => inner);
     }
 
     /// <summary>
@@ -871,7 +825,7 @@ public static class ResultExtensions
     public static Result<T, TErr> Tap<T, TErr>(this Result<T, TErr> result, Action<T> action)
     {
         if (result.IsOk)
-            action(result.Unwrap());
+            action(result.GetValue());
 
         return result;
     }
@@ -883,7 +837,7 @@ public static class ResultExtensions
     public static Result<T, TErr> TapErr<T, TErr>(this Result<T, TErr> result, Action<TErr> action)
     {
         if (result.IsErr)
-            action(result.UnwrapErr());
+            action(result.GetError());
 
         return result;
     }
@@ -915,7 +869,7 @@ public static class ResultExtensions
         if (result.IsErr)
             throw exception;
 
-        return result.Unwrap();
+        return result.GetValue();
     }
 
     /// <summary>
@@ -939,9 +893,9 @@ public static class ResultExtensions
         ThrowHelper.ThrowIfNull(exceptionFactory);
 
         if (result.IsErr)
-            throw exceptionFactory(result.UnwrapErr());
+            throw exceptionFactory(result.GetError());
 
-        return result.Unwrap();
+        return result.GetValue();
     }
 
     /// <summary>
@@ -993,10 +947,10 @@ public static class ResultExtensions
         Result<T2, TErr> second)
     {
         if (first.IsErr)
-            return Result<(T1, T2), TErr>.Err(first.UnwrapErr());
+            return Result<(T1, T2), TErr>.Err(first.GetError());
         if (second.IsErr)
-            return Result<(T1, T2), TErr>.Err(second.UnwrapErr());
-        return Result<(T1, T2), TErr>.Ok((first.Unwrap(), second.Unwrap()));
+            return Result<(T1, T2), TErr>.Err(second.GetError());
+        return Result<(T1, T2), TErr>.Ok((first.GetValue(), second.GetValue()));
     }
 
     /// <summary>
@@ -1019,10 +973,10 @@ public static class ResultExtensions
         Func<T1, T2, TResult> combiner)
     {
         if (first.IsErr)
-            return Result<TResult, TErr>.Err(first.UnwrapErr());
+            return Result<TResult, TErr>.Err(first.GetError());
         if (second.IsErr)
-            return Result<TResult, TErr>.Err(second.UnwrapErr());
-        return Result<TResult, TErr>.Ok(combiner(first.Unwrap(), second.Unwrap()));
+            return Result<TResult, TErr>.Err(second.GetError());
+        return Result<TResult, TErr>.Ok(combiner(first.GetValue(), second.GetValue()));
     }
 
     /// <summary>
@@ -1036,12 +990,12 @@ public static class ResultExtensions
         Result<T3, TErr> third)
     {
         if (first.IsErr)
-            return Result<(T1, T2, T3), TErr>.Err(first.UnwrapErr());
+            return Result<(T1, T2, T3), TErr>.Err(first.GetError());
         if (second.IsErr)
-            return Result<(T1, T2, T3), TErr>.Err(second.UnwrapErr());
+            return Result<(T1, T2, T3), TErr>.Err(second.GetError());
         if (third.IsErr)
-            return Result<(T1, T2, T3), TErr>.Err(third.UnwrapErr());
-        return Result<(T1, T2, T3), TErr>.Ok((first.Unwrap(), second.Unwrap(), third.Unwrap()));
+            return Result<(T1, T2, T3), TErr>.Err(third.GetError());
+        return Result<(T1, T2, T3), TErr>.Ok((first.GetValue(), second.GetValue(), third.GetValue()));
     }
 
     /// <summary>
@@ -1056,12 +1010,12 @@ public static class ResultExtensions
         Func<T1, T2, T3, TResult> combiner)
     {
         if (first.IsErr)
-            return Result<TResult, TErr>.Err(first.UnwrapErr());
+            return Result<TResult, TErr>.Err(first.GetError());
         if (second.IsErr)
-            return Result<TResult, TErr>.Err(second.UnwrapErr());
+            return Result<TResult, TErr>.Err(second.GetError());
         if (third.IsErr)
-            return Result<TResult, TErr>.Err(third.UnwrapErr());
-        return Result<TResult, TErr>.Ok(combiner(first.Unwrap(), second.Unwrap(), third.Unwrap()));
+            return Result<TResult, TErr>.Err(third.GetError());
+        return Result<TResult, TErr>.Ok(combiner(first.GetValue(), second.GetValue(), third.GetValue()));
     }
 
     /// <summary>
@@ -1076,14 +1030,14 @@ public static class ResultExtensions
         Result<T4, TErr> fourth)
     {
         if (first.IsErr)
-            return Result<(T1, T2, T3, T4), TErr>.Err(first.UnwrapErr());
+            return Result<(T1, T2, T3, T4), TErr>.Err(first.GetError());
         if (second.IsErr)
-            return Result<(T1, T2, T3, T4), TErr>.Err(second.UnwrapErr());
+            return Result<(T1, T2, T3, T4), TErr>.Err(second.GetError());
         if (third.IsErr)
-            return Result<(T1, T2, T3, T4), TErr>.Err(third.UnwrapErr());
+            return Result<(T1, T2, T3, T4), TErr>.Err(third.GetError());
         if (fourth.IsErr)
-            return Result<(T1, T2, T3, T4), TErr>.Err(fourth.UnwrapErr());
-        return Result<(T1, T2, T3, T4), TErr>.Ok((first.Unwrap(), second.Unwrap(), third.Unwrap(), fourth.Unwrap()));
+            return Result<(T1, T2, T3, T4), TErr>.Err(fourth.GetError());
+        return Result<(T1, T2, T3, T4), TErr>.Ok((first.GetValue(), second.GetValue(), third.GetValue(), fourth.GetValue()));
     }
 
     /// <summary>
@@ -1099,14 +1053,14 @@ public static class ResultExtensions
         Func<T1, T2, T3, T4, TResult> combiner)
     {
         if (first.IsErr)
-            return Result<TResult, TErr>.Err(first.UnwrapErr());
+            return Result<TResult, TErr>.Err(first.GetError());
         if (second.IsErr)
-            return Result<TResult, TErr>.Err(second.UnwrapErr());
+            return Result<TResult, TErr>.Err(second.GetError());
         if (third.IsErr)
-            return Result<TResult, TErr>.Err(third.UnwrapErr());
+            return Result<TResult, TErr>.Err(third.GetError());
         if (fourth.IsErr)
-            return Result<TResult, TErr>.Err(fourth.UnwrapErr());
-        return Result<TResult, TErr>.Ok(combiner(first.Unwrap(), second.Unwrap(), third.Unwrap(), fourth.Unwrap()));
+            return Result<TResult, TErr>.Err(fourth.GetError());
+        return Result<TResult, TErr>.Ok(combiner(first.GetValue(), second.GetValue(), third.GetValue(), fourth.GetValue()));
     }
 
     /// <summary>
@@ -1126,8 +1080,8 @@ public static class ResultExtensions
         foreach (var result in results)
         {
             if (result.IsErr)
-                return Result<IReadOnlyList<T>, TErr>.Err(result.UnwrapErr());
-            list.Add(result.Unwrap());
+                return Result<IReadOnlyList<T>, TErr>.Err(result.GetError());
+            list.Add(result.GetValue());
         }
         return Result<IReadOnlyList<T>, TErr>.Ok(list);
     }
@@ -1149,7 +1103,7 @@ public static class ResultExtensions
         foreach (var result in results)
         {
             if (result.IsErr)
-                return Result<Unit, TErr>.Err(result.UnwrapErr());
+                return Result<Unit, TErr>.Err(result.GetError());
         }
         return Result<Unit, TErr>.Ok(Unit.Value);
     }
@@ -1300,7 +1254,7 @@ internal sealed class ResultDebugView<T, TErr>
     public bool IsErr => _result.IsErr;
 
     [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-    public object? Value => _result.IsOk ? _result.Unwrap() : null;
+    public object? Value => _result.IsOk ? _result.GetValue() : null;
 
-    public object? Error => _result.IsErr ? _result.UnwrapErr() : null;
+    public object? Error => _result.IsErr ? _result.GetError() : null;
 }

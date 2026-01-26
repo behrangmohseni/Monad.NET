@@ -63,7 +63,7 @@ name.Match(
 // Or chain operations
 var result = GetUserName().ToOption()
     .Map(n => n.ToUpper())
-    .UnwrapOr("Anonymous");
+    .GetValueOr("Anonymous");
 
 // Conditional creation with When/Unless
 var discount = OptionExtensions.When(order.Total > 100, () => 0.1m);
@@ -104,8 +104,8 @@ result.Match(
 // Or chain operations
 var output = ResultExtensions.Try(() => int.Parse(input))
     .Map(x => x * 2)
-    .AndThen(x => Validate(x))
-    .UnwrapOr(0);
+    .Bind(x => Validate(x))
+    .GetValueOr(0);
 
 // Transform both success and error types with BiMap
 var adapted = apiResult.BiMap(
@@ -219,9 +219,9 @@ Chain operations that might fail:
 
 ```csharp
 var result = ParseInput(data)
-    .AndThen(Validate)
-    .AndThen(Transform)
-    .AndThen(Save)
+    .Bind(Validate)
+    .Bind(Transform)
+    .Bind(Save)
     .Tap(x => Log($"Success: {x}"))
     .TapErr(e => Log($"Error: {e}"));
 ```
@@ -313,7 +313,7 @@ string Describe(PaymentMethod method) => method.Match(
 // Safe casting with As{Case}()
 var cardNumber = method.AsCreditCard()
     .Map(cc => cc.Number)
-    .UnwrapOr("N/A");
+    .GetValueOr("N/A");
 ```
 
 ## Entity Framework Core Integration

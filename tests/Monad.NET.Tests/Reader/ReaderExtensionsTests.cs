@@ -11,7 +11,7 @@ public class ReaderExtensionsTests
     [Fact]
     public void Pure_CreatesReaderReturningValue()
     {
-        var reader = Reader<TestEnvironment, int>.Pure(42);
+        var reader = Reader<TestEnvironment, int>.Return(42);
         var result = reader.Run(new TestEnvironment("test", 100));
 
         Assert.Equal(42, result);
@@ -61,7 +61,7 @@ public class ReaderExtensionsTests
     {
         var reader = Reader<TestEnvironment, int>.Asks(e => e.Value);
 
-        var chained = reader.FlatMap(v =>
+        var chained = reader.Bind(v =>
             Reader<TestEnvironment, string>.Asks(e => $"{e.Name}:{v}"));
 
         var result = chained.Run(new TestEnvironment("test", 42));
@@ -75,7 +75,7 @@ public class ReaderExtensionsTests
         var reader = Reader<TestEnvironment, int>.Asks(e => e.Value);
 
         Assert.Throws<ArgumentNullException>(() =>
-            reader.FlatMap<int>(null!));
+            reader.Bind<int>(null!));
     }
 
     [Fact]
@@ -125,9 +125,9 @@ public class ReaderExtensionsTests
     public void Flatten_UnwrapsNestedReader()
     {
         var inner = Reader<TestEnvironment, int>.Asks(e => e.Value);
-        var outer = Reader<TestEnvironment, Reader<TestEnvironment, int>>.Pure(inner);
+        var outer = Reader<TestEnvironment, Reader<TestEnvironment, int>>.Return(inner);
 
-        var flattened = outer.FlatMap(r => r);
+        var flattened = outer.Bind(r => r);
         var result = flattened.Run(new TestEnvironment("test", 42));
 
         Assert.Equal(42, result);

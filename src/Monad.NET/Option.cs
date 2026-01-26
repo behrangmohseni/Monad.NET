@@ -82,23 +82,9 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     /// <summary>
     /// Returns the contained Some value.
     /// </summary>
-    /// <param name="message">The panic message if None</param>
     /// <exception cref="InvalidOperationException">Thrown if the value is None</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T Expect(string message)
-    {
-        if (!_isSome)
-            ThrowHelper.ThrowInvalidOperation(message);
-
-        return _value!;
-    }
-
-    /// <summary>
-    /// Returns the contained Some value.
-    /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the value is None</exception>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T Unwrap()
+    public T GetValue()
     {
         if (!_isSome)
             ThrowHelper.ThrowOptionIsNone();
@@ -110,7 +96,7 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     /// Returns the contained Some value or a default value.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T UnwrapOr(T defaultValue)
+    public T GetValueOr(T defaultValue)
     {
         return _isSome ? _value! : defaultValue;
     }
@@ -119,7 +105,7 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     /// Returns the contained Some value or computes it from a function.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T UnwrapOrElse(Func<T> defaultFunc)
+    public T GetValueOrElse(Func<T> defaultFunc)
     {
         return _isSome ? _value! : defaultFunc();
     }
@@ -128,14 +114,13 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     /// Returns the contained Some value or a default value of type T.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T? UnwrapOrDefault()
+    public T? GetValueOrDefault()
     {
         return _isSome ? _value : default;
     }
 
     /// <summary>
     /// Returns the contained Some value, or throws an <see cref="InvalidOperationException"/> if None.
-    /// This is an alias for <see cref="Unwrap"/> with more explicit C# naming.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the value is None</exception>
     /// <example>
@@ -159,7 +144,6 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     /// <summary>
     /// Returns the contained Some value, or throws an <see cref="InvalidOperationException"/> 
     /// with the specified message if None.
-    /// This is an alias for <see cref="Expect"/> with more explicit C# naming.
     /// </summary>
     /// <param name="message">The exception message if None</param>
     /// <exception cref="InvalidOperationException">Thrown if the value is None</exception>
@@ -281,10 +265,10 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
 
     /// <summary>
     /// Returns None if the option is None, otherwise calls the function with the wrapped value and returns the result.
-    /// Some languages call this operation flatmap.
+    /// This is the monadic bind operation.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Option<U> AndThen<U>(Func<T, Option<U>> binder)
+    public Option<U> Bind<U>(Func<T, Option<U>> binder)
     {
         return _isSome ? binder(_value!) : Option<U>.None();
     }
@@ -307,7 +291,7 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     public Option<(T, U)> Zip<U>(Option<U> other)
     {
         return _isSome && other.IsSome
-            ? Option<(T, U)>.Some((_value!, other.Unwrap()))
+            ? Option<(T, U)>.Some((_value!, other.GetValue()))
             : Option<(T, U)>.None();
     }
 
@@ -331,7 +315,7 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     public Option<V> ZipWith<U, V>(Option<U> other, Func<T, U, V> combiner)
     {
         return _isSome && other.IsSome
-            ? Option<V>.Some(combiner(_value!, other.Unwrap()))
+            ? Option<V>.Some(combiner(_value!, other.GetValue()))
             : Option<V>.None();
     }
 
@@ -424,7 +408,7 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     /// <example>
     /// <code>
     /// option.TapNone(() => Console.WriteLine("No value found"))
-    ///       .UnwrapOr(defaultValue);
+    ///       .GetValueOr(defaultValue);
     /// </code>
     /// </example>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -783,7 +767,7 @@ public static class OptionExtensions
         if (option.IsNone)
             throw exception;
 
-        return option.Unwrap();
+        return option.GetValue();
     }
 
     /// <summary>
@@ -808,7 +792,7 @@ public static class OptionExtensions
         if (option.IsNone)
             throw exceptionFactory();
 
-        return option.Unwrap();
+        return option.GetValue();
     }
 
     #endregion
@@ -837,7 +821,7 @@ public static class OptionExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Option<T> Flatten<T>(this Option<Option<T>> option)
     {
-        return option.AndThen(static inner => inner);
+        return option.Bind(static inner => inner);
     }
 
     /// <summary>
@@ -880,7 +864,7 @@ public static class OptionExtensions
     public static Option<TTarget> OfType<TSource, TTarget>(this Option<TSource> option)
         where TTarget : class
     {
-        return option.AndThen(value => value is TTarget target
+        return option.Bind(value => value is TTarget target
             ? Option<TTarget>.Some(target)
             : Option<TTarget>.None());
     }
@@ -904,7 +888,7 @@ public static class OptionExtensions
     public static Option<TTarget> OfTypeValue<TSource, TTarget>(this Option<TSource> option)
         where TTarget : struct
     {
-        return option.AndThen(value => value is TTarget target
+        return option.Bind(value => value is TTarget target
             ? Option<TTarget>.Some(target)
             : Option<TTarget>.None());
     }
@@ -929,7 +913,7 @@ public static class OptionExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Option<TTarget> OfType<TTarget>(this Option<object> option)
     {
-        return option.AndThen(value => value is TTarget target
+        return option.Bind(value => value is TTarget target
             ? Option<TTarget>.Some(target)
             : Option<TTarget>.None());
     }
@@ -1430,5 +1414,5 @@ internal sealed class OptionDebugView<T>
     public bool IsNone => _option.IsNone;
 
     [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-    public object? Value => _option.IsSome ? _option.Unwrap() : null;
+    public object? Value => _option.IsSome ? _option.GetValue() : null;
 }

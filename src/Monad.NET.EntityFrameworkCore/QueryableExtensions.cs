@@ -73,8 +73,8 @@ public static class QueryableExtensions
         var isSomeAccess = Expression.Property(optionAccess, isSomeProperty);
         var filterLambda = Expression.Lambda<Func<TSource, bool>>(isSomeAccess, parameter);
 
-        // Then unwrap the value
-        var unwrapMethod = typeof(Option<TProperty>).GetMethod(nameof(Option<TProperty>.Unwrap))!;
+        // Then get the value
+        var unwrapMethod = typeof(Option<TProperty>).GetMethod(nameof(Option<TProperty>.GetValue))!;
         var unwrapCall = Expression.Call(optionAccess, unwrapMethod);
         var selectLambda = Expression.Lambda<Func<TSource, TProperty>>(unwrapCall, parameter);
 

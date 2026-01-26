@@ -107,7 +107,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the validation is invalid</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T Unwrap()
+    public T GetValue()
     {
         if (!_isValid)
             ThrowHelper.ThrowValidationIsInvalid(_errors!);
@@ -120,7 +120,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the validation is valid</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public IReadOnlyList<TErr> UnwrapErrors()
+    public IReadOnlyList<TErr> GetErrors()
     {
         if (_isValid)
             ThrowHelper.ThrowValidationIsValid(_value!);
@@ -132,62 +132,13 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// Returns the valid value or a default value.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T UnwrapOr(T defaultValue)
+    public T GetValueOr(T defaultValue)
     {
         return _isValid ? _value! : defaultValue;
     }
 
     /// <summary>
-    /// Returns the valid value with a custom error message if invalid.
-    /// Similar to Rust's expect() method.
-    /// </summary>
-    /// <param name="message">The error message if invalid</param>
-    /// <exception cref="InvalidOperationException">Thrown if the validation is invalid</exception>
-    /// <example>
-    /// <code>
-    /// var valid = Validation&lt;int, string&gt;.Valid(42);
-    /// var value = valid.Expect("Expected a value"); // 42
-    /// 
-    /// var invalid = Validation&lt;int, string&gt;.Invalid("error");
-    /// invalid.Expect("Must be valid"); // throws with "Must be valid: error"
-    /// </code>
-    /// </example>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T Expect(string message)
-    {
-        if (!_isValid)
-            ThrowHelper.ThrowInvalidOperation($"{message}: {string.Join(", ", _errors!)}");
-
-        return _value!;
-    }
-
-    /// <summary>
-    /// Returns the errors with a custom error message if valid.
-    /// Similar to Rust's expect_err() method.
-    /// </summary>
-    /// <param name="message">The error message if valid</param>
-    /// <exception cref="InvalidOperationException">Thrown if the validation is valid</exception>
-    /// <example>
-    /// <code>
-    /// var invalid = Validation&lt;int, string&gt;.Invalid("error");
-    /// var errors = invalid.ExpectErrors("Expected errors"); // ["error"]
-    /// 
-    /// var valid = Validation&lt;int, string&gt;.Valid(42);
-    /// valid.ExpectErrors("Should be invalid"); // throws with "Should be invalid: 42"
-    /// </code>
-    /// </example>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public IReadOnlyList<TErr> ExpectErrors(string message)
-    {
-        if (_isValid)
-            ThrowHelper.ThrowInvalidOperation($"{message}: {_value}");
-
-        return _errors!;
-    }
-
-    /// <summary>
     /// Returns the valid value, or throws an <see cref="InvalidOperationException"/> if invalid.
-    /// This is an alias for <see cref="Unwrap"/> with more explicit C# naming.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the validation is invalid</exception>
     /// <example>
@@ -211,7 +162,6 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// <summary>
     /// Returns the valid value, or throws an <see cref="InvalidOperationException"/> 
     /// with the specified message if invalid.
-    /// This is an alias for <see cref="Expect"/> with more explicit C# naming.
     /// </summary>
     /// <param name="message">The exception message if invalid</param>
     /// <exception cref="InvalidOperationException">Thrown if the validation is invalid</exception>
@@ -235,7 +185,6 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
 
     /// <summary>
     /// Returns the errors, or throws an <see cref="InvalidOperationException"/> if valid.
-    /// This is an alias for <see cref="UnwrapErrors"/> with more explicit C# naming.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the validation is valid</exception>
     /// <example>
@@ -259,7 +208,6 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// <summary>
     /// Returns the errors, or throws an <see cref="InvalidOperationException"/> 
     /// with the specified message if valid.
-    /// This is an alias for <see cref="ExpectErrors"/> with more explicit C# naming.
     /// </summary>
     /// <param name="message">The exception message if valid</param>
     /// <exception cref="InvalidOperationException">Thrown if the validation is valid</exception>
@@ -448,16 +396,16 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     public Validation<(T, U), TErr> Zip<U>(Validation<U, TErr> other)
     {
         if (_isValid && other.IsValid)
-            return Validation<(T, U), TErr>.Valid((_value!, other.Unwrap()));
+            return Validation<(T, U), TErr>.Valid((_value!, other.GetValue()));
 
         if (!_isValid && !other.IsValid)
         {
-            var allErrors = _errors!.Concat(other.UnwrapErrors()).ToList();
+            var allErrors = _errors!.Concat(other.GetErrors()).ToList();
             return Validation<(T, U), TErr>.Invalid(allErrors);
         }
 
         return _isValid
-            ? Validation<(T, U), TErr>.Invalid(other.UnwrapErrors())
+            ? Validation<(T, U), TErr>.Invalid(other.GetErrors())
             : Validation<(T, U), TErr>.Invalid(_errors!);
     }
 
@@ -483,16 +431,16 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
         ThrowHelper.ThrowIfNull(combiner);
 
         if (_isValid && other.IsValid)
-            return Validation<V, TErr>.Valid(combiner(_value!, other.Unwrap()));
+            return Validation<V, TErr>.Valid(combiner(_value!, other.GetValue()));
 
         if (!_isValid && !other.IsValid)
         {
-            var allErrors = _errors!.Concat(other.UnwrapErrors()).ToList();
+            var allErrors = _errors!.Concat(other.GetErrors()).ToList();
             return Validation<V, TErr>.Invalid(allErrors);
         }
 
         return _isValid
-            ? Validation<V, TErr>.Invalid(other.UnwrapErrors())
+            ? Validation<V, TErr>.Invalid(other.GetErrors())
             : Validation<V, TErr>.Invalid(_errors!);
     }
 
@@ -519,30 +467,15 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// Chains a validation operation. If this is invalid, returns this.
     /// If this is valid, applies the function (which may return invalid).
     /// Note: This does NOT accumulate errors like And() - it short-circuits like Result.
+    /// This is the monadic bind operation.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Validation<U, TErr> AndThen<U>(Func<T, Validation<U, TErr>> binder)
+    public Validation<U, TErr> Bind<U>(Func<T, Validation<U, TErr>> binder)
     {
         ThrowHelper.ThrowIfNull(binder);
 
         return _isValid ? binder(_value!) : Validation<U, TErr>.Invalid(_errors!);
     }
-
-    /// <summary>
-    /// Chains validation operations.
-    /// Note: Unlike AndThen, this does NOT accumulate errors - it short-circuits on first error.
-    /// Alias for <see cref="AndThen{U}"/>.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Validation<U, TErr> FlatMap<U>(Func<T, Validation<U, TErr>> binder) => AndThen(binder);
-
-    /// <summary>
-    /// Chains validation operations.
-    /// Note: Unlike AndThen, this does NOT accumulate errors - it short-circuits on first error.
-    /// Alias for <see cref="AndThen{U}"/>.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Validation<U, TErr> Bind<U>(Func<T, Validation<U, TErr>> binder) => AndThen(binder);
 
     /// <summary>
     /// Validates the contained value against a predicate. If the validation is already invalid,
@@ -845,9 +778,9 @@ public static class ValidationExtensions
         foreach (var validation in validationList)
         {
             if (validation.IsValid)
-                lastValue = validation.Unwrap();
+                lastValue = validation.GetValue();
             else
-                allErrors.AddRange(validation.UnwrapErrors());
+                allErrors.AddRange(validation.GetErrors());
         }
 
         return allErrors.Count == 0
@@ -866,7 +799,7 @@ public static class ValidationExtensions
         ThrowHelper.ThrowIfNull(action);
 
         if (validation.IsValid)
-            action(validation.Unwrap());
+            action(validation.GetValue());
 
         return validation;
     }
@@ -882,19 +815,10 @@ public static class ValidationExtensions
         ThrowHelper.ThrowIfNull(action);
 
         if (validation.IsInvalid)
-            action(validation.UnwrapErrors());
+            action(validation.GetErrors());
 
         return validation;
     }
-
-    /// <summary>
-    /// Executes an action if the validation is invalid, allowing method chaining.
-    /// Alias for <see cref="TapErrors{T, TErr}"/> with a more concise name.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Validation<T, TErr> TapInvalid<T, TErr>(
-        this Validation<T, TErr> validation,
-        Action<IReadOnlyList<TErr>> action) => validation.TapErrors(action);
 
     /// <summary>
     /// Converts a Result to a Validation.
@@ -932,7 +856,7 @@ public static class ValidationExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Validation<T, TErr> Flatten<T, TErr>(this Validation<Validation<T, TErr>, TErr> nested)
     {
-        return nested.AndThen(static inner => inner);
+        return nested.Bind(static inner => inner);
     }
 
     #region Async Operations
@@ -1035,19 +959,19 @@ public static class ValidationExtensions
         // Accumulate all errors
         var allErrors = new List<TErr>();
         if (result1.IsInvalid)
-            allErrors.AddRange(result1.UnwrapErrors());
+            allErrors.AddRange(result1.GetErrors());
         if (result2.IsInvalid)
-            allErrors.AddRange(result2.UnwrapErrors());
+            allErrors.AddRange(result2.GetErrors());
         if (result3.IsInvalid)
-            allErrors.AddRange(result3.UnwrapErrors());
+            allErrors.AddRange(result3.GetErrors());
 
         if (allErrors.Count > 0)
             return Validation<(T1, T2, T3), TErr>.Invalid(allErrors);
 
         return Validation<(T1, T2, T3), TErr>.Valid((
-            result1.Unwrap(),
-            result2.Unwrap(),
-            result3.Unwrap()
+            result1.GetValue(),
+            result2.GetValue(),
+            result3.GetValue()
         ));
     }
 
@@ -1076,9 +1000,9 @@ public static class ValidationExtensions
         foreach (var validation in validations)
         {
             if (validation.IsValid)
-                values.Add(validation.Unwrap());
+                values.Add(validation.GetValue());
             else
-                allErrors.AddRange(validation.UnwrapErrors());
+                allErrors.AddRange(validation.GetErrors());
         }
 
         return allErrors.Count == 0
@@ -1098,7 +1022,7 @@ public static class ValidationExtensions
 
         var validation = await validationTask.ConfigureAwait(false);
         if (validation.IsValid)
-            await action(validation.Unwrap()).ConfigureAwait(false);
+            await action(validation.GetValue()).ConfigureAwait(false);
 
         return validation;
     }
@@ -1115,7 +1039,7 @@ public static class ValidationExtensions
 
         var validation = await validationTask.ConfigureAwait(false);
         if (validation.IsInvalid)
-            await action(validation.UnwrapErrors()).ConfigureAwait(false);
+            await action(validation.GetErrors()).ConfigureAwait(false);
 
         return validation;
     }
@@ -1130,9 +1054,9 @@ public static class ValidationExtensions
         ThrowHelper.ThrowIfNull(mapper);
 
         if (validation.IsInvalid)
-            return Validation<U, TErr>.Invalid(validation.UnwrapErrors());
+            return Validation<U, TErr>.Invalid(validation.GetErrors());
 
-        var result = await mapper(validation.Unwrap()).ConfigureAwait(false);
+        var result = await mapper(validation.GetValue()).ConfigureAwait(false);
         return Validation<U, TErr>.Valid(result);
     }
 
@@ -1170,7 +1094,7 @@ public static class ValidationExtensions
         if (validation.IsValid)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            await action(validation.Unwrap(), cancellationToken).ConfigureAwait(false);
+            await action(validation.GetValue(), cancellationToken).ConfigureAwait(false);
         }
 
         return validation;
@@ -1192,7 +1116,7 @@ public static class ValidationExtensions
         if (validation.IsInvalid)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            await action(validation.UnwrapErrors(), cancellationToken).ConfigureAwait(false);
+            await action(validation.GetErrors(), cancellationToken).ConfigureAwait(false);
         }
 
         return validation;
@@ -1210,9 +1134,9 @@ public static class ValidationExtensions
         cancellationToken.ThrowIfCancellationRequested();
 
         if (validation.IsInvalid)
-            return Validation<U, TErr>.Invalid(validation.UnwrapErrors());
+            return Validation<U, TErr>.Invalid(validation.GetErrors());
 
-        var result = await mapper(validation.Unwrap(), cancellationToken).ConfigureAwait(false);
+        var result = await mapper(validation.GetValue(), cancellationToken).ConfigureAwait(false);
         return Validation<U, TErr>.Valid(result);
     }
 
@@ -1249,15 +1173,15 @@ public static class ValidationExtensions
         var firstValidation = await first.ConfigureAwait(false);
 
         if (firstValidation.IsInvalid)
-            return Validation<U, TErr>.Invalid(firstValidation.UnwrapErrors());
+            return Validation<U, TErr>.Invalid(firstValidation.GetErrors());
 
         cancellationToken.ThrowIfCancellationRequested();
-        var secondValidation = await second(firstValidation.Unwrap(), cancellationToken).ConfigureAwait(false);
+        var secondValidation = await second(firstValidation.GetValue(), cancellationToken).ConfigureAwait(false);
 
         if (secondValidation.IsInvalid)
-            return Validation<U, TErr>.Invalid(secondValidation.UnwrapErrors());
+            return Validation<U, TErr>.Invalid(secondValidation.GetErrors());
 
-        return Validation<U, TErr>.Valid(combiner(firstValidation.Unwrap(), secondValidation.Unwrap()));
+        return Validation<U, TErr>.Valid(combiner(firstValidation.GetValue(), secondValidation.GetValue()));
     }
 
     /// <summary>
@@ -1319,7 +1243,7 @@ internal sealed class ValidationDebugView<T, TErr>
     public bool IsInvalid => _validation.IsInvalid;
 
     [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-    public object? Value => _validation.IsValid ? _validation.Unwrap() : null;
+    public object? Value => _validation.IsValid ? _validation.GetValue() : null;
 
     public IReadOnlyList<TErr>? Errors => _validation.IsInvalid ? _validation.GetErrorsOrThrow() : null;
 }

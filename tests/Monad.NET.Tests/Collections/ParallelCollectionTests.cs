@@ -62,7 +62,7 @@ public class ParallelCollectionTests
         var result = await tasks.SequenceParallelAsync();
 
         Assert.True(result.IsSome);
-        Assert.Equal(new[] { 1, 2, 3 }, result.Unwrap());
+        Assert.Equal(new[] { 1, 2, 3 }, result.GetValue());
     }
 
     [Fact]
@@ -88,7 +88,7 @@ public class ParallelCollectionTests
         var result = await tasks.SequenceParallelAsync();
 
         Assert.True(result.IsSome);
-        Assert.Empty(result.Unwrap());
+        Assert.Empty(result.GetValue());
     }
 
     [Fact]
@@ -104,7 +104,7 @@ public class ParallelCollectionTests
             maxDegreeOfParallelism: 3);
 
         Assert.True(result.IsSome);
-        Assert.Equal(10, result.Unwrap().Count);
+        Assert.Equal(10, result.GetValue().Count);
         Assert.True(tracker.MaxConcurrent <= 3, $"Max concurrent was {tracker.MaxConcurrent}, expected <= 3");
     }
 
@@ -125,7 +125,7 @@ public class ParallelCollectionTests
             });
 
         Assert.True(result.IsSome);
-        Assert.Equal(new[] { 2, 4, 6 }, result.Unwrap());
+        Assert.Equal(new[] { 2, 4, 6 }, result.GetValue());
     }
 
     [Fact]
@@ -157,7 +157,7 @@ public class ParallelCollectionTests
             maxDegreeOfParallelism: 5);
 
         Assert.True(result.IsSome);
-        Assert.Equal(20, result.Unwrap().Count);
+        Assert.Equal(20, result.GetValue().Count);
     }
 
     [Fact]
@@ -171,7 +171,7 @@ public class ParallelCollectionTests
             maxDegreeOfParallelism: 3);
 
         Assert.True(result.IsSome);
-        Assert.Equal(10, result.Unwrap().Count);
+        Assert.Equal(10, result.GetValue().Count);
         Assert.True(tracker.MaxConcurrent <= 3, $"Max concurrent was {tracker.MaxConcurrent}, expected <= 3");
     }
 
@@ -192,7 +192,7 @@ public class ParallelCollectionTests
         var result = await tasks.SequenceParallelAsync();
 
         Assert.True(result.IsOk);
-        Assert.Equal(new[] { 1, 2, 3 }, result.Unwrap());
+        Assert.Equal(new[] { 1, 2, 3 }, result.GetValue());
     }
 
     [Fact]
@@ -208,7 +208,7 @@ public class ParallelCollectionTests
         var result = await tasks.SequenceParallelAsync();
 
         Assert.True(result.IsErr);
-        Assert.Equal("error1", result.UnwrapErr());
+        Assert.Equal("error1", result.GetError());
     }
 
     [Fact]
@@ -219,7 +219,7 @@ public class ParallelCollectionTests
         var result = await tasks.SequenceParallelAsync();
 
         Assert.True(result.IsOk);
-        Assert.Empty(result.Unwrap());
+        Assert.Empty(result.GetValue());
     }
 
     [Fact]
@@ -235,7 +235,7 @@ public class ParallelCollectionTests
             maxDegreeOfParallelism: 4);
 
         Assert.True(result.IsOk);
-        Assert.Equal(10, result.Unwrap().Count);
+        Assert.Equal(10, result.GetValue().Count);
         Assert.True(tracker.MaxConcurrent <= 4, $"Max concurrent was {tracker.MaxConcurrent}, expected <= 4");
     }
 
@@ -256,7 +256,7 @@ public class ParallelCollectionTests
             });
 
         Assert.True(result.IsOk);
-        Assert.Equal(new[] { 2, 4, 6 }, result.Unwrap());
+        Assert.Equal(new[] { 2, 4, 6 }, result.GetValue());
     }
 
     [Fact]
@@ -274,7 +274,7 @@ public class ParallelCollectionTests
             });
 
         Assert.True(result.IsErr);
-        Assert.Equal("error at 2", result.UnwrapErr());
+        Assert.Equal("error at 2", result.GetError());
     }
 
     [Fact]
@@ -291,7 +291,7 @@ public class ParallelCollectionTests
             maxDegreeOfParallelism: 5);
 
         Assert.True(result.IsOk);
-        Assert.Equal(20, result.Unwrap().Count);
+        Assert.Equal(20, result.GetValue().Count);
     }
 
     [Fact]
@@ -305,7 +305,7 @@ public class ParallelCollectionTests
             maxDegreeOfParallelism: 4);
 
         Assert.True(result.IsOk);
-        Assert.Equal(10, result.Unwrap().Count);
+        Assert.Equal(10, result.GetValue().Count);
         Assert.True(tracker.MaxConcurrent <= 4, $"Max concurrent was {tracker.MaxConcurrent}, expected <= 4");
     }
 
@@ -465,7 +465,7 @@ public class ParallelCollectionTests
             });
 
         Assert.True(result.IsSome);
-        Assert.Equal(numbers, result.Unwrap());
+        Assert.Equal(numbers, result.GetValue());
     }
 
     [Fact]
@@ -481,7 +481,7 @@ public class ParallelCollectionTests
         var result = await tasks.SequenceParallelAsync();
 
         Assert.True(result.IsOk);
-        Assert.Equal(numbers, result.Unwrap());
+        Assert.Equal(numbers, result.GetValue());
     }
 
     #endregion
@@ -562,7 +562,7 @@ public class ParallelCollectionTests
             maxDegreeOfParallelism: 3);
 
         Assert.True(users.IsSome);
-        Assert.Equal(5, users.Unwrap().Count);
+        Assert.Equal(5, users.GetValue().Count);
     }
 
     [Fact]

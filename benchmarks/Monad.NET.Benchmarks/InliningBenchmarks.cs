@@ -62,7 +62,7 @@ public class InliningBenchmarks
         {
             result = result.Map(x => x + 1);
         }
-        return result.Unwrap();
+        return result.GetValue();
     }
 
     [Benchmark]
@@ -72,7 +72,7 @@ public class InliningBenchmarks
         var opt = _some;
         for (var i = 0; i < Iterations; i++)
         {
-            sum += opt.UnwrapOr(0);
+            sum += opt.GetValueOr(0);
         }
         return sum;
     }
@@ -125,7 +125,7 @@ public class InliningBenchmarks
         {
             result = result.Map(x => x + 1);
         }
-        return result.Unwrap();
+        return result.GetValue();
     }
 
     [Benchmark]
@@ -194,7 +194,7 @@ public class InliningBenchmarks
                 .Map(x => x + i)
                 .Filter(x => x > 0)
                 .Map(x => x * 2)
-                .UnwrapOr(0);
+                .GetValueOr(0);
         }
         return result;
     }
@@ -208,7 +208,7 @@ public class InliningBenchmarks
             result += _ok
                 .Map(x => x + i)
                 .Map(x => x * 2)
-                .UnwrapOr(0);
+                .GetValueOr(0);
         }
         return result;
     }
@@ -223,7 +223,7 @@ public class InliningBenchmarks
                 .Ensure(x => x >= 0, "Must be non-negative")
                 .Ensure(x => x < 1000, "Must be less than 1000")
                 .Map(x => x + i)
-                .UnwrapOr(0);
+                .GetValueOr(0);
         }
         return result;
     }

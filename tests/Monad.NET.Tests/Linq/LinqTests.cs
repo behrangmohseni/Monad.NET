@@ -13,7 +13,7 @@ public class LinqTests
                      select x * 2;
 
         Assert.True(result.IsSome);
-        Assert.Equal(84, result.Unwrap());
+        Assert.Equal(84, result.GetValue());
     }
 
     [Fact]
@@ -24,7 +24,7 @@ public class LinqTests
                      select x + y;
 
         Assert.True(result.IsSome);
-        Assert.Equal(30, result.Unwrap());
+        Assert.Equal(30, result.GetValue());
     }
 
     [Fact]
@@ -45,7 +45,7 @@ public class LinqTests
                      select x;
 
         Assert.True(result.IsSome);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -68,7 +68,7 @@ public class LinqTests
                      select x * y;
 
         Assert.True(result.IsSome);
-        Assert.Equal(200, result.Unwrap());
+        Assert.Equal(200, result.GetValue());
     }
 
     [Fact]
@@ -80,7 +80,7 @@ public class LinqTests
                      select doubled + y;
 
         Assert.True(result.IsSome);
-        Assert.Equal(13, result.Unwrap());
+        Assert.Equal(13, result.GetValue());
     }
 
     #endregion
@@ -94,7 +94,7 @@ public class LinqTests
                      select x * 2;
 
         Assert.True(result.IsOk);
-        Assert.Equal(84, result.Unwrap());
+        Assert.Equal(84, result.GetValue());
     }
 
     [Fact]
@@ -104,7 +104,7 @@ public class LinqTests
                      select x * 2;
 
         Assert.True(result.IsErr);
-        Assert.Equal("error", result.UnwrapErr());
+        Assert.Equal("error", result.GetError());
     }
 
     [Fact]
@@ -115,7 +115,7 @@ public class LinqTests
                      select x + y;
 
         Assert.True(result.IsOk);
-        Assert.Equal(30, result.Unwrap());
+        Assert.Equal(30, result.GetValue());
     }
 
     [Fact]
@@ -126,7 +126,7 @@ public class LinqTests
                      select x + y;
 
         Assert.True(result.IsErr);
-        Assert.Equal("error", result.UnwrapErr());
+        Assert.Equal("error", result.GetError());
     }
 
     [Fact]
@@ -136,7 +136,7 @@ public class LinqTests
         var result = okResult.Where(x => x > 40, "too small");
 
         Assert.True(result.IsOk);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -146,7 +146,7 @@ public class LinqTests
         var result = okResult.Where(x => x < 40, "too large");
 
         Assert.True(result.IsErr);
-        Assert.Equal("too large", result.UnwrapErr());
+        Assert.Equal("too large", result.GetError());
     }
 
     [Fact]
@@ -159,7 +159,7 @@ public class LinqTests
         );
 
         Assert.True(result.IsErr);
-        Assert.Equal("Value 30 is too small", result.UnwrapErr());
+        Assert.Equal("Value 30 is too small", result.GetError());
     }
 
     [Fact]
@@ -171,7 +171,7 @@ public class LinqTests
                      select x + y + z;
 
         Assert.True(result.IsOk);
-        Assert.Equal(60, result.Unwrap());
+        Assert.Equal(60, result.GetValue());
     }
 
     [Fact]
@@ -185,7 +185,7 @@ public class LinqTests
                      select x + y + z;
 
         Assert.True(result.IsErr);
-        Assert.Equal("error", result.UnwrapErr());
+        Assert.Equal("error", result.GetError());
         Assert.False(executedThird); // Should not execute due to short-circuiting
     }
 
@@ -206,7 +206,7 @@ public class LinqTests
                      select x * 2;
 
         Assert.True(result.IsRight);
-        Assert.Equal(84, result.UnwrapRight());
+        Assert.Equal(84, result.GetRight());
     }
 
     [Fact]
@@ -216,7 +216,7 @@ public class LinqTests
                      select x * 2;
 
         Assert.True(result.IsLeft);
-        Assert.Equal("error", result.UnwrapLeft());
+        Assert.Equal("error", result.GetLeft());
     }
 
     [Fact]
@@ -227,7 +227,7 @@ public class LinqTests
                      select x + y;
 
         Assert.True(result.IsRight);
-        Assert.Equal(30, result.UnwrapRight());
+        Assert.Equal(30, result.GetRight());
     }
 
     [Fact]
@@ -238,7 +238,7 @@ public class LinqTests
                      select x + y;
 
         Assert.True(result.IsLeft);
-        Assert.Equal("error", result.UnwrapLeft());
+        Assert.Equal("error", result.GetLeft());
     }
 
     [Fact]
@@ -248,7 +248,7 @@ public class LinqTests
         var result = either.Where(x => x > 40, "too small");
 
         Assert.True(result.IsRight);
-        Assert.Equal(42, result.UnwrapRight());
+        Assert.Equal(42, result.GetRight());
     }
 
     [Fact]
@@ -258,7 +258,7 @@ public class LinqTests
         var result = either.Where(x => x < 40, "too large");
 
         Assert.True(result.IsLeft);
-        Assert.Equal("too large", result.UnwrapLeft());
+        Assert.Equal("too large", result.GetLeft());
     }
 
     #endregion
@@ -278,7 +278,7 @@ public class LinqTests
                      select $"{a}+{b}";
 
         Assert.True(result.IsSome);
-        Assert.Equal("10+20", result.Unwrap());
+        Assert.Equal("10+20", result.GetValue());
     }
 
     [Fact]
@@ -300,7 +300,7 @@ public class LinqTests
                      select validated2 * 2;
 
         Assert.True(result.IsOk);
-        Assert.Equal(100, result.Unwrap());
+        Assert.Equal(100, result.GetValue());
     }
 
     [Fact]
@@ -321,7 +321,7 @@ public class LinqTests
                      select $"{user.Name} lives in {address.City}";
 
         Assert.True(result.IsSome);
-        Assert.Equal("John lives in NYC", result.Unwrap());
+        Assert.Equal("John lives in NYC", result.GetValue());
     }
 
     private class User
@@ -346,7 +346,7 @@ public class LinqTests
                      select x * 2;
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(84, result.Get());
+        Assert.Equal(84, result.GetValue());
     }
 
     [Fact]
@@ -357,7 +357,7 @@ public class LinqTests
                      select x + y;
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(30, result.Get());
+        Assert.Equal(30, result.GetValue());
     }
 
     [Fact]
@@ -378,7 +378,7 @@ public class LinqTests
                      select x;
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(42, result.Get());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -403,7 +403,7 @@ public class LinqTests
                      select x + y + z;
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(60, result.Get());
+        Assert.Equal(60, result.GetValue());
     }
 
     #endregion
@@ -417,7 +417,7 @@ public class LinqTests
                      select x * 2;
 
         Assert.True(result.IsValid);
-        Assert.Equal(84, result.Unwrap());
+        Assert.Equal(84, result.GetValue());
     }
 
     [Fact]
@@ -428,7 +428,7 @@ public class LinqTests
                      select x + y;
 
         Assert.True(result.IsValid);
-        Assert.Equal(30, result.Unwrap());
+        Assert.Equal(30, result.GetValue());
     }
 
     [Fact]
@@ -459,7 +459,7 @@ public class LinqTests
                      select $"{name} is {age} years old";
 
         Assert.True(result.IsValid);
-        Assert.Equal("John is 30 years old", result.Unwrap());
+        Assert.Equal("John is 30 years old", result.GetValue());
     }
 
     #endregion

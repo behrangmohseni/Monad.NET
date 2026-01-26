@@ -11,7 +11,7 @@ public class ResultTests
 
         Assert.True(result.IsOk);
         Assert.False(result.IsErr);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -21,7 +21,7 @@ public class ResultTests
 
         Assert.False(result.IsOk);
         Assert.True(result.IsErr);
-        Assert.Equal("error", result.UnwrapErr());
+        Assert.Equal("error", result.GetError());
     }
 
     [Fact]
@@ -41,7 +41,7 @@ public class ResultTests
     {
         var result = Result<int, string>.Err("error");
 
-        Assert.Throws<InvalidOperationException>(() => result.Unwrap());
+        Assert.Throws<InvalidOperationException>(() => result.GetValue());
     }
 
     [Fact]
@@ -49,7 +49,7 @@ public class ResultTests
     {
         var result = Result<int, string>.Ok(42);
 
-        Assert.Throws<InvalidOperationException>(() => result.UnwrapErr());
+        Assert.Throws<InvalidOperationException>(() => result.GetError());
     }
 
     [Fact]
@@ -58,7 +58,7 @@ public class ResultTests
         var result = Result<int, string>.Err("error");
 
         var exception = Assert.Throws<InvalidOperationException>(
-            () => result.Expect("Expected a value"));
+            () => result.GetOrThrow("Expected a value"));
         Assert.Contains("Expected a value", exception.Message);
         Assert.Contains("error", exception.Message);
     }
@@ -69,7 +69,7 @@ public class ResultTests
         var result = Result<int, string>.Ok(42);
 
         var exception = Assert.Throws<InvalidOperationException>(
-            () => result.ExpectErr("Expected an error"));
+            () => result.GetErrorOrThrow("Expected an error"));
         Assert.Contains("Expected an error", exception.Message);
     }
 
@@ -78,7 +78,7 @@ public class ResultTests
     {
         var result = Result<int, string>.Ok(42);
 
-        Assert.Equal(42, result.UnwrapOr(0));
+        Assert.Equal(42, result.GetValueOr(0));
     }
 
     [Fact]
@@ -86,7 +86,7 @@ public class ResultTests
     {
         var result = Result<int, string>.Err("error");
 
-        Assert.Equal(0, result.UnwrapOr(0));
+        Assert.Equal(0, result.GetValueOr(0));
     }
 
     [Fact]
@@ -94,7 +94,7 @@ public class ResultTests
     {
         var result = Result<int, string>.Ok(42);
 
-        Assert.Equal(42, result.UnwrapOrElse(err => 0));
+        Assert.Equal(42, result.GetValueOrElse(err => 0));
     }
 
     [Fact]
@@ -102,7 +102,7 @@ public class ResultTests
     {
         var result = Result<int, string>.Err("error");
 
-        Assert.Equal(100, result.UnwrapOrElse(err => 100));
+        Assert.Equal(100, result.GetValueOrElse(err => 100));
     }
 
     [Fact]
@@ -112,7 +112,7 @@ public class ResultTests
         var mapped = result.Map(x => x * 2);
 
         Assert.True(mapped.IsOk);
-        Assert.Equal(84, mapped.Unwrap());
+        Assert.Equal(84, mapped.GetValue());
     }
 
     [Fact]
@@ -122,47 +122,47 @@ public class ResultTests
         var mapped = result.Map(x => x * 2);
 
         Assert.True(mapped.IsErr);
-        Assert.Equal("error", mapped.UnwrapErr());
+        Assert.Equal("error", mapped.GetError());
     }
 
     [Fact]
     public void MapErr_OnOk_ReturnsOk()
     {
         var result = Result<int, string>.Ok(42);
-        var mapped = result.MapErr(err => err.Length);
+        var mapped = result.MapError(err => err.Length);
 
         Assert.True(mapped.IsOk);
-        Assert.Equal(42, mapped.Unwrap());
+        Assert.Equal(42, mapped.GetValue());
     }
 
     [Fact]
     public void MapErr_OnErr_TransformsError()
     {
         var result = Result<int, string>.Err("error");
-        var mapped = result.MapErr(err => err.Length);
+        var mapped = result.MapError(err => err.Length);
 
         Assert.True(mapped.IsErr);
-        Assert.Equal(5, mapped.UnwrapErr());
+        Assert.Equal(5, mapped.GetError());
     }
 
     [Fact]
     public void AndThen_OnOk_ExecutesFunction()
     {
         var result = Result<int, string>.Ok(42);
-        var chained = result.AndThen(x => Result<string, string>.Ok(x.ToString()));
+        var chained = result.Bind(x => Result<string, string>.Ok(x.ToString()));
 
         Assert.True(chained.IsOk);
-        Assert.Equal("42", chained.Unwrap());
+        Assert.Equal("42", chained.GetValue());
     }
 
     [Fact]
     public void AndThen_OnErr_ReturnsErr()
     {
         var result = Result<int, string>.Err("error");
-        var chained = result.AndThen(x => Result<string, string>.Ok(x.ToString()));
+        var chained = result.Bind(x => Result<string, string>.Ok(x.ToString()));
 
         Assert.True(chained.IsErr);
-        Assert.Equal("error", chained.UnwrapErr());
+        Assert.Equal("error", chained.GetError());
     }
 
     [Fact]
@@ -174,7 +174,7 @@ public class ResultTests
         var combined = result1.Zip(result2);
 
         Assert.True(combined.IsOk);
-        Assert.Equal((42, "hello"), combined.Unwrap());
+        Assert.Equal((42, "hello"), combined.GetValue());
     }
 
     [Fact]
@@ -186,7 +186,7 @@ public class ResultTests
         var combined = result1.Zip(result2);
 
         Assert.True(combined.IsErr);
-        Assert.Equal("first error", combined.UnwrapErr());
+        Assert.Equal("first error", combined.GetError());
     }
 
     [Fact]
@@ -198,7 +198,7 @@ public class ResultTests
         var combined = result1.Zip(result2);
 
         Assert.True(combined.IsErr);
-        Assert.Equal("second error", combined.UnwrapErr());
+        Assert.Equal("second error", combined.GetError());
     }
 
     [Fact]
@@ -210,7 +210,7 @@ public class ResultTests
         var combined = result1.ZipWith(result2, (a, b) => a + b);
 
         Assert.True(combined.IsOk);
-        Assert.Equal(30, combined.Unwrap());
+        Assert.Equal(30, combined.GetValue());
     }
 
     [Fact]
@@ -222,7 +222,7 @@ public class ResultTests
         var combined = result1.ZipWith(result2, (a, b) => a + b);
 
         Assert.True(combined.IsErr);
-        Assert.Equal("first error", combined.UnwrapErr());
+        Assert.Equal("first error", combined.GetError());
     }
 
     [Fact]
@@ -234,7 +234,7 @@ public class ResultTests
         var combined = result1.ZipWith(result2, (a, b) => a + b);
 
         Assert.True(combined.IsErr);
-        Assert.Equal("second error", combined.UnwrapErr());
+        Assert.Equal("second error", combined.GetError());
     }
 
     [Fact]
@@ -244,7 +244,7 @@ public class ResultTests
         var result2 = Result<int, string>.Ok(2);
         var combined = result1.Or(result2);
 
-        Assert.Equal(1, combined.Unwrap());
+        Assert.Equal(1, combined.GetValue());
     }
 
     [Fact]
@@ -254,7 +254,7 @@ public class ResultTests
         var result2 = Result<int, string>.Ok(2);
         var combined = result1.Or(result2);
 
-        Assert.Equal(2, combined.Unwrap());
+        Assert.Equal(2, combined.GetValue());
     }
 
     [Fact]
@@ -264,7 +264,7 @@ public class ResultTests
         var recovered = result.OrElse(err => Result<int, int>.Ok(0));
 
         Assert.True(recovered.IsOk);
-        Assert.Equal(42, recovered.Unwrap());
+        Assert.Equal(42, recovered.GetValue());
     }
 
     [Fact]
@@ -274,7 +274,7 @@ public class ResultTests
         var recovered = result.OrElse(err => Result<int, int>.Ok(100));
 
         Assert.True(recovered.IsOk);
-        Assert.Equal(100, recovered.Unwrap());
+        Assert.Equal(100, recovered.GetValue());
     }
 
     [Fact]
@@ -284,7 +284,7 @@ public class ResultTests
         var option = result.Ok();
 
         Assert.True(option.IsSome);
-        Assert.Equal(42, option.Unwrap());
+        Assert.Equal(42, option.GetValue());
     }
 
     [Fact]
@@ -303,7 +303,7 @@ public class ResultTests
         var option = result.Err();
 
         Assert.True(option.IsSome);
-        Assert.Equal("error", option.Unwrap());
+        Assert.Equal("error", option.GetValue());
     }
 
     [Fact]
@@ -374,7 +374,7 @@ public class ResultTests
         var flattened = nested.Flatten();
 
         Assert.True(flattened.IsOk);
-        Assert.Equal(42, flattened.Unwrap());
+        Assert.Equal(42, flattened.GetValue());
     }
 
     [Fact]
@@ -384,7 +384,7 @@ public class ResultTests
         var flattened = nested.Flatten();
 
         Assert.True(flattened.IsErr);
-        Assert.Equal("inner error", flattened.UnwrapErr());
+        Assert.Equal("inner error", flattened.GetError());
     }
 
     [Fact]
@@ -441,7 +441,7 @@ public class ResultTests
         var result = ResultExtensions.Try(() => 42);
 
         Assert.True(result.IsOk);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -450,8 +450,8 @@ public class ResultTests
         var result = ResultExtensions.Try<int>(() => throw new InvalidOperationException("test error"));
 
         Assert.True(result.IsErr);
-        Assert.IsType<InvalidOperationException>(result.UnwrapErr());
-        Assert.Contains("test error", result.UnwrapErr().Message);
+        Assert.IsType<InvalidOperationException>(result.GetError());
+        Assert.Contains("test error", result.GetError().Message);
     }
 
     [Fact]
@@ -460,7 +460,7 @@ public class ResultTests
         var result = await ResultExtensions.TryAsync(() => Task.FromResult(42));
 
         Assert.True(result.IsOk);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -470,7 +470,7 @@ public class ResultTests
             Task.FromException<int>(new InvalidOperationException("test error")));
 
         Assert.True(result.IsErr);
-        Assert.IsType<InvalidOperationException>(result.UnwrapErr());
+        Assert.IsType<InvalidOperationException>(result.GetError());
     }
 
     [Fact]

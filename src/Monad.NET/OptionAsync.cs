@@ -29,7 +29,7 @@ public static class OptionAsyncExtensions
         if (!option.IsSome)
             return Option<U>.None();
 
-        var result = await mapper(option.Unwrap()).ConfigureAwait(false);
+        var result = await mapper(option.GetValue()).ConfigureAwait(false);
         return Option<U>.Some(result);
     }
 
@@ -72,7 +72,7 @@ public static class OptionAsyncExtensions
         if (!option.IsSome)
             return Option<T>.None();
 
-        var value = option.Unwrap();
+        var value = option.GetValue();
         var passes = await predicate(value).ConfigureAwait(false);
         return passes ? option : Option<T>.None();
     }
@@ -105,7 +105,7 @@ public static class OptionAsyncExtensions
     /// <param name="binder">An async function that returns a new option based on the value.</param>
     /// <returns>A task containing the result of the binder if Some, otherwise None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static async Task<Option<U>> AndThenAsync<T, U>(
+    public static async Task<Option<U>> BindAsync<T, U>(
         this Task<Option<T>> optionTask,
         Func<T, Task<Option<U>>> binder)
     {
@@ -116,7 +116,7 @@ public static class OptionAsyncExtensions
         if (!option.IsSome)
             return Option<U>.None();
 
-        return await binder(option.Unwrap()).ConfigureAwait(false);
+        return await binder(option.GetValue()).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -128,7 +128,7 @@ public static class OptionAsyncExtensions
     /// <param name="binder">A function that returns a new option based on the value.</param>
     /// <returns>A task containing the result of the binder if Some, otherwise None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static async Task<Option<U>> AndThenAsync<T, U>(
+    public static async Task<Option<U>> BindAsync<T, U>(
         this Task<Option<T>> optionTask,
         Func<T, Option<U>> binder)
     {
@@ -136,7 +136,7 @@ public static class OptionAsyncExtensions
         ThrowHelper.ThrowIfNull(binder);
 
         var option = await optionTask.ConfigureAwait(false);
-        return option.AndThen(binder);
+        return option.Bind(binder);
     }
 
     /// <summary>
@@ -147,7 +147,7 @@ public static class OptionAsyncExtensions
     /// <param name="defaultFunc">An async function to compute the default value if None.</param>
     /// <returns>A task containing the value if Some, or the computed default if None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static async Task<T> UnwrapOrElseAsync<T>(
+    public static async Task<T> GetValueOrElseAsync<T>(
         this Task<Option<T>> optionTask,
         Func<Task<T>> defaultFunc)
     {
@@ -156,7 +156,7 @@ public static class OptionAsyncExtensions
 
         var option = await optionTask.ConfigureAwait(false);
         if (option.IsSome)
-            return option.Unwrap();
+            return option.GetValue();
 
         return await defaultFunc().ConfigureAwait(false);
     }
@@ -182,7 +182,7 @@ public static class OptionAsyncExtensions
 
         var option = await optionTask.ConfigureAwait(false);
         if (option.IsSome)
-            return await someFunc(option.Unwrap()).ConfigureAwait(false);
+            return await someFunc(option.GetValue()).ConfigureAwait(false);
 
         return await noneFunc().ConfigureAwait(false);
     }
@@ -227,7 +227,7 @@ public static class OptionAsyncExtensions
 
         var option = await optionTask.ConfigureAwait(false);
         if (option.IsSome)
-            await action(option.Unwrap()).ConfigureAwait(false);
+            await action(option.GetValue()).ConfigureAwait(false);
 
         return option;
     }
@@ -250,7 +250,7 @@ public static class OptionAsyncExtensions
 
         var option = await optionTask.ConfigureAwait(false);
         if (option.IsSome)
-            return Result<T, TErr>.Ok(option.Unwrap());
+            return Result<T, TErr>.Ok(option.GetValue());
 
         return Result<T, TErr>.Err(await errFunc().ConfigureAwait(false));
     }
@@ -273,7 +273,7 @@ public static class OptionAsyncExtensions
         if (!option.IsSome)
             return Option<U>.None();
 
-        var result = await mapper(option.Unwrap()).ConfigureAwait(false);
+        var result = await mapper(option.GetValue()).ConfigureAwait(false);
         return Option<U>.Some(result);
     }
 
@@ -286,7 +286,7 @@ public static class OptionAsyncExtensions
     /// <param name="binder">An async function that returns a new option based on the value.</param>
     /// <returns>A task containing the result of the binder if Some, otherwise None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static async Task<Option<U>> AndThenAsync<T, U>(
+    public static async Task<Option<U>> BindAsync<T, U>(
         this Option<T> option,
         Func<T, Task<Option<U>>> binder)
     {
@@ -295,7 +295,7 @@ public static class OptionAsyncExtensions
         if (!option.IsSome)
             return Option<U>.None();
 
-        return await binder(option.Unwrap()).ConfigureAwait(false);
+        return await binder(option.GetValue()).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -315,7 +315,7 @@ public static class OptionAsyncExtensions
         if (!option.IsSome)
             return Option<T>.None();
 
-        var value = option.Unwrap();
+        var value = option.GetValue();
         var passes = await predicate(value).ConfigureAwait(false);
         return passes ? option : Option<T>.None();
     }
@@ -374,7 +374,7 @@ public static class OptionAsyncExtensions
         var result1 = await firstTask.ConfigureAwait(false);
         var result2 = await secondTask.ConfigureAwait(false);
         return result1.IsSome && result2.IsSome
-            ? Option<(T, U)>.Some((result1.Unwrap(), result2.Unwrap()))
+            ? Option<(T, U)>.Some((result1.GetValue(), result2.GetValue()))
             : Option<(T, U)>.None();
     }
 
@@ -402,7 +402,7 @@ public static class OptionAsyncExtensions
         var result1 = await firstTask.ConfigureAwait(false);
         var result2 = await secondTask.ConfigureAwait(false);
         return result1.IsSome && result2.IsSome
-            ? Option<V>.Some(combiner(result1.Unwrap(), result2.Unwrap()))
+            ? Option<V>.Some(combiner(result1.GetValue(), result2.GetValue()))
             : Option<V>.None();
     }
 
@@ -550,7 +550,7 @@ public static class OptionAsyncExtensions
         if (!option.IsSome)
             return Option<U>.None();
 
-        var result = await mapper(option.Unwrap()).ConfigureAwait(false);
+        var result = await mapper(option.GetValue()).ConfigureAwait(false);
         return Option<U>.Some(result);
     }
 
@@ -564,7 +564,7 @@ public static class OptionAsyncExtensions
     /// <param name="binder">A function that returns a new option based on the value.</param>
     /// <returns>A value task containing the result of the binder if Some, otherwise None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ValueTask<Option<U>> AndThenAsync<T, U>(
+    public static ValueTask<Option<U>> BindAsync<T, U>(
         this ValueTask<Option<T>> optionTask,
         Func<T, Option<U>> binder)
     {
@@ -573,15 +573,15 @@ public static class OptionAsyncExtensions
         if (optionTask.IsCompletedSuccessfully)
         {
             var option = optionTask.Result;
-            return new ValueTask<Option<U>>(option.AndThen(binder));
+            return new ValueTask<Option<U>>(option.Bind(binder));
         }
 
-        return AndThenAsyncCore(optionTask, binder);
+        return BindAsyncCore(optionTask, binder);
 
-        static async ValueTask<Option<U>> AndThenAsyncCore(ValueTask<Option<T>> task, Func<T, Option<U>> b)
+        static async ValueTask<Option<U>> BindAsyncCore(ValueTask<Option<T>> task, Func<T, Option<U>> b)
         {
             var option = await task.ConfigureAwait(false);
-            return option.AndThen(b);
+            return option.Bind(b);
         }
     }
 
@@ -594,7 +594,7 @@ public static class OptionAsyncExtensions
     /// <param name="binder">An async function that returns a new option based on the value.</param>
     /// <returns>A value task containing the result of the binder if Some, otherwise None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static async ValueTask<Option<U>> AndThenAsync<T, U>(
+    public static async ValueTask<Option<U>> BindAsync<T, U>(
         this ValueTask<Option<T>> optionTask,
         Func<T, ValueTask<Option<U>>> binder)
     {
@@ -604,7 +604,7 @@ public static class OptionAsyncExtensions
         if (!option.IsSome)
             return Option<U>.None();
 
-        return await binder(option.Unwrap()).ConfigureAwait(false);
+        return await binder(option.GetValue()).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -712,7 +712,7 @@ public static class OptionAsyncExtensions
             return Option<U>.None();
 
         cancellationToken.ThrowIfCancellationRequested();
-        var result = await mapper(option.Unwrap(), cancellationToken).ConfigureAwait(false);
+        var result = await mapper(option.GetValue(), cancellationToken).ConfigureAwait(false);
         return Option<U>.Some(result);
     }
 
@@ -726,7 +726,7 @@ public static class OptionAsyncExtensions
     /// <param name="cancellationToken">A cancellation token to observe.</param>
     /// <returns>A task containing the result of the binder if Some, otherwise None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static async Task<Option<U>> AndThenAsync<T, U>(
+    public static async Task<Option<U>> BindAsync<T, U>(
         this Task<Option<T>> optionTask,
         Func<T, CancellationToken, Task<Option<U>>> binder,
         CancellationToken cancellationToken)
@@ -740,7 +740,7 @@ public static class OptionAsyncExtensions
             return Option<U>.None();
 
         cancellationToken.ThrowIfCancellationRequested();
-        return await binder(option.Unwrap(), cancellationToken).ConfigureAwait(false);
+        return await binder(option.GetValue(), cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -769,7 +769,7 @@ public static class OptionAsyncExtensions
 
         cancellationToken.ThrowIfCancellationRequested();
         if (option.IsSome)
-            return await someFunc(option.Unwrap(), cancellationToken).ConfigureAwait(false);
+            return await someFunc(option.GetValue(), cancellationToken).ConfigureAwait(false);
 
         return await noneFunc(cancellationToken).ConfigureAwait(false);
     }

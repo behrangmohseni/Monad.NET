@@ -15,7 +15,7 @@ public class TryExtendedTests2
         var @try = Try<int>.Success(42);
 
         Assert.True(@try.IsSuccess);
-        Assert.Equal(42, @try.Get());
+        Assert.Equal(42, @try.GetValue());
     }
 
     [Fact]
@@ -34,7 +34,7 @@ public class TryExtendedTests2
         var @try = Try<int>.Of(() => 42);
 
         Assert.True(@try.IsSuccess);
-        Assert.Equal(42, @try.Get());
+        Assert.Equal(42, @try.GetValue());
     }
 
     [Fact]
@@ -57,7 +57,7 @@ public class TryExtendedTests2
         var result = @try.Map(x => x * 2);
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(84, result.Get());
+        Assert.Equal(84, result.GetValue());
     }
 
     [Fact]
@@ -87,17 +87,17 @@ public class TryExtendedTests2
     public void FlatMap_OnSuccess_Chains()
     {
         var @try = Try<int>.Success(42);
-        var result = @try.FlatMap(x => Try<string>.Success(x.ToString()));
+        var result = @try.Bind(x => Try<string>.Success(x.ToString()));
 
         Assert.True(result.IsSuccess);
-        Assert.Equal("42", result.Get());
+        Assert.Equal("42", result.GetValue());
     }
 
     [Fact]
     public void FlatMap_OnFailure_ReturnsFailure()
     {
         var @try = Try<int>.Failure(new InvalidOperationException("error"));
-        var result = @try.FlatMap(x => Try<string>.Success(x.ToString()));
+        var result = @try.Bind(x => Try<string>.Success(x.ToString()));
 
         Assert.True(result.IsFailure);
     }
@@ -106,7 +106,7 @@ public class TryExtendedTests2
     public void FlatMap_SuccessToFailure_ReturnsFailure()
     {
         var @try = Try<int>.Success(42);
-        var result = @try.FlatMap(_ => Try<string>.Failure(new InvalidOperationException("chained error")));
+        var result = @try.Bind(_ => Try<string>.Failure(new InvalidOperationException("chained error")));
 
         Assert.True(result.IsFailure);
     }
@@ -122,7 +122,7 @@ public class TryExtendedTests2
         var result = @try.Recover(_ => 99);
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(99, result.Get());
+        Assert.Equal(99, result.GetValue());
     }
 
     [Fact]
@@ -132,7 +132,7 @@ public class TryExtendedTests2
         var result = @try.Recover(_ => 99);
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(42, result.Get());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -142,7 +142,7 @@ public class TryExtendedTests2
         var result = @try.RecoverWith(_ => Try<int>.Success(99));
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(99, result.Get());
+        Assert.Equal(99, result.GetValue());
     }
 
     [Fact]
@@ -152,7 +152,7 @@ public class TryExtendedTests2
         var result = @try.RecoverWith(_ => Try<int>.Success(99));
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(42, result.Get());
+        Assert.Equal(42, result.GetValue());
     }
 
     #endregion
@@ -293,7 +293,7 @@ public class TryExtendedTests2
         var result = @try.ToResult();
 
         Assert.True(result.IsOk);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -304,7 +304,7 @@ public class TryExtendedTests2
         var result = @try.ToResult();
 
         Assert.True(result.IsErr);
-        Assert.Same(ex, result.UnwrapErr());
+        Assert.Same(ex, result.GetError());
     }
 
     #endregion
@@ -315,22 +315,22 @@ public class TryExtendedTests2
     public void GetOrElse_OnSuccess_ReturnsValue()
     {
         var @try = Try<int>.Success(42);
-        Assert.Equal(42, @try.GetOrElse(99));
+        Assert.Equal(42, @try.GetValueOr(99));
     }
 
     [Fact]
     public void GetOrElse_OnFailure_ReturnsDefault()
     {
         var @try = Try<int>.Failure(new InvalidOperationException("error"));
-        Assert.Equal(99, @try.GetOrElse(99));
+        Assert.Equal(99, @try.GetValueOr(99));
     }
 
     [Fact]
-    public void GetOrElse_WithFunc_OnSuccess_ReturnsValue()
+    public void GetValueOrElse_WithFunc_OnSuccess_ReturnsValue()
     {
         var @try = Try<int>.Success(42);
         var factoryExecuted = false;
-        var value = @try.GetOrElse(() =>
+        var value = @try.GetValueOrElse(() =>
         {
             factoryExecuted = true;
             return 99;
@@ -341,10 +341,10 @@ public class TryExtendedTests2
     }
 
     [Fact]
-    public void GetOrElse_WithFunc_OnFailure_ExecutesFactory()
+    public void GetValueOrElse_WithFunc_OnFailure_ExecutesFactory()
     {
         var @try = Try<int>.Failure(new InvalidOperationException("error"));
-        var value = @try.GetOrElse(() => 99);
+        var value = @try.GetValueOrElse(() => 99);
 
         Assert.Equal(99, value);
     }

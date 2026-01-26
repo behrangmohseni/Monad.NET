@@ -62,7 +62,7 @@ public class ResultExtendedTests
         var final = result.OrElse(_ => Result<int, string>.Ok(99));
 
         Assert.True(final.IsOk);
-        Assert.Equal(42, final.Unwrap());
+        Assert.Equal(42, final.GetValue());
     }
 
     [Fact]
@@ -72,7 +72,7 @@ public class ResultExtendedTests
         var final = result.OrElse(err => Result<int, string>.Ok(99));
 
         Assert.True(final.IsOk);
-        Assert.Equal(99, final.Unwrap());
+        Assert.Equal(99, final.GetValue());
     }
 
     [Fact]
@@ -82,7 +82,7 @@ public class ResultExtendedTests
         var final = result.Or(Result<int, string>.Ok(99));
 
         Assert.True(final.IsOk);
-        Assert.Equal(42, final.Unwrap());
+        Assert.Equal(42, final.GetValue());
     }
 
     [Fact]
@@ -92,7 +92,7 @@ public class ResultExtendedTests
         var final = result.Or(Result<int, string>.Ok(99));
 
         Assert.True(final.IsOk);
-        Assert.Equal(99, final.Unwrap());
+        Assert.Equal(99, final.GetValue());
     }
 
     #endregion
@@ -106,7 +106,7 @@ public class ResultExtendedTests
         var result = nested.Flatten();
 
         Assert.True(result.IsOk);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -116,7 +116,7 @@ public class ResultExtendedTests
         var result = nested.Flatten();
 
         Assert.True(result.IsErr);
-        Assert.Equal("outer error", result.UnwrapErr());
+        Assert.Equal("outer error", result.GetError());
     }
 
     [Fact]
@@ -126,7 +126,7 @@ public class ResultExtendedTests
         var result = nested.Flatten();
 
         Assert.True(result.IsErr);
-        Assert.Equal("inner error", result.UnwrapErr());
+        Assert.Equal("inner error", result.GetError());
     }
 
     #endregion
@@ -305,20 +305,20 @@ public class ResultExtendedTests
     public void MapErr_OnErr_TransformsError()
     {
         var result = Result<int, string>.Err("error");
-        var mapped = result.MapErr(e => e.ToUpper());
+        var mapped = result.MapError(e => e.ToUpper());
 
         Assert.True(mapped.IsErr);
-        Assert.Equal("ERROR", mapped.UnwrapErr());
+        Assert.Equal("ERROR", mapped.GetError());
     }
 
     [Fact]
     public void MapErr_OnOk_ReturnsOk()
     {
         var result = Result<int, string>.Ok(42);
-        var mapped = result.MapErr(e => e.ToUpper());
+        var mapped = result.MapError(e => e.ToUpper());
 
         Assert.True(mapped.IsOk);
-        Assert.Equal(42, mapped.Unwrap());
+        Assert.Equal(42, mapped.GetValue());
     }
 
     #endregion
@@ -329,7 +329,7 @@ public class ResultExtendedTests
     public void Expect_OnOk_ReturnsValue()
     {
         var result = Result<int, string>.Ok(42);
-        var value = result.Expect("Should be ok");
+        var value = result.GetOrThrow("Should be ok");
 
         Assert.Equal(42, value);
     }
@@ -339,7 +339,7 @@ public class ResultExtendedTests
     {
         var result = Result<int, string>.Err("error");
 
-        var ex = Assert.Throws<InvalidOperationException>(() => result.Expect("Custom message"));
+        var ex = Assert.Throws<InvalidOperationException>(() => result.GetOrThrow("Custom message"));
         Assert.Contains("Custom message", ex.Message);
     }
 
@@ -347,7 +347,7 @@ public class ResultExtendedTests
     public void ExpectErr_OnErr_ReturnsError()
     {
         var result = Result<int, string>.Err("error");
-        var error = result.ExpectErr("Should be err");
+        var error = result.GetErrorOrThrow("Should be err");
 
         Assert.Equal("error", error);
     }
@@ -357,7 +357,7 @@ public class ResultExtendedTests
     {
         var result = Result<int, string>.Ok(42);
 
-        var ex = Assert.Throws<InvalidOperationException>(() => result.ExpectErr("Custom message"));
+        var ex = Assert.Throws<InvalidOperationException>(() => result.GetErrorOrThrow("Custom message"));
         Assert.Contains("Custom message", ex.Message);
     }
 

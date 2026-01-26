@@ -32,7 +32,7 @@ public class OfTypeTests
         var result = option.OfType<object, string>();
 
         Assert.True(result.IsSome);
-        Assert.Equal("hello", result.Unwrap());
+        Assert.Equal("hello", result.GetValue());
     }
 
     [Fact]
@@ -61,8 +61,8 @@ public class OfTypeTests
         var result = option.OfType<Animal, Dog>();
 
         Assert.True(result.IsSome);
-        Assert.Equal("Buddy", result.Unwrap().Name);
-        Assert.Equal("Golden Retriever", result.Unwrap().Breed);
+        Assert.Equal("Buddy", result.GetValue().Name);
+        Assert.Equal("Golden Retriever", result.GetValue().Breed);
     }
 
     [Fact]
@@ -98,7 +98,7 @@ public class OfTypeTests
         var result = option.OfTypeValue<object, int>();
 
         Assert.True(result.IsSome);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -126,7 +126,7 @@ public class OfTypeTests
         var result = option.OfTypeValue<object, double>();
 
         Assert.True(result.IsSome);
-        Assert.Equal(3.14, result.Unwrap());
+        Assert.Equal(3.14, result.GetValue());
     }
 
     [Fact]
@@ -147,7 +147,7 @@ public class OfTypeTests
         var result = option.OfTypeValue<object, Guid>();
 
         Assert.True(result.IsSome);
-        Assert.Equal(guid, result.Unwrap());
+        Assert.Equal(guid, result.GetValue());
     }
 
     [Fact]
@@ -158,7 +158,7 @@ public class OfTypeTests
         var result = option.OfTypeValue<object, DateTime>();
 
         Assert.True(result.IsSome);
-        Assert.Equal(date, result.Unwrap());
+        Assert.Equal(date, result.GetValue());
     }
 
     #endregion
@@ -172,7 +172,7 @@ public class OfTypeTests
         var result = option.OfType<string>();
 
         Assert.True(result.IsSome);
-        Assert.Equal("hello", result.Unwrap());
+        Assert.Equal("hello", result.GetValue());
     }
 
     [Fact]
@@ -182,7 +182,7 @@ public class OfTypeTests
         var result = option.OfType<int>();
 
         Assert.True(result.IsSome);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -211,7 +211,7 @@ public class OfTypeTests
         var result = option.OfType<Dog>();
 
         Assert.True(result.IsSome);
-        Assert.Equal("Buddy", result.Unwrap().Name);
+        Assert.Equal("Buddy", result.GetValue().Name);
     }
 
     [Fact]
@@ -222,7 +222,7 @@ public class OfTypeTests
         var result = option.OfType<Animal>();
 
         Assert.True(result.IsSome);
-        Assert.Equal("Buddy", result.Unwrap().Name);
+        Assert.Equal("Buddy", result.GetValue().Name);
     }
 
     #endregion
@@ -238,7 +238,7 @@ public class OfTypeTests
             .Map(s => s.ToUpper());
 
         Assert.True(result.IsSome);
-        Assert.Equal("HELLO WORLD", result.Unwrap());
+        Assert.Equal("HELLO WORLD", result.GetValue());
     }
 
     [Fact]

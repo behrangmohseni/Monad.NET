@@ -21,7 +21,7 @@ public static partial class MonadCollectionExtensions
         foreach (var either in eithers)
         {
             if (either.IsRight)
-                yield return either.UnwrapRight();
+                yield return either.GetRight();
         }
     }
 
@@ -40,7 +40,7 @@ public static partial class MonadCollectionExtensions
         foreach (var either in eithers)
         {
             if (either.IsLeft)
-                yield return either.UnwrapLeft();
+                yield return either.GetLeft();
         }
     }
 
@@ -65,9 +65,9 @@ public static partial class MonadCollectionExtensions
         foreach (var either in eithers)
         {
             if (either.IsLeft)
-                lefts.Add(either.UnwrapLeft());
+                lefts.Add(either.GetLeft());
             else
-                rights.Add(either.UnwrapRight());
+                rights.Add(either.GetRight());
         }
 
         return (lefts, rights);

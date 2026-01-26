@@ -140,88 +140,26 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>, ICompar
     /// Returns the value if successful.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if failed</exception>
+    /// <example>
+    /// <code>
+    /// var result = Try&lt;int&gt;.Success(42);
+    /// var value = result.GetValue(); // 42
+    /// 
+    /// var failure = Try&lt;int&gt;.Failure(new Exception("error"));
+    /// failure.GetValue(); // throws InvalidOperationException
+    /// </code>
+    /// </example>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T Get()
+    public T GetValue()
     {
         if (!_isSuccess)
             ThrowHelper.ThrowTryIsFailure(_exception!);
 
         return _value!;
-    }
-
-    /// <summary>
-    /// Returns the value if successful. Alias for <see cref="Get"/> for consistency with other monads.
-    /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if failed</exception>
-    /// <example>
-    /// <code>
-    /// var result = Try&lt;int&gt;.Success(42);
-    /// var value = result.Unwrap(); // 42
-    /// 
-    /// var failure = Try&lt;int&gt;.Failure(new Exception("error"));
-    /// failure.Unwrap(); // throws InvalidOperationException
-    /// </code>
-    /// </example>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T Unwrap()
-    {
-        if (!_isSuccess)
-            ThrowHelper.ThrowTryIsFailure(_exception!);
-
-        return _value!;
-    }
-
-    /// <summary>
-    /// Returns the value if successful, with a custom error message if failed.
-    /// Similar to Rust's expect() method.
-    /// </summary>
-    /// <param name="message">The error message if failed</param>
-    /// <exception cref="InvalidOperationException">Thrown if failed</exception>
-    /// <example>
-    /// <code>
-    /// var result = Try&lt;int&gt;.Success(42);
-    /// var value = result.Expect("Expected a value"); // 42
-    /// 
-    /// var failure = Try&lt;int&gt;.Failure(new Exception("error"));
-    /// failure.Expect("Must succeed"); // throws with "Must succeed: error"
-    /// </code>
-    /// </example>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T Expect(string message)
-    {
-        if (!_isSuccess)
-            ThrowHelper.ThrowInvalidOperation($"{message}: {_exception!.Message}");
-
-        return _value!;
-    }
-
-    /// <summary>
-    /// Returns the exception if failed, with a custom error message if successful.
-    /// Similar to Rust's expect_err() method.
-    /// </summary>
-    /// <param name="message">The error message if successful</param>
-    /// <exception cref="InvalidOperationException">Thrown if successful</exception>
-    /// <example>
-    /// <code>
-    /// var failure = Try&lt;int&gt;.Failure(new Exception("error"));
-    /// var ex = failure.ExpectFailure("Expected failure"); // Exception
-    /// 
-    /// var success = Try&lt;int&gt;.Success(42);
-    /// success.ExpectFailure("Should have failed"); // throws with "Should have failed: 42"
-    /// </code>
-    /// </example>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Exception ExpectFailure(string message)
-    {
-        if (_isSuccess)
-            ThrowHelper.ThrowInvalidOperation($"{message}: {_value}");
-
-        return _exception!;
     }
 
     /// <summary>
     /// Returns the value if successful, or throws an <see cref="InvalidOperationException"/> if failed.
-    /// This is an alias for <see cref="Get"/> with more explicit C# naming.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if failed</exception>
     /// <example>
@@ -245,7 +183,6 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>, ICompar
     /// <summary>
     /// Returns the value if successful, or throws an <see cref="InvalidOperationException"/> 
     /// with the specified message if failed.
-    /// This is an alias for <see cref="Expect"/> with more explicit C# naming.
     /// </summary>
     /// <param name="message">The exception message if failed</param>
     /// <exception cref="InvalidOperationException">Thrown if failed</exception>
@@ -269,7 +206,6 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>, ICompar
 
     /// <summary>
     /// Returns the exception if failed, or throws an <see cref="InvalidOperationException"/> if successful.
-    /// This is an alias for <see cref="GetException"/> with more explicit C# naming.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if successful</exception>
     /// <example>
@@ -293,7 +229,6 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>, ICompar
     /// <summary>
     /// Returns the exception if failed, or throws an <see cref="InvalidOperationException"/> 
     /// with the specified message if successful.
-    /// This is an alias for <see cref="ExpectFailure"/> with more explicit C# naming.
     /// </summary>
     /// <param name="message">The exception message if successful</param>
     /// <exception cref="InvalidOperationException">Thrown if successful</exception>
@@ -332,7 +267,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>, ICompar
     /// Returns the value if successful, otherwise returns the default value.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T GetOrElse(T defaultValue)
+    public T GetValueOr(T defaultValue)
     {
         return _isSuccess ? _value! : defaultValue;
     }
@@ -341,7 +276,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>, ICompar
     /// Returns the value if successful, otherwise computes a default.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T GetOrElse(Func<T> defaultFunc)
+    public T GetValueOrElse(Func<T> defaultFunc)
     {
         return _isSuccess ? _value! : defaultFunc();
     }
@@ -350,7 +285,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>, ICompar
     /// Returns the value if successful, otherwise computes from the exception.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T GetOrElse(Func<Exception, T> recovery)
+    public T GetValueOrRecover(Func<Exception, T> recovery)
     {
         return _isSuccess ? _value! : recovery(_exception!);
     }
@@ -454,9 +389,10 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>, ICompar
 
     /// <summary>
     /// Chains another Try computation.
+    /// This is the monadic bind operation.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Try<U> FlatMap<U>(Func<T, Try<U>> binder)
+    public Try<U> Bind<U>(Func<T, Try<U>> binder)
     {
         if (!_isSuccess)
             return Try<U>.Failure(_exception!);
@@ -470,20 +406,6 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>, ICompar
             return Try<U>.Failure(ex);
         }
     }
-
-    /// <summary>
-    /// Chains operations that may throw exceptions.
-    /// Alias for <see cref="FlatMap{U}"/>.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Try<U> AndThen<U>(Func<T, Try<U>> binder) => FlatMap(binder);
-
-    /// <summary>
-    /// Chains operations that may throw exceptions.
-    /// Alias for <see cref="FlatMap{U}"/>.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Try<U> Bind<U>(Func<T, Try<U>> binder) => FlatMap(binder);
 
     /// <summary>
     /// Combines this Try with another into a tuple.
@@ -506,7 +428,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>, ICompar
             return Try<(T, U)>.Failure(_exception!);
         if (!other.IsSuccess)
             return Try<(T, U)>.Failure(other.GetException());
-        return Try<(T, U)>.Success((_value!, other.Get()));
+        return Try<(T, U)>.Success((_value!, other.GetValue()));
     }
 
     /// <summary>
@@ -535,7 +457,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>, ICompar
 
         try
         {
-            return Try<V>.Success(combiner(_value!, other.Get()));
+            return Try<V>.Success(combiner(_value!, other.GetValue()));
         }
         catch (Exception ex)
         {
@@ -860,7 +782,7 @@ public static class TryExtensions
         {
             try
             {
-                action(@try.Get());
+                action(@try.GetValue());
             }
             catch (Exception ex)
             {
@@ -889,7 +811,7 @@ public static class TryExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Try<T> Flatten<T>(this Try<Try<T>> @try)
     {
-        return @try.FlatMap(static inner => inner);
+        return @try.Bind(static inner => inner);
     }
 
     /// <summary>
@@ -914,7 +836,7 @@ public static class TryExtensions
 
         try
         {
-            var result = await mapper(@try.Get()).ConfigureAwait(false);
+            var result = await mapper(@try.GetValue()).ConfigureAwait(false);
             return Try<U>.Success(result);
         }
         catch (Exception ex)
@@ -926,14 +848,14 @@ public static class TryExtensions
     /// <summary>
     /// Chains an async operation.
     /// </summary>
-    public static async Task<Try<U>> FlatMapAsync<T, U>(this Try<T> @try, Func<T, Task<Try<U>>> binder)
+    public static async Task<Try<U>> BindAsync<T, U>(this Try<T> @try, Func<T, Task<Try<U>>> binder)
     {
         if (!@try.IsSuccess)
             return Try<U>.Failure(@try.GetException());
 
         try
         {
-            return await binder(@try.Get()).ConfigureAwait(false);
+            return await binder(@try.GetValue()).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -959,7 +881,7 @@ public static class TryExtensions
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var result = await mapper(@try.Get(), cancellationToken).ConfigureAwait(false);
+            var result = await mapper(@try.GetValue(), cancellationToken).ConfigureAwait(false);
             return Try<U>.Success(result);
         }
         catch (OperationCanceledException)
@@ -975,7 +897,7 @@ public static class TryExtensions
     /// <summary>
     /// Chains an async operation with cancellation support.
     /// </summary>
-    public static async Task<Try<U>> FlatMapAsync<T, U>(
+    public static async Task<Try<U>> BindAsync<T, U>(
         this Try<T> @try,
         Func<T, CancellationToken, Task<Try<U>>> binder,
         CancellationToken cancellationToken = default)
@@ -986,7 +908,7 @@ public static class TryExtensions
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return await binder(@try.Get(), cancellationToken).ConfigureAwait(false);
+            return await binder(@try.GetValue(), cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
@@ -997,15 +919,6 @@ public static class TryExtensions
             return Try<U>.Failure(ex);
         }
     }
-
-    /// <summary>
-    /// Alias for FlatMapAsync with cancellation support.
-    /// </summary>
-    public static Task<Try<U>> AndThenAsync<T, U>(
-        this Try<T> @try,
-        Func<T, CancellationToken, Task<Try<U>>> binder,
-        CancellationToken cancellationToken = default)
-        => @try.FlatMapAsync(binder, cancellationToken);
 }
 
 /// <summary>
@@ -1024,7 +937,7 @@ internal sealed class TryDebugView<T>
     public bool IsFailure => _try.IsFailure;
 
     [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-    public object? Value => _try.IsSuccess ? _try.Get() : null;
+    public object? Value => _try.IsSuccess ? _try.GetValue() : null;
 
     public Exception? Exception => _try.IsFailure ? _try.GetException() : null;
 }

@@ -111,14 +111,14 @@ public class GetOrThrowExpectTests
     public void Either_ExpectRight_ReturnsRightValue()
     {
         var either = Either<string, int>.Right(42);
-        Assert.Equal(42, either.ExpectRight("Expected Right"));
+        Assert.Equal(42, either.GetRightOrThrow("Expected Right"));
     }
 
     [Fact]
     public void Either_ExpectRight_ThrowsOnLeft()
     {
         var either = Either<string, int>.Left("error");
-        var ex = Assert.Throws<InvalidOperationException>(() => either.ExpectRight("Expected Right"));
+        var ex = Assert.Throws<InvalidOperationException>(() => either.GetRightOrThrow("Expected Right"));
         Assert.Equal("Expected Right: error", ex.Message);
     }
 
@@ -126,14 +126,14 @@ public class GetOrThrowExpectTests
     public void Either_ExpectLeft_ReturnsLeftValue()
     {
         var either = Either<string, int>.Left("error");
-        Assert.Equal("error", either.ExpectLeft("Expected Left"));
+        Assert.Equal("error", either.GetLeftOrThrow("Expected Left"));
     }
 
     [Fact]
     public void Either_ExpectLeft_ThrowsOnRight()
     {
         var either = Either<string, int>.Right(42);
-        var ex = Assert.Throws<InvalidOperationException>(() => either.ExpectLeft("Expected Left"));
+        var ex = Assert.Throws<InvalidOperationException>(() => either.GetLeftOrThrow("Expected Left"));
         Assert.Equal("Expected Left: 42", ex.Message);
     }
 
@@ -205,14 +205,14 @@ public class GetOrThrowExpectTests
     public void Try_Unwrap_ReturnsSuccessValue()
     {
         var result = Try<int>.Success(42);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
     public void Try_Unwrap_ThrowsOnFailure()
     {
         var result = Try<int>.Failure(new Exception("error"));
-        var ex = Assert.Throws<InvalidOperationException>(() => result.Unwrap());
+        var ex = Assert.Throws<InvalidOperationException>(() => result.GetValue());
         Assert.Contains("error", ex.Message);
     }
 
@@ -220,14 +220,14 @@ public class GetOrThrowExpectTests
     public void Try_Expect_ReturnsSuccessValue()
     {
         var result = Try<int>.Success(42);
-        Assert.Equal(42, result.Expect("Expected value"));
+        Assert.Equal(42, result.GetOrThrow("Expected value"));
     }
 
     [Fact]
     public void Try_Expect_ThrowsWithCustomMessage()
     {
         var result = Try<int>.Failure(new Exception("failed"));
-        var ex = Assert.Throws<InvalidOperationException>(() => result.Expect("Must succeed"));
+        var ex = Assert.Throws<InvalidOperationException>(() => result.GetOrThrow("Must succeed"));
         Assert.Equal("Must succeed: failed", ex.Message);
     }
 
@@ -236,14 +236,14 @@ public class GetOrThrowExpectTests
     {
         var exception = new InvalidOperationException("test error");
         var result = Try<int>.Failure(exception);
-        Assert.Same(exception, result.ExpectFailure("Expected failure"));
+        Assert.Same(exception, result.GetExceptionOrThrow("Expected failure"));
     }
 
     [Fact]
     public void Try_ExpectFailure_ThrowsOnSuccess()
     {
         var result = Try<int>.Success(42);
-        var ex = Assert.Throws<InvalidOperationException>(() => result.ExpectFailure("Should have failed"));
+        var ex = Assert.Throws<InvalidOperationException>(() => result.GetExceptionOrThrow("Should have failed"));
         Assert.Equal("Should have failed: 42", ex.Message);
     }
 
@@ -317,14 +317,14 @@ public class GetOrThrowExpectTests
     public void Validation_Expect_ReturnsValidValue()
     {
         var validation = Validation<int, string>.Valid(42);
-        Assert.Equal(42, validation.Expect("Expected value"));
+        Assert.Equal(42, validation.GetOrThrow("Expected value"));
     }
 
     [Fact]
     public void Validation_Expect_ThrowsWithCustomMessage()
     {
         var validation = Validation<int, string>.Invalid("error");
-        var ex = Assert.Throws<InvalidOperationException>(() => validation.Expect("Must be valid"));
+        var ex = Assert.Throws<InvalidOperationException>(() => validation.GetOrThrow("Must be valid"));
         Assert.Equal("Must be valid: error", ex.Message);
     }
 
@@ -332,7 +332,7 @@ public class GetOrThrowExpectTests
     public void Validation_ExpectErrors_ReturnsErrors()
     {
         var validation = Validation<int, string>.Invalid(new[] { "error1", "error2" });
-        var errors = validation.ExpectErrors("Expected errors");
+        var errors = validation.GetErrorsOrThrow("Expected errors");
         Assert.Equal(2, errors.Count);
         Assert.Contains("error1", errors);
         Assert.Contains("error2", errors);
@@ -342,7 +342,7 @@ public class GetOrThrowExpectTests
     public void Validation_ExpectErrors_ThrowsOnValid()
     {
         var validation = Validation<int, string>.Valid(42);
-        var ex = Assert.Throws<InvalidOperationException>(() => validation.ExpectErrors("Should be invalid"));
+        var ex = Assert.Throws<InvalidOperationException>(() => validation.GetErrorsOrThrow("Should be invalid"));
         Assert.Equal("Should be invalid: 42", ex.Message);
     }
 

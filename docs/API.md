@@ -76,13 +76,12 @@ Represents an optional value - either `Some(value)` or `None`.
 
 | Method | Return Type | Description |
 |--------|-------------|-------------|
-| `Unwrap()` | `T` | Gets value or throws |
-| `Expect(string message)` | `T` | Gets value or throws with message |
-| `UnwrapOr(T default)` | `T` | Gets value or returns default |
-| `UnwrapOrElse(Func<T>)` | `T` | Gets value or computes default |
-| `UnwrapOrDefault()` | `T?` | Gets value or default(T) |
-| `GetOrThrow()` | `T` | Alias for Unwrap |
-| `GetOrThrow(string message)` | `T` | Alias for Expect |
+| `GetValue()` | `T` | Gets value or throws |
+| `GetOrThrow()` | `T` | Gets value or throws (alias) |
+| `GetOrThrow(string message)` | `T` | Gets value or throws with message |
+| `GetValueOr(T default)` | `T` | Gets value or returns default |
+| `GetValueOrElse(Func<T>)` | `T` | Gets value or computes default |
+| `GetValueOrDefault()` | `T?` | Gets value or default(T) |
 | `TryGet(out T? value)` | `bool` | C#-style TryGet pattern |
 | `Contains(T value)` | `bool` | True if Some and contains value |
 | `Exists(Func<T, bool>)` | `bool` | True if Some and predicate passes |
@@ -90,7 +89,7 @@ Represents an optional value - either `Some(value)` or `None`.
 | `Filter(Func<T, bool>)` | `Option<T>` | Filters by predicate |
 | `MapOr<U>(U default, Func<T, U>)` | `U` | Maps or returns default |
 | `MapOrElse<U>(Func<U>, Func<T, U>)` | `U` | Maps or computes default |
-| `AndThen<U>(Func<T, Option<U>>)` | `Option<U>` | Chains operations (flatMap) |
+| `Bind<U>(Func<T, Option<U>>)` | `Option<U>` | Chains operations (flatMap) |
 | `And<U>(Option<U>)` | `Option<U>` | Returns other if this is Some |
 | `Or(Option<T>)` | `Option<T>` | Returns this if Some, else other |
 | `OrElse(Func<Option<T>>)` | `Option<T>` | Returns this if Some, else computes |
@@ -182,7 +181,7 @@ Represents an optional value - either `Some(value)` or `None`.
 | Method | Description |
 |--------|-------------|
 | `MapAsync<U>(Func<T, Task<U>>)` | Async map |
-| `AndThenAsync<U>(Func<T, Task<Option<U>>>)` | Async chain |
+| `BindAsync<U>(Func<T, Task<Option<U>>>)` | Async chain |
 | `FilterAsync(Func<T, Task<bool>>)` | Async filter |
 | `MatchAsync<U>(someFunc, noneFunc)` | Async pattern match |
 | `OrElseAsync(Func<Task<Option<T>>>)` | Returns Some if present, otherwise computes async alternative |
@@ -220,17 +219,18 @@ Represents success (`Ok`) or failure (`Err`).
 
 | Method | Return Type | Description |
 |--------|-------------|-------------|
-| `Unwrap()` | `T` | Gets value or throws |
-| `UnwrapErr()` | `E` | Gets error or throws |
-| `Expect(string)` | `T` | Gets value or throws with message |
-| `UnwrapOr(T)` | `T` | Gets value or returns default |
-| `UnwrapOrElse(Func<E, T>)` | `T` | Gets value or computes from error |
+| `GetValue()` | `T` | Gets value or throws |
+| `GetError()` | `E` | Gets error or throws |
+| `GetOrThrow()` | `T` | Gets value or throws (alias) |
+| `GetOrThrow(string)` | `T` | Gets value or throws with message |
+| `GetValueOr(T)` | `T` | Gets value or returns default |
+| `GetValueOrElse(Func<E, T>)` | `T` | Gets value or computes from error |
 | `TryGet(out T? value)` | `bool` | C#-style TryGet pattern |
 | `TryGetError(out E? error)` | `bool` | C#-style TryGet for error |
 | `Map<U>(Func<T, U>)` | `Result<U, E>` | Transforms the Ok value |
-| `MapErr<F>(Func<E, F>)` | `Result<T, F>` | Transforms the Err value |
+| `MapError<F>(Func<E, F>)` | `Result<T, F>` | Transforms the Err value |
 | `BiMap<U, F>(Func<T, U>, Func<E, F>)` | `Result<U, F>` | Transforms both Ok and Err values |
-| `AndThen<U>(Func<T, Result<U, E>>)` | `Result<U, E>` | Chains operations |
+| `Bind<U>(Func<T, Result<U, E>>)` | `Result<U, E>` | Chains operations |
 | `OrElse<F>(Func<E, Result<T, F>>)` | `Result<T, F>` | Handles error |
 | `Match<U>(okFunc, errFunc)` | `U` | Pattern matching |
 | `Tap(Action<T>)` | `Result<T, E>` | Executes action if Ok |
@@ -267,8 +267,8 @@ Represents success (`Ok`) or failure (`Err`).
 | Method | Description |
 |--------|-------------|
 | `MapAsync<U>(Func<T, Task<U>>)` | Async map |
-| `MapErrAsync<F>(Func<E, Task<F>>)` | Async error map |
-| `AndThenAsync<U>(Func<T, Task<Result<U, E>>>)` | Async chain |
+| `MapErrorAsync<F>(Func<E, Task<F>>)` | Async error map |
+| `BindAsync<U>(Func<T, Task<Result<U, E>>>)` | Async chain |
 | `TapAsync(Func<T, Task>)` | Async side effect |
 
 ### Operators
@@ -303,12 +303,12 @@ Represents a value of one of two types.
 
 | Method | Return Type | Description |
 |--------|-------------|-------------|
-| `UnwrapLeft()` | `L` | Gets Left value or throws |
-| `UnwrapRight()` | `R` | Gets Right value or throws |
+| `GetLeft()` | `L` | Gets Left value or throws |
+| `GetRight()` | `R` | Gets Right value or throws |
 | `MapLeft<L2>(Func<L, L2>)` | `Either<L2, R>` | Transforms Left |
 | `MapRight<R2>(Func<R, R2>)` | `Either<L, R2>` | Transforms Right |
 | `BiMap<L2, R2>(leftFunc, rightFunc)` | `Either<L2, R2>` | Transforms both |
-| `AndThen<R2>(Func<R, Either<L, R2>>)` | `Either<L, R2>` | Chains on Right |
+| `Bind<R2>(Func<R, Either<L, R2>>)` | `Either<L, R2>` | Chains on Right |
 | `Swap()` | `Either<R, L>` | Swaps Left and Right |
 | `Match<U>(leftFunc, rightFunc)` | `U` | Pattern matching |
 | `ToResult()` | `Result<R, L>` | Converts to Result |
@@ -348,9 +348,9 @@ Accumulates errors instead of short-circuiting.
 
 | Method | Return Type | Description |
 |--------|-------------|-------------|
-| `Unwrap()` | `T` | Gets value or throws |
-| `UnwrapErrors()` | `IReadOnlyList<E>` | Gets errors or throws |
-| `UnwrapOr(T)` | `T` | Gets value or default |
+| `GetValue()` | `T` | Gets value or throws |
+| `GetErrors()` | `IReadOnlyList<E>` | Gets errors or throws |
+| `GetValueOr(T)` | `T` | Gets value or default |
 | `Map<U>(Func<T, U>)` | `Validation<U, E>` | Transforms value |
 | `MapErrors<F>(Func<E, F>)` | `Validation<T, F>` | Transforms errors |
 | `Apply<T2, U>(other, combiner)` | `Validation<U, E>` | Combines validations |
@@ -387,7 +387,7 @@ var result = from name in ValidateName(input.Name)
              select new User(name, email);
 ```
 
-> **Note:** LINQ uses `AndThen` which short-circuits on first error. For accumulating errors, use `Validation.Apply` or `Validation.Zip` instead.
+> **Note:** LINQ uses `Bind` which short-circuits on first error. For accumulating errors, use `Validation.Apply` or `Validation.Zip` instead.
 
 ---
 
@@ -417,15 +417,15 @@ Captures exceptions as values.
 
 | Method | Return Type | Description |
 |--------|-------------|-------------|
-| `Get()` | `T` | Gets value or throws |
+| `GetValue()` | `T` | Gets value or throws |
 | `GetException()` | `Exception` | Gets exception or throws |
-| `GetOrElse(T)` | `T` | Gets value or default |
-| `GetOrElse(Func<T>)` | `T` | Gets value or computes |
-| `GetOrElse(Func<Exception, T>)` | `T` | Gets value or computes from exception |
+| `GetValueOr(T)` | `T` | Gets value or default |
+| `GetValueOrElse(Func<T>)` | `T` | Gets value or computes |
+| `GetValueOrRecover(Func<Exception, T>)` | `T` | Gets value or computes from exception |
 | `TryGet(out T? value)` | `bool` | C#-style TryGet pattern |
 | `TryGetException(out Exception? ex)` | `bool` | C#-style TryGet for exception |
 | `Map<U>(Func<T, U>)` | `Try<U>` | Transforms value |
-| `FlatMap<U>(Func<T, Try<U>>)` | `Try<U>` | Chains operations |
+| `Bind<U>(Func<T, Try<U>>)` | `Try<U>` | Chains operations |
 | `Filter(predicate)` | `Try<T>` | Filters by predicate |
 | `Filter(predicate, message)` | `Try<T>` | Filters with error message |
 | `Recover(Func<Exception, T>)` | `Try<T>` | Recovers from failure |
@@ -484,12 +484,12 @@ Tracks async data loading states.
 
 | Method | Return Type | Description |
 |--------|-------------|-------------|
-| `Unwrap()` | `T` | Gets data or throws |
-| `UnwrapError()` | `E` | Gets error or throws |
-| `UnwrapOr(T)` | `T` | Gets data or default |
+| `GetValue()` | `T` | Gets data or throws |
+| `GetError()` | `E` | Gets error or throws |
+| `GetValueOr(T)` | `T` | Gets data or default |
 | `Map<U>(Func<T, U>)` | `RemoteData<U, E>` | Transforms data |
 | `MapError<F>(Func<E, F>)` | `RemoteData<T, F>` | Transforms error |
-| `FlatMap<U>(Func<T, RemoteData<U, E>>)` | `RemoteData<U, E>` | Chains operations |
+| `Bind<U>(Func<T, RemoteData<U, E>>)` | `RemoteData<U, E>` | Chains operations |
 | `Match<U>(notAsked, loading, success, failure)` | `U` | Pattern matching |
 | `IsLoaded()` | `bool` | True if Success or Failure |
 | `IsNotLoaded()` | `bool` | True if NotAsked or Loading |
@@ -536,7 +536,7 @@ List guaranteed to have at least one element.
 | `Last()` | `T` | Last element (always exists) |
 | `Map<U>(Func<T, U>)` | `NonEmptyList<U>` | Transforms elements |
 | `MapIndexed<U>(Func<T, int, U>)` | `NonEmptyList<U>` | Transforms with index |
-| `FlatMap<U>(Func<T, NonEmptyList<U>>)` | `NonEmptyList<U>` | Chains operations |
+| `Bind<U>(Func<T, NonEmptyList<U>>)` | `NonEmptyList<U>` | Chains operations |
 | `Filter(Func<T, bool>)` | `Option<NonEmptyList<T>>` | Filters (may be empty) |
 | `Reduce(Func<T, T, T>)` | `T` | Reduces without initial value |
 | `Fold<U>(U seed, Func<U, T, U>)` | `U` | Folds with initial value |
@@ -584,7 +584,7 @@ Computations with accumulated output.
 | Method | Return Type | Description |
 |--------|-------------|-------------|
 | `Map<U>(Func<T, U>)` | `Writer<W, U>` | Transforms value |
-| `FlatMap<U>(binder, combine)` | `Writer<W, U>` | Chains with log combination |
+| `Bind<U>(binder, combine)` | `Writer<W, U>` | Chains with log combination |
 | `BiMap<W2, U>(logMapper, valueMapper)` | `Writer<W2, U>` | Transforms both |
 | `Match<U>(Func<T, W, U>)` | `U` | Pattern matching |
 | `Tap(Action<T>)` | `Writer<W, T>` | Executes action with value |
@@ -625,9 +625,7 @@ Computations depending on environment.
 |--------|-------------|-------------|
 | `Run(R environment)` | `A` | Executes with environment |
 | `Map<B>(Func<A, B>)` | `Reader<R, B>` | Transforms result |
-| `FlatMap<B>(Func<A, Reader<R, B>>)` | `Reader<R, B>` | Chains operations |
-| `AndThen<B>(...)` | `Reader<R, B>` | Alias for FlatMap |
-| `Bind<B>(...)` | `Reader<R, B>` | Alias for FlatMap |
+| `Bind<B>(Func<A, Reader<R, B>>)` | `Reader<R, B>` | Chains operations |
 | `WithEnvironment<R2>(Func<R2, R>)` | `Reader<R2, A>` | Transforms environment |
 | `Tap(Action<A>)` | `Reader<R, A>` | Executes action with result |
 | `TapEnv(Action<R>)` | `Reader<R, A>` | Executes action with environment |
@@ -659,10 +657,8 @@ Asynchronous computations depending on environment.
 | `RunAsync(R environment, CancellationToken)` | `Task<A>` | Executes with environment |
 | `Map<B>(Func<A, B>)` | `ReaderAsync<R, B>` | Transforms result |
 | `MapAsync<B>(Func<A, Task<B>>)` | `ReaderAsync<R, B>` | Transforms result async |
-| `FlatMap<B>(Func<A, ReaderAsync<R, B>>)` | `ReaderAsync<R, B>` | Chains operations |
-| `FlatMapAsync<B>(Func<A, Task<ReaderAsync<R, B>>>)` | `ReaderAsync<R, B>` | Chains with async binder |
-| `AndThen<B>(...)` | `ReaderAsync<R, B>` | Alias for FlatMap |
-| `Bind<B>(...)` | `ReaderAsync<R, B>` | Alias for FlatMap |
+| `Bind<B>(Func<A, ReaderAsync<R, B>>)` | `ReaderAsync<R, B>` | Chains operations |
+| `BindAsync<B>(Func<A, Task<ReaderAsync<R, B>>>)` | `ReaderAsync<R, B>` | Chains with async binder |
 | `Tap(Action<A>)` | `ReaderAsync<R, A>` | Executes action with result |
 | `TapAsync(Func<A, Task>)` | `ReaderAsync<R, A>` | Executes async action with result |
 | `TapEnv(Action<R>)` | `ReaderAsync<R, A>` | Executes action with environment |
@@ -743,9 +739,7 @@ Stateful computations that thread state through operations.
 | `Eval(S initialState)` | `A` | Executes and returns only value |
 | `Exec(S initialState)` | `S` | Executes and returns only final state |
 | `Map<U>(Func<A, U>)` | `State<S, U>` | Transforms the value |
-| `AndThen<U>(Func<A, State<S, U>>)` | `State<S, U>` | Chains operations |
-| `FlatMap<U>(Func<A, State<S, U>>)` | `State<S, U>` | Alias for AndThen |
-| `Bind<U>(Func<A, State<S, U>>)` | `State<S, U>` | Alias for AndThen |
+| `Bind<U>(Func<A, State<S, U>>)` | `State<S, U>` | Chains operations |
 | `Apply<U>(State<S, Func<A, U>>)` | `State<S, U>` | Applicative apply |
 | `Zip<U>(State<S, U>)` | `State<S, (A, U)>` | Combines two computations |
 | `ZipWith<U, V>(State<S, U>, Func<A, U, V>)` | `State<S, V>` | Combines with function |
@@ -769,7 +763,7 @@ Stateful computations that thread state through operations.
 | Method | Description |
 |--------|-------------|
 | `Select` | Map operation |
-| `SelectMany` | FlatMap operation |
+| `SelectMany` | Bind operation |
 
 ---
 
@@ -784,7 +778,7 @@ Defers side effects for pure functional code.
 | Method | Description |
 |--------|-------------|
 | `IO<T>.Of(Func<T> effect)` | Creates IO from effect function |
-| `IO<T>.Pure(T value)` | Creates IO with pure value (no side effects) |
+| `IO<T>.Return(T value)` | Creates IO with pure value (no side effects) |
 | `IO<T>.Return(T value)` | Alias for `Pure` |
 | `IO<T>.Delay(Func<T> effect)` | Alias for `Of`, emphasizes lazy evaluation |
 
@@ -815,9 +809,7 @@ Defers side effects for pure functional code.
 | `Run()` | `T` | Execute the IO and return result |
 | `RunAsync(ct)` | `Task<T>` | Execute asynchronously |
 | `Map(f)` | `IO<U>` | Transform the result |
-| `AndThen(f)` | `IO<U>` | Chain with another IO |
-| `FlatMap(f)` | `IO<U>` | Alias for `AndThen` |
-| `Bind(f)` | `IO<U>` | Alias for `AndThen` |
+| `Bind(f)` | `IO<U>` | Chain with another IO |
 | `Tap(action)` | `IO<T>` | Execute side effect, keep value |
 | `Apply(ioFunc)` | `IO<U>` | Apply function in IO to value |
 | `Zip(other)` | `IO<(T, U)>` | Combine with another IO |
@@ -839,13 +831,12 @@ Async version of IO for native async operations.
 | Method | Return Type | Description |
 |--------|-------------|-------------|
 | `IOAsync<T>.Of(effect)` | `IOAsync<T>` | Create from async effect |
-| `IOAsync<T>.Pure(value)` | `IOAsync<T>` | Create with pure value |
+| `IOAsync<T>.Return(value)` | `IOAsync<T>` | Create with pure value |
 | `IOAsync<T>.FromIO(io)` | `IOAsync<T>` | Convert from sync IO |
 | `RunAsync(ct)` | `Task<T>` | Execute the async IO |
 | `Map(f)` | `IOAsync<U>` | Transform result |
 | `MapAsync(f)` | `IOAsync<U>` | Transform with async function |
-| `AndThen(f)` | `IOAsync<U>` | Chain with another async IO |
-| `FlatMap(f)` | `IOAsync<U>` | Alias for `AndThen` |
+| `Bind(f)` | `IOAsync<U>` | Chain with another async IO |
 | `Tap(action)` | `IOAsync<T>` | Execute side effect |
 | `TapAsync(action)` | `IOAsync<T>` | Execute async side effect |
 | `Zip(other)` | `IOAsync<(T, U)>` | Combine with another async IO |
@@ -870,7 +861,7 @@ Async version of IO for native async operations.
 
 | Method | Description |
 |--------|-------------|
-| `Flatten()` | Unwrap nested `IO<IO<T>>` or `IOAsync<IOAsync<T>>` |
+| `Flatten()` | Flatten nested `IO<IO<T>>` or `IOAsync<IOAsync<T>>` |
 | `Sequence()` | `IEnumerable<IO<T>>` → `IO<IReadOnlyList<T>>` |
 | `Traverse(f)` | Map and sequence in one operation |
 | `Select(f)` | LINQ query support |
@@ -972,7 +963,7 @@ Most developers prefer method syntax for its IntelliSense support and familiar c
 var doubled = option.Select(x => x * 2);
 var userDto = result.Select(user => new UserDto(user));
 
-// SelectMany = FlatMap - chain operations that return monads
+// SelectMany = Bind - chain operations that return monads
 var email = FindUser(id)
     .SelectMany(user => GetEmail(user.Id))
     .SelectMany(email => ValidateEmail(email));
@@ -1138,7 +1129,7 @@ if (shape.IsCircle)
 // As{Case}() - safe casting
 var radius = shape.AsCircle()
     .Map(c => c.Radius)
-    .UnwrapOr(0);
+    .GetValueOr(0);
 
 // Map - transform
 var doubled = shape.Map(

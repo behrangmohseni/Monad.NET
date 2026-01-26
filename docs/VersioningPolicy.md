@@ -56,7 +56,7 @@ The following are considered **stable API** and will not change without a major 
 | Category | Examples | Stability |
 |----------|----------|-----------|
 | **Public types** | `Option<T>`, `Result<T,E>`, etc. | Stable |
-| **Public methods** | `.Map()`, `.AndThen()`, `.Match()` | Stable |
+| **Public methods** | `.Map()`, `.Bind()`, `.Match()` | Stable |
 | **Method signatures** | Parameter types, return types | Stable |
 | **Behavior** | Short-circuit semantics, error accumulation | Stable |
 | **Extension methods** | `.ToOption()`, `.ToResult()` | Stable |
@@ -98,9 +98,9 @@ When API elements need to be removed or changed, we follow a structured deprecat
 /// Gets the value or throws if None.
 /// </summary>
 /// <remarks>
-/// Consider using <see cref="UnwrapOr"/> or <see cref="Match"/> instead.
+/// Consider using <see cref="GetValueOr"/> or <see cref="Match"/> instead.
 /// </remarks>
-[Obsolete("Use UnwrapOr() or Match() instead. This will be removed in v3.0.0.")]
+[Obsolete("Use GetValueOr() or Match() instead. This will be removed in v3.0.0.")]
 public T Value => IsSome ? _value : throw new InvalidOperationException();
 ```
 
@@ -113,7 +113,7 @@ public T Value => IsSome ? _value : throw new InvalidOperationException();
 ### Phase 2: Escalated Warning (Next Minor Version)
 
 ```csharp
-[Obsolete("Use UnwrapOr() or Match() instead. This will be removed in v3.0.0.", error: false)]
+[Obsolete("Use GetValueOr() or Match() instead. This will be removed in v3.0.0.", error: false)]
 #pragma warning disable CS0618 // Suppress in implementation
 public T Value => ...
 #pragma warning restore CS0618
@@ -180,8 +180,8 @@ Example CHANGELOG entry:
 ### Breaking Changes
 
 - **BREAKING**: Removed `Option<T>.Value` property
-  - Use `UnwrapOr(default)` or `Match(some: v => v, none: () => default)` instead
-  - Migration: Replace `.Value` with `.UnwrapOr(defaultValue)`
+  - Use `GetValueOr(default)` or `Match(some: v => v, none: () => default)` instead
+  - Migration: Replace `.Value` with `.GetValueOr(defaultValue)`
 
 - **BREAKING**: Changed `Validation<T, E>` type parameter order
   - Old: `Validation<Error, Value>`
@@ -218,10 +218,10 @@ Monad.NET.Analyzers includes migration helpers:
 
 ```csharp
 // Analyzer detects deprecated usage
-var value = option.Value;  // MONAD001: Use UnwrapOr() instead
+var value = option.Value;  // MONAD001: Use GetValueOr() instead
 
 // Code fix provides automatic replacement
-var value = option.UnwrapOr(default);
+var value = option.GetValueOr(default);
 ```
 
 ### Supported Versions

@@ -22,9 +22,9 @@ public static class ResultAsyncExtensions
 
         var result = await resultTask.ConfigureAwait(false);
         if (!result.IsOk)
-            return Result<U, TErr>.Err(result.UnwrapErr());
+            return Result<U, TErr>.Err(result.GetError());
 
-        var value = await mapper(result.Unwrap()).ConfigureAwait(false);
+        var value = await mapper(result.GetValue()).ConfigureAwait(false);
         return Result<U, TErr>.Ok(value);
     }
 
@@ -47,7 +47,7 @@ public static class ResultAsyncExtensions
     /// Maps the Err value inside a Task&lt;Result&lt;T, E&gt;&gt; using an async function.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static async Task<Result<T, F>> MapErrAsync<T, TErr, F>(
+    public static async Task<Result<T, F>> MapErrorAsync<T, TErr, F>(
         this Task<Result<T, TErr>> resultTask,
         Func<TErr, Task<F>> mapper)
     {
@@ -56,9 +56,9 @@ public static class ResultAsyncExtensions
 
         var result = await resultTask.ConfigureAwait(false);
         if (result.IsOk)
-            return Result<T, F>.Ok(result.Unwrap());
+            return Result<T, F>.Ok(result.GetValue());
 
-        var error = await mapper(result.UnwrapErr()).ConfigureAwait(false);
+        var error = await mapper(result.GetError()).ConfigureAwait(false);
         return Result<T, F>.Err(error);
     }
 
@@ -66,7 +66,7 @@ public static class ResultAsyncExtensions
     /// Maps the Err value inside a Task&lt;Result&lt;T, E&gt;&gt; using a synchronous function.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static async Task<Result<T, F>> MapErrAsync<T, TErr, F>(
+    public static async Task<Result<T, F>> MapErrorAsync<T, TErr, F>(
         this Task<Result<T, TErr>> resultTask,
         Func<TErr, F> mapper)
     {
@@ -74,14 +74,14 @@ public static class ResultAsyncExtensions
         ThrowHelper.ThrowIfNull(mapper);
 
         var result = await resultTask.ConfigureAwait(false);
-        return result.MapErr(mapper);
+        return result.MapError(mapper);
     }
 
     /// <summary>
     /// Chains an async operation on a Task&lt;Result&lt;T, E&gt;&gt;.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static async Task<Result<U, TErr>> AndThenAsync<T, TErr, U>(
+    public static async Task<Result<U, TErr>> BindAsync<T, TErr, U>(
         this Task<Result<T, TErr>> resultTask,
         Func<T, Task<Result<U, TErr>>> binder)
     {
@@ -90,16 +90,16 @@ public static class ResultAsyncExtensions
 
         var result = await resultTask.ConfigureAwait(false);
         if (!result.IsOk)
-            return Result<U, TErr>.Err(result.UnwrapErr());
+            return Result<U, TErr>.Err(result.GetError());
 
-        return await binder(result.Unwrap()).ConfigureAwait(false);
+        return await binder(result.GetValue()).ConfigureAwait(false);
     }
 
     /// <summary>
     /// Chains a synchronous operation on a Task&lt;Result&lt;T, E&gt;&gt;.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static async Task<Result<U, TErr>> AndThenAsync<T, TErr, U>(
+    public static async Task<Result<U, TErr>> BindAsync<T, TErr, U>(
         this Task<Result<T, TErr>> resultTask,
         Func<T, Result<U, TErr>> binder)
     {
@@ -107,7 +107,7 @@ public static class ResultAsyncExtensions
         ThrowHelper.ThrowIfNull(binder);
 
         var result = await resultTask.ConfigureAwait(false);
-        return result.AndThen(binder);
+        return result.Bind(binder);
     }
 
     /// <summary>
@@ -123,16 +123,16 @@ public static class ResultAsyncExtensions
 
         var result = await resultTask.ConfigureAwait(false);
         if (result.IsOk)
-            return Result<T, F>.Ok(result.Unwrap());
+            return Result<T, F>.Ok(result.GetValue());
 
-        return await op(result.UnwrapErr()).ConfigureAwait(false);
+        return await op(result.GetError()).ConfigureAwait(false);
     }
 
     /// <summary>
     /// Returns the Ok value or computes a default asynchronously.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static async Task<T> UnwrapOrElseAsync<T, TErr>(
+    public static async Task<T> GetValueOrElseAsync<T, TErr>(
         this Task<Result<T, TErr>> resultTask,
         Func<TErr, Task<T>> op)
     {
@@ -141,9 +141,9 @@ public static class ResultAsyncExtensions
 
         var result = await resultTask.ConfigureAwait(false);
         if (result.IsOk)
-            return result.Unwrap();
+            return result.GetValue();
 
-        return await op(result.UnwrapErr()).ConfigureAwait(false);
+        return await op(result.GetError()).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -161,9 +161,9 @@ public static class ResultAsyncExtensions
 
         var result = await resultTask.ConfigureAwait(false);
         if (result.IsOk)
-            return await okFunc(result.Unwrap()).ConfigureAwait(false);
+            return await okFunc(result.GetValue()).ConfigureAwait(false);
 
-        return await errFunc(result.UnwrapErr()).ConfigureAwait(false);
+        return await errFunc(result.GetError()).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -196,7 +196,7 @@ public static class ResultAsyncExtensions
 
         var result = await resultTask.ConfigureAwait(false);
         if (result.IsOk)
-            await action(result.Unwrap()).ConfigureAwait(false);
+            await action(result.GetValue()).ConfigureAwait(false);
 
         return result;
     }
@@ -214,7 +214,7 @@ public static class ResultAsyncExtensions
 
         var result = await resultTask.ConfigureAwait(false);
         if (result.IsErr)
-            await action(result.UnwrapErr()).ConfigureAwait(false);
+            await action(result.GetError()).ConfigureAwait(false);
 
         return result;
     }
@@ -230,9 +230,9 @@ public static class ResultAsyncExtensions
         ThrowHelper.ThrowIfNull(mapper);
 
         if (!result.IsOk)
-            return Result<U, TErr>.Err(result.UnwrapErr());
+            return Result<U, TErr>.Err(result.GetError());
 
-        var value = await mapper(result.Unwrap()).ConfigureAwait(false);
+        var value = await mapper(result.GetValue()).ConfigureAwait(false);
         return Result<U, TErr>.Ok(value);
     }
 
@@ -240,16 +240,16 @@ public static class ResultAsyncExtensions
     /// Chains an async operation on a Result&lt;T, E&gt;.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static async Task<Result<U, TErr>> AndThenAsync<T, TErr, U>(
+    public static async Task<Result<U, TErr>> BindAsync<T, TErr, U>(
         this Result<T, TErr> result,
         Func<T, Task<Result<U, TErr>>> binder)
     {
         ThrowHelper.ThrowIfNull(binder);
 
         if (!result.IsOk)
-            return Result<U, TErr>.Err(result.UnwrapErr());
+            return Result<U, TErr>.Err(result.GetError());
 
-        return await binder(result.Unwrap()).ConfigureAwait(false);
+        return await binder(result.GetValue()).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -263,9 +263,9 @@ public static class ResultAsyncExtensions
         ThrowHelper.ThrowIfNull(op);
 
         if (result.IsOk)
-            return Result<T, F>.Ok(result.Unwrap());
+            return Result<T, F>.Ok(result.GetValue());
 
-        return await op(result.UnwrapErr()).ConfigureAwait(false);
+        return await op(result.GetError()).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -279,7 +279,7 @@ public static class ResultAsyncExtensions
         ThrowHelper.ThrowIfNull(action);
 
         if (result.IsOk)
-            await action(result.Unwrap()).ConfigureAwait(false);
+            await action(result.GetValue()).ConfigureAwait(false);
 
         return result;
     }
@@ -312,10 +312,10 @@ public static class ResultAsyncExtensions
 
         var result = await resultTask.ConfigureAwait(false);
         if (!result.IsOk)
-            return Result<U, TErr>.Err(result.UnwrapErr());
+            return Result<U, TErr>.Err(result.GetError());
 
         cancellationToken.ThrowIfCancellationRequested();
-        var value = await mapper(result.Unwrap(), cancellationToken).ConfigureAwait(false);
+        var value = await mapper(result.GetValue(), cancellationToken).ConfigureAwait(false);
         return Result<U, TErr>.Ok(value);
     }
 
@@ -323,7 +323,7 @@ public static class ResultAsyncExtensions
     /// Maps the Err value inside a Task&lt;Result&lt;T, E&gt;&gt; using an async function with cancellation support.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static async Task<Result<T, F>> MapErrAsync<T, TErr, F>(
+    public static async Task<Result<T, F>> MapErrorAsync<T, TErr, F>(
         this Task<Result<T, TErr>> resultTask,
         Func<TErr, CancellationToken, Task<F>> mapper,
         CancellationToken cancellationToken = default)
@@ -334,10 +334,10 @@ public static class ResultAsyncExtensions
 
         var result = await resultTask.ConfigureAwait(false);
         if (result.IsOk)
-            return Result<T, F>.Ok(result.Unwrap());
+            return Result<T, F>.Ok(result.GetValue());
 
         cancellationToken.ThrowIfCancellationRequested();
-        var error = await mapper(result.UnwrapErr(), cancellationToken).ConfigureAwait(false);
+        var error = await mapper(result.GetError(), cancellationToken).ConfigureAwait(false);
         return Result<T, F>.Err(error);
     }
 
@@ -345,7 +345,7 @@ public static class ResultAsyncExtensions
     /// Chains an async operation on a Task&lt;Result&lt;T, E&gt;&gt; with cancellation support.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static async Task<Result<U, TErr>> AndThenAsync<T, TErr, U>(
+    public static async Task<Result<U, TErr>> BindAsync<T, TErr, U>(
         this Task<Result<T, TErr>> resultTask,
         Func<T, CancellationToken, Task<Result<U, TErr>>> binder,
         CancellationToken cancellationToken = default)
@@ -356,10 +356,10 @@ public static class ResultAsyncExtensions
 
         var result = await resultTask.ConfigureAwait(false);
         if (!result.IsOk)
-            return Result<U, TErr>.Err(result.UnwrapErr());
+            return Result<U, TErr>.Err(result.GetError());
 
         cancellationToken.ThrowIfCancellationRequested();
-        return await binder(result.Unwrap(), cancellationToken).ConfigureAwait(false);
+        return await binder(result.GetValue(), cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -377,17 +377,17 @@ public static class ResultAsyncExtensions
 
         var result = await resultTask.ConfigureAwait(false);
         if (result.IsOk)
-            return Result<T, F>.Ok(result.Unwrap());
+            return Result<T, F>.Ok(result.GetValue());
 
         cancellationToken.ThrowIfCancellationRequested();
-        return await op(result.UnwrapErr(), cancellationToken).ConfigureAwait(false);
+        return await op(result.GetError(), cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
     /// Returns the Ok value or computes a default asynchronously with cancellation support.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static async Task<T> UnwrapOrElseAsync<T, TErr>(
+    public static async Task<T> GetValueOrElseAsync<T, TErr>(
         this Task<Result<T, TErr>> resultTask,
         Func<TErr, CancellationToken, Task<T>> op,
         CancellationToken cancellationToken = default)
@@ -398,10 +398,10 @@ public static class ResultAsyncExtensions
 
         var result = await resultTask.ConfigureAwait(false);
         if (result.IsOk)
-            return result.Unwrap();
+            return result.GetValue();
 
         cancellationToken.ThrowIfCancellationRequested();
-        return await op(result.UnwrapErr(), cancellationToken).ConfigureAwait(false);
+        return await op(result.GetError(), cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -423,9 +423,9 @@ public static class ResultAsyncExtensions
         cancellationToken.ThrowIfCancellationRequested();
 
         if (result.IsOk)
-            return await okFunc(result.Unwrap(), cancellationToken).ConfigureAwait(false);
+            return await okFunc(result.GetValue(), cancellationToken).ConfigureAwait(false);
 
-        return await errFunc(result.UnwrapErr(), cancellationToken).ConfigureAwait(false);
+        return await errFunc(result.GetError(), cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -445,7 +445,7 @@ public static class ResultAsyncExtensions
         if (result.IsOk)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            await action(result.Unwrap(), cancellationToken).ConfigureAwait(false);
+            await action(result.GetValue(), cancellationToken).ConfigureAwait(false);
         }
 
         return result;
@@ -468,7 +468,7 @@ public static class ResultAsyncExtensions
         if (result.IsErr)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            await action(result.UnwrapErr(), cancellationToken).ConfigureAwait(false);
+            await action(result.GetError(), cancellationToken).ConfigureAwait(false);
         }
 
         return result;
@@ -487,9 +487,9 @@ public static class ResultAsyncExtensions
         cancellationToken.ThrowIfCancellationRequested();
 
         if (!result.IsOk)
-            return Result<U, TErr>.Err(result.UnwrapErr());
+            return Result<U, TErr>.Err(result.GetError());
 
-        var value = await mapper(result.Unwrap(), cancellationToken).ConfigureAwait(false);
+        var value = await mapper(result.GetValue(), cancellationToken).ConfigureAwait(false);
         return Result<U, TErr>.Ok(value);
     }
 
@@ -497,7 +497,7 @@ public static class ResultAsyncExtensions
     /// Chains an async operation on a Result&lt;T, E&gt; with cancellation support.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static async Task<Result<U, TErr>> AndThenAsync<T, TErr, U>(
+    public static async Task<Result<U, TErr>> BindAsync<T, TErr, U>(
         this Result<T, TErr> result,
         Func<T, CancellationToken, Task<Result<U, TErr>>> binder,
         CancellationToken cancellationToken = default)
@@ -506,9 +506,9 @@ public static class ResultAsyncExtensions
         cancellationToken.ThrowIfCancellationRequested();
 
         if (!result.IsOk)
-            return Result<U, TErr>.Err(result.UnwrapErr());
+            return Result<U, TErr>.Err(result.GetError());
 
-        return await binder(result.Unwrap(), cancellationToken).ConfigureAwait(false);
+        return await binder(result.GetValue(), cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -524,9 +524,9 @@ public static class ResultAsyncExtensions
         cancellationToken.ThrowIfCancellationRequested();
 
         if (result.IsOk)
-            return Result<T, F>.Ok(result.Unwrap());
+            return Result<T, F>.Ok(result.GetValue());
 
-        return await op(result.UnwrapErr(), cancellationToken).ConfigureAwait(false);
+        return await op(result.GetError(), cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -542,7 +542,7 @@ public static class ResultAsyncExtensions
         cancellationToken.ThrowIfCancellationRequested();
 
         if (result.IsOk)
-            await action(result.Unwrap(), cancellationToken).ConfigureAwait(false);
+            await action(result.GetValue(), cancellationToken).ConfigureAwait(false);
 
         return result;
     }

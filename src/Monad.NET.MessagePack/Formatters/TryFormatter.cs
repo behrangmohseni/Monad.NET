@@ -14,7 +14,7 @@ public sealed class TryFormatter<T> : IMessagePackFormatter<Try<T>>
         if (value.IsSuccess)
         {
             var formatter = options.Resolver.GetFormatterWithVerify<T>();
-            formatter.Serialize(ref writer, value.Unwrap(), options);
+            formatter.Serialize(ref writer, value.GetValue(), options);
         }
         else
         {

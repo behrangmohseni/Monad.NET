@@ -12,17 +12,17 @@ dotnet add package Monad.NET.Analyzers
 
 ## Rules
 
-### MNT001: Unchecked Unwrap call
+### MNT001: Unchecked GetValue call
 
 **Severity:** Warning  
 **Default:** Enabled
 
-Calling `Unwrap()`, `Get()`, or similar methods without first checking the monad's state can throw exceptions at runtime.
+Calling `GetValue()`, `GetOrThrow()`, or similar methods without first checking the monad's state can throw exceptions at runtime.
 
 **Bad:**
 ```csharp
 var option = GetUser(id);
-var user = option.Unwrap(); // May throw!
+var user = option.GetValue(); // May throw!
 ```
 
 **Good:**
@@ -36,7 +36,7 @@ var name = option.Match(
 // Or check first
 if (option.IsSome)
 {
-    var user = option.Unwrap();
+    var user = option.GetValue();
 }
 ```
 
@@ -66,11 +66,11 @@ option.Map(x => x.ToUpper().Trim());
 **Severity:** Info  
 **Default:** Enabled
 
-Using `Map` followed by `UnwrapOr`/`GetOrElse` can be simplified to `MapOr`.
+Using `Map` followed by `GetValueOr` can be simplified to `MapOr`.
 
 **Bad:**
 ```csharp
-option.Map(x => x * 2).UnwrapOr(0);
+option.Map(x => x * 2).GetValueOr(0);
 ```
 
 **Good:**
@@ -80,16 +80,16 @@ option.MapOr(0, x => x * 2);
 
 ---
 
-### MNT004: FlatMap can be simplified to Map
+### MNT004: Bind can be simplified to Map
 
 **Severity:** Info  
 **Default:** Enabled
 
-When `FlatMap`/`AndThen` always wraps its result in `Some`/`Ok`, use `Map` instead.
+When `Bind` always wraps its result in `Some`/`Ok`, use `Map` instead.
 
 **Bad:**
 ```csharp
-option.AndThen(x => Option<int>.Some(x * 2));
+option.Bind(x => Option<int>.Some(x * 2));
 ```
 
 **Good:**
@@ -162,7 +162,7 @@ Using `Match()` is more idiomatic than checking `IsSome`/`IsOk` and then accessi
 ```csharp
 if (option.IsSome)
 {
-    Console.WriteLine(option.Unwrap());
+    Console.WriteLine(option.GetValue());
 }
 else
 {
@@ -243,7 +243,7 @@ option.Tap(x => Console.WriteLine(x));
 Suppress specific rules in code:
 ```csharp
 #pragma warning disable MNT001
-var value = option.Unwrap();
+var value = option.GetValue();
 #pragma warning restore MNT001
 ```
 

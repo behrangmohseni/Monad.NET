@@ -26,7 +26,7 @@ public class OptionJsonConverter<T> : JsonConverter<Option<T>>
     {
         if (value.IsSome)
         {
-            JsonSerializer.Serialize(writer, value.Unwrap(), options);
+            JsonSerializer.Serialize(writer, value.GetValue(), options);
         }
         else
         {

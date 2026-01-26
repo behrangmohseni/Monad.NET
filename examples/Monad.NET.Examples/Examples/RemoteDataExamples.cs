@@ -45,9 +45,9 @@ public static class RemoteDataExamples
 
         // Default values with UnwrapOr
         Console.WriteLine("\n5. UnwrapOr:");
-        Console.WriteLine($"   Success.UnwrapOr(\"default\"): {success.UnwrapOr("default")}");
-        Console.WriteLine($"   Loading.UnwrapOr(\"default\"): {loading.UnwrapOr("default")}");
-        Console.WriteLine($"   NotAsked.UnwrapOr(\"default\"): {notAsked.UnwrapOr("default")}");
+        Console.WriteLine($"   Success.GetValueOr(\"default\"): {success.GetValueOr("default")}");
+        Console.WriteLine($"   Loading.GetValueOr(\"default\"): {loading.GetValueOr("default")}");
+        Console.WriteLine($"   NotAsked.GetValueOr(\"default\"): {notAsked.GetValueOr("default")}");
 
         // Simulated API call flow
         Console.WriteLine("\n6. Simulated API Call Flow:");
@@ -56,7 +56,7 @@ public static class RemoteDataExamples
         // Chaining
         Console.WriteLine("\n7. Chaining with AndThen:");
         var chained = success
-            .AndThen(s => RemoteData<int, string>.Success(s.Length))
+            .Bind(s => RemoteData<int, string>.Success(s.Length))
             .Map(len => $"Length: {len}");
         Console.WriteLine($"   Result: {chained}");
 
@@ -64,7 +64,7 @@ public static class RemoteDataExamples
         Console.WriteLine("\n8. Combining Data:");
         var user = RemoteData<string, string>.Success("John");
         var posts = RemoteData<int, string>.Success(42);
-        var combined = user.Map(u => $"{u} has {posts.UnwrapOr(0)} posts");
+        var combined = user.Map(u => $"{u} has {posts.GetValueOr(0)} posts");
         Console.WriteLine($"   Combined: {combined}");
 
         // Convert to Result

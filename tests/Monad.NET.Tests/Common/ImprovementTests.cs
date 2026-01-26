@@ -17,7 +17,7 @@ public class ImprovementTests
         var result = validation.Ensure(x => x > 0, "Must be positive");
 
         Assert.True(result.IsValid);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -28,7 +28,7 @@ public class ImprovementTests
         var result = validation.Ensure(x => x > 100, "Must be greater than 100");
 
         Assert.True(result.IsInvalid);
-        Assert.Equal("Must be greater than 100", result.UnwrapErrors()[0]);
+        Assert.Equal("Must be greater than 100", result.GetErrors()[0]);
     }
 
     [Fact]
@@ -39,7 +39,7 @@ public class ImprovementTests
         var result = validation.Ensure(x => x > 0, "Must be positive");
 
         Assert.True(result.IsInvalid);
-        Assert.Equal("original error", result.UnwrapErrors()[0]);
+        Assert.Equal("original error", result.GetErrors()[0]);
     }
 
     [Fact]
@@ -51,7 +51,7 @@ public class ImprovementTests
             .Ensure(x => x % 2 == 0, "Must be even");
 
         Assert.True(result.IsValid);
-        Assert.Equal(50, result.Unwrap());
+        Assert.Equal(50, result.GetValue());
     }
 
     [Fact]
@@ -62,7 +62,7 @@ public class ImprovementTests
             .Ensure(x => x < 100, "Must be less than 100");
 
         Assert.True(result.IsInvalid);
-        Assert.Equal("Must be positive", result.UnwrapErrors()[0]);
+        Assert.Equal("Must be positive", result.GetErrors()[0]);
     }
 
     [Fact]
@@ -117,7 +117,7 @@ public class ImprovementTests
 
         Assert.True(result.IsInvalid);
         Assert.True(factoryCalled);
-        Assert.Equal("Must be > 100", result.UnwrapErrors()[0]);
+        Assert.Equal("Must be > 100", result.GetErrors()[0]);
     }
 
     [Fact]
@@ -136,7 +136,7 @@ public class ImprovementTests
 
         Assert.True(result.IsInvalid);
         Assert.False(factoryCalled);
-        Assert.Equal("original error", result.UnwrapErrors()[0]);
+        Assert.Equal("original error", result.GetErrors()[0]);
     }
 
     #endregion
@@ -152,7 +152,7 @@ public class ImprovementTests
         var result = nested.Flatten();
 
         Assert.True(result.IsValid);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -163,7 +163,7 @@ public class ImprovementTests
         var result = nested.Flatten();
 
         Assert.True(result.IsInvalid);
-        Assert.Equal("outer error", result.UnwrapErrors()[0]);
+        Assert.Equal("outer error", result.GetErrors()[0]);
     }
 
     [Fact]
@@ -175,7 +175,7 @@ public class ImprovementTests
         var result = nested.Flatten();
 
         Assert.True(result.IsInvalid);
-        Assert.Equal("inner error", result.UnwrapErrors()[0]);
+        Assert.Equal("inner error", result.GetErrors()[0]);
     }
 
     [Fact]
@@ -187,9 +187,9 @@ public class ImprovementTests
         var result = nested.Flatten();
 
         Assert.True(result.IsInvalid);
-        Assert.Equal(2, result.UnwrapErrors().Count);
-        Assert.Contains("error1", result.UnwrapErrors());
-        Assert.Contains("error2", result.UnwrapErrors());
+        Assert.Equal(2, result.GetErrors().Count);
+        Assert.Contains("error1", result.GetErrors());
+        Assert.Contains("error2", result.GetErrors());
     }
 
     #endregion
@@ -206,7 +206,7 @@ public class ImprovementTests
             e => e.Length);
 
         Assert.True(mapped.IsOk);
-        Assert.Equal("42", mapped.Unwrap());
+        Assert.Equal("42", mapped.GetValue());
     }
 
     [Fact]
@@ -219,7 +219,7 @@ public class ImprovementTests
             e => e.Length);
 
         Assert.True(mapped.IsErr);
-        Assert.Equal(5, mapped.UnwrapErr());
+        Assert.Equal(5, mapped.GetError());
     }
 
     [Fact]
@@ -246,10 +246,10 @@ public class ImprovementTests
         var result = Result<int, string>.Ok(42);
 
         var biMapped = result.BiMap(x => x.ToString(), e => e.Length);
-        var separateMapped = result.Map(x => x.ToString()).MapErr(e => e.Length);
+        var separateMapped = result.Map(x => x.ToString()).MapError(e => e.Length);
 
         Assert.Equal(biMapped.IsOk, separateMapped.IsOk);
-        Assert.Equal(biMapped.Unwrap(), separateMapped.Unwrap());
+        Assert.Equal(biMapped.GetValue(), separateMapped.GetValue());
     }
 
     [Fact]
@@ -258,10 +258,10 @@ public class ImprovementTests
         var result = Result<int, string>.Err("error");
 
         var biMapped = result.BiMap(x => x.ToString(), e => e.Length);
-        var separateMapped = result.Map(x => x.ToString()).MapErr(e => e.Length);
+        var separateMapped = result.Map(x => x.ToString()).MapError(e => e.Length);
 
         Assert.Equal(biMapped.IsErr, separateMapped.IsErr);
-        Assert.Equal(biMapped.UnwrapErr(), separateMapped.UnwrapErr());
+        Assert.Equal(biMapped.GetError(), separateMapped.GetError());
     }
 
     #endregion
@@ -276,7 +276,7 @@ public class ImprovementTests
         var result = option.DefaultIfNone(0);
 
         Assert.True(result.IsSome);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -287,7 +287,7 @@ public class ImprovementTests
         var result = option.DefaultIfNone(99);
 
         Assert.True(result.IsSome);
-        Assert.Equal(99, result.Unwrap());
+        Assert.Equal(99, result.GetValue());
     }
 
     [Fact]
@@ -303,7 +303,7 @@ public class ImprovementTests
         });
 
         Assert.True(result.IsSome);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
         Assert.False(factoryCalled);
     }
 
@@ -320,7 +320,7 @@ public class ImprovementTests
         });
 
         Assert.True(result.IsSome);
-        Assert.Equal(99, result.Unwrap());
+        Assert.Equal(99, result.GetValue());
         Assert.True(factoryCalled);
     }
 
@@ -343,7 +343,7 @@ public class ImprovementTests
         Assert.IsType<Option<int>>(resultOption);
 
         // UnwrapOr returns T directly
-        var resultValue = option.UnwrapOr(42);
+        var resultValue = option.GetValueOr(42);
         Assert.Equal(42, resultValue);
     }
 

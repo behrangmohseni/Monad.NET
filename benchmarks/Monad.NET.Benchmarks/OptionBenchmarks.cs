@@ -47,13 +47,13 @@ public class OptionBenchmarks
     [Benchmark]
     public Option<int> AndThen_Some()
     {
-        return _some.AndThen(x => Option<int>.Some(x * 2));
+        return _some.Bind(x => Option<int>.Some(x * 2));
     }
 
     [Benchmark]
     public Option<int> AndThen_None()
     {
-        return _none.AndThen(x => Option<int>.Some(x * 2));
+        return _none.Bind(x => Option<int>.Some(x * 2));
     }
 
     [Benchmark]
@@ -71,13 +71,13 @@ public class OptionBenchmarks
     [Benchmark]
     public int UnwrapOr_Some()
     {
-        return _some.UnwrapOr(0);
+        return _some.GetValueOr(0);
     }
 
     [Benchmark]
     public int UnwrapOr_None()
     {
-        return _none.UnwrapOr(0);
+        return _none.GetValueOr(0);
     }
 
     [Benchmark]
@@ -99,7 +99,7 @@ public class OptionBenchmarks
             .Map(x => x * 2)
             .Filter(x => x > 0)
             .Map(x => x + 1)
-            .AndThen(x => Option<int>.Some(x * 3));
+            .Bind(x => Option<int>.Some(x * 3));
     }
 }
 

@@ -71,12 +71,12 @@ public class EitherBenchmarks
     [Benchmark]
     public Either<string, int> AndThen_Right()
     {
-        return _right.AndThen(x => Either<string, int>.Right(x * 2));
+        return _right.Bind(x => Either<string, int>.Right(x * 2));
     }
 
     [Benchmark]
     public Either<string, int> AndThen_Left()
     {
-        return _left.AndThen(x => Either<string, int>.Right(x * 2));
+        return _left.Bind(x => Either<string, int>.Right(x * 2));
     }
 }

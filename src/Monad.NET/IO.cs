@@ -182,26 +182,10 @@ public readonly struct IO<T>
     /// <param name="value">The value to return.</param>
     /// <returns>An IO action that returns the value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static IO<T> Pure(T value)
+    public static IO<T> Return(T value)
     {
         return new IO<T>(() => value);
     }
-
-    /// <summary>
-    /// Creates an IO action that produces a pure value without any side effects.
-    /// Alias for <see cref="Pure"/>.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static IO<T> Return(T value) => Pure(value);
-
-    /// <summary>
-    /// Creates a lazily evaluated IO action.
-    /// The computation is deferred until Run() is called.
-    /// </summary>
-    /// <param name="effect">The function to defer.</param>
-    /// <returns>An IO action.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static IO<T> Delay(Func<T> effect) => Of(effect);
 
     /// <summary>
     /// Runs the IO action and returns the result.
@@ -242,32 +226,19 @@ public readonly struct IO<T>
 
     /// <summary>
     /// Chains this IO action with another that depends on the result.
+    /// This is the monadic bind operation.
     /// </summary>
     /// <typeparam name="U">The type of the new result.</typeparam>
     /// <param name="binder">A function that produces a new IO based on the result.</param>
     /// <returns>A new IO action.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public IO<U> AndThen<U>(Func<T, IO<U>> binder)
+    public IO<U> Bind<U>(Func<T, IO<U>> binder)
     {
         ThrowHelper.ThrowIfNull(binder);
 
         var effect = _effect;
         return IO<U>.Of(() => binder(effect()).Run());
     }
-
-    /// <summary>
-    /// Chains this IO action with another that depends on the result.
-    /// Alias for <see cref="AndThen{U}"/>.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public IO<U> FlatMap<U>(Func<T, IO<U>> binder) => AndThen(binder);
-
-    /// <summary>
-    /// Chains this IO action with another that depends on the result.
-    /// Alias for <see cref="AndThen{U}"/>.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public IO<U> Bind<U>(Func<T, IO<U>> binder) => AndThen(binder);
 
     /// <summary>
     /// Executes a side effect with the result without changing the value.
@@ -310,7 +281,7 @@ public readonly struct IO<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public IO<(T, U)> Zip<U>(IO<U> other)
     {
-        return AndThen(a => other.Map(b => (a, b)));
+        return Bind(a => other.Map(b => (a, b)));
     }
 
     /// <summary>
@@ -326,7 +297,7 @@ public readonly struct IO<T>
     {
         ThrowHelper.ThrowIfNull(combiner);
 
-        return AndThen(a => other.Map(b => combiner(a, b)));
+        return Bind(a => other.Map(b => combiner(a, b)));
     }
 
     /// <summary>
@@ -497,7 +468,7 @@ public readonly struct IOAsync<T>
     /// <param name="value">The value to return.</param>
     /// <returns>An async IO action that returns the value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static IOAsync<T> Pure(T value)
+    public static IOAsync<T> Return(T value)
     {
         return new IOAsync<T>(() => Task.FromResult(value));
     }
@@ -555,9 +526,10 @@ public readonly struct IOAsync<T>
 
     /// <summary>
     /// Chains this async IO action with another.
+    /// This is the monadic bind operation.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public IOAsync<U> AndThen<U>(Func<T, IOAsync<U>> binder)
+    public IOAsync<U> Bind<U>(Func<T, IOAsync<U>> binder)
     {
         ThrowHelper.ThrowIfNull(binder);
 
@@ -568,13 +540,6 @@ public readonly struct IOAsync<T>
             return await binder(result).RunAsync().ConfigureAwait(false);
         });
     }
-
-    /// <summary>
-    /// Chains this async IO action with another.
-    /// Alias for <see cref="AndThen{U}"/>.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public IOAsync<U> FlatMap<U>(Func<T, IOAsync<U>> binder) => AndThen(binder);
 
     /// <summary>
     /// Executes a side effect with the result without changing the value.
@@ -616,7 +581,7 @@ public readonly struct IOAsync<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public IOAsync<(T, U)> Zip<U>(IOAsync<U> other)
     {
-        return AndThen(a => other.Map(b => (a, b)));
+        return Bind(a => other.Map(b => (a, b)));
     }
 
     /// <summary>
@@ -755,7 +720,7 @@ public static class IOExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static IO<T> Flatten<T>(this IO<IO<T>> nested)
     {
-        return nested.AndThen(static inner => inner);
+        return nested.Bind(static inner => inner);
     }
 
     /// <summary>
@@ -764,7 +729,7 @@ public static class IOExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static IOAsync<T> Flatten<T>(this IOAsync<IOAsync<T>> nested)
     {
-        return nested.AndThen(static inner => inner);
+        return nested.Bind(static inner => inner);
     }
 
     /// <summary>
@@ -845,7 +810,7 @@ public static class IOExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static IO<U> SelectMany<T, U>(this IO<T> io, Func<T, IO<U>> selector)
     {
-        return io.AndThen(selector);
+        return io.Bind(selector);
     }
 
     /// <summary>
@@ -859,7 +824,7 @@ public static class IOExtensions
     {
         ThrowHelper.ThrowIfNull(resultSelector);
 
-        return io.AndThen(a => selector(a).Map(b => resultSelector(a, b)));
+        return io.Bind(a => selector(a).Map(b => resultSelector(a, b)));
     }
 
     /// <summary>
@@ -877,7 +842,7 @@ public static class IOExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static IOAsync<U> SelectMany<T, U>(this IOAsync<T> io, Func<T, IOAsync<U>> selector)
     {
-        return io.AndThen(selector);
+        return io.Bind(selector);
     }
 
     /// <summary>
@@ -891,7 +856,7 @@ public static class IOExtensions
     {
         ThrowHelper.ThrowIfNull(resultSelector);
 
-        return io.AndThen(a => selector(a).Map(b => resultSelector(a, b)));
+        return io.Bind(a => selector(a).Map(b => resultSelector(a, b)));
     }
 }
 
@@ -910,7 +875,7 @@ public static class IO
     /// Creates an IO action that returns a pure value.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static IO<T> Pure<T>(T value) => IO<T>.Pure(value);
+    public static IO<T> Return<T>(T value) => IO<T>.Return(value);
 
     /// <summary>
     /// Creates an IO action that executes an action and returns Unit.
@@ -1090,7 +1055,7 @@ public static class IOAsync
     /// Creates an async IO action that returns a pure value.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static IOAsync<T> Pure<T>(T value) => IOAsync<T>.Pure(value);
+    public static IOAsync<T> Return<T>(T value) => IOAsync<T>.Return(value);
 
     /// <summary>
     /// Creates an async IO action from a synchronous IO.

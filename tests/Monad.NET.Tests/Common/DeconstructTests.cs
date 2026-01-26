@@ -337,8 +337,8 @@ public class DeconstructTests
         {
             (true, _, _, _) => "Not asked",
             (_, true, _, _) => "Loading",
-            (_, _, true, _) => $"Success: {remoteData.Unwrap()}",
-            (_, _, _, true) => $"Failure: {remoteData.UnwrapError()}",
+            (_, _, true, _) => $"Success: {remoteData.GetValue()}",
+            (_, _, _, true) => $"Failure: {remoteData.GetError()}",
             _ => "Unknown state"
         };
 

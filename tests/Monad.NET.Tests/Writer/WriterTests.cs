@@ -86,7 +86,7 @@ public class WriterTests
     {
         var writer = Writer<string, int>.Tell(10, "step1");
 
-        var result = writer.FlatMap(
+        var result = writer.Bind(
             x => Writer<string, int>.Tell(x * 2, "step2"),
             (log1, log2) => log1 + "|" + log2
         );
@@ -100,7 +100,7 @@ public class WriterTests
     {
         var writer = Writer<string, int>.Tell(10, "log");
         Assert.Throws<ArgumentNullException>(() =>
-            writer.FlatMap<int>(null!, (a, b) => a + b));
+            writer.Bind<int>(null!, (a, b) => a + b));
     }
 
     [Fact]
@@ -108,7 +108,7 @@ public class WriterTests
     {
         var writer = Writer<string, int>.Tell(10, "log");
         Assert.Throws<ArgumentNullException>(() =>
-            writer.FlatMap(x => Writer<string, int>.Tell(x, ""), null!));
+            writer.Bind(x => Writer<string, int>.Tell(x, ""), null!));
     }
 
     [Fact]
@@ -232,7 +232,7 @@ public class WriterTests
     [Fact]
     public void StringWriter_Pure_CreatesWithEmptyLog()
     {
-        var writer = StringWriter.Pure(42);
+        var writer = StringWriter.Return(42);
 
         Assert.Equal(42, writer.Value);
         Assert.Equal("", writer.Log);
@@ -241,7 +241,7 @@ public class WriterTests
     [Fact]
     public void StringWriter_Pure_ThrowsOnNullValue()
     {
-        Assert.Throws<ArgumentNullException>(() => StringWriter.Pure<string>(null!));
+        Assert.Throws<ArgumentNullException>(() => StringWriter.Return<string>(null!));
     }
 
     [Fact]
@@ -293,7 +293,7 @@ public class WriterTests
     [Fact]
     public void ListWriter_Pure_CreatesWithEmptyList()
     {
-        var writer = ListWriter.Pure<int, string>(42);
+        var writer = ListWriter.Return<int, string>(42);
 
         Assert.Equal(42, writer.Value);
         Assert.Empty(writer.Log);
@@ -302,7 +302,7 @@ public class WriterTests
     [Fact]
     public void ListWriter_Pure_ThrowsOnNullValue()
     {
-        Assert.Throws<ArgumentNullException>(() => ListWriter.Pure<string, string>(null!));
+        Assert.Throws<ArgumentNullException>(() => ListWriter.Return<string, string>(null!));
     }
 
     [Fact]
@@ -354,7 +354,7 @@ public class WriterTests
     {
         var writer = 10.WithLog("a");
 
-        var result = writer.FlatMap(x => (x * 2).WithLog("b"));
+        var result = writer.Bind(x => (x * 2).WithLog("b"));
 
         Assert.Equal(20, result.Value);
         Assert.Equal("ab", result.Log);

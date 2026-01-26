@@ -55,7 +55,7 @@ public class QueryableExtensionsTests : IDisposable
         var result = _context.Products.FirstOrNone(p => p.Price > 20);
 
         Assert.True(result.IsSome);
-        Assert.Equal("Gadget", result.Unwrap().Name);
+        Assert.Equal("Gadget", result.GetValue().Name);
     }
 
     [Fact]
@@ -72,7 +72,7 @@ public class QueryableExtensionsTests : IDisposable
         var result = _context.Products.Where(p => p.Name == "Widget").SingleOrNone();
 
         Assert.True(result.IsSome);
-        Assert.Equal("Widget", result.Unwrap().Name);
+        Assert.Equal("Widget", result.GetValue().Name);
     }
 
     [Fact]
@@ -96,7 +96,7 @@ public class QueryableExtensionsTests : IDisposable
         var result = _context.Products.OrderBy(p => p.Id).ElementAtOrNone(1);
 
         Assert.True(result.IsSome);
-        Assert.Equal("Gadget", result.Unwrap().Name);
+        Assert.Equal("Gadget", result.GetValue().Name);
     }
 
     [Fact]
@@ -121,7 +121,7 @@ public class QueryableExtensionsTests : IDisposable
         var result = _context.Products.OrderBy(p => p.Id).LastOrNone();
 
         Assert.True(result.IsSome);
-        Assert.Equal("Doohickey", result.Unwrap().Name);
+        Assert.Equal("Doohickey", result.GetValue().Name);
     }
 
     [Fact]
@@ -156,7 +156,7 @@ public class QueryableExtensionsTests : IDisposable
             .SingleOrNoneAsync();
 
         Assert.True(result.IsSome);
-        Assert.Equal("Widget", result.Unwrap().Name);
+        Assert.Equal("Widget", result.GetValue().Name);
     }
 
     [Fact]
@@ -167,7 +167,7 @@ public class QueryableExtensionsTests : IDisposable
             .ElementAtOrNoneAsync(0);
 
         Assert.True(result.IsSome);
-        Assert.Equal("Widget", result.Unwrap().Name);
+        Assert.Equal("Widget", result.GetValue().Name);
     }
 
     [Fact]
@@ -178,7 +178,7 @@ public class QueryableExtensionsTests : IDisposable
             .LastOrNoneAsync();
 
         Assert.True(result.IsSome);
-        Assert.Equal("Doohickey", result.Unwrap().Name);
+        Assert.Equal("Doohickey", result.GetValue().Name);
     }
 }
 

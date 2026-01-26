@@ -38,7 +38,7 @@ public static class RealWorldExamples
         var timeout = GetConfig("TIMEOUT")
             .OrElse(() => GetConfig("DEFAULT_TIMEOUT"))
             .OrElse(() => Option<int>.Some(30));
-        Console.WriteLine($"   Timeout: {timeout.UnwrapOr(0)}s");
+        Console.WriteLine($"   Timeout: {timeout.GetValueOr(0)}s");
 
         // 5. Error recovery
         Console.WriteLine("\n5. Error Recovery:");
@@ -62,8 +62,8 @@ public static class RealWorldExamples
         // 8. Dependent operations
         Console.WriteLine("\n8. Dependent Operations:");
         var loginResult = ValidateCredentials("user", "password123")
-            .AndThen(user => GenerateToken(user))
-            .AndThen(token => CreateSession(token));
+            .Bind(user => GenerateToken(user))
+            .Bind(token => CreateSession(token));
         Console.WriteLine($"   Login: {loginResult}");
 
         // 9. Batch operation with partial failures
@@ -88,8 +88,8 @@ public static class RealWorldExamples
     private static Result<OrderDto, string> ProcessOrder(string customerId, string productId, int quantity)
     {
         return ValidateCustomerId(customerId)
-            .AndThen(_ => ValidateProductId(productId))
-            .AndThen(_ => ValidateQuantity(quantity))
+            .Bind(_ => ValidateProductId(productId))
+            .Bind(_ => ValidateQuantity(quantity))
             .Map(_ => new OrderDto(
                 Guid.NewGuid(),
                 customerId,
@@ -142,7 +142,7 @@ public static class RealWorldExamples
     // Safe navigation
     private static Option<string> GetOrderCity(Order order) =>
         order.Customer.ToOption()
-            .AndThen(c => c.Address.ToOption())
+            .Bind(c => c.Address.ToOption())
             .Map(a => a.City);
 
     // Configuration
@@ -191,7 +191,7 @@ public static class RealWorldExamples
     private static string GetDisplayName(User user) =>
         user.MiddleName.ToOption()
             .Map(m => $"{user.FirstName} {m} {user.LastName}")
-            .UnwrapOr($"{user.FirstName} {user.LastName}");
+            .GetValueOr($"{user.FirstName} {user.LastName}");
 
     // Dependent operations
     private static Result<string, string> ValidateCredentials(string user, string pass) =>

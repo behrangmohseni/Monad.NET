@@ -53,7 +53,7 @@ public static partial class MonadCollectionExtensions
         {
             if (option.IsNone)
                 return Option<IReadOnlyList<T>>.None();
-            values.Add(option.Unwrap());
+            values.Add(option.GetValue());
         }
         return Option<IReadOnlyList<T>>.Some(values);
     }
@@ -141,8 +141,8 @@ public static partial class MonadCollectionExtensions
         foreach (var result in results)
         {
             if (result.IsErr)
-                return Result<IReadOnlyList<T>, TErr>.Err(result.UnwrapErr());
-            values.Add(result.Unwrap());
+                return Result<IReadOnlyList<T>, TErr>.Err(result.GetError());
+            values.Add(result.GetValue());
         }
         return Result<IReadOnlyList<T>, TErr>.Ok(values);
     }
@@ -218,7 +218,7 @@ public static partial class MonadCollectionExtensions
         var results = await ParallelHelper.RunParallelAsync(sourceList, selector, maxDegreeOfParallelism, cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
 
-        return results.Where(o => o.IsSome).Select(o => o.Unwrap()).ToList();
+        return results.Where(o => o.IsSome).Select(o => o.GetValue()).ToList();
     }
 
     /// <summary>
@@ -262,9 +262,9 @@ public static partial class MonadCollectionExtensions
         foreach (var result in results)
         {
             if (result.IsOk)
-                oks.Add(result.Unwrap());
+                oks.Add(result.GetValue());
             else
-                errors.Add(result.UnwrapErr());
+                errors.Add(result.GetError());
         }
 
         return (oks, errors);

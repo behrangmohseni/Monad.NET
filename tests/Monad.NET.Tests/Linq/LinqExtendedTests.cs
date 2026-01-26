@@ -16,7 +16,7 @@ public class LinqExtendedTests
         var result = either.Select(x => x * 2);
 
         Assert.True(result.IsLeft);
-        Assert.Equal("error", result.UnwrapLeft());
+        Assert.Equal("error", result.GetLeft());
     }
 
     [Fact]
@@ -26,7 +26,7 @@ public class LinqExtendedTests
         var result = either.SelectMany(x => Either<string, int>.Right(x + 5));
 
         Assert.True(result.IsRight);
-        Assert.Equal(15, result.UnwrapRight());
+        Assert.Equal(15, result.GetRight());
     }
 
     [Fact]
@@ -36,7 +36,7 @@ public class LinqExtendedTests
         var result = either.SelectMany(x => Either<string, int>.Right(x + 5));
 
         Assert.True(result.IsLeft);
-        Assert.Equal("error", result.UnwrapLeft());
+        Assert.Equal("error", result.GetLeft());
     }
 
     [Fact]
@@ -59,7 +59,7 @@ public class LinqExtendedTests
             (x, y) => $"{y}!");
 
         Assert.True(result.IsLeft);
-        Assert.Equal("second error", result.UnwrapLeft());
+        Assert.Equal("second error", result.GetLeft());
     }
 
     [Fact]
@@ -69,7 +69,7 @@ public class LinqExtendedTests
         var result = either.Where(x => x > 0, "should not happen");
 
         Assert.True(result.IsLeft);
-        Assert.Equal("existing error", result.UnwrapLeft());
+        Assert.Equal("existing error", result.GetLeft());
     }
 
     #endregion
@@ -185,7 +185,7 @@ public class LinqExtendedTests
         var mapped = result.SelectMany(x => Result<int, string>.Ok(x + 5));
 
         Assert.True(mapped.IsErr);
-        Assert.Equal("error", mapped.UnwrapErr());
+        Assert.Equal("error", mapped.GetError());
     }
 
     [Fact]
@@ -208,7 +208,7 @@ public class LinqExtendedTests
             (x, y) => $"{y}!");
 
         Assert.True(mapped.IsErr);
-        Assert.Equal("second error", mapped.UnwrapErr());
+        Assert.Equal("second error", mapped.GetError());
     }
 
     [Fact]
@@ -218,7 +218,7 @@ public class LinqExtendedTests
         var filtered = result.Where(x => x > 0, "should not happen");
 
         Assert.True(filtered.IsErr);
-        Assert.Equal("existing error", filtered.UnwrapErr());
+        Assert.Equal("existing error", filtered.GetError());
     }
 
     [Fact]
@@ -228,7 +228,7 @@ public class LinqExtendedTests
         var filtered = result.Where(x => x > 0, x => $"value {x} is invalid");
 
         Assert.True(filtered.IsErr);
-        Assert.Equal("existing error", filtered.UnwrapErr());
+        Assert.Equal("existing error", filtered.GetError());
     }
 
     #endregion

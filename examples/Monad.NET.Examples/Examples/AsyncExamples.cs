@@ -28,7 +28,7 @@ public static class AsyncExamples
                 await Task.Delay(10);
                 return x * 2;
             })
-            .AndThenAsync(async x =>
+            .BindAsync(async x =>
             {
                 await Task.Delay(10);
                 return x > 15
@@ -150,7 +150,7 @@ public static class AsyncExamples
     private static async Task<Result<string, string>> BuildAsyncPipeline(string userId)
     {
         return await FetchUserByIdAsync(userId)
-            .AndThenAsync(async user =>
+            .BindAsync(async user =>
             {
                 await Task.Delay(10);
                 return FetchUserPermissions(user);
@@ -176,8 +176,8 @@ public static class AsyncExamples
     private static async Task<Result<string, string>> OrchestrateCalls(string orderId)
     {
         return await ValidateOrderAsync(orderId)
-            .AndThenAsync(order => CheckInventoryAsync(order))
-            .AndThenAsync(inventory => ProcessPaymentAsync(inventory))
+            .BindAsync(order => CheckInventoryAsync(order))
+            .BindAsync(inventory => ProcessPaymentAsync(inventory))
             .MapAsync(async payment =>
             {
                 await Task.Delay(10);

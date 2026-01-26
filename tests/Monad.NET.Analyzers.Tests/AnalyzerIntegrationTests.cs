@@ -21,7 +21,7 @@ public class AnalyzerIntegrationTests
             new OptionNullComparisonAnalyzer(),
             new MapGetOrElseAnalyzer(),
             new NullableToSomeAnalyzer(),
-            new FlatMapToMapAnalyzer(),
+            new BindToMapAnalyzer(),
             new DiscardedMonadAnalyzer(),
             new ThrowInMatchAnalyzer()
         };
@@ -38,7 +38,7 @@ public class AnalyzerIntegrationTests
             DiagnosticDescriptors.UncheckedUnwrap,
             DiagnosticDescriptors.RedundantMapChain,
             DiagnosticDescriptors.MapGetOrElseToMatch,
-            DiagnosticDescriptors.FlatMapToMap,
+            DiagnosticDescriptors.BindToMap,
             DiagnosticDescriptors.DiscardedMonad,
             DiagnosticDescriptors.ThrowInMatch,
             DiagnosticDescriptors.NullableToSome,
@@ -79,9 +79,9 @@ public class AnalyzerIntegrationTests
     }
 
     [Fact]
-    public void FlatMapToMapAnalyzer_SupportsExpectedDiagnostic()
+    public void BindToMapAnalyzer_SupportsExpectedDiagnostic()
     {
-        var analyzer = new FlatMapToMapAnalyzer();
+        var analyzer = new BindToMapAnalyzer();
         Assert.Contains(analyzer.SupportedDiagnostics, d => d.Id == "MNT004");
     }
 

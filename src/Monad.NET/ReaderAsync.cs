@@ -81,7 +81,7 @@ public sealed class ReaderAsync<R, A>
     /// <param name="value">The value to return.</param>
     /// <returns>A new ReaderAsync that returns the value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ReaderAsync<R, A> Pure(A value)
+    public static ReaderAsync<R, A> Return(A value)
     {
         return new ReaderAsync<R, A>(_ => Task.FromResult(value));
     }
@@ -253,13 +253,14 @@ public sealed class ReaderAsync<R, A>
     }
 
     /// <summary>
-    /// Chains ReaderAsync computations (monadic bind).
+    /// Chains ReaderAsync computations.
+    /// This is the monadic bind operation.
     /// </summary>
     /// <typeparam name="B">The type of the new result.</typeparam>
     /// <param name="binder">A function that takes the result and returns a new ReaderAsync.</param>
     /// <returns>A new ReaderAsync representing the chained computation.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ReaderAsync<R, B> FlatMap<B>(Func<A, ReaderAsync<R, B>> binder)
+    public ReaderAsync<R, B> Bind<B>(Func<A, ReaderAsync<R, B>> binder)
     {
         ThrowHelper.ThrowIfNull(binder);
 
@@ -278,7 +279,7 @@ public sealed class ReaderAsync<R, A>
     /// <param name="binder">An async function that takes the result and returns a new ReaderAsync.</param>
     /// <returns>A new ReaderAsync representing the chained computation.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ReaderAsync<R, B> FlatMapAsync<B>(Func<A, Task<ReaderAsync<R, B>>> binder)
+    public ReaderAsync<R, B> BindAsync<B>(Func<A, Task<ReaderAsync<R, B>>> binder)
     {
         ThrowHelper.ThrowIfNull(binder);
 
@@ -290,20 +291,6 @@ public sealed class ReaderAsync<R, A>
             return await nextReader.RunAsync(env).ConfigureAwait(false);
         });
     }
-
-    /// <summary>
-    /// Chains ReaderAsync computations.
-    /// Alias for <see cref="FlatMap{B}"/>.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ReaderAsync<R, B> AndThen<B>(Func<A, ReaderAsync<R, B>> binder) => FlatMap(binder);
-
-    /// <summary>
-    /// Chains ReaderAsync computations.
-    /// Alias for <see cref="FlatMap{B}"/>.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ReaderAsync<R, B> Bind<B>(Func<A, ReaderAsync<R, B>> binder) => FlatMap(binder);
 
     /// <summary>
     /// Transforms the environment before running the computation.
@@ -505,7 +492,7 @@ public static class ReaderAsyncExtensions
         this ReaderAsync<R, A> reader,
         Func<A, ReaderAsync<R, B>> selector)
     {
-        return reader.FlatMap(selector);
+        return reader.Bind(selector);
     }
 
     /// <summary>
@@ -519,7 +506,7 @@ public static class ReaderAsyncExtensions
     {
         ThrowHelper.ThrowIfNull(resultSelector);
 
-        return reader.FlatMap(a =>
+        return reader.Bind(a =>
             selector(a).Map(b =>
                 resultSelector(a, b)));
     }
@@ -611,7 +598,7 @@ public static class ReaderAsyncExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ReaderAsync<R, A> Flatten<R, A>(this ReaderAsync<R, ReaderAsync<R, A>> nested)
     {
-        return nested.FlatMap(static inner => inner);
+        return nested.Bind(static inner => inner);
     }
 }
 
@@ -642,9 +629,9 @@ public static class ReaderAsync
     /// Creates a ReaderAsync that returns a constant value.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ReaderAsync<R, A> Pure<R, A>(A value)
+    public static ReaderAsync<R, A> Return<R, A>(A value)
     {
-        return ReaderAsync<R, A>.Pure(value);
+        return ReaderAsync<R, A>.Return(value);
     }
 
     /// <summary>

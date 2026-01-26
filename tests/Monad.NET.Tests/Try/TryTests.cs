@@ -11,7 +11,7 @@ public class TryTests
 
         Assert.True(tryValue.IsSuccess);
         Assert.False(tryValue.IsFailure);
-        Assert.Equal(42, tryValue.Get());
+        Assert.Equal(42, tryValue.GetValue());
     }
 
     [Fact]
@@ -41,14 +41,14 @@ public class TryTests
     public void Get_OnSuccess_ReturnsValue()
     {
         var tryValue = Try<int>.Success(42);
-        Assert.Equal(42, tryValue.Get());
+        Assert.Equal(42, tryValue.GetValue());
     }
 
     [Fact]
     public void Get_OnFailure_ThrowsException()
     {
         var tryValue = Try<int>.Failure(new Exception("error"));
-        Assert.Throws<InvalidOperationException>(() => tryValue.Get());
+        Assert.Throws<InvalidOperationException>(() => tryValue.GetValue());
     }
 
     [Fact]
@@ -73,7 +73,7 @@ public class TryTests
         var tryValue = Try<int>.Of(() => 42);
 
         Assert.True(tryValue.IsSuccess);
-        Assert.Equal(42, tryValue.Get());
+        Assert.Equal(42, tryValue.GetValue());
     }
 
     [Fact]
@@ -95,7 +95,7 @@ public class TryTests
         });
 
         Assert.True(tryValue.IsSuccess);
-        Assert.Equal(42, tryValue.Get());
+        Assert.Equal(42, tryValue.GetValue());
     }
 
     [Fact]
@@ -117,28 +117,28 @@ public class TryTests
     public void GetOrElse_OnSuccess_ReturnsValue()
     {
         var tryValue = Try<int>.Success(42);
-        Assert.Equal(42, tryValue.GetOrElse(0));
+        Assert.Equal(42, tryValue.GetValueOr(0));
     }
 
     [Fact]
     public void GetOrElse_OnFailure_ReturnsDefault()
     {
         var tryValue = Try<int>.Failure(new Exception("error"));
-        Assert.Equal(0, tryValue.GetOrElse(0));
+        Assert.Equal(0, tryValue.GetValueOr(0));
     }
 
     [Fact]
-    public void GetOrElse_WithFunc_OnFailure_ExecutesFunc()
+    public void GetValueOrElse_WithFunc_OnFailure_ExecutesFunc()
     {
         var tryValue = Try<int>.Failure(new Exception("error"));
-        Assert.Equal(100, tryValue.GetOrElse(() => 100));
+        Assert.Equal(100, tryValue.GetValueOrElse(() => 100));
     }
 
     [Fact]
-    public void GetOrElse_WithRecovery_OnFailure_UsesException()
+    public void GetValueOrRecover_WithRecovery_OnFailure_UsesException()
     {
         var tryValue = Try<int>.Failure(new Exception("error"));
-        var result = tryValue.GetOrElse(ex => ex.Message.Length);
+        var result = tryValue.GetValueOrRecover(ex => ex.Message.Length);
 
         Assert.Equal(5, result);
     }
@@ -150,7 +150,7 @@ public class TryTests
         var mapped = tryValue.Map(x => x * 2);
 
         Assert.True(mapped.IsSuccess);
-        Assert.Equal(84, mapped.Get());
+        Assert.Equal(84, mapped.GetValue());
     }
 
     [Fact]
@@ -185,17 +185,17 @@ public class TryTests
         });
 
         Assert.True(mapped.IsSuccess);
-        Assert.Equal(84, mapped.Get());
+        Assert.Equal(84, mapped.GetValue());
     }
 
     [Fact]
     public void FlatMap_OnSuccess_ChainsCorrectly()
     {
         var tryValue = Try<int>.Success(42);
-        var result = tryValue.FlatMap(x => Try<string>.Success(x.ToString()));
+        var result = tryValue.Bind(x => Try<string>.Success(x.ToString()));
 
         Assert.True(result.IsSuccess);
-        Assert.Equal("42", result.Get());
+        Assert.Equal("42", result.GetValue());
     }
 
     [Fact]
@@ -203,7 +203,7 @@ public class TryTests
     {
         var exception = new Exception("error");
         var tryValue = Try<int>.Failure(exception);
-        var result = tryValue.FlatMap(x => Try<string>.Success(x.ToString()));
+        var result = tryValue.Bind(x => Try<string>.Success(x.ToString()));
 
         Assert.True(result.IsFailure);
         Assert.Equal(exception, result.GetException());
@@ -218,7 +218,7 @@ public class TryTests
         var result = try1.Zip(try2);
 
         Assert.True(result.IsSuccess);
-        Assert.Equal((42, "hello"), result.Get());
+        Assert.Equal((42, "hello"), result.GetValue());
     }
 
     [Fact]
@@ -256,7 +256,7 @@ public class TryTests
         var result = try1.ZipWith(try2, (a, b) => a + b);
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(30, result.Get());
+        Assert.Equal(30, result.GetValue());
     }
 
     [Fact]
@@ -291,7 +291,7 @@ public class TryTests
         var recovered = tryValue.Recover(ex => 100);
 
         Assert.True(recovered.IsSuccess);
-        Assert.Equal(100, recovered.Get());
+        Assert.Equal(100, recovered.GetValue());
     }
 
     [Fact]
@@ -300,7 +300,7 @@ public class TryTests
         var tryValue = Try<int>.Success(42);
         var recovered = tryValue.Recover(ex => 100);
 
-        Assert.Equal(42, recovered.Get());
+        Assert.Equal(42, recovered.GetValue());
     }
 
     [Fact]
@@ -310,7 +310,7 @@ public class TryTests
         var recovered = tryValue.RecoverWith(ex => Try<int>.Success(100));
 
         Assert.True(recovered.IsSuccess);
-        Assert.Equal(100, recovered.Get());
+        Assert.Equal(100, recovered.GetValue());
     }
 
     [Fact]
@@ -320,7 +320,7 @@ public class TryTests
         var filtered = tryValue.Filter(x => x > 40);
 
         Assert.True(filtered.IsSuccess);
-        Assert.Equal(42, filtered.Get());
+        Assert.Equal(42, filtered.GetValue());
     }
 
     [Fact]
@@ -379,7 +379,7 @@ public class TryTests
         var option = tryValue.ToOption();
 
         Assert.True(option.IsSome);
-        Assert.Equal(42, option.Unwrap());
+        Assert.Equal(42, option.GetValue());
     }
 
     [Fact]
@@ -398,7 +398,7 @@ public class TryTests
         var result = tryValue.ToResult();
 
         Assert.True(result.IsOk);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -409,7 +409,7 @@ public class TryTests
         var result = tryValue.ToResult();
 
         Assert.True(result.IsErr);
-        Assert.Equal(exception, result.UnwrapErr());
+        Assert.Equal(exception, result.GetError());
     }
 
     [Fact]
@@ -419,7 +419,7 @@ public class TryTests
         var result = tryValue.ToResult(ex => ex.Message);
 
         Assert.True(result.IsErr);
-        Assert.Equal("error", result.UnwrapErr());
+        Assert.Equal("error", result.GetError());
     }
 
     [Fact]
@@ -453,7 +453,7 @@ public class TryTests
         var flattened = nested.Flatten();
 
         Assert.True(flattened.IsSuccess);
-        Assert.Equal(42, flattened.Get());
+        Assert.Equal(42, flattened.GetValue());
     }
 
     [Fact]
@@ -474,7 +474,7 @@ public class TryTests
         var tryValue = result.ToTry();
 
         Assert.True(tryValue.IsSuccess);
-        Assert.Equal(42, tryValue.Get());
+        Assert.Equal(42, tryValue.GetValue());
     }
 
     [Fact]
@@ -494,7 +494,7 @@ public class TryTests
         var tryValue = Try<int>.Of(() => int.Parse("42"));
 
         Assert.True(tryValue.IsSuccess);
-        Assert.Equal(42, tryValue.Get());
+        Assert.Equal(42, tryValue.GetValue());
     }
 
     [Fact]
@@ -512,7 +512,7 @@ public class TryTests
         var result = Try<int>.Of(() => int.Parse("42"))
             .Map(x => x * 2)
             .Filter(x => x > 50, "too small")
-            .GetOrElse(0);
+            .GetValueOr(0);
 
         Assert.Equal(84, result);
     }

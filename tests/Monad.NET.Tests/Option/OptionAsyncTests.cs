@@ -15,7 +15,7 @@ public class OptionAsyncTests
         });
 
         Assert.True(result.IsSome);
-        Assert.Equal(84, result.Unwrap());
+        Assert.Equal(84, result.GetValue());
     }
 
     [Fact]
@@ -42,7 +42,7 @@ public class OptionAsyncTests
         });
 
         Assert.True(result.IsSome);
-        Assert.Equal("42", result.Unwrap());
+        Assert.Equal("42", result.GetValue());
     }
 
     [Fact]
@@ -56,7 +56,7 @@ public class OptionAsyncTests
         });
 
         Assert.True(result.IsSome);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -73,24 +73,24 @@ public class OptionAsyncTests
     }
 
     [Fact]
-    public async Task AndThenAsync_WithAsyncFunc_ChainsCorrectly()
+    public async Task BindAsync_WithAsyncFunc_ChainsCorrectly()
     {
         var option = Option<int>.Some(42);
-        var result = await option.AndThenAsync(async x =>
+        var result = await option.BindAsync(async x =>
         {
             await Task.Delay(1);
             return Option<string>.Some(x.ToString());
         });
 
         Assert.True(result.IsSome);
-        Assert.Equal("42", result.Unwrap());
+        Assert.Equal("42", result.GetValue());
     }
 
     [Fact]
-    public async Task AndThenAsync_OnNone_ReturnsNone()
+    public async Task BindAsync_OnNone_ReturnsNone()
     {
         var option = Option<int>.None();
-        var result = await option.AndThenAsync(async x =>
+        var result = await option.BindAsync(async x =>
         {
             await Task.Delay(1);
             return Option<string>.Some(x.ToString());
@@ -153,7 +153,7 @@ public class OptionAsyncTests
 
         Assert.True(executed);
         Assert.True(result.IsSome);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -176,7 +176,7 @@ public class OptionAsyncTests
     public async Task UnwrapOrElseAsync_OnSome_ReturnsValue()
     {
         var optionTask = Task.FromResult(Option<int>.Some(42));
-        var result = await optionTask.UnwrapOrElseAsync(async () =>
+        var result = await optionTask.GetValueOrElseAsync(async () =>
         {
             await Task.Delay(1);
             return 0;
@@ -189,7 +189,7 @@ public class OptionAsyncTests
     public async Task UnwrapOrElseAsync_OnNone_ExecutesDefaultFunc()
     {
         var optionTask = Task.FromResult(Option<int>.None());
-        var result = await optionTask.UnwrapOrElseAsync(async () =>
+        var result = await optionTask.GetValueOrElseAsync(async () =>
         {
             await Task.Delay(1);
             return 100;
@@ -209,7 +209,7 @@ public class OptionAsyncTests
         });
 
         Assert.True(result.IsOk);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -223,7 +223,7 @@ public class OptionAsyncTests
         });
 
         Assert.True(result.IsErr);
-        Assert.Equal("error", result.UnwrapErr());
+        Assert.Equal("error", result.GetError());
     }
 
     [Fact]
@@ -234,7 +234,7 @@ public class OptionAsyncTests
 
         var result = await task;
         Assert.True(result.IsSome);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -246,7 +246,7 @@ public class OptionAsyncTests
                 await Task.Delay(1);
                 return x * 2;
             })
-            .AndThenAsync(async x =>
+            .BindAsync(async x =>
             {
                 await Task.Delay(1);
                 return x > 15 ? Option<int>.Some(x) : Option<int>.None();
@@ -258,7 +258,7 @@ public class OptionAsyncTests
             });
 
         Assert.True(result.IsSome);
-        Assert.Equal(20, result.Unwrap());
+        Assert.Equal(20, result.GetValue());
     }
 
     [Fact]
@@ -275,7 +275,7 @@ public class OptionAsyncTests
         });
 
         Assert.True(result.IsSome);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
         Assert.False(alternativeExecuted);
     }
 
@@ -293,7 +293,7 @@ public class OptionAsyncTests
         });
 
         Assert.True(result.IsSome);
-        Assert.Equal(100, result.Unwrap());
+        Assert.Equal(100, result.GetValue());
         Assert.True(alternativeExecuted);
     }
 
@@ -323,7 +323,7 @@ public class OptionAsyncTests
         });
 
         Assert.True(result.IsSome);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -338,7 +338,7 @@ public class OptionAsyncTests
         });
 
         Assert.True(result.IsSome);
-        Assert.Equal(100, result.Unwrap());
+        Assert.Equal(100, result.GetValue());
     }
 
     [Fact]
@@ -350,7 +350,7 @@ public class OptionAsyncTests
         var result = await optionTask.OrAsync(alternative);
 
         Assert.True(result.IsSome);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -362,7 +362,7 @@ public class OptionAsyncTests
         var result = await optionTask.OrAsync(alternative);
 
         Assert.True(result.IsSome);
-        Assert.Equal(100, result.Unwrap());
+        Assert.Equal(100, result.GetValue());
     }
 
     [Fact]

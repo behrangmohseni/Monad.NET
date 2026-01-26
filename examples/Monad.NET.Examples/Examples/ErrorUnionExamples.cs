@@ -36,7 +36,7 @@ public static class ErrorUnionExamples
 
         // Error type checking
         Console.WriteLine("\n3. Error Type Checking:");
-        var error = notFound.UnwrapErr();
+        var error = notFound.GetError();
         Console.WriteLine($"   error.IsNotFound:        {error.IsNotFound}");
         Console.WriteLine($"   error.IsInvalidEmail:    {error.IsInvalidEmail}");
         Console.WriteLine($"   error.IsUnauthorized:    {error.IsUnauthorized}");
@@ -98,8 +98,8 @@ public static class ErrorUnionExamples
         // Chaining with typed errors
         Console.WriteLine("\n10. Chaining Operations:");
         var chainResult = GetUser(Guid.NewGuid())
-            .AndThen(user => ValidateUserEmail(user))
-            .AndThen(user => CheckUserPermissions(user));
+            .Bind(user => ValidateUserEmail(user))
+            .Bind(user => CheckUserPermissions(user));
         Console.WriteLine($"   Chain result: {chainResult}");
     }
 

@@ -113,16 +113,15 @@ public class ApiContractTests
     }
 
     [Theory]
-    [InlineData("Unwrap")]
-    [InlineData("UnwrapOr")]
-    [InlineData("UnwrapOrElse")]
-    [InlineData("UnwrapOrDefault")]
-    [InlineData("Expect")]
+    [InlineData("GetValue")]
+    [InlineData("GetValueOr")]
+    [InlineData("GetValueOrElse")]
+    [InlineData("GetValueOrDefault")]
     [InlineData("GetOrThrow")]
     [InlineData("TryGet")]
     [InlineData("Map")]
     [InlineData("Filter")]
-    [InlineData("AndThen")]
+    [InlineData("Bind")]
     [InlineData("Or")]
     [InlineData("OrElse")]
     [InlineData("Xor")]
@@ -197,22 +196,18 @@ public class ApiContractTests
     }
 
     [Theory]
-    [InlineData("Unwrap")]
-    [InlineData("UnwrapErr")]
-    [InlineData("UnwrapOr")]
-    [InlineData("UnwrapOrElse")]
-    [InlineData("UnwrapOrDefault")]
-    [InlineData("Expect")]
-    [InlineData("ExpectErr")]
+    [InlineData("GetValue")]
+    [InlineData("GetError")]
+    [InlineData("GetValueOr")]
+    [InlineData("GetValueOrElse")]
+    [InlineData("GetValueOrDefault")]
     [InlineData("GetOrThrow")]
     [InlineData("GetErrorOrThrow")]
     [InlineData("TryGet")]
     [InlineData("TryGetError")]
     [InlineData("Map")]
-    [InlineData("MapErr")]
+    [InlineData("MapError")]
     [InlineData("BiMap")]
-    [InlineData("AndThen")]
-    [InlineData("FlatMap")]
     [InlineData("Bind")]
     [InlineData("Or")]
     [InlineData("OrElse")]
@@ -277,10 +272,8 @@ public class ApiContractTests
     }
 
     [Theory]
-    [InlineData("UnwrapLeft")]
-    [InlineData("UnwrapRight")]
-    [InlineData("ExpectLeft")]
-    [InlineData("ExpectRight")]
+    [InlineData("GetLeft")]
+    [InlineData("GetRight")]
     [InlineData("GetLeftOrThrow")]
     [InlineData("GetRightOrThrow")]
     [InlineData("TryGetLeft")]
@@ -290,8 +283,6 @@ public class ApiContractTests
     [InlineData("MapLeft")]
     [InlineData("MapRight")]
     [InlineData("BiMap")]
-    [InlineData("AndThen")]
-    [InlineData("FlatMap")]
     [InlineData("Bind")]
     [InlineData("OrElse")]
     [InlineData("Swap")]
@@ -340,11 +331,9 @@ public class ApiContractTests
     }
 
     [Theory]
-    [InlineData("Unwrap")]
-    [InlineData("UnwrapErrors")]
-    [InlineData("UnwrapOr")]
-    [InlineData("Expect")]
-    [InlineData("ExpectErrors")]
+    [InlineData("GetValue")]
+    [InlineData("GetErrors")]
+    [InlineData("GetValueOr")]
     [InlineData("GetOrThrow")]
     [InlineData("GetErrorsOrThrow")]
     [InlineData("TryGet")]
@@ -353,8 +342,6 @@ public class ApiContractTests
     [InlineData("MapErrors")]
     [InlineData("BiMap")]
     [InlineData("Apply")]
-    [InlineData("AndThen")]
-    [InlineData("FlatMap")]
     [InlineData("Bind")]
     [InlineData("And")]
     [InlineData("Ensure")]
@@ -404,19 +391,16 @@ public class ApiContractTests
     }
 
     [Theory]
-    [InlineData("Get")]
-    [InlineData("Unwrap")]
-    [InlineData("Expect")]
-    [InlineData("ExpectFailure")]
+    [InlineData("GetValue")]
     [InlineData("GetOrThrow")]
     [InlineData("GetException")]
     [InlineData("GetExceptionOrThrow")]
-    [InlineData("GetOrElse")]
+    [InlineData("GetValueOr")]
+    [InlineData("GetValueOrElse")]
+    [InlineData("GetValueOrRecover")]
     [InlineData("TryGet")]
     [InlineData("TryGetException")]
     [InlineData("Map")]
-    [InlineData("FlatMap")]
-    [InlineData("AndThen")]
     [InlineData("Bind")]
     [InlineData("Filter")]
     [InlineData("Recover")]
@@ -741,7 +725,7 @@ public class ApiContractTests
 
     [Theory]
     [InlineData("MapAsync")]
-    [InlineData("AndThenAsync")]
+    [InlineData("BindAsync")]
     [InlineData("FilterAsync")]
     [InlineData("MatchAsync")]
     [InlineData("TapAsync")]
@@ -757,8 +741,8 @@ public class ApiContractTests
 
     [Theory]
     [InlineData("MapAsync")]
-    [InlineData("MapErrAsync")]
-    [InlineData("AndThenAsync")]
+    [InlineData("MapErrorAsync")]
+    [InlineData("BindAsync")]
     [InlineData("MatchAsync")]
     [InlineData("TapAsync")]
     [InlineData("TapErrAsync")]
@@ -827,7 +811,7 @@ public class ApiContractTests
     [Theory]
     [InlineData("Last")]
     [InlineData("Map")]
-    [InlineData("FlatMap")]
+
     [InlineData("Filter")]
     [InlineData("Append")]
     [InlineData("Prepend")]
@@ -859,7 +843,7 @@ public class ApiContractTests
 
     [Theory]
     [InlineData("Map")]
-    [InlineData("FlatMap")]
+
     [InlineData("BiMap")]
     [InlineData("Match")]
     public void Writer_InstanceMethods_ShouldExist(string methodName)
@@ -877,7 +861,7 @@ public class ApiContractTests
 
     [Theory]
     [InlineData("From")]
-    [InlineData("Pure")]
+    [InlineData("Return")]
     [InlineData("Ask")]
     [InlineData("Asks")]
     public void Reader_StaticFactoryMethods_ShouldExist(string methodName)
@@ -892,7 +876,7 @@ public class ApiContractTests
     [Theory]
     [InlineData("Run")]
     [InlineData("Map")]
-    [InlineData("FlatMap")]
+
     [InlineData("WithEnvironment")]
     public void Reader_InstanceMethods_ShouldExist(string methodName)
     {
@@ -908,7 +892,6 @@ public class ApiContractTests
     #region State<TState, T> API Contract
 
     [Theory]
-    [InlineData("Pure")]
     [InlineData("Return")]
     [InlineData("Get")]
     [InlineData("Put")]
@@ -927,8 +910,8 @@ public class ApiContractTests
     [InlineData("Eval")]
     [InlineData("Exec")]
     [InlineData("Map")]
-    [InlineData("FlatMap")]
-    [InlineData("AndThen")]
+
+    [InlineData("Bind")]
     public void State_InstanceMethods_ShouldExist(string methodName)
     {
         var methods = typeof(State<int, string>).GetMethods(BindingFlags.Public | BindingFlags.Instance)
@@ -944,9 +927,7 @@ public class ApiContractTests
 
     [Theory]
     [InlineData("Of")]
-    [InlineData("Pure")]
     [InlineData("Return")]
-    [InlineData("Delay")]
     public void IO_StaticFactoryMethods_ShouldExist(string methodName)
     {
         var methods = typeof(IO<int>).GetMethods(BindingFlags.Public | BindingFlags.Static)
@@ -960,8 +941,8 @@ public class ApiContractTests
     [InlineData("Run")]
     [InlineData("RunAsync")]
     [InlineData("Map")]
-    [InlineData("FlatMap")]
-    [InlineData("AndThen")]
+
+    [InlineData("Bind")]
     public void IO_InstanceMethods_ShouldExist(string methodName)
     {
         var methods = typeof(IO<int>).GetMethods(BindingFlags.Public | BindingFlags.Instance)

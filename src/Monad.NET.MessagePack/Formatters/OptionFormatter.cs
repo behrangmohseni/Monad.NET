@@ -18,7 +18,7 @@ public sealed class OptionFormatter<T> : IMessagePackFormatter<Option<T>>
         writer.Write(true);
 
         var formatter = options.Resolver.GetFormatterWithVerify<T>();
-        formatter.Serialize(ref writer, value.Unwrap(), options);
+        formatter.Serialize(ref writer, value.GetValue(), options);
     }
 
     public Option<T> Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)

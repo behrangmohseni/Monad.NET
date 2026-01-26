@@ -71,12 +71,12 @@ public class ResultJsonConverter<T, E> : JsonConverter<Result<T, E>>
         if (value.IsOk)
         {
             writer.WritePropertyName("value");
-            JsonSerializer.Serialize(writer, value.Unwrap(), options);
+            JsonSerializer.Serialize(writer, value.GetValue(), options);
         }
         else
         {
             writer.WritePropertyName("error");
-            JsonSerializer.Serialize(writer, value.UnwrapErr(), options);
+            JsonSerializer.Serialize(writer, value.GetError(), options);
         }
 
         writer.WriteEndObject();

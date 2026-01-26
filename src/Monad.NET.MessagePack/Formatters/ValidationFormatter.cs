@@ -14,11 +14,11 @@ public sealed class ValidationFormatter<T, TErr> : IMessagePackFormatter<Validat
         if (value.IsValid)
         {
             var formatter = options.Resolver.GetFormatterWithVerify<T>();
-            formatter.Serialize(ref writer, value.Unwrap(), options);
+            formatter.Serialize(ref writer, value.GetValue(), options);
         }
         else
         {
-            var errors = value.UnwrapErrors();
+            var errors = value.GetErrors();
             var formatter = options.Resolver.GetFormatterWithVerify<IReadOnlyList<TErr>>();
             formatter.Serialize(ref writer, errors, options);
         }

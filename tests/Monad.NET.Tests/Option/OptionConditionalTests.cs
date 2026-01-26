@@ -14,7 +14,7 @@ public class OptionConditionalTests
     {
         var result = OptionExtensions.When(true, () => 42);
         Assert.True(result.IsSome);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -29,7 +29,7 @@ public class OptionConditionalTests
     {
         var result = OptionExtensions.When(true, 42);
         Assert.True(result.IsSome);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -48,7 +48,7 @@ public class OptionConditionalTests
     {
         var result = OptionExtensions.Unless(false, () => 42);
         Assert.True(result.IsSome);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -63,7 +63,7 @@ public class OptionConditionalTests
     {
         var result = OptionExtensions.Unless(false, 42);
         Assert.True(result.IsSome);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -83,7 +83,7 @@ public class OptionConditionalTests
         var option = Option<int>.Some(42);
         var result = option.DefaultIfNone(99);
         Assert.True(result.IsSome);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -92,7 +92,7 @@ public class OptionConditionalTests
         var option = Option<int>.None();
         var result = option.DefaultIfNone(99);
         Assert.True(result.IsSome);
-        Assert.Equal(99, result.Unwrap());
+        Assert.Equal(99, result.GetValue());
     }
 
     [Fact]
@@ -107,7 +107,7 @@ public class OptionConditionalTests
         });
 
         Assert.False(factoryCalled);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -116,7 +116,7 @@ public class OptionConditionalTests
         var option = Option<int>.None();
         var result = option.DefaultIfNone(() => 99);
         Assert.True(result.IsSome);
-        Assert.Equal(99, result.Unwrap());
+        Assert.Equal(99, result.GetValue());
     }
 
     #endregion
@@ -167,7 +167,7 @@ public class OptionConditionalTests
         var result = readOnlyDict.GetOption("key");
 
         Assert.True(result.IsSome);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -191,7 +191,7 @@ public class OptionConditionalTests
         var result = list.FirstOption();
 
         Assert.True(result.IsSome);
-        Assert.Equal(1, result.Unwrap());
+        Assert.Equal(1, result.GetValue());
     }
 
     [Fact]
@@ -210,7 +210,7 @@ public class OptionConditionalTests
         var result = list.FirstOption(x => x > 3);
 
         Assert.True(result.IsSome);
-        Assert.Equal(4, result.Unwrap());
+        Assert.Equal(4, result.GetValue());
     }
 
     [Fact]
@@ -233,7 +233,7 @@ public class OptionConditionalTests
         var result = list.LastOption();
 
         Assert.True(result.IsSome);
-        Assert.Equal(3, result.Unwrap());
+        Assert.Equal(3, result.GetValue());
     }
 
     [Fact]
@@ -256,7 +256,7 @@ public class OptionConditionalTests
         var result = list.SingleOption();
 
         Assert.True(result.IsSome);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -288,7 +288,7 @@ public class OptionConditionalTests
         var result = list.ElementAtOption(1);
 
         Assert.True(result.IsSome);
-        Assert.Equal(20, result.Unwrap());
+        Assert.Equal(20, result.GetValue());
     }
 
     [Fact]
@@ -320,7 +320,7 @@ public class OptionConditionalTests
         var result = option.OfType<string>();
 
         Assert.True(result.IsSome);
-        Assert.Equal("hello", result.Unwrap());
+        Assert.Equal("hello", result.GetValue());
     }
 
     [Fact]
@@ -352,7 +352,7 @@ public class OptionConditionalTests
         var result = nested.Flatten();
 
         Assert.True(result.IsSome);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -384,7 +384,7 @@ public class OptionConditionalTests
         var result = option.Transpose();
 
         Assert.True(result.IsOk);
-        Assert.True(result.Unwrap().IsSome);
+        Assert.True(result.GetValue().IsSome);
     }
 
     [Fact]
@@ -403,7 +403,7 @@ public class OptionConditionalTests
         var result = option.Transpose();
 
         Assert.True(result.IsOk);
-        Assert.True(result.Unwrap().IsNone);
+        Assert.True(result.GetValue().IsNone);
     }
 
     #endregion
@@ -417,7 +417,7 @@ public class OptionConditionalTests
         var result = nullable.ToOption();
 
         Assert.True(result.IsSome);
-        Assert.Equal(42, result.Unwrap());
+        Assert.Equal(42, result.GetValue());
     }
 
     [Fact]
@@ -436,7 +436,7 @@ public class OptionConditionalTests
         var result = value.ToOption();
 
         Assert.True(result.IsSome);
-        Assert.Equal("hello", result.Unwrap());
+        Assert.Equal("hello", result.GetValue());
     }
 
     [Fact]

@@ -16,7 +16,7 @@ public class RemoteDataLinqTests
         var result = from x in data select x * 2;
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(84, result.Unwrap());
+        Assert.Equal(84, result.GetValue());
     }
 
     [Fact]
@@ -44,7 +44,7 @@ public class RemoteDataLinqTests
         var result = from x in data select x * 2;
 
         Assert.True(result.IsFailure);
-        Assert.Equal("error", result.UnwrapError());
+        Assert.Equal("error", result.GetError());
     }
 
     #endregion
@@ -59,7 +59,7 @@ public class RemoteDataLinqTests
                      select x + y;
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(30, result.Unwrap());
+        Assert.Equal(30, result.GetValue());
     }
 
     [Fact]
@@ -90,7 +90,7 @@ public class RemoteDataLinqTests
                      select x + y;
 
         Assert.True(result.IsFailure);
-        Assert.Equal("error", result.UnwrapError());
+        Assert.Equal("error", result.GetError());
     }
 
     [Fact]
@@ -121,7 +121,7 @@ public class RemoteDataLinqTests
                      select x + y;
 
         Assert.True(result.IsFailure);
-        Assert.Equal("error", result.UnwrapError());
+        Assert.Equal("error", result.GetError());
     }
 
     [Fact]
@@ -133,7 +133,7 @@ public class RemoteDataLinqTests
                      select a + b + c;
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(6, result.Unwrap());
+        Assert.Equal(6, result.GetValue());
     }
 
     #endregion
@@ -151,7 +151,7 @@ public class RemoteDataLinqTests
             (x, y) => $"{y}: {x}");
 
         Assert.True(result.IsSuccess);
-        Assert.Equal("hello: 10", result.Unwrap());
+        Assert.Equal("hello: 10", result.GetValue());
     }
 
     [Fact]
@@ -191,7 +191,7 @@ public class RemoteDataLinqTests
             (x, y) => $"{y}: {x}");
 
         Assert.True(result.IsFailure);
-        Assert.Equal("error", result.UnwrapError());
+        Assert.Equal("error", result.GetError());
     }
 
     #endregion

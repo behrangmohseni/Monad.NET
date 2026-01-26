@@ -35,7 +35,7 @@ public sealed class NonEmptyListFormatter<T> : IMessagePackFormatter<NonEmptyLis
             items[i] = formatter.Deserialize(ref reader, options);
         }
 
-        return NonEmptyList<T>.FromEnumerable(items).Unwrap();
+        return NonEmptyList<T>.FromEnumerable(items).GetValue();
     }
 }
 

@@ -16,7 +16,7 @@ public class ValidationLinqTests
         var result = validation.Select(x => x * 2);
 
         Assert.True(result.IsValid);
-        Assert.Equal(84, result.Unwrap());
+        Assert.Equal(84, result.GetValue());
     }
 
     [Fact]
@@ -55,7 +55,7 @@ public class ValidationLinqTests
             .SelectMany(x => Validation<int, string>.Valid(x + 20));
 
         Assert.True(result.IsValid);
-        Assert.Equal(30, result.Unwrap());
+        Assert.Equal(30, result.GetValue());
     }
 
     [Fact]
@@ -91,7 +91,7 @@ public class ValidationLinqTests
             (x, y) => $"{y} (original: {x})");
 
         Assert.True(result.IsValid);
-        Assert.Equal("Value: 10 (original: 10)", result.Unwrap());
+        Assert.Equal("Value: 10 (original: 10)", result.GetValue());
     }
 
     [Fact]
@@ -128,7 +128,7 @@ public class ValidationLinqTests
                      select a + b;
 
         Assert.True(result.IsValid);
-        Assert.Equal(3, result.Unwrap());
+        Assert.Equal(3, result.GetValue());
     }
 
     [Fact]
@@ -140,7 +140,7 @@ public class ValidationLinqTests
                      select doubled + b;
 
         Assert.True(result.IsValid);
-        Assert.Equal(13, result.Unwrap());
+        Assert.Equal(13, result.GetValue());
     }
 
     [Fact]
@@ -152,7 +152,7 @@ public class ValidationLinqTests
                      select a + b + c;
 
         Assert.True(result.IsValid);
-        Assert.Equal(6, result.Unwrap());
+        Assert.Equal(6, result.GetValue());
     }
 
     [Fact]

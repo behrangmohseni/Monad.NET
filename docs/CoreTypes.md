@@ -41,11 +41,11 @@ var warning = OptionExtensions.Unless(user.HasVerifiedEmail, () => "Please verif
 // Transformation
 var doubled = some.Map(x => x * 2);                    // Some(84)
 var filtered = some.Filter(x => x > 100);              // None
-var chained = some.AndThen(x => LookupValue(x));       // Chains Option-returning functions
+var chained = some.Bind(x => LookupValue(x));       // Chains Option-returning functions
 
 // Extraction
-var value = some.UnwrapOr(0);                          // 42
-var computed = none.UnwrapOrElse(() => ComputeDefault()); // Lazy evaluation
+var value = some.GetValueOr(0);                          // 42
+var computed = none.GetValueOrElse(() => ComputeDefault()); // Lazy evaluation
 
 // TryGet pattern (familiar C# idiom)
 if (some.TryGet(out var result))
@@ -87,15 +87,15 @@ var fetched = await ResultExtensions.TryAsync(() => httpClient.GetAsync(url));
 
 // Railway-oriented programming
 var pipeline = ParseInput(raw)
-    .AndThen(Validate)
-    .AndThen(Transform)
-    .AndThen(Save)
+    .Bind(Validate)
+    .Bind(Transform)
+    .Bind(Save)
     .Tap(result => _logger.LogInformation("Saved: {Id}", result.Id))
     .TapErr(error => _logger.LogError("Failed: {Error}", error));
 
 // Recovery strategies
 var recovered = err.OrElse(e => FallbackStrategy(e));
-var withDefault = err.UnwrapOr(defaultValue);
+var withDefault = err.GetValueOr(defaultValue);
 
 // TryGet pattern (familiar C# idiom)
 if (ok.TryGet(out var value))
@@ -301,7 +301,7 @@ var sum = list.Reduce((a, b) => a + b);          // 15 (no seed needed)
 
 // Transformations
 var doubled = list.Map(x => x * 2);
-var expanded = list.FlatMap(x => NonEmptyList<int>.Of(x, x * 10));
+var expanded = list.Bind(x => NonEmptyList<int>.Of(x, x * 10));
 
 // Side effects with Tap
 list.Tap(x => Console.WriteLine(x))              // Logs each element
@@ -311,7 +311,7 @@ list.Tap(x => Console.WriteLine(x))              // Logs each element
 var filtered = list.Filter(x => x > 10);         // None
 ```
 
-**Methods:** `Map`, `MapIndexed`, `FlatMap`, `Filter`, `Reduce`, `Fold`, `Tap`, `TapIndexed`
+**Methods:** `Map`, `MapIndexed`, `Bind`, `Filter`, `Reduce`, `Fold`, `Tap`, `TapIndexed`
 
 **When to use:** When empty collections are invalid states (config items, selected options, etc.).
 
@@ -326,11 +326,11 @@ Computations that produce a value alongside accumulated output (logs, traces, me
 ```csharp
 // Computation with logging
 var computation = Writer<List<string>, int>.Tell(1, new List<string> { "Started with 1" })
-    .FlatMap(
+    .Bind(
         x => Writer<List<string>, int>.Tell(x * 2, new List<string> { $"Doubled to {x * 2}" }),
         (log1, log2) => log1.Concat(log2).ToList()
     )
-    .FlatMap(
+    .Bind(
         x => Writer<List<string>, int>.Tell(x + 10, new List<string> { $"Added 10, result: {x + 10}" }),
         (log1, log2) => log1.Concat(log2).ToList()
     );
@@ -345,7 +345,7 @@ var debugWriter = Writer<string, int>.Of(42, "init")
     .TapLog(log => Console.WriteLine($"Log so far: {log}"));
 ```
 
-**Methods:** `Map`, `FlatMap`, `BiMap`, `Match`, `Tap`, `TapLog`
+**Methods:** `Map`, `Bind`, `BiMap`, `Match`, `Tap`, `TapLog`
 
 **When to use:** Audit trails, computation tracing, accumulating metadata.
 
@@ -370,7 +370,7 @@ var getUserCount = Reader<AppServices, int>.Asks(s => s.Users.Count());
 
 // Compose readers
 var workflow = Reader<AppServices, string>.Asks(s => s.Users)
-    .FlatMap(repo => Reader<AppServices, string>.From(s =>
+    .Bind(repo => Reader<AppServices, string>.From(s =>
     {
         var count = repo.Count();
         s.Logger.LogInformation("Total users: {Count}", count);
@@ -390,7 +390,7 @@ var debugReader = Reader<AppServices, string>.Asks(s => s.Users.GetName())
 var asyncReader = reader.ToAsync();
 ```
 
-**Methods:** `Map`, `FlatMap`, `Tap`, `TapEnv`, `WithEnvironment`, `ToAsync`
+**Methods:** `Map`, `Bind`, `Tap`, `TapEnv`, `WithEnvironment`, `ToAsync`
 
 **When to use:** Passing configuration/services through call chains without parameter drilling.
 
@@ -459,8 +459,7 @@ var narrowed = getUser.WithEnvironment<LargerServices>(larger => larger.App);
 
 **Composition:**
 - `Map(f)` / `MapAsync(f)` — Transform the result
-- `FlatMap(f)` / `AndThen(f)` / `Bind(f)` — Chain computations
-- `FlatMapAsync(f)` — Chain with async binder
+- `Bind(f)` / `BindAsync(f)` — Chain computations
 - `Zip(other)` / `Zip(other, combiner)` — Combine two readers
 - `Tap(action)` / `TapAsync(action)` — Side effects with result
 - `TapEnv(action)` / `TapEnvAsync(action)` — Side effects with environment
@@ -543,7 +542,7 @@ var result = stackOps.Run(new List<int>());
 ```
 
 **Factory Methods:**
-- `State<S, A>.Pure(value)` — Return value without modifying state
+- `State<S, A>.Return(value)` — Return value without modifying state
 - `State<S, S>.Get()` — Get current state as the value
 - `State<S, Unit>.Put(newState)` — Replace state
 - `State<S, Unit>.Modify(f)` — Transform state using a function
@@ -551,7 +550,7 @@ var result = stackOps.Run(new List<int>());
 
 **Composition:**
 - `Map(f)` — Transform the value
-- `AndThen(f)` / `FlatMap(f)` / `Bind(f)` — Chain computations
+- `Bind(f)` — Chain computations
 - `Zip(other)` / `ZipWith(other, f)` — Combine two state computations
 - `Tap(action)` — Execute side effect with value (logging/debugging)
 - `TapState(action)` — Execute side effect with state
@@ -632,13 +631,13 @@ var fastest = IO.Race(
 
 **Factory Methods:**
 - `IO<T>.Of(effect)` — Create from effect function
-- `IO<T>.Pure(value)` / `Return(value)` — Create with pure value
+- `IO<T>.Return(value)` / `Return(value)` — Create with pure value
 - `IO<T>.Delay(effect)` — Alias for `Of`, emphasizes laziness
 - `IO.Execute(action)` — Execute action, return Unit
 
 **Composition:**
 - `Map(f)` — Transform the result
-- `AndThen(f)` / `FlatMap(f)` / `Bind(f)` — Chain IO operations
+- `Bind(f)` — Chain IO operations
 - `Tap(action)` — Execute side effect, keep value
 - `Apply(ioFunc)` — Apply function in IO to value
 - `Zip(other)` / `ZipWith(other, f)` — Combine two IOs

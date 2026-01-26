@@ -71,7 +71,7 @@ public class TryJsonConverter<T> : JsonConverter<Try<T>>
         if (value.IsSuccess)
         {
             writer.WritePropertyName("value");
-            JsonSerializer.Serialize(writer, value.Get(), options);
+            JsonSerializer.Serialize(writer, value.GetValue(), options);
         }
         else
         {

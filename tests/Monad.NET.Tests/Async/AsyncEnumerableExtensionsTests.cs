@@ -58,7 +58,7 @@ public class AsyncEnumerableExtensionsTests
         var result = await source.FirstOrNoneAsync();
 
         Assert.True(result.IsSome);
-        Assert.Equal(1, result.Unwrap());
+        Assert.Equal(1, result.GetValue());
     }
 
     [Fact]
@@ -79,7 +79,7 @@ public class AsyncEnumerableExtensionsTests
         var result = await source.FirstOrNoneAsync(x => x > 3);
 
         Assert.True(result.IsSome);
-        Assert.Equal(4, result.Unwrap());
+        Assert.Equal(4, result.GetValue());
     }
 
     [Fact]
@@ -100,7 +100,7 @@ public class AsyncEnumerableExtensionsTests
         var result = await source.LastOrNoneAsync();
 
         Assert.True(result.IsSome);
-        Assert.Equal(3, result.Unwrap());
+        Assert.Equal(3, result.GetValue());
     }
 
     [Fact]
@@ -125,7 +125,7 @@ public class AsyncEnumerableExtensionsTests
         var result = await source.SequenceAsync();
 
         Assert.True(result.IsSome);
-        Assert.Equal(new[] { 1, 2, 3 }, result.Unwrap());
+        Assert.Equal(new[] { 1, 2, 3 }, result.GetValue());
     }
 
     [Fact]
@@ -206,7 +206,7 @@ public class AsyncEnumerableExtensionsTests
         var result = await source.SequenceAsync();
 
         Assert.True(result.IsOk);
-        Assert.Equal(new[] { 1, 2, 3 }, result.Unwrap());
+        Assert.Equal(new[] { 1, 2, 3 }, result.GetValue());
     }
 
     [Fact]
@@ -222,7 +222,7 @@ public class AsyncEnumerableExtensionsTests
         var result = await source.SequenceAsync();
 
         Assert.True(result.IsErr);
-        Assert.Equal("first error", result.UnwrapErr());
+        Assert.Equal("first error", result.GetError());
     }
 
     #endregion

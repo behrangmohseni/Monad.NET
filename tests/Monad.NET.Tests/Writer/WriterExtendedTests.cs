@@ -28,7 +28,7 @@ public class WriterExtendedTests
     public void ListWriter_FlatMap_CombinesLogs()
     {
         var writer1 = ListWriter.Tell(10, "step1", "step1b");
-        var writer2 = writer1.FlatMap(x => ListWriter.Tell(x * 2, "step2", "step2b"));
+        var writer2 = writer1.Bind(x => ListWriter.Tell(x * 2, "step2", "step2b"));
 
         Assert.Equal(20, writer2.Value);
         Assert.Equal(4, writer2.Log.Count);

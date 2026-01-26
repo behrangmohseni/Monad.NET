@@ -334,10 +334,10 @@ public Validation<User, Error> ValidateAllFields(Form form);
 // Bad: Nested Option
 public Option<Option<User>> GetUserProfile(int id);
 
-// Good: Flatten with AndThen/FlatMap
+// Good: Flatten with Bind
 public Option<User> GetUserProfile(int id)
 {
-    return FindUser(id).AndThen(user => user.GetProfile());
+    return FindUser(id).Bind(user => user.GetProfile());
 }
 ```
 

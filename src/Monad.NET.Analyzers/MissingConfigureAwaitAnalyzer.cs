@@ -31,7 +31,7 @@ public sealed class MissingConfigureAwaitAnalyzer : DiagnosticAnalyzer
         "ZipWithAsync",
         "FirstSomeAsync",
         "OfAsync",
-        "FlatMapAsync",
+        "BindAsync",
         "RecoverAsync",
         "TapExceptionAsync",
         "ApplyAsync",

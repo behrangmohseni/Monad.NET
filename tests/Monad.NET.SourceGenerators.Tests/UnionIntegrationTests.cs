@@ -141,7 +141,7 @@ public class UnionIntegrationTests
         var result = shape.AsCircle();
 
         Assert.True(result.IsSome);
-        Assert.Equal(5.0, result.Unwrap().Radius);
+        Assert.Equal(5.0, result.GetValue().Radius);
     }
 
     [Fact]
@@ -161,7 +161,7 @@ public class UnionIntegrationTests
 
         var area = shape.AsCircle()
             .Map(c => Math.PI * c.Radius * c.Radius)
-            .UnwrapOr(0);
+            .GetValueOr(0);
 
         Assert.Equal(Math.PI * 25, area);
     }
@@ -181,7 +181,7 @@ public class UnionIntegrationTests
             triangle: t => new Shape.Triangle(t.Base * 2, t.Height * 2));
 
         Assert.True(doubled.IsCircle);
-        Assert.Equal(10.0, doubled.AsCircle().Unwrap().Radius);
+        Assert.Equal(10.0, doubled.AsCircle().GetValue().Radius);
     }
 
     #endregion

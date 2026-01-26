@@ -19,7 +19,7 @@ public class CollectionTests
         var result = options.Sequence();
 
         Assert.True(result.IsSome);
-        Assert.Equal(new[] { 1, 2, 3 }, result.Unwrap());
+        Assert.Equal(new[] { 1, 2, 3 }, result.GetValue());
     }
 
     [Fact]
@@ -48,7 +48,7 @@ public class CollectionTests
                 : Option<int>.None());
 
         Assert.True(result.IsSome);
-        Assert.Equal(new[] { 1, 2, 3 }, result.Unwrap());
+        Assert.Equal(new[] { 1, 2, 3 }, result.GetValue());
     }
 
     [Fact]
@@ -107,7 +107,7 @@ public class CollectionTests
         var result = options.FirstSome();
 
         Assert.True(result.IsSome);
-        Assert.Equal(1, result.Unwrap());
+        Assert.Equal(1, result.GetValue());
     }
 
     [Fact]
@@ -142,7 +142,7 @@ public class CollectionTests
         var result = results.Sequence();
 
         Assert.True(result.IsOk);
-        Assert.Equal(new[] { 1, 2, 3 }, result.Unwrap());
+        Assert.Equal(new[] { 1, 2, 3 }, result.GetValue());
     }
 
     [Fact]
@@ -158,7 +158,7 @@ public class CollectionTests
         var result = results.Sequence();
 
         Assert.True(result.IsErr);
-        Assert.Equal("error1", result.UnwrapErr());
+        Assert.Equal("error1", result.GetError());
     }
 
     [Fact]
@@ -172,7 +172,7 @@ public class CollectionTests
                 : Result<int, string>.Err($"Invalid: {s}"));
 
         Assert.True(result.IsOk);
-        Assert.Equal(new[] { 1, 2, 3 }, result.Unwrap());
+        Assert.Equal(new[] { 1, 2, 3 }, result.GetValue());
     }
 
     [Fact]
@@ -186,7 +186,7 @@ public class CollectionTests
                 : Result<int, string>.Err($"Invalid: {s}"));
 
         Assert.True(result.IsErr);
-        Assert.Equal("Invalid: invalid", result.UnwrapErr());
+        Assert.Equal("Invalid: invalid", result.GetError());
     }
 
     [Fact]
@@ -253,7 +253,7 @@ public class CollectionTests
         var result = results.FirstOk();
 
         Assert.True(result.IsOk);
-        Assert.Equal(1, result.Unwrap());
+        Assert.Equal(1, result.GetValue());
     }
 
     [Fact]
@@ -269,7 +269,7 @@ public class CollectionTests
         var result = results.FirstOk();
 
         Assert.True(result.IsErr);
-        Assert.Equal("error3", result.UnwrapErr());
+        Assert.Equal("error3", result.GetError());
     }
 
     #endregion
@@ -344,7 +344,7 @@ public class CollectionTests
         var result = await optionTasks.SequenceAsync();
 
         Assert.True(result.IsSome);
-        Assert.Equal(new[] { 1, 2, 3 }, result.Unwrap());
+        Assert.Equal(new[] { 1, 2, 3 }, result.GetValue());
     }
 
     [Fact]
@@ -359,7 +359,7 @@ public class CollectionTests
         });
 
         Assert.True(result.IsSome);
-        Assert.Equal(new[] { 2, 4, 6 }, result.Unwrap());
+        Assert.Equal(new[] { 2, 4, 6 }, result.GetValue());
     }
 
     [Fact]
@@ -375,7 +375,7 @@ public class CollectionTests
         var result = await resultTasks.SequenceAsync();
 
         Assert.True(result.IsOk);
-        Assert.Equal(new[] { 1, 2, 3 }, result.Unwrap());
+        Assert.Equal(new[] { 1, 2, 3 }, result.GetValue());
     }
 
     [Fact]
@@ -390,7 +390,7 @@ public class CollectionTests
         });
 
         Assert.True(result.IsOk);
-        Assert.Equal(new[] { 2, 4, 6 }, result.Unwrap());
+        Assert.Equal(new[] { 2, 4, 6 }, result.GetValue());
     }
 
     [Fact]
@@ -407,7 +407,7 @@ public class CollectionTests
         });
 
         Assert.True(result.IsErr);
-        Assert.Equal("error", result.UnwrapErr());
+        Assert.Equal("error", result.GetError());
     }
 
     #endregion
@@ -426,7 +426,7 @@ public class CollectionTests
             .Map(numbers => numbers.Sum());
 
         Assert.True(result.IsOk);
-        Assert.Equal(100, result.Unwrap());
+        Assert.Equal(100, result.GetValue());
     }
 
     [Fact]
@@ -440,7 +440,7 @@ public class CollectionTests
                 : Result<int, string>.Err($"Invalid input: {input}"));
 
         Assert.True(result.IsErr);
-        Assert.Contains("invalid", result.UnwrapErr());
+        Assert.Contains("invalid", result.GetError());
     }
 
     [Fact]

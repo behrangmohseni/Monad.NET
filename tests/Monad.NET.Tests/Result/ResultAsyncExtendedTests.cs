@@ -20,7 +20,7 @@ public class ResultAsyncExtendedTests
         });
 
         Assert.True(mapped.IsOk);
-        Assert.Equal(42, mapped.Unwrap());
+        Assert.Equal(42, mapped.GetValue());
     }
 
     [Fact]
@@ -34,7 +34,7 @@ public class ResultAsyncExtendedTests
         });
 
         Assert.True(mapped.IsErr);
-        Assert.Equal("error", mapped.UnwrapErr());
+        Assert.Equal("error", mapped.GetError());
     }
 
     #endregion
@@ -45,53 +45,53 @@ public class ResultAsyncExtendedTests
     public async Task MapErrAsync_Task_Ok_PreservesValue()
     {
         var result = Task.FromResult(Result<int, string>.Ok(42));
-        var mapped = await result.MapErrAsync(async e =>
+        var mapped = await result.MapErrorAsync(async e =>
         {
             await Task.Delay(1);
             return e.ToUpper();
         });
 
         Assert.True(mapped.IsOk);
-        Assert.Equal(42, mapped.Unwrap());
+        Assert.Equal(42, mapped.GetValue());
     }
 
     [Fact]
     public async Task MapErrAsync_Task_Err_TransformsError()
     {
         var result = Task.FromResult(Result<int, string>.Err("error"));
-        var mapped = await result.MapErrAsync(async e =>
+        var mapped = await result.MapErrorAsync(async e =>
         {
             await Task.Delay(1);
             return e.ToUpper();
         });
 
         Assert.True(mapped.IsErr);
-        Assert.Equal("ERROR", mapped.UnwrapErr());
+        Assert.Equal("ERROR", mapped.GetError());
     }
 
     #endregion
 
-    #region AndThenAsync Tests
+    #region BindAsync Tests
 
     [Fact]
-    public async Task AndThenAsync_Task_Ok_Chains()
+    public async Task BindAsync_Task_Ok_Chains()
     {
         var result = Task.FromResult(Result<int, string>.Ok(21));
-        var chained = await result.AndThenAsync(async x =>
+        var chained = await result.BindAsync(async x =>
         {
             await Task.Delay(1);
             return Result<int, string>.Ok(x * 2);
         });
 
         Assert.True(chained.IsOk);
-        Assert.Equal(42, chained.Unwrap());
+        Assert.Equal(42, chained.GetValue());
     }
 
     [Fact]
-    public async Task AndThenAsync_Task_Err_ReturnsErr()
+    public async Task BindAsync_Task_Err_ReturnsErr()
     {
         var result = Task.FromResult(Result<int, string>.Err("error"));
-        var chained = await result.AndThenAsync(async x =>
+        var chained = await result.BindAsync(async x =>
         {
             await Task.Delay(1);
             return Result<int, string>.Ok(x * 2);
@@ -101,17 +101,17 @@ public class ResultAsyncExtendedTests
     }
 
     [Fact]
-    public async Task AndThenAsync_OkToErr_ReturnsErr()
+    public async Task BindAsync_OkToErr_ReturnsErr()
     {
         var result = Task.FromResult(Result<int, string>.Ok(42));
-        var chained = await result.AndThenAsync(async x =>
+        var chained = await result.BindAsync(async x =>
         {
             await Task.Delay(1);
             return Result<int, string>.Err("chained error");
         });
 
         Assert.True(chained.IsErr);
-        Assert.Equal("chained error", chained.UnwrapErr());
+        Assert.Equal("chained error", chained.GetError());
     }
 
     #endregion
@@ -129,7 +129,7 @@ public class ResultAsyncExtendedTests
         });
 
         Assert.True(fallback.IsOk);
-        Assert.Equal(42, fallback.Unwrap());
+        Assert.Equal(42, fallback.GetValue());
     }
 
     [Fact]
@@ -143,7 +143,7 @@ public class ResultAsyncExtendedTests
         });
 
         Assert.True(fallback.IsOk);
-        Assert.Equal(99, fallback.Unwrap());
+        Assert.Equal(99, fallback.GetValue());
     }
 
     #endregion
@@ -237,7 +237,7 @@ public class ResultAsyncExtendedTests
         var combined = await ResultExtensions.CombineAsync(result1, result2, (a, b) => a + b);
 
         Assert.True(combined.IsOk);
-        Assert.Equal(42, combined.Unwrap());
+        Assert.Equal(42, combined.GetValue());
     }
 
     [Fact]

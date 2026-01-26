@@ -34,7 +34,7 @@ public class JsonSerializationTests
         var json = JsonSerializer.Serialize(original, _options);
         var deserialized = JsonSerializer.Deserialize<Option<string>>(json, _options);
         Assert.True(deserialized.IsSome);
-        Assert.Equal("hello", deserialized.Unwrap());
+        Assert.Equal("hello", deserialized.GetValue());
     }
 
     [Fact]
@@ -54,8 +54,8 @@ public class JsonSerializationTests
         var json = JsonSerializer.Serialize(original, _options);
         var deserialized = JsonSerializer.Deserialize<Option<Person>>(json, _options);
         Assert.True(deserialized.IsSome);
-        Assert.Equal("John", deserialized.Unwrap().Name);
-        Assert.Equal(30, deserialized.Unwrap().Age);
+        Assert.Equal("John", deserialized.GetValue().Name);
+        Assert.Equal(30, deserialized.GetValue().Age);
     }
 
     #endregion
@@ -87,7 +87,7 @@ public class JsonSerializationTests
         var json = JsonSerializer.Serialize(original, _options);
         var deserialized = JsonSerializer.Deserialize<Result<string, string>>(json, _options);
         Assert.True(deserialized.IsOk);
-        Assert.Equal("success", deserialized.Unwrap());
+        Assert.Equal("success", deserialized.GetValue());
     }
 
     [Fact]
@@ -97,7 +97,7 @@ public class JsonSerializationTests
         var json = JsonSerializer.Serialize(original, _options);
         var deserialized = JsonSerializer.Deserialize<Result<string, string>>(json, _options);
         Assert.True(deserialized.IsErr);
-        Assert.Equal("failure", deserialized.UnwrapErr());
+        Assert.Equal("failure", deserialized.GetError());
     }
 
     #endregion
@@ -171,7 +171,7 @@ public class JsonSerializationTests
         var json = JsonSerializer.Serialize(original, _options);
         var deserialized = JsonSerializer.Deserialize<Try<string>>(json, _options);
         Assert.True(deserialized.IsSuccess);
-        Assert.Equal("hello", deserialized.Get());
+        Assert.Equal("hello", deserialized.GetValue());
     }
 
     [Fact]

@@ -221,8 +221,8 @@ public class AggressiveInliningComprehensiveBenchmarks
         int sum = 0;
         for (int i = 0; i < Iterations; i++)
         {
-            sum += _someOption.UnwrapOr(0);
-            sum += _noneOption.UnwrapOr(-1);
+            sum += _someOption.GetValueOr(0);
+            sum += _noneOption.GetValueOr(-1);
         }
         return sum;
     }
@@ -247,8 +247,8 @@ public class AggressiveInliningComprehensiveBenchmarks
         int sum = 0;
         for (int i = 0; i < Iterations; i++)
         {
-            sum += _someOption.UnwrapOrDefault();
-            sum += _noneOption.UnwrapOrDefault();
+            sum += _someOption.GetValueOrDefault();
+            sum += _noneOption.GetValueOrDefault();
         }
         return sum;
     }
@@ -277,8 +277,8 @@ public class AggressiveInliningComprehensiveBenchmarks
         int sum = 0;
         for (int i = 0; i < Iterations; i++)
         {
-            sum += _someOption.UnwrapOrElse(() => -1);
-            sum += _noneOption.UnwrapOrElse(() => -1);
+            sum += _someOption.GetValueOrElse(() => -1);
+            sum += _noneOption.GetValueOrElse(() => -1);
         }
         return sum;
     }
@@ -383,7 +383,7 @@ public class AggressiveInliningComprehensiveBenchmarks
         Option<int> result = default;
         for (int i = 0; i < Iterations; i++)
         {
-            result = _someOption.AndThen(x => Option<int>.Some(x * 2));
+            result = _someOption.Bind(x => Option<int>.Some(x * 2));
         }
         return result;
     }
@@ -407,7 +407,7 @@ public class AggressiveInliningComprehensiveBenchmarks
         Result<int, string> result = default;
         for (int i = 0; i < Iterations; i++)
         {
-            result = _okResult.AndThen(x => Result<int, string>.Ok(x * 2));
+            result = _okResult.Bind(x => Result<int, string>.Ok(x * 2));
         }
         return result;
     }
@@ -494,7 +494,7 @@ public class AggressiveInliningComprehensiveBenchmarks
             result = Option<int>.Some(i)
                 .Filter(x => x % 2 == 0)
                 .Map(x => x * 2)
-                .AndThen(x => x > 0 ? Option<string>.Some($"Value: {x}") : Option<string>.None());
+                .Bind(x => x > 0 ? Option<string>.Some($"Value: {x}") : Option<string>.None());
         }
         return result;
     }
@@ -523,7 +523,7 @@ public class AggressiveInliningComprehensiveBenchmarks
         {
             result = Result<int, string>.Ok(i)
                 .Map(x => x * 2)
-                .AndThen(x => x >= 0 
+                .Bind(x => x >= 0 
                     ? Result<string, string>.Ok($"Value: {x}") 
                     : Result<string, string>.Err("Negative"));
         }
@@ -575,13 +575,13 @@ public class AggressiveInliningComprehensiveBenchmarks
     
     // Value access
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private static T UnwrapOr_NoInline<T>(Option<T> option, T defaultValue) => option.UnwrapOr(defaultValue);
+    private static T UnwrapOr_NoInline<T>(Option<T> option, T defaultValue) => option.GetValueOr(defaultValue);
     
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private static T UnwrapOrDefault_NoInline<T>(Option<T> option) where T : struct => option.UnwrapOrDefault();
+    private static T UnwrapOrDefault_NoInline<T>(Option<T> option) where T : struct => option.GetValueOrDefault();
     
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private static T UnwrapOrElse_NoInline<T>(Option<T> option, Func<T> defaultFunc) => option.UnwrapOrElse(defaultFunc);
+    private static T UnwrapOrElse_NoInline<T>(Option<T> option, Func<T> defaultFunc) => option.GetValueOrElse(defaultFunc);
     
     // Transform operations
     [MethodImpl(MethodImplOptions.NoInlining)]
@@ -595,10 +595,10 @@ public class AggressiveInliningComprehensiveBenchmarks
     
     // Chaining operations
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private static Option<U> AndThen_NoInline<T, U>(Option<T> option, Func<T, Option<U>> binder) => option.AndThen(binder);
+    private static Option<U> AndThen_NoInline<T, U>(Option<T> option, Func<T, Option<U>> binder) => option.Bind(binder);
     
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private static Result<U, E> AndThenResult_NoInline<T, U, E>(Result<T, E> result, Func<T, Result<U, E>> binder) => result.AndThen(binder);
+    private static Result<U, E> AndThenResult_NoInline<T, U, E>(Result<T, E> result, Func<T, Result<U, E>> binder) => result.Bind(binder);
     
     // Pattern matching
     [MethodImpl(MethodImplOptions.NoInlining)]

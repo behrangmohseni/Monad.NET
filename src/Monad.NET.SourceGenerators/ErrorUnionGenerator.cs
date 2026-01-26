@@ -413,8 +413,8 @@ public class ErrorUnionGenerator : IIncrementalGenerator
 
         sb.Append("    {\n")
           .Append("        if (result.IsOk)\n")
-          .Append("            return ok(result.Unwrap());\n\n")
-          .Append("        var error = result.UnwrapErr();\n")
+          .Append("            return ok(result.GetValue());\n\n")
+          .Append("        var error = result.GetError();\n")
           .Append("        return error switch\n")
           .Append("        {\n");
 
@@ -449,10 +449,10 @@ public class ErrorUnionGenerator : IIncrementalGenerator
         sb.Append("    {\n")
           .Append("        if (result.IsOk)\n")
           .Append("        {\n")
-          .Append("            ok(result.Unwrap());\n")
+          .Append("            ok(result.GetValue());\n")
           .Append("            return;\n")
           .Append("        }\n\n")
-          .Append("        var error = result.UnwrapErr();\n")
+          .Append("        var error = result.GetError();\n")
           .Append("        switch (error)\n")
           .Append("        {\n");
 
@@ -488,8 +488,8 @@ public class ErrorUnionGenerator : IIncrementalGenerator
 
         sb.Append("    {\n")
           .Append("        if (result.IsOk)\n")
-          .Append("            return global::Monad.NET.Result<T, TNewError>.Ok(result.Unwrap());\n\n")
-          .Append("        var error = result.UnwrapErr();\n")
+          .Append("            return global::Monad.NET.Result<T, TNewError>.Ok(result.GetValue());\n\n")
+          .Append("        var error = result.GetError();\n")
           .Append("        var newError = error switch\n")
           .Append("        {\n");
 
@@ -524,7 +524,7 @@ public class ErrorUnionGenerator : IIncrementalGenerator
         sb.Append("    {\n")
           .Append("        if (result.IsOk)\n")
           .Append("            return result;\n\n")
-          .Append("        var error = result.UnwrapErr();\n")
+          .Append("        var error = result.GetError();\n")
           .Append("        return error switch\n")
           .Append("        {\n");
 
