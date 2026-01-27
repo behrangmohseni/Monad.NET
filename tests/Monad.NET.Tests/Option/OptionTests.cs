@@ -407,6 +407,5 @@ public class OptionTests
 
         Assert.Equal("None", option.ToString());
     }
-
 }
 
