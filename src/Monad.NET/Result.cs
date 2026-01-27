@@ -471,7 +471,8 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     public Result<T, TErr> FilterOrElse(Func<T, bool> predicate, TErr error)
     {
         ThrowHelper.ThrowIfNull(predicate);
-        if (!_isOk) return this;
+        if (!_isOk)
+            return this;
         return predicate(_value!) ? this : Err(error);
     }
 
@@ -497,7 +498,8 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     {
         ThrowHelper.ThrowIfNull(predicate);
         ThrowHelper.ThrowIfNull(errorFactory);
-        if (!_isOk) return this;
+        if (!_isOk)
+            return this;
         return predicate(_value!) ? this : Err(errorFactory());
     }
 
@@ -522,7 +524,8 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     {
         ThrowHelper.ThrowIfNull(predicate);
         ThrowHelper.ThrowIfNull(errorFactory);
-        if (!_isOk) return this;
+        if (!_isOk)
+            return this;
         return predicate(_value!) ? this : Err(errorFactory(_value!));
     }
 
