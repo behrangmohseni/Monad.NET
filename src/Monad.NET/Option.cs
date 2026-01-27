@@ -580,15 +580,6 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
         value = _value;
         isSome = _isSome;
     }
-
-    /// <summary>
-    /// Implicit conversion from T to Option&lt;T&gt;.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator Option<T>(T value)
-    {
-        return value is null ? None() : Some(value);
-    }
 }
 
 /// <summary>

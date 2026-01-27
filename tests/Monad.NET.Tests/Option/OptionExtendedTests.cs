@@ -268,19 +268,6 @@ public class OptionExtendedTests
 
     #endregion
 
-    #region Implicit Conversion Tests
-
-    [Fact]
-    public void ImplicitConversion_FromValue_CreatesSome()
-    {
-        Option<int> option = 42;
-
-        Assert.True(option.IsSome);
-        Assert.Equal(42, option.GetValue());
-    }
-
-    #endregion
-
     #region Tap Tests
 
     [Fact]

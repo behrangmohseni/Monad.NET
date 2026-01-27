@@ -615,19 +615,6 @@ public class RemoteDataExtendedTests
 
     #endregion
 
-    #region Implicit Conversion Tests
-
-    [Fact]
-    public void ImplicitConversion_FromValue_CreatesSuccess()
-    {
-        RemoteData<int, string> rd = 42;
-
-        Assert.True(rd.IsSuccess);
-        Assert.Equal(42, rd.GetValue());
-    }
-
-    #endregion
-
     #region Deconstruct Tests
 
     [Fact]

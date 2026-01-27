@@ -452,19 +452,6 @@ public class NonEmptyListExtendedTests
 
     #endregion
 
-    #region Implicit Conversion Tests
-
-    [Fact]
-    public void ImplicitConversion_FromValue_CreatesSingleElementList()
-    {
-        NonEmptyList<int> list = 42;
-
-        Assert.Equal(1, list.Count);
-        Assert.Equal(42, list.Head);
-    }
-
-    #endregion
-
     #region Deconstruct Tests
 
     [Fact]

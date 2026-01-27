@@ -122,24 +122,6 @@ public class BehavioralContractTests
         Assert.Throws<ArgumentNullException>(() => Option<string>.Some(null!));
     }
 
-    [Fact]
-    public void Option_ImplicitConversion_FromValue_ShouldCreateSome()
-    {
-        Option<int> option = 42;
-
-        Assert.True(option.IsSome);
-        Assert.Equal(42, option.GetValue());
-    }
-
-    [Fact]
-    public void Option_ImplicitConversion_FromNull_ShouldCreateNone()
-    {
-        string? nullValue = null;
-        Option<string> option = nullValue!;
-
-        Assert.True(option.IsNone);
-    }
-
     #endregion
 
     #region Result<T, E> Factory Method Contracts

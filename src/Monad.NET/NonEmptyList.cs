@@ -447,17 +447,6 @@ public sealed class NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>
     }
 
     /// <summary>
-    /// Implicit conversion from T to NonEmptyList&lt;T&gt; (single element).
-    /// Allows: NonEmptyList&lt;int&gt; list = 42;
-    /// </summary>
-    /// <param name="value">The single element value.</param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator NonEmptyList<T>(T value)
-    {
-        return Of(value);
-    }
-
-    /// <summary>
     /// Deconstructs the NonEmptyList into its head and tail for pattern matching.
     /// </summary>
     /// <param name="head">The first element of the list.</param>
