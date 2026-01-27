@@ -113,13 +113,7 @@ public static class ResultLinq
         Func<T, bool> predicate,
         TErr errorIfFalse)
     {
-        if (!result.IsOk)
-            return result;
-
-        var value = result.GetValue();
-        return predicate(value)
-            ? result
-            : Result<T, TErr>.Err(errorIfFalse);
+        return result.FilterOrElse(predicate, errorIfFalse);
     }
 
     /// <summary>
@@ -132,13 +126,7 @@ public static class ResultLinq
         Func<T, bool> predicate,
         Func<T, TErr> errorFactory)
     {
-        if (!result.IsOk)
-            return result;
-
-        var value = result.GetValue();
-        return predicate(value)
-            ? result
-            : Result<T, TErr>.Err(errorFactory(value));
+        return result.FilterOrElse(predicate, errorFactory);
     }
 }
 

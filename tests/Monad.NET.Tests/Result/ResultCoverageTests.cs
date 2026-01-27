@@ -49,65 +49,115 @@ public class ResultCoverageTests
 
     #endregion
 
-    #region Filter with Error Factory Tests
+    #region FilterOrElse with Error Factory Tests
 
     [Fact]
-    public void Filter_WithErrorFactory_Ok_PredicateTrue_ReturnsOriginal()
+    public void FilterOrElse_WithErrorFactory_Ok_PredicateTrue_ReturnsOriginal()
     {
         var result = Result<int, string>.Ok(42);
-        var filtered = result.Filter(x => x > 40, () => "too small");
+        var filtered = result.FilterOrElse(x => x > 40, () => "too small");
         Assert.True(filtered.IsOk);
         Assert.Equal(42, filtered.GetValue());
     }
 
     [Fact]
-    public void Filter_WithErrorFactory_Ok_PredicateFalse_ReturnsErr()
+    public void FilterOrElse_WithErrorFactory_Ok_PredicateFalse_ReturnsErr()
     {
         var result = Result<int, string>.Ok(42);
-        var filtered = result.Filter(x => x > 50, () => "too small");
+        var filtered = result.FilterOrElse(x => x > 50, () => "too small");
         Assert.True(filtered.IsErr);
         Assert.Equal("too small", filtered.GetError());
     }
 
     [Fact]
-    public void Filter_WithErrorFactory_Err_ReturnsErr()
+    public void FilterOrElse_WithErrorFactory_Err_ReturnsOriginalErr()
     {
         var result = Result<int, string>.Err("original error");
-        var filtered = result.Filter(x => x > 50, () => "too small");
+        var filtered = result.FilterOrElse(x => x > 50, () => "too small");
         Assert.True(filtered.IsErr);
-        // Filter on Err returns error from factory, not original
-        Assert.Equal("too small", filtered.GetError());
+        // FilterOrElse on Err preserves the original error
+        Assert.Equal("original error", filtered.GetError());
     }
 
     #endregion
 
-    #region Filter with Value-Based Error Factory Tests
+    #region FilterOrElse with Value-Based Error Factory Tests
 
     [Fact]
-    public void Filter_WithValueErrorFactory_Ok_PredicateTrue_ReturnsOriginal()
+    public void FilterOrElse_WithValueErrorFactory_Ok_PredicateTrue_ReturnsOriginal()
     {
         var result = Result<int, string>.Ok(42);
-        var filtered = result.Filter(x => x > 40, x => $"Value {x} is too small");
+        var filtered = result.FilterOrElse(x => x > 40, x => $"Value {x} is too small");
         Assert.True(filtered.IsOk);
         Assert.Equal(42, filtered.GetValue());
     }
 
     [Fact]
-    public void Filter_WithValueErrorFactory_Ok_PredicateFalse_ReturnsErrWithValue()
+    public void FilterOrElse_WithValueErrorFactory_Ok_PredicateFalse_ReturnsErrWithValue()
     {
         var result = Result<int, string>.Ok(42);
-        var filtered = result.Filter(x => x > 50, x => $"Value {x} is too small");
+        var filtered = result.FilterOrElse(x => x > 50, x => $"Value {x} is too small");
         Assert.True(filtered.IsErr);
         Assert.Equal("Value 42 is too small", filtered.GetError());
     }
 
     [Fact]
-    public void Filter_WithValueErrorFactory_Err_ReturnsErr()
+    public void FilterOrElse_WithValueErrorFactory_Err_ReturnsErr()
     {
         var result = Result<int, string>.Err("original error");
-        var filtered = result.Filter(x => x > 50, x => $"Value {x} is too small");
+        var filtered = result.FilterOrElse(x => x > 50, x => $"Value {x} is too small");
         Assert.True(filtered.IsErr);
         Assert.Equal("original error", filtered.GetError());
+    }
+
+    #endregion
+
+    #region Filter (returns Option) Tests
+
+    [Fact]
+    public void Filter_Ok_PredicateTrue_ReturnsSome()
+    {
+        var result = Result<int, string>.Ok(42);
+        var filtered = result.Filter(x => x > 40);
+        Assert.True(filtered.IsSome);
+        Assert.Equal(42, filtered.GetValue());
+    }
+
+    [Fact]
+    public void Filter_Ok_PredicateFalse_ReturnsNone()
+    {
+        var result = Result<int, string>.Ok(42);
+        var filtered = result.Filter(x => x > 50);
+        Assert.True(filtered.IsNone);
+    }
+
+    [Fact]
+    public void Filter_Err_ReturnsNone()
+    {
+        var result = Result<int, string>.Err("error");
+        var filtered = result.Filter(x => true);
+        Assert.True(filtered.IsNone);
+    }
+
+    #endregion
+
+    #region ToOption Tests
+
+    [Fact]
+    public void ToOption_Ok_ReturnsSome()
+    {
+        var result = Result<int, string>.Ok(42);
+        var option = result.ToOption();
+        Assert.True(option.IsSome);
+        Assert.Equal(42, option.GetValue());
+    }
+
+    [Fact]
+    public void ToOption_Err_ReturnsNone()
+    {
+        var result = Result<int, string>.Err("error");
+        var option = result.ToOption();
+        Assert.True(option.IsNone);
     }
 
     #endregion
