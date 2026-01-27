@@ -169,16 +169,16 @@ internal static class DiagnosticDescriptors
     // ============================================================================
 
     /// <summary>
-    /// MNT013: Validation used with LINQ query syntax loses error accumulation.
+    /// MNT013: Validation used with LINQ - error accumulation may not work for dependent validations.
     /// </summary>
     public static readonly DiagnosticDescriptor ValidationLinqShortCircuits = new(
         id: "MNT013",
-        title: "Validation LINQ loses error accumulation",
-        messageFormat: "LINQ query syntax on Validation short-circuits on first error; use Apply() or Zip() to accumulate all errors",
+        title: "Validation LINQ may not accumulate all errors",
+        messageFormat: "LINQ on Validation only accumulates errors when validations are independent; for guaranteed accumulation, use Apply() or Zip()",
         category: Category,
-        defaultSeverity: DiagnosticSeverity.Warning,
+        defaultSeverity: DiagnosticSeverity.Info,
         isEnabledByDefault: true,
-        description: "Using LINQ query syntax (from...select) with Validation types will short-circuit on the first error, losing the main benefit of Validation over Result. Use Validation.Apply() or Validation.Zip() to accumulate all errors.",
+        description: "LINQ query syntax on Validation attempts to accumulate errors, but only works reliably when validations are independent (don't use values from previous validations). For guaranteed error accumulation, use Validation.Apply() or Validation.Zip() instead.",
         helpLinkUri: "https://github.com/behrangmohseni/Monad.NET/blob/main/docs/Guides/Analyzers.md#mnt013");
 
     /// <summary>
