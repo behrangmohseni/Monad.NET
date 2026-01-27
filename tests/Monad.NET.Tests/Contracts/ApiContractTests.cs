@@ -150,16 +150,6 @@ public class ApiContractTests
         Assert.True(typeof(IComparable).IsAssignableFrom(type));
     }
 
-    [Fact]
-    public void Option_ShouldHaveImplicitOperator()
-    {
-        var methods = typeof(Option<int>).GetMethods(BindingFlags.Public | BindingFlags.Static)
-            .Where(m => m.Name == "op_Implicit")
-            .ToList();
-
-        Assert.NotEmpty(methods);
-    }
-
     #endregion
 
     #region Result<T, TErr> API Contract

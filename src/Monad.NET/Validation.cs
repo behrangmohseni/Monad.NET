@@ -701,17 +701,6 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     }
 
     /// <summary>
-    /// Implicit conversion from T to Validation&lt;T, TErr&gt; (Valid).
-    /// Allows: Validation&lt;int, string&gt; v = 42;
-    /// </summary>
-    /// <param name="value">The valid value.</param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator Validation<T, TErr>(T value)
-    {
-        return Valid(value);
-    }
-
-    /// <summary>
     /// Deconstructs the Validation into its components for pattern matching.
     /// </summary>
     /// <param name="value">The valid value, or default if Invalid.</param>

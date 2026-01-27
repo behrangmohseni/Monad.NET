@@ -291,5 +291,26 @@ public class ArchitectureTests
         var debuggerTypeProxy = type.GetCustomAttribute<System.Diagnostics.DebuggerTypeProxyAttribute>();
         Assert.NotNull(debuggerTypeProxy);
     }
+
+    /// <summary>
+    /// Core monad types should NOT have implicit conversion operators.
+    /// Implicit conversions can lead to subtle bugs and make code less explicit.
+    /// ADR: Explicit construction over implicit magic - users should use factory methods.
+    /// </summary>
+    [Theory]
+    [InlineData(typeof(Option<>))]
+    [InlineData(typeof(Result<,>))]
+    [InlineData(typeof(Try<>))]
+    [InlineData(typeof(Validation<,>))]
+    [InlineData(typeof(RemoteData<,>))]
+    [InlineData(typeof(NonEmptyList<>))]
+    public void CoreMonadTypes_ShouldNotHaveImplicitConversions(Type type)
+    {
+        var implicitOperators = type.GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .Where(m => m.Name == "op_Implicit")
+            .ToList();
+
+        Assert.Empty(implicitOperators);
+    }
 }
 

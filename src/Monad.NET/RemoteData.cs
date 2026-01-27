@@ -520,17 +520,6 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>, IC
     }
 
     /// <summary>
-    /// Implicit conversion from T to RemoteData&lt;T, TErr&gt; (Success).
-    /// Allows: RemoteData&lt;int, string&gt; data = 42;
-    /// </summary>
-    /// <param name="data">The success data.</param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator RemoteData<T, TErr>(T data)
-    {
-        return Success(data);
-    }
-
-    /// <summary>
     /// Deconstructs the RemoteData into its components for pattern matching.
     /// </summary>
     /// <param name="data">The success data, or default if not Success.</param>

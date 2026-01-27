@@ -803,17 +803,6 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     }
 
     /// <summary>
-    /// Implicit conversion from T to Result&lt;T, TErr&gt; (Ok).
-    /// Allows: Result&lt;int, string&gt; result = 42;
-    /// </summary>
-    /// <param name="value">The success value.</param>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator Result<T, TErr>(T value)
-    {
-        return Ok(value);
-    }
-
-    /// <summary>
     /// Deconstructs the Result into its components for pattern matching.
     /// </summary>
     /// <param name="value">The success value, or default if Err.</param>
