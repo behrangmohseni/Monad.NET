@@ -374,7 +374,6 @@ public static class ValidationLinq
 
         return Validation<V, TErr>.Invalid(validation.GetErrors());
     }
-
 }
 
 /// <summary>
