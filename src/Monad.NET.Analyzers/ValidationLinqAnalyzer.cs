@@ -7,8 +7,9 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Monad.NET.Analyzers;
 
 /// <summary>
-/// Analyzer that warns when LINQ query syntax is used with Validation types,
-/// as this will short-circuit on the first error instead of accumulating all errors.
+/// Analyzer that warns when LINQ is used with Validation types.
+/// While the SelectMany implementation attempts to accumulate errors,
+/// it only works reliably when validations are independent.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class ValidationLinqAnalyzer : DiagnosticAnalyzer
@@ -16,8 +17,11 @@ public sealed class ValidationLinqAnalyzer : DiagnosticAnalyzer
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
         ImmutableArray.Create(DiagnosticDescriptors.ValidationLinqShortCircuits);
 
-    public override void Initialize(AnalysisContext context) =>
+    public override void Initialize(AnalysisContext context)
+    {
         context.RegisterSyntaxNodeActionWithDefaults(AnalyzeQueryExpression, SyntaxKind.QueryExpression);
+        context.RegisterSyntaxNodeActionWithDefaults(AnalyzeInvocation, SyntaxKind.InvocationExpression);
+    }
 
     private static void AnalyzeQueryExpression(SyntaxNodeAnalysisContext context)
     {
@@ -34,7 +38,7 @@ public sealed class ValidationLinqAnalyzer : DiagnosticAnalyzer
             return;
 
         // Only warn if there are multiple from clauses (SelectMany chains)
-        // which is where the short-circuiting behavior becomes problematic
+        // which is where the error accumulation behavior matters
         var hasMultipleFromClauses = HasMultipleFromClauses(queryExpression);
 
         if (!hasMultipleFromClauses)
@@ -43,6 +47,38 @@ public sealed class ValidationLinqAnalyzer : DiagnosticAnalyzer
         var diagnostic = Diagnostic.Create(
             DiagnosticDescriptors.ValidationLinqShortCircuits,
             queryExpression.GetLocation());
+
+        context.ReportDiagnostic(diagnostic);
+    }
+
+    private static void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
+    {
+        var invocation = (InvocationExpressionSyntax)context.Node;
+
+        // Check if this is a SelectMany call
+        if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess)
+            return;
+
+        var methodName = memberAccess.Name.Identifier.Text;
+        if (methodName != "SelectMany")
+            return;
+
+        // Check if the receiver is a Validation type
+        var receiverType = context.SemanticModel.GetTypeInfo(memberAccess.Expression, context.CancellationToken).Type;
+        if (receiverType is null || !IsValidationType(receiverType))
+            return;
+
+        // Verify this is actually the ValidationLinq.SelectMany method
+        var symbolInfo = context.SemanticModel.GetSymbolInfo(invocation, context.CancellationToken);
+        if (symbolInfo.Symbol is not IMethodSymbol methodSymbol)
+            return;
+
+        if (methodSymbol.ContainingType?.Name != "ValidationLinq")
+            return;
+
+        var diagnostic = Diagnostic.Create(
+            DiagnosticDescriptors.ValidationLinqShortCircuits,
+            invocation.GetLocation());
 
         context.ReportDiagnostic(diagnostic);
     }

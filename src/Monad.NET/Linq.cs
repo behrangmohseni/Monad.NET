@@ -236,14 +236,30 @@ public static class TryLinq
 }
 
 /// <summary>
-/// LINQ query syntax support for Validation&lt;T, E&gt;.
+/// LINQ query syntax support for Validation&lt;T, TErr&gt;.
 /// Enables C# query comprehension syntax with from, let, and select.
 /// </summary>
+/// <remarks>
+/// <para>
+/// <strong>IMPORTANT:</strong> This implementation attempts to accumulate errors by evaluating
+/// subsequent validations even when earlier ones fail. However, this only works reliably when
+/// validations are <em>independent</em> (don't use values from previous validations).
+/// </para>
+/// <para>
+/// For <em>guaranteed</em> error accumulation, use <c>Apply()</c> or <c>Zip()</c> instead.
+/// </para>
+/// </remarks>
 /// <example>
 /// <code>
+/// // Works well - validations are independent:
 /// var result = from name in ValidateName(input.Name)
-///              from email in ValidateEmail(input.Email)
+///              from email in ValidateEmail(input.Email)  // Errors accumulated!
 ///              select new User(name, email);
+/// 
+/// // For dependent validations or guaranteed accumulation, use Apply/Zip:
+/// ValidateName(input.Name)
+///     .Zip(ValidateEmail(input.Email))
+///     .Map(t => new User(t.Item1, t.Item2));
 /// </code>
 /// </example>
 [EditorBrowsable(EditorBrowsableState.Never)]
@@ -263,34 +279,102 @@ public static class ValidationLinq
 
     /// <summary>
     /// Enables LINQ SelectMany (monadic bind) for Validation&lt;T, E&gt;.
-    /// This is what makes query comprehension work.
-    /// Note: This uses AndThen which short-circuits on first error.
-    /// For accumulating errors, use Validation.Apply or Validation.Zip instead.
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    /// <remarks>
+    /// <para>
+    /// This implementation attempts to accumulate errors by evaluating the selector
+    /// even when the source validation is invalid. It uses <c>default!</c> as a placeholder
+    /// value, which works when the selector doesn't actually depend on the source value.
+    /// </para>
+    /// <para>
+    /// For guaranteed error accumulation, use <see cref="Validation{T,TErr}.Apply"/> 
+    /// or <see cref="Validation{T,TErr}.Zip"/> instead.
+    /// </para>
+    /// </remarks>
     public static Validation<U, TErr> SelectMany<T, TErr, U>(
         this Validation<T, TErr> validation,
         Func<T, Validation<U, TErr>> selector)
     {
-        return validation.Bind(selector);
+        ThrowHelper.ThrowIfNull(selector);
+
+        if (validation.IsValid)
+        {
+            return selector(validation.GetValue());
+        }
+
+        // Try to evaluate the selector to accumulate errors
+        // This works when the selector doesn't depend on the input value
+        try
+        {
+            var second = selector(default!);
+            if (second.IsInvalid)
+            {
+                // Accumulate errors from both
+                return Validation<U, TErr>.Invalid(
+                    validation.GetErrors().Concat(second.GetErrors()));
+            }
+        }
+        catch
+        {
+            // Selector depends on the value and threw - just return first errors
+        }
+
+        return Validation<U, TErr>.Invalid(validation.GetErrors());
     }
 
     /// <summary>
-    /// Enables LINQ SelectMany with result selector.
-    /// This allows multiple 'from' clauses in query syntax.
-    /// Note: This uses AndThen which short-circuits on first error.
-    /// For accumulating errors, use Validation.Apply or Validation.Zip instead.
+    /// Enables LINQ SelectMany with result selector for multiple 'from' clauses.
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    /// <remarks>
+    /// <para>
+    /// This implementation attempts to accumulate errors by evaluating subsequent validations
+    /// even when earlier ones fail. It uses <c>default!</c> as a placeholder value,
+    /// which works when validations are independent (don't use values from earlier validations).
+    /// </para>
+    /// <para>
+    /// For guaranteed error accumulation, use <see cref="Validation{T,TErr}.Apply"/> 
+    /// or <see cref="Validation{T,TErr}.Zip"/> instead.
+    /// </para>
+    /// </remarks>
     public static Validation<V, TErr> SelectMany<T, TErr, U, V>(
         this Validation<T, TErr> validation,
-        Func<T, Validation<U, TErr>> selector,
+        Func<T, Validation<U, TErr>> collectionSelector,
         Func<T, U, V> resultSelector)
     {
-        return validation.Bind(t =>
-            selector(t).Map(u =>
-                resultSelector(t, u)));
+        ThrowHelper.ThrowIfNull(collectionSelector);
+        ThrowHelper.ThrowIfNull(resultSelector);
+
+        if (validation.IsValid)
+        {
+            var second = collectionSelector(validation.GetValue());
+            if (second.IsValid)
+            {
+                return Validation<V, TErr>.Valid(
+                    resultSelector(validation.GetValue(), second.GetValue()));
+            }
+            return Validation<V, TErr>.Invalid(second.GetErrors());
+        }
+
+        // First validation failed - try to evaluate second validation anyway
+        // to accumulate errors (works when validations are independent)
+        try
+        {
+            var second = collectionSelector(default!);
+            if (second.IsInvalid)
+            {
+                // Accumulate errors from both validations
+                return Validation<V, TErr>.Invalid(
+                    validation.GetErrors().Concat(second.GetErrors()));
+            }
+        }
+        catch
+        {
+            // Selector depends on the value and threw - just return first errors
+        }
+
+        return Validation<V, TErr>.Invalid(validation.GetErrors());
     }
+
 }
 
 /// <summary>
