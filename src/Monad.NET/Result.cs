@@ -423,65 +423,107 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     }
 
     /// <summary>
-    /// Filters the Ok value based on a predicate. Returns Err if the predicate returns false.
+    /// Filters the Ok value based on a predicate, returning an Option.
+    /// Returns Some(value) if Ok and predicate returns true; otherwise None.
     /// </summary>
     /// <param name="predicate">The predicate to test the Ok value against.</param>
-    /// <param name="error">The error to return if the predicate returns false.</param>
-    /// <returns>The original Result if Ok and predicate is true; otherwise Err.</returns>
+    /// <returns>Some(value) if Ok and predicate is true; otherwise None.</returns>
     /// <example>
     /// <code>
     /// var result = Result&lt;int, string&gt;.Ok(42);
-    /// result.Filter(x => x > 40, "Value too small"); // Ok(42)
-    /// result.Filter(x => x > 50, "Value too small"); // Err("Value too small")
+    /// result.Filter(x => x > 40); // Some(42)
+    /// result.Filter(x => x > 50); // None
+    /// 
+    /// var err = Result&lt;int, string&gt;.Err("error");
+    /// err.Filter(x => true); // None
     /// </code>
     /// </example>
+    /// <remarks>
+    /// This method discards the error information when converting to Option.
+    /// Use <see cref="FilterOrElse(Func{T, bool}, TErr)"/> if you need to preserve
+    /// the Result type with a custom error for failed predicates.
+    /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Result<T, TErr> Filter(Func<T, bool> predicate, TErr error)
+    public Option<T> Filter(Func<T, bool> predicate)
     {
         ThrowHelper.ThrowIfNull(predicate);
-        return _isOk && predicate(_value!) ? this : Err(error);
+        return _isOk && predicate(_value!) ? Option<T>.Some(_value!) : Option<T>.None();
     }
 
     /// <summary>
-    /// Filters the Ok value based on a predicate. Returns Err if the predicate returns false.
+    /// Filters the Ok value based on a predicate, returning Err with the specified error if the predicate fails.
+    /// If already Err, returns the original error unchanged.
     /// </summary>
     /// <param name="predicate">The predicate to test the Ok value against.</param>
-    /// <param name="errorFactory">A function that creates the error if the predicate returns false.</param>
-    /// <returns>The original Result if Ok and predicate is true; otherwise Err.</returns>
+    /// <param name="error">The error to return if Ok and the predicate returns false.</param>
+    /// <returns>The original Result if Ok and predicate is true; the original Err if already Err; otherwise Err with the provided error.</returns>
     /// <example>
     /// <code>
-    /// var result = Result&lt;int, string&gt;.Ok(42);
-    /// result.Filter(x => x > 40, () => "Value too small"); // Ok(42)
-    /// result.Filter(x => x > 50, () => $"Value {x} is too small"); // Err("Value 42 is too small")
+    /// var ok = Result&lt;int, string&gt;.Ok(42);
+    /// ok.FilterOrElse(x => x > 40, "Value too small"); // Ok(42)
+    /// ok.FilterOrElse(x => x > 50, "Value too small"); // Err("Value too small")
+    /// 
+    /// var err = Result&lt;int, string&gt;.Err("original error");
+    /// err.FilterOrElse(x => x > 0, "Value too small"); // Err("original error") - preserved
     /// </code>
     /// </example>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Result<T, TErr> Filter(Func<T, bool> predicate, Func<TErr> errorFactory)
+    public Result<T, TErr> FilterOrElse(Func<T, bool> predicate, TErr error)
     {
         ThrowHelper.ThrowIfNull(predicate);
-        ThrowHelper.ThrowIfNull(errorFactory);
-        return _isOk && predicate(_value!) ? this : Err(errorFactory());
+        if (!_isOk) return this;
+        return predicate(_value!) ? this : Err(error);
     }
 
     /// <summary>
-    /// Filters the Ok value based on a predicate. Returns Err if the predicate returns false.
-    /// The error factory receives the original value.
+    /// Filters the Ok value based on a predicate, returning Err with an error from the factory if the predicate fails.
+    /// If already Err, returns the original error unchanged (factory is not called).
     /// </summary>
     /// <param name="predicate">The predicate to test the Ok value against.</param>
-    /// <param name="errorFactory">A function that creates the error from the value if the predicate returns false.</param>
-    /// <returns>The original Result if Ok and predicate is true; otherwise Err.</returns>
+    /// <param name="errorFactory">A function that creates the error if Ok and the predicate returns false.</param>
+    /// <returns>The original Result if Ok and predicate is true; the original Err if already Err; otherwise Err with the factory-created error.</returns>
     /// <example>
     /// <code>
-    /// var result = Result&lt;int, string&gt;.Ok(42);
-    /// result.Filter(x => x > 50, x => $"Value {x} is too small"); // Err("Value 42 is too small")
+    /// var ok = Result&lt;int, string&gt;.Ok(42);
+    /// ok.FilterOrElse(x => x > 40, () => "Value too small"); // Ok(42)
+    /// ok.FilterOrElse(x => x > 50, () => "Value too small"); // Err("Value too small")
+    /// 
+    /// var err = Result&lt;int, string&gt;.Err("original error");
+    /// err.FilterOrElse(x => x > 0, () => "Value too small"); // Err("original error") - preserved
     /// </code>
     /// </example>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Result<T, TErr> Filter(Func<T, bool> predicate, Func<T, TErr> errorFactory)
+    public Result<T, TErr> FilterOrElse(Func<T, bool> predicate, Func<TErr> errorFactory)
     {
         ThrowHelper.ThrowIfNull(predicate);
         ThrowHelper.ThrowIfNull(errorFactory);
-        return _isOk && predicate(_value!) ? this : _isOk ? Err(errorFactory(_value!)) : this;
+        if (!_isOk) return this;
+        return predicate(_value!) ? this : Err(errorFactory());
+    }
+
+    /// <summary>
+    /// Filters the Ok value based on a predicate, returning Err with an error from the factory if the predicate fails.
+    /// The error factory receives the original value. If already Err, returns the original error unchanged.
+    /// </summary>
+    /// <param name="predicate">The predicate to test the Ok value against.</param>
+    /// <param name="errorFactory">A function that creates the error from the value if Ok and the predicate returns false.</param>
+    /// <returns>The original Result if Ok and predicate is true; the original Err if already Err; otherwise Err with the factory-created error.</returns>
+    /// <example>
+    /// <code>
+    /// var ok = Result&lt;int, string&gt;.Ok(42);
+    /// ok.FilterOrElse(x => x > 50, x => $"Value {x} is too small"); // Err("Value 42 is too small")
+    /// 
+    /// var err = Result&lt;int, string&gt;.Err("original error");
+    /// err.FilterOrElse(x => x > 0, x => $"Value {x} too small"); // Err("original error") - preserved
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Result<T, TErr> FilterOrElse(Func<T, bool> predicate, Func<T, TErr> errorFactory)
+    {
+        ThrowHelper.ThrowIfNull(predicate);
+        ThrowHelper.ThrowIfNull(errorFactory);
+        if (!_isOk) return this;
+        return predicate(_value!) ? this : Err(errorFactory(_value!));
     }
 
     /// <summary>
@@ -589,6 +631,27 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     public Option<TErr> Err()
     {
         return _isOk ? Option<TErr>.None() : Option<TErr>.Some(_error!);
+    }
+
+    /// <summary>
+    /// Converts this Result to an Option, discarding any error information.
+    /// Returns Some(value) if Ok; otherwise None.
+    /// </summary>
+    /// <returns>Some(value) if Ok; None if Err.</returns>
+    /// <example>
+    /// <code>
+    /// Result&lt;int, string&gt;.Ok(42).ToOption();     // Some(42)
+    /// Result&lt;int, string&gt;.Err("error").ToOption(); // None
+    /// </code>
+    /// </example>
+    /// <remarks>
+    /// This is equivalent to calling <see cref="Ok()"/> but provides a consistent
+    /// API with other monadic types like Try, Validation, and RemoteData.
+    /// </remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Option<T> ToOption()
+    {
+        return _isOk ? Option<T>.Some(_value!) : Option<T>.None();
     }
 
     /// <summary>
