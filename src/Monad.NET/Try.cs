@@ -842,6 +842,100 @@ public static class TryExtensions
     }
 
     // ============================================================================
+    // ValueTask Overloads
+    // ============================================================================
+
+    /// <summary>
+    /// Wraps a Try in a completed ValueTask&lt;Try&lt;T&gt;&gt;.
+    /// More efficient than Task.FromResult for frequently-called paths.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<Try<T>> AsValueTask<T>(this Try<T> @try)
+    {
+        return new ValueTask<Try<T>>(@try);
+    }
+
+    /// <summary>
+    /// Maps the value inside a ValueTask&lt;Try&lt;T&gt;&gt; using a synchronous function.
+    /// Optimized for scenarios where the result is frequently Failure or already completed.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<Try<U>> MapAsync<T, U>(
+        this ValueTask<Try<T>> tryTask,
+        Func<T, U> mapper)
+    {
+        ThrowHelper.ThrowIfNull(mapper);
+
+        if (tryTask.IsCompletedSuccessfully)
+        {
+            var @try = tryTask.Result;
+            return new ValueTask<Try<U>>(@try.Map(mapper));
+        }
+
+        return MapAsyncCore(tryTask, mapper);
+
+        static async ValueTask<Try<U>> MapAsyncCore(ValueTask<Try<T>> task, Func<T, U> m)
+        {
+            var @try = await task.ConfigureAwait(false);
+            return @try.Map(m);
+        }
+    }
+
+    /// <summary>
+    /// Chains a synchronous operation on a ValueTask&lt;Try&lt;T&gt;&gt;.
+    /// Optimized for scenarios where the result is frequently Failure or already completed.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<Try<U>> BindAsync<T, U>(
+        this ValueTask<Try<T>> tryTask,
+        Func<T, Try<U>> binder)
+    {
+        ThrowHelper.ThrowIfNull(binder);
+
+        if (tryTask.IsCompletedSuccessfully)
+        {
+            var @try = tryTask.Result;
+            return new ValueTask<Try<U>>(@try.Bind(binder));
+        }
+
+        return BindAsyncCore(tryTask, binder);
+
+        static async ValueTask<Try<U>> BindAsyncCore(ValueTask<Try<T>> task, Func<T, Try<U>> b)
+        {
+            var @try = await task.ConfigureAwait(false);
+            return @try.Bind(b);
+        }
+    }
+
+    /// <summary>
+    /// Pattern matches on a ValueTask&lt;Try&lt;T&gt;&gt; with synchronous handlers.
+    /// Optimized for scenarios where the result is frequently one state or already completed.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<U> MatchAsync<T, U>(
+        this ValueTask<Try<T>> tryTask,
+        Func<T, U> successFunc,
+        Func<Exception, U> failureFunc)
+    {
+        ThrowHelper.ThrowIfNull(successFunc);
+        ThrowHelper.ThrowIfNull(failureFunc);
+
+        if (tryTask.IsCompletedSuccessfully)
+        {
+            var @try = tryTask.Result;
+            return new ValueTask<U>(@try.Match(successFunc, failureFunc));
+        }
+
+        return MatchAsyncCore(tryTask, successFunc, failureFunc);
+
+        static async ValueTask<U> MatchAsyncCore(ValueTask<Try<T>> task, Func<T, U> s, Func<Exception, U> f)
+        {
+            var @try = await task.ConfigureAwait(false);
+            return @try.Match(s, f);
+        }
+    }
+
+    // ============================================================================
     // CancellationToken Overloads
     // ============================================================================
 

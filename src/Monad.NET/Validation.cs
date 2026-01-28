@@ -1065,6 +1065,121 @@ public static class ValidationExtensions
 
     #endregion
 
+    #region ValueTask Overloads
+
+    /// <summary>
+    /// Wraps a Validation in a completed ValueTask&lt;Validation&lt;T, TErr&gt;&gt;.
+    /// More efficient than Task.FromResult for frequently-called paths.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<Validation<T, TErr>> AsValueTask<T, TErr>(this Validation<T, TErr> validation)
+    {
+        return new ValueTask<Validation<T, TErr>>(validation);
+    }
+
+    /// <summary>
+    /// Maps the valid value inside a ValueTask&lt;Validation&lt;T, TErr&gt;&gt; using a synchronous function.
+    /// Optimized for scenarios where the result is frequently Invalid or already completed.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<Validation<U, TErr>> MapAsync<T, U, TErr>(
+        this ValueTask<Validation<T, TErr>> validationTask,
+        Func<T, U> mapper)
+    {
+        ThrowHelper.ThrowIfNull(mapper);
+
+        if (validationTask.IsCompletedSuccessfully)
+        {
+            var validation = validationTask.Result;
+            return new ValueTask<Validation<U, TErr>>(validation.Map(mapper));
+        }
+
+        return MapAsyncCore(validationTask, mapper);
+
+        static async ValueTask<Validation<U, TErr>> MapAsyncCore(ValueTask<Validation<T, TErr>> task, Func<T, U> m)
+        {
+            var validation = await task.ConfigureAwait(false);
+            return validation.Map(m);
+        }
+    }
+
+    /// <summary>
+    /// Maps the valid value inside a ValueTask&lt;Validation&lt;T, TErr&gt;&gt; using an async function.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async ValueTask<Validation<U, TErr>> MapAsync<T, U, TErr>(
+        this ValueTask<Validation<T, TErr>> validationTask,
+        Func<T, ValueTask<U>> mapper)
+    {
+        ThrowHelper.ThrowIfNull(mapper);
+
+        var validation = await validationTask.ConfigureAwait(false);
+        if (validation.IsInvalid)
+            return Validation<U, TErr>.Invalid(validation.GetErrors());
+
+        var result = await mapper(validation.GetValue()).ConfigureAwait(false);
+        return Validation<U, TErr>.Valid(result);
+    }
+
+    /// <summary>
+    /// Pattern matches on a ValueTask&lt;Validation&lt;T, TErr&gt;&gt; with synchronous handlers.
+    /// Optimized for scenarios where the result is frequently one state or already completed.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<U> MatchAsync<T, TErr, U>(
+        this ValueTask<Validation<T, TErr>> validationTask,
+        Func<T, U> validFunc,
+        Func<IReadOnlyList<TErr>, U> invalidFunc)
+    {
+        ThrowHelper.ThrowIfNull(validFunc);
+        ThrowHelper.ThrowIfNull(invalidFunc);
+
+        if (validationTask.IsCompletedSuccessfully)
+        {
+            var validation = validationTask.Result;
+            return new ValueTask<U>(validation.Match(validFunc, invalidFunc));
+        }
+
+        return MatchAsyncCore(validationTask, validFunc, invalidFunc);
+
+        static async ValueTask<U> MatchAsyncCore(ValueTask<Validation<T, TErr>> task, Func<T, U> v, Func<IReadOnlyList<TErr>, U> i)
+        {
+            var validation = await task.ConfigureAwait(false);
+            return validation.Match(v, i);
+        }
+    }
+
+    /// <summary>
+    /// Asynchronously zips two Validation ValueTasks into a single Validation containing a tuple.
+    /// Accumulates ALL errors from both if either/both are invalid.
+    /// </summary>
+    public static async ValueTask<Validation<(T, U), TErr>> ZipAsync<T, U, TErr>(
+        ValueTask<Validation<T, TErr>> firstTask,
+        ValueTask<Validation<U, TErr>> secondTask)
+    {
+        var result1 = await firstTask.ConfigureAwait(false);
+        var result2 = await secondTask.ConfigureAwait(false);
+        return result1.Zip(result2);
+    }
+
+    /// <summary>
+    /// Asynchronously zips two Validation ValueTasks using a combiner function.
+    /// Accumulates ALL errors from both if either/both are invalid.
+    /// </summary>
+    public static async ValueTask<Validation<V, TErr>> ZipWithAsync<T, U, V, TErr>(
+        ValueTask<Validation<T, TErr>> firstTask,
+        ValueTask<Validation<U, TErr>> secondTask,
+        Func<T, U, V> combiner)
+    {
+        ThrowHelper.ThrowIfNull(combiner);
+
+        var result1 = await firstTask.ConfigureAwait(false);
+        var result2 = await secondTask.ConfigureAwait(false);
+        return result1.ZipWith(result2, combiner);
+    }
+
+    #endregion
+
     #region CancellationToken Overloads
 
     /// <summary>

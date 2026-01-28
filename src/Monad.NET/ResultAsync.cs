@@ -293,6 +293,223 @@ public static class ResultAsyncExtensions
         return Task.FromResult(result);
     }
 
+    #region ValueTask Overloads
+
+    /// <summary>
+    /// Wraps a Result in a completed ValueTask&lt;Result&lt;T, E&gt;&gt;.
+    /// More efficient than Task.FromResult for frequently-called paths.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<Result<T, TErr>> AsValueTask<T, TErr>(this Result<T, TErr> result)
+    {
+        return new ValueTask<Result<T, TErr>>(result);
+    }
+
+    /// <summary>
+    /// Maps the Ok value inside a ValueTask&lt;Result&lt;T, E&gt;&gt; using a synchronous function.
+    /// Optimized for scenarios where the result is frequently Err or already completed.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<Result<U, TErr>> MapAsync<T, TErr, U>(
+        this ValueTask<Result<T, TErr>> resultTask,
+        Func<T, U> mapper)
+    {
+        ThrowHelper.ThrowIfNull(mapper);
+
+        if (resultTask.IsCompletedSuccessfully)
+        {
+            var result = resultTask.Result;
+            return new ValueTask<Result<U, TErr>>(result.Map(mapper));
+        }
+
+        return MapAsyncCore(resultTask, mapper);
+
+        static async ValueTask<Result<U, TErr>> MapAsyncCore(ValueTask<Result<T, TErr>> task, Func<T, U> m)
+        {
+            var result = await task.ConfigureAwait(false);
+            return result.Map(m);
+        }
+    }
+
+    /// <summary>
+    /// Maps the Ok value inside a ValueTask&lt;Result&lt;T, E&gt;&gt; using an async function.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async ValueTask<Result<U, TErr>> MapAsync<T, TErr, U>(
+        this ValueTask<Result<T, TErr>> resultTask,
+        Func<T, ValueTask<U>> mapper)
+    {
+        ThrowHelper.ThrowIfNull(mapper);
+
+        var result = await resultTask.ConfigureAwait(false);
+        if (!result.IsOk)
+            return Result<U, TErr>.Err(result.GetError());
+
+        var value = await mapper(result.GetValue()).ConfigureAwait(false);
+        return Result<U, TErr>.Ok(value);
+    }
+
+    /// <summary>
+    /// Maps the Err value inside a ValueTask&lt;Result&lt;T, E&gt;&gt; using a synchronous function.
+    /// Optimized for scenarios where the result is frequently Ok or already completed.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<Result<T, F>> MapErrorAsync<T, TErr, F>(
+        this ValueTask<Result<T, TErr>> resultTask,
+        Func<TErr, F> mapper)
+    {
+        ThrowHelper.ThrowIfNull(mapper);
+
+        if (resultTask.IsCompletedSuccessfully)
+        {
+            var result = resultTask.Result;
+            return new ValueTask<Result<T, F>>(result.MapError(mapper));
+        }
+
+        return MapErrorAsyncCore(resultTask, mapper);
+
+        static async ValueTask<Result<T, F>> MapErrorAsyncCore(ValueTask<Result<T, TErr>> task, Func<TErr, F> m)
+        {
+            var result = await task.ConfigureAwait(false);
+            return result.MapError(m);
+        }
+    }
+
+    /// <summary>
+    /// Chains a synchronous operation on a ValueTask&lt;Result&lt;T, E&gt;&gt;.
+    /// Optimized for scenarios where the result is frequently Err or already completed.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<Result<U, TErr>> BindAsync<T, TErr, U>(
+        this ValueTask<Result<T, TErr>> resultTask,
+        Func<T, Result<U, TErr>> binder)
+    {
+        ThrowHelper.ThrowIfNull(binder);
+
+        if (resultTask.IsCompletedSuccessfully)
+        {
+            var result = resultTask.Result;
+            return new ValueTask<Result<U, TErr>>(result.Bind(binder));
+        }
+
+        return BindAsyncCore(resultTask, binder);
+
+        static async ValueTask<Result<U, TErr>> BindAsyncCore(ValueTask<Result<T, TErr>> task, Func<T, Result<U, TErr>> b)
+        {
+            var result = await task.ConfigureAwait(false);
+            return result.Bind(b);
+        }
+    }
+
+    /// <summary>
+    /// Chains an async operation on a ValueTask&lt;Result&lt;T, E&gt;&gt;.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async ValueTask<Result<U, TErr>> BindAsync<T, TErr, U>(
+        this ValueTask<Result<T, TErr>> resultTask,
+        Func<T, ValueTask<Result<U, TErr>>> binder)
+    {
+        ThrowHelper.ThrowIfNull(binder);
+
+        var result = await resultTask.ConfigureAwait(false);
+        if (!result.IsOk)
+            return Result<U, TErr>.Err(result.GetError());
+
+        return await binder(result.GetValue()).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Pattern matches on a ValueTask&lt;Result&lt;T, E&gt;&gt; with synchronous handlers.
+    /// Optimized for scenarios where the result is frequently one state or already completed.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<U> MatchAsync<T, TErr, U>(
+        this ValueTask<Result<T, TErr>> resultTask,
+        Func<T, U> okFunc,
+        Func<TErr, U> errFunc)
+    {
+        ThrowHelper.ThrowIfNull(okFunc);
+        ThrowHelper.ThrowIfNull(errFunc);
+
+        if (resultTask.IsCompletedSuccessfully)
+        {
+            var result = resultTask.Result;
+            return new ValueTask<U>(result.Match(okFunc, errFunc));
+        }
+
+        return MatchAsyncCore(resultTask, okFunc, errFunc);
+
+        static async ValueTask<U> MatchAsyncCore(ValueTask<Result<T, TErr>> task, Func<T, U> ok, Func<TErr, U> err)
+        {
+            var result = await task.ConfigureAwait(false);
+            return result.Match(ok, err);
+        }
+    }
+
+    /// <summary>
+    /// Pattern matches on a ValueTask&lt;Result&lt;T, E&gt;&gt; with async handlers.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async ValueTask<U> MatchAsync<T, TErr, U>(
+        this ValueTask<Result<T, TErr>> resultTask,
+        Func<T, ValueTask<U>> okFunc,
+        Func<TErr, ValueTask<U>> errFunc)
+    {
+        ThrowHelper.ThrowIfNull(okFunc);
+        ThrowHelper.ThrowIfNull(errFunc);
+
+        var result = await resultTask.ConfigureAwait(false);
+        if (result.IsOk)
+            return await okFunc(result.GetValue()).ConfigureAwait(false);
+
+        return await errFunc(result.GetError()).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Returns the Ok value or computes a default from a ValueTask&lt;Result&lt;T, E&gt;&gt;.
+    /// Optimized for scenarios where the result is frequently Ok or already completed.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<T> GetValueOrElseAsync<T, TErr>(
+        this ValueTask<Result<T, TErr>> resultTask,
+        Func<TErr, T> op)
+    {
+        ThrowHelper.ThrowIfNull(op);
+
+        if (resultTask.IsCompletedSuccessfully)
+        {
+            var result = resultTask.Result;
+            return new ValueTask<T>(result.GetValueOrElse(op));
+        }
+
+        return GetValueOrElseAsyncCore(resultTask, op);
+
+        static async ValueTask<T> GetValueOrElseAsyncCore(ValueTask<Result<T, TErr>> task, Func<TErr, T> o)
+        {
+            var result = await task.ConfigureAwait(false);
+            return result.GetValueOrElse(o);
+        }
+    }
+
+    /// <summary>
+    /// Returns the Ok value or computes a default asynchronously from a ValueTask&lt;Result&lt;T, E&gt;&gt;.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async ValueTask<T> GetValueOrElseAsync<T, TErr>(
+        this ValueTask<Result<T, TErr>> resultTask,
+        Func<TErr, ValueTask<T>> op)
+    {
+        ThrowHelper.ThrowIfNull(op);
+
+        var result = await resultTask.ConfigureAwait(false);
+        if (result.IsOk)
+            return result.GetValue();
+
+        return await op(result.GetError()).ConfigureAwait(false);
+    }
+
+    #endregion
+
     // ============================================================================
     // CancellationToken Overloads
     // ============================================================================

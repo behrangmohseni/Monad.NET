@@ -686,6 +686,80 @@ public static class RemoteDataExtensions
         return RemoteData<U, TErr>.Success(result);
     }
 
+    // ============================================================================
+    // ValueTask Overloads
+    // ============================================================================
+
+    /// <summary>
+    /// Wraps a RemoteData in a completed ValueTask&lt;RemoteData&lt;T, TErr&gt;&gt;.
+    /// More efficient than Task.FromResult for frequently-called paths.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<RemoteData<T, TErr>> AsValueTask<T, TErr>(this RemoteData<T, TErr> remoteData)
+    {
+        return new ValueTask<RemoteData<T, TErr>>(remoteData);
+    }
+
+    /// <summary>
+    /// Maps the value inside a ValueTask&lt;RemoteData&lt;T, TErr&gt;&gt; using a synchronous function.
+    /// Optimized for scenarios where the result is frequently non-Success or already completed.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<RemoteData<U, TErr>> MapAsync<T, TErr, U>(
+        this ValueTask<RemoteData<T, TErr>> remoteDataTask,
+        Func<T, U> mapper)
+    {
+        ThrowHelper.ThrowIfNull(mapper);
+
+        if (remoteDataTask.IsCompletedSuccessfully)
+        {
+            var remoteData = remoteDataTask.Result;
+            return new ValueTask<RemoteData<U, TErr>>(remoteData.Map(mapper));
+        }
+
+        return MapAsyncCore(remoteDataTask, mapper);
+
+        static async ValueTask<RemoteData<U, TErr>> MapAsyncCore(ValueTask<RemoteData<T, TErr>> task, Func<T, U> m)
+        {
+            var remoteData = await task.ConfigureAwait(false);
+            return remoteData.Map(m);
+        }
+    }
+
+    /// <summary>
+    /// Pattern matches on a ValueTask&lt;RemoteData&lt;T, TErr&gt;&gt; with synchronous handlers.
+    /// Optimized for scenarios where the result is frequently one state or already completed.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<U> MatchAsync<T, TErr, U>(
+        this ValueTask<RemoteData<T, TErr>> remoteDataTask,
+        Func<U> notAskedFunc,
+        Func<U> loadingFunc,
+        Func<T, U> successFunc,
+        Func<TErr, U> failureFunc)
+    {
+        ThrowHelper.ThrowIfNull(notAskedFunc);
+        ThrowHelper.ThrowIfNull(loadingFunc);
+        ThrowHelper.ThrowIfNull(successFunc);
+        ThrowHelper.ThrowIfNull(failureFunc);
+
+        if (remoteDataTask.IsCompletedSuccessfully)
+        {
+            var remoteData = remoteDataTask.Result;
+            return new ValueTask<U>(remoteData.Match(notAskedFunc, loadingFunc, successFunc, failureFunc));
+        }
+
+        return MatchAsyncCore(remoteDataTask, notAskedFunc, loadingFunc, successFunc, failureFunc);
+
+        static async ValueTask<U> MatchAsyncCore(
+            ValueTask<RemoteData<T, TErr>> task,
+            Func<U> na, Func<U> l, Func<T, U> s, Func<TErr, U> f)
+        {
+            var remoteData = await task.ConfigureAwait(false);
+            return remoteData.Match(na, l, s, f);
+        }
+    }
+
     /// <summary>
     /// Returns true if the data is loaded (either Success or Failure).
     /// </summary>
