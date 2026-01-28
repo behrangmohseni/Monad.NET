@@ -238,4 +238,17 @@ internal static class ThrowHelper
             "Use NonEmptyList.FromEnumerable() which returns Option<NonEmptyList<T>> for safe handling.",
             paramName);
     }
+
+    /// <summary>
+    /// Throws when attempting to access an uninitialized NonEmptyList (default value).
+    /// </summary>
+    [DoesNotReturn]
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void ThrowNonEmptyListNotInitialized()
+    {
+        throw new InvalidOperationException(
+            "Cannot access NonEmptyList because it is not initialized. " +
+            "Use NonEmptyList<T>.Of() or NonEmptyList<T>.FromEnumerable() to create a valid instance. " +
+            "The default value of NonEmptyList<T> is not usable.");
+    }
 }
