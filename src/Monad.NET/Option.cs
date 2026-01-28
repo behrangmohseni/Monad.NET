@@ -62,6 +62,26 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     }
 
     /// <summary>
+    /// Gets the contained value for pattern matching. Returns the value if Some, default otherwise.
+    /// Use with pattern matching in switch expressions.
+    /// </summary>
+    /// <example>
+    /// <code>
+    /// var message = option switch
+    /// {
+    ///     { IsSome: true, Value: var v } => $"Got: {v}",
+    ///     { IsNone: true } => "Nothing",
+    ///     _ => "Unknown"
+    /// };
+    /// </code>
+    /// </example>
+    public T? Value
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _value;
+    }
+
+    /// <summary>
     /// Creates a Some value containing the specified value.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

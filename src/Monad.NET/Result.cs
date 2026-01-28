@@ -64,6 +64,36 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     }
 
     /// <summary>
+    /// Gets the contained value for pattern matching. Returns the value if Ok, default otherwise.
+    /// Use with pattern matching in switch expressions.
+    /// </summary>
+    /// <example>
+    /// <code>
+    /// var message = result switch
+    /// {
+    ///     { IsOk: true, Value: var v } => $"Success: {v}",
+    ///     { IsErr: true, Error: var e } => $"Error: {e}",
+    ///     _ => "Unknown"
+    /// };
+    /// </code>
+    /// </example>
+    public T? Value
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _value;
+    }
+
+    /// <summary>
+    /// Gets the contained error for pattern matching. Returns the error if Err, default otherwise.
+    /// Use with pattern matching in switch expressions.
+    /// </summary>
+    public TErr? Error
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _error;
+    }
+
+    /// <summary>
     /// Creates an Ok result containing the specified value.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1308,6 +1338,206 @@ public static class ResultExtensions
         var results = await Task.WhenAll(resultTasks).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
         return CombineAll(results);
+    }
+
+    #endregion
+
+    #region Error Aggregation (CombineErrors)
+
+    /// <summary>
+    /// Combines two Results, accumulating ALL errors from both if either/both fail.
+    /// Unlike <see cref="Combine{T1,T2,TErr}"/> which returns the first error,
+    /// this method collects all errors like Validation does.
+    /// </summary>
+    /// <example>
+    /// <code>
+    /// var name = ValidateName(input);  // Result&lt;string, Error&gt;
+    /// var age = ValidateAge(input);    // Result&lt;int, Error&gt;
+    /// var combined = ResultExtensions.CombineErrors(name, age);
+    /// // Result&lt;(string, int), IReadOnlyList&lt;Error&gt;&gt; - contains ALL errors if any failed
+    /// </code>
+    /// </example>
+    public static Result<(T1, T2), IReadOnlyList<TErr>> CombineErrors<T1, T2, TErr>(
+        Result<T1, TErr> first,
+        Result<T2, TErr> second)
+    {
+        var errors = new List<TErr>();
+
+        if (first.IsErr)
+            errors.Add(first.GetError());
+        if (second.IsErr)
+            errors.Add(second.GetError());
+
+        if (errors.Count > 0)
+            return Result<(T1, T2), IReadOnlyList<TErr>>.Err(errors);
+
+        return Result<(T1, T2), IReadOnlyList<TErr>>.Ok((first.GetValue(), second.GetValue()));
+    }
+
+    /// <summary>
+    /// Combines two Results with a combiner function, accumulating ALL errors from both if either/both fail.
+    /// </summary>
+    public static Result<TResult, IReadOnlyList<TErr>> CombineErrors<T1, T2, TErr, TResult>(
+        Result<T1, TErr> first,
+        Result<T2, TErr> second,
+        Func<T1, T2, TResult> combiner)
+    {
+        ThrowHelper.ThrowIfNull(combiner);
+
+        var errors = new List<TErr>();
+
+        if (first.IsErr)
+            errors.Add(first.GetError());
+        if (second.IsErr)
+            errors.Add(second.GetError());
+
+        if (errors.Count > 0)
+            return Result<TResult, IReadOnlyList<TErr>>.Err(errors);
+
+        return Result<TResult, IReadOnlyList<TErr>>.Ok(combiner(first.GetValue(), second.GetValue()));
+    }
+
+    /// <summary>
+    /// Combines three Results, accumulating ALL errors from all if any fail.
+    /// </summary>
+    public static Result<(T1, T2, T3), IReadOnlyList<TErr>> CombineErrors<T1, T2, T3, TErr>(
+        Result<T1, TErr> first,
+        Result<T2, TErr> second,
+        Result<T3, TErr> third)
+    {
+        var errors = new List<TErr>();
+
+        if (first.IsErr)
+            errors.Add(first.GetError());
+        if (second.IsErr)
+            errors.Add(second.GetError());
+        if (third.IsErr)
+            errors.Add(third.GetError());
+
+        if (errors.Count > 0)
+            return Result<(T1, T2, T3), IReadOnlyList<TErr>>.Err(errors);
+
+        return Result<(T1, T2, T3), IReadOnlyList<TErr>>.Ok((first.GetValue(), second.GetValue(), third.GetValue()));
+    }
+
+    /// <summary>
+    /// Combines three Results with a combiner function, accumulating ALL errors from all if any fail.
+    /// </summary>
+    public static Result<TResult, IReadOnlyList<TErr>> CombineErrors<T1, T2, T3, TErr, TResult>(
+        Result<T1, TErr> first,
+        Result<T2, TErr> second,
+        Result<T3, TErr> third,
+        Func<T1, T2, T3, TResult> combiner)
+    {
+        ThrowHelper.ThrowIfNull(combiner);
+
+        var errors = new List<TErr>();
+
+        if (first.IsErr)
+            errors.Add(first.GetError());
+        if (second.IsErr)
+            errors.Add(second.GetError());
+        if (third.IsErr)
+            errors.Add(third.GetError());
+
+        if (errors.Count > 0)
+            return Result<TResult, IReadOnlyList<TErr>>.Err(errors);
+
+        return Result<TResult, IReadOnlyList<TErr>>.Ok(combiner(first.GetValue(), second.GetValue(), third.GetValue()));
+    }
+
+    /// <summary>
+    /// Combines four Results, accumulating ALL errors from all if any fail.
+    /// </summary>
+    public static Result<(T1, T2, T3, T4), IReadOnlyList<TErr>> CombineErrors<T1, T2, T3, T4, TErr>(
+        Result<T1, TErr> first,
+        Result<T2, TErr> second,
+        Result<T3, TErr> third,
+        Result<T4, TErr> fourth)
+    {
+        var errors = new List<TErr>();
+
+        if (first.IsErr)
+            errors.Add(first.GetError());
+        if (second.IsErr)
+            errors.Add(second.GetError());
+        if (third.IsErr)
+            errors.Add(third.GetError());
+        if (fourth.IsErr)
+            errors.Add(fourth.GetError());
+
+        if (errors.Count > 0)
+            return Result<(T1, T2, T3, T4), IReadOnlyList<TErr>>.Err(errors);
+
+        return Result<(T1, T2, T3, T4), IReadOnlyList<TErr>>.Ok((
+            first.GetValue(), second.GetValue(), third.GetValue(), fourth.GetValue()));
+    }
+
+    /// <summary>
+    /// Combines a collection of Results, accumulating ALL errors from all if any fail.
+    /// </summary>
+    /// <example>
+    /// <code>
+    /// var validations = items.Select(ValidateItem);
+    /// var combined = ResultExtensions.CombineErrors(validations);
+    /// // Result&lt;IReadOnlyList&lt;T&gt;, IReadOnlyList&lt;Error&gt;&gt;
+    /// </code>
+    /// </example>
+    public static Result<IReadOnlyList<T>, IReadOnlyList<TErr>> CombineErrors<T, TErr>(
+        IEnumerable<Result<T, TErr>> results)
+    {
+        ThrowHelper.ThrowIfNull(results);
+
+        var values = new List<T>();
+        var errors = new List<TErr>();
+
+        foreach (var result in results)
+        {
+            if (result.IsOk)
+                values.Add(result.GetValue());
+            else
+                errors.Add(result.GetError());
+        }
+
+        if (errors.Count > 0)
+            return Result<IReadOnlyList<T>, IReadOnlyList<TErr>>.Err(errors);
+
+        return Result<IReadOnlyList<T>, IReadOnlyList<TErr>>.Ok(values);
+    }
+
+    /// <summary>
+    /// Asynchronously combines two Result tasks, accumulating ALL errors from both if either/both fail.
+    /// </summary>
+    public static async Task<Result<(T1, T2), IReadOnlyList<TErr>>> CombineErrorsAsync<T1, T2, TErr>(
+        Task<Result<T1, TErr>> first,
+        Task<Result<T2, TErr>> second,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(first);
+        ThrowHelper.ThrowIfNull(second);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var result1 = await first.ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+        var result2 = await second.ConfigureAwait(false);
+
+        return CombineErrors(result1, result2);
+    }
+
+    /// <summary>
+    /// Asynchronously combines a collection of Result tasks, accumulating ALL errors from all if any fail.
+    /// </summary>
+    public static async Task<Result<IReadOnlyList<T>, IReadOnlyList<TErr>>> CombineErrorsAsync<T, TErr>(
+        IEnumerable<Task<Result<T, TErr>>> resultTasks,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(resultTasks);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var results = await Task.WhenAll(resultTasks).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return CombineErrors(results);
     }
 
     #endregion

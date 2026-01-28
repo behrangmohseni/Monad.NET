@@ -66,6 +66,36 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     }
 
     /// <summary>
+    /// Gets the contained value for pattern matching. Returns the value if Valid, default otherwise.
+    /// Use with pattern matching in switch expressions.
+    /// </summary>
+    /// <example>
+    /// <code>
+    /// var message = validation switch
+    /// {
+    ///     { IsValid: true, Value: var v } => $"Valid: {v}",
+    ///     { IsInvalid: true, Errors: var e } => $"Errors: {e.Length}",
+    ///     _ => "Unknown"
+    /// };
+    /// </code>
+    /// </example>
+    public T? Value
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _value;
+    }
+
+    /// <summary>
+    /// Gets the contained errors for pattern matching. Returns the errors if Invalid, empty array otherwise.
+    /// Use with pattern matching in switch expressions.
+    /// </summary>
+    public ImmutableArray<TErr> Errors
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _errors.IsDefault ? ImmutableArray<TErr>.Empty : _errors;
+    }
+
+    /// <summary>
     /// Creates a valid validation with the specified value.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
