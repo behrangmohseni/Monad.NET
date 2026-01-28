@@ -39,7 +39,7 @@ public class ValidationLinqTests
 
         Assert.True(result.IsInvalid);
         var errors = result.GetErrorsOrThrow();
-        Assert.Equal(2, errors.Count);
+        Assert.Equal(2, errors.Length);
         Assert.Contains("error1", errors);
         Assert.Contains("error2", errors);
     }
@@ -68,7 +68,7 @@ public class ValidationLinqTests
 
         Assert.True(result.IsInvalid);
         var errors = result.GetErrorsOrThrow();
-        Assert.Equal(2, errors.Count);
+        Assert.Equal(2, errors.Length);
         Assert.Contains("first error", errors);
         Assert.Contains("second error", errors);
     }
@@ -122,7 +122,7 @@ public class ValidationLinqTests
 
         Assert.True(result.IsInvalid);
         var errors = result.GetErrorsOrThrow();
-        Assert.Equal(2, errors.Count);
+        Assert.Equal(2, errors.Length);
         Assert.Contains("first error", errors);
         Assert.Contains("second error", errors);
     }
@@ -233,7 +233,7 @@ public class ValidationLinqTests
 
         Assert.True(result.IsInvalid);
         var errors = result.GetErrorsOrThrow();
-        Assert.Equal(2, errors.Count);
+        Assert.Equal(2, errors.Length);
         Assert.Contains("first", errors);
         Assert.Contains("second", errors);
     }
@@ -276,7 +276,7 @@ public class ValidationLinqTests
         Assert.True(result.IsInvalid);
         var errors = result.GetErrorsOrThrow();
         // At least 2 errors accumulated (depends on how many selectors can be evaluated)
-        Assert.True(errors.Count >= 2);
+        Assert.True(errors.Length >= 2);
         Assert.Contains("error1", errors);
     }
 

@@ -136,7 +136,7 @@ public class ValidationCoverageTests
 
         var combined = validations.Combine();
         Assert.True(combined.IsInvalid);
-        Assert.Equal(2, combined.GetErrors().Count);
+        Assert.Equal(2, combined.GetErrors().Length);
         Assert.Contains("error1", combined.GetErrors());
         Assert.Contains("error2", combined.GetErrors());
     }
@@ -166,7 +166,7 @@ public class ValidationCoverageTests
 
         var combined = await ValidationExtensions.ZipAsync(task1, task2, task3);
         Assert.True(combined.IsInvalid);
-        Assert.Equal(2, combined.GetErrors().Count);
+        Assert.Equal(2, combined.GetErrors().Length);
         Assert.Contains("error1", combined.GetErrors());
         Assert.Contains("error2", combined.GetErrors());
     }
@@ -202,7 +202,7 @@ public class ValidationCoverageTests
 
         var combined = await tasks.CombineAsync();
         Assert.True(combined.IsInvalid);
-        Assert.Equal(2, combined.GetErrors().Count);
+        Assert.Equal(2, combined.GetErrors().Length);
     }
 
     #endregion

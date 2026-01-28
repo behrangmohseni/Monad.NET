@@ -239,7 +239,7 @@ public class GetOrThrowExpectTests
     {
         var validation = Validation<int, string>.Invalid(new[] { "error1", "error2" });
         var errors = validation.GetErrorsOrThrow("Expected errors");
-        Assert.Equal(2, errors.Count);
+        Assert.Equal(2, errors.Length);
         Assert.Contains("error1", errors);
         Assert.Contains("error2", errors);
     }
@@ -287,7 +287,7 @@ public class GetOrThrowExpectTests
     {
         var validation = Validation<int, string>.Invalid(new[] { "error1", "error2" });
         var errors = validation.GetErrorsOrThrow();
-        Assert.Equal(2, errors.Count);
+        Assert.Equal(2, errors.Length);
         Assert.Contains("error1", errors);
         Assert.Contains("error2", errors);
     }

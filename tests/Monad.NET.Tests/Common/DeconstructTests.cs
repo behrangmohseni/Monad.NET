@@ -194,7 +194,7 @@ public class DeconstructTests
         var (value, errors, isValid) = validation;
 
         Assert.Equal(default, value);
-        Assert.Equal(2, errors.Count);
+        Assert.Equal(2, errors.Length);
         Assert.Contains("error1", errors);
         Assert.Contains("error2", errors);
         Assert.False(isValid);
