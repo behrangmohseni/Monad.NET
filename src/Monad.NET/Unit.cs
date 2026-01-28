@@ -85,15 +85,17 @@ public readonly struct Unit : IEquatable<Unit>, IComparable<Unit>, IComparable
     /// Executes an async action and returns Unit.
     /// </summary>
     /// <param name="action">The async action to execute.</param>
+    /// <param name="cancellationToken">A cancellation token to observe.</param>
     /// <returns>A task that completes with Unit.Value after the action completes.</returns>
     /// <example>
     /// <code>
     /// var result = await Unit.FromAsync(async () => await SaveToDbAsync());
     /// </code>
     /// </example>
-    public static async Task<Unit> FromAsync(Func<Task> action)
+    public static async Task<Unit> FromAsync(Func<Task> action, CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(action);
+        cancellationToken.ThrowIfCancellationRequested();
         await action().ConfigureAwait(false);
         return Value;
     }

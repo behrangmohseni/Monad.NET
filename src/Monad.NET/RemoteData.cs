@@ -655,14 +655,24 @@ public static class RemoteDataExtensions
     /// <summary>
     /// Wraps an async operation in RemoteData, starting with Loading and ending with Success/Failure.
     /// </summary>
-    public static async Task<RemoteData<T, Exception>> FromTaskAsync<T>(Func<Task<T>> taskFunc)
+    /// <param name="taskFunc">The async function to execute.</param>
+    /// <param name="cancellationToken">A cancellation token to observe.</param>
+    /// <returns>Success with the result, or Failure with the exception.</returns>
+    public static async Task<RemoteData<T, Exception>> FromTaskAsync<T>(
+        Func<Task<T>> taskFunc,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(taskFunc);
+        cancellationToken.ThrowIfCancellationRequested();
 
         try
         {
             var result = await taskFunc().ConfigureAwait(false);
             return RemoteData<T, Exception>.Success(result);
+        }
+        catch (OperationCanceledException)
+        {
+            throw; // Re-throw cancellation
         }
         catch (Exception ex)
         {
@@ -673,11 +683,17 @@ public static class RemoteDataExtensions
     /// <summary>
     /// Maps RemoteData with an async function.
     /// </summary>
+    /// <param name="remoteData">The remote data to map.</param>
+    /// <param name="mapper">An async function to apply to the value if Success.</param>
+    /// <param name="cancellationToken">A cancellation token to observe.</param>
+    /// <returns>Success with the mapped value, or the original state preserved.</returns>
     public static async Task<RemoteData<U, TErr>> MapAsync<T, TErr, U>(
         this RemoteData<T, TErr> remoteData,
-        Func<T, Task<U>> mapper)
+        Func<T, Task<U>> mapper,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(mapper);
+        cancellationToken.ThrowIfCancellationRequested();
 
         if (!remoteData.IsSuccess)
             return remoteData.Map(static _ => default(U)!); // Preserves state

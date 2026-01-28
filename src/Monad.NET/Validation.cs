@@ -866,13 +866,16 @@ public static class ValidationExtensions
     public static async Task<Validation<U, TErr>> ApplyAsync<T, TIntermediate, U, TErr>(
         Task<Validation<T, TErr>> firstTask,
         Task<Validation<TIntermediate, TErr>> secondTask,
-        Func<T, TIntermediate, U> combiner)
+        Func<T, TIntermediate, U> combiner,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(firstTask);
         ThrowHelper.ThrowIfNull(secondTask);
         ThrowHelper.ThrowIfNull(combiner);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var result1 = await firstTask.ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
         var result2 = await secondTask.ConfigureAwait(false);
         return result1.Apply(result2, combiner);
     }
@@ -891,12 +894,15 @@ public static class ValidationExtensions
     /// </example>
     public static async Task<Validation<(T, U), TErr>> ZipAsync<T, U, TErr>(
         Task<Validation<T, TErr>> firstTask,
-        Task<Validation<U, TErr>> secondTask)
+        Task<Validation<U, TErr>> secondTask,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(firstTask);
         ThrowHelper.ThrowIfNull(secondTask);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var result1 = await firstTask.ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
         var result2 = await secondTask.ConfigureAwait(false);
         return result1.Zip(result2);
     }
@@ -917,13 +923,16 @@ public static class ValidationExtensions
     public static async Task<Validation<V, TErr>> ZipWithAsync<T, U, V, TErr>(
         Task<Validation<T, TErr>> firstTask,
         Task<Validation<U, TErr>> secondTask,
-        Func<T, U, V> combiner)
+        Func<T, U, V> combiner,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(firstTask);
         ThrowHelper.ThrowIfNull(secondTask);
         ThrowHelper.ThrowIfNull(combiner);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var result1 = await firstTask.ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
         var result2 = await secondTask.ConfigureAwait(false);
         return result1.ZipWith(result2, combiner);
     }
@@ -935,14 +944,18 @@ public static class ValidationExtensions
     public static async Task<Validation<(T1, T2, T3), TErr>> ZipAsync<T1, T2, T3, TErr>(
         Task<Validation<T1, TErr>> first,
         Task<Validation<T2, TErr>> second,
-        Task<Validation<T3, TErr>> third)
+        Task<Validation<T3, TErr>> third,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(first);
         ThrowHelper.ThrowIfNull(second);
         ThrowHelper.ThrowIfNull(third);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var result1 = await first.ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
         var result2 = await second.ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
         var result3 = await third.ConfigureAwait(false);
 
         // Accumulate all errors
@@ -977,11 +990,14 @@ public static class ValidationExtensions
     /// </code>
     /// </example>
     public static async Task<Validation<IReadOnlyList<T>, TErr>> CombineAsync<T, TErr>(
-        this IEnumerable<Task<Validation<T, TErr>>> validationTasks)
+        this IEnumerable<Task<Validation<T, TErr>>> validationTasks,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(validationTasks);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var validations = await Task.WhenAll(validationTasks).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var allErrors = new List<TErr>();
         var values = new List<T>();
@@ -1004,14 +1020,19 @@ public static class ValidationExtensions
     /// </summary>
     public static async Task<Validation<T, TErr>> TapAsync<T, TErr>(
         this Task<Validation<T, TErr>> validationTask,
-        Func<T, Task> action)
+        Func<T, Task> action,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(validationTask);
         ThrowHelper.ThrowIfNull(action);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var validation = await validationTask.ConfigureAwait(false);
         if (validation.IsValid)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
             await action(validation.GetValue()).ConfigureAwait(false);
+        }
 
         return validation;
     }
@@ -1021,14 +1042,19 @@ public static class ValidationExtensions
     /// </summary>
     public static async Task<Validation<T, TErr>> TapErrorsAsync<T, TErr>(
         this Task<Validation<T, TErr>> validationTask,
-        Func<IReadOnlyList<TErr>, Task> action)
+        Func<IReadOnlyList<TErr>, Task> action,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(validationTask);
         ThrowHelper.ThrowIfNull(action);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var validation = await validationTask.ConfigureAwait(false);
         if (validation.IsInvalid)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
             await action(validation.GetErrors()).ConfigureAwait(false);
+        }
 
         return validation;
     }
@@ -1038,9 +1064,11 @@ public static class ValidationExtensions
     /// </summary>
     public static async Task<Validation<U, TErr>> MapAsync<T, U, TErr>(
         this Validation<T, TErr> validation,
-        Func<T, Task<U>> mapper)
+        Func<T, Task<U>> mapper,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(mapper);
+        cancellationToken.ThrowIfCancellationRequested();
 
         if (validation.IsInvalid)
             return Validation<U, TErr>.Invalid(validation.GetErrors());
@@ -1054,13 +1082,15 @@ public static class ValidationExtensions
     /// </summary>
     public static async Task<Validation<U, TErr>> MapAsync<T, U, TErr>(
         this Task<Validation<T, TErr>> validationTask,
-        Func<T, Task<U>> mapper)
+        Func<T, Task<U>> mapper,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(validationTask);
         ThrowHelper.ThrowIfNull(mapper);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var validation = await validationTask.ConfigureAwait(false);
-        return await validation.MapAsync(mapper).ConfigureAwait(false);
+        return await validation.MapAsync(mapper, cancellationToken).ConfigureAwait(false);
     }
 
     #endregion

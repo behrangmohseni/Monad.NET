@@ -80,7 +80,8 @@ public class TryExtendedTests
     public async Task OfAsync_WithNullFunc_ReturnsFailure()
     {
         // Try.OfAsync captures exceptions
-        var result = await Try<int>.OfAsync(null!);
+        Func<Task<int>>? nullFunc = null;
+        var result = await Try<int>.OfAsync(nullFunc!);
         Assert.True(result.IsFailure);
     }
 
