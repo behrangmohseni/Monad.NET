@@ -81,32 +81,6 @@ public class ValidationCoverageTests
 
     #endregion
 
-    #region IComparable Tests
-
-    [Fact]
-    public void CompareTo_Object_Null_ReturnsPositive()
-    {
-        var validation = Validation<int, string>.Valid(42);
-        Assert.Equal(1, ((IComparable)validation).CompareTo(null));
-    }
-
-    [Fact]
-    public void CompareTo_Object_InvalidType_ThrowsArgumentException()
-    {
-        var validation = Validation<int, string>.Valid(42);
-        Assert.Throws<ArgumentException>(() => ((IComparable)validation).CompareTo("not a Validation"));
-    }
-
-    [Fact]
-    public void CompareTo_Object_ValidValidation_ComparesCorrectly()
-    {
-        var validation1 = Validation<int, string>.Valid(42);
-        var validation2 = Validation<int, string>.Valid(50);
-        Assert.True(((IComparable)validation1).CompareTo(validation2) < 0);
-    }
-
-    #endregion
-
     #region Combine Extension Tests
 
     [Fact]

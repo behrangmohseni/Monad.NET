@@ -26,7 +26,7 @@ namespace Monad.NET;
 [Serializable]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DebuggerTypeProxy(typeof(TryDebugView<>))]
-public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>, IComparable
+public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
 {
     private readonly T? _value;
     private readonly Exception? _exception;
@@ -673,17 +673,6 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>, ICompar
         if (!_isSuccess && !other._isSuccess)
             return string.Compare(_exception?.Message, other._exception?.Message, StringComparison.Ordinal);
         return _isSuccess ? 1 : -1;
-    }
-
-    /// <inheritdoc />
-    int IComparable.CompareTo(object? obj)
-    {
-        if (obj is null)
-            return 1;
-        if (obj is Try<T> other)
-            return CompareTo(other);
-        ThrowHelper.ThrowArgument(nameof(obj), $"Object must be of type Try<{typeof(T).Name}>");
-        return 0; // unreachable
     }
 
     /// <inheritdoc />

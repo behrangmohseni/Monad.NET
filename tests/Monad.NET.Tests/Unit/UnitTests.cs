@@ -128,30 +128,6 @@ public class UnitTests
     }
 
     [Fact]
-    public void CompareTo_Object_Unit_ReturnsZero()
-    {
-        var unit = Unit.Value;
-
-        Assert.Equal(0, unit.CompareTo((object)Unit.Default));
-    }
-
-    [Fact]
-    public void CompareTo_Object_Null_ReturnsPositive()
-    {
-        var unit = Unit.Value;
-
-        Assert.Equal(1, unit.CompareTo(null));
-    }
-
-    [Fact]
-    public void CompareTo_Object_NonUnit_ThrowsArgumentException()
-    {
-        var unit = Unit.Value;
-
-        Assert.Throws<ArgumentException>(() => unit.CompareTo("not a unit"));
-    }
-
-    [Fact]
     public void EqualityOperator_ReturnsTrue()
     {
         Assert.True(Unit.Value == Unit.Default);

@@ -36,7 +36,7 @@ namespace Monad.NET;
 /// </code>
 /// </example>
 [Serializable]
-public readonly struct Unit : IEquatable<Unit>, IComparable<Unit>, IComparable
+public readonly struct Unit : IEquatable<Unit>, IComparable<Unit>
 {
     /// <summary>
     /// The singleton Unit value.
@@ -135,22 +135,6 @@ public readonly struct Unit : IEquatable<Unit>, IComparable<Unit>, IComparable
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int CompareTo(Unit other) => 0;
-
-    /// <summary>
-    /// Compares this Unit to another object.
-    /// </summary>
-    /// <param name="obj">The object to compare to.</param>
-    /// <returns>0 if obj is Unit; otherwise throws.</returns>
-    /// <exception cref="ArgumentException">Thrown if obj is not Unit.</exception>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(object? obj)
-    {
-        if (obj is null)
-            return 1;
-        if (obj is Unit)
-            return 0;
-        throw new ArgumentException("Object must be of type Unit.", nameof(obj));
-    }
 
     /// <summary>
     /// Determines whether two Unit instances are equal (always true).

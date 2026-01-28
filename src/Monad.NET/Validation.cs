@@ -30,7 +30,7 @@ namespace Monad.NET;
 [Serializable]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DebuggerTypeProxy(typeof(ValidationDebugView<,>))]
-public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IComparable<Validation<T, TErr>>, IComparable
+public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IComparable<Validation<T, TErr>>
 {
     private readonly T? _value;
     private readonly ImmutableArray<TErr> _errors;
@@ -676,17 +676,6 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
             return 0;
         }
         return _isValid ? 1 : -1;
-    }
-
-    /// <inheritdoc />
-    int IComparable.CompareTo(object? obj)
-    {
-        if (obj is null)
-            return 1;
-        if (obj is Validation<T, TErr> other)
-            return CompareTo(other);
-        ThrowHelper.ThrowArgument(nameof(obj), $"Object must be of type Validation<{typeof(T).Name}, {typeof(TErr).Name}>");
-        return 0; // unreachable
     }
 
     /// <inheritdoc />

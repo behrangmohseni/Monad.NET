@@ -581,25 +581,6 @@ public class RemoteDataExtendedTests
         Assert.True(success.CompareTo(failure) < 0);
     }
 
-    [Fact]
-    public void CompareTo_Object_Works()
-    {
-        var rd = RemoteData<int, string>.Success(42);
-        IComparable comparable = rd;
-
-        Assert.True(comparable.CompareTo(null) > 0);
-        Assert.Equal(0, comparable.CompareTo(RemoteData<int, string>.Success(42)));
-    }
-
-    [Fact]
-    public void CompareTo_InvalidType_Throws()
-    {
-        var rd = RemoteData<int, string>.Success(42);
-        IComparable comparable = rd;
-
-        Assert.Throws<ArgumentException>(() => comparable.CompareTo("invalid"));
-    }
-
     #endregion
 
     #region ToString Tests
