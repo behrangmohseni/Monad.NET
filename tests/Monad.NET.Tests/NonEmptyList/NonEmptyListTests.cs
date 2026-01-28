@@ -223,7 +223,7 @@ public class NonEmptyListTests
         var items = Array.Empty<int>();
         var result = NonEmptyList<int>.FromEnumerable(items, "List is empty");
 
-        Assert.True(result.IsErr);
+        Assert.True(result.IsError);
         Assert.Equal("List is empty", result.GetError());
     }
 

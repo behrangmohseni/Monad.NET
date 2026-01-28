@@ -259,7 +259,7 @@ public class IOTests
     {
         var io = IO<int>.Return(42).Attempt();
         var result = io.Run();
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(42, result.GetValueOr(-1));
     }
 
@@ -268,7 +268,7 @@ public class IOTests
     {
         var io = IO<int>.Of(() => throw new InvalidOperationException("test")).Attempt();
         var result = io.Run();
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
     }
 
     #endregion
@@ -766,7 +766,7 @@ public class IOAsyncTests
     {
         var io = IOAsync<int>.Return(42).Attempt();
         var result = await io.RunAsync();
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(42, result.GetValueOr(-1));
     }
 
@@ -783,7 +783,7 @@ public class IOAsyncTests
         }).Attempt();
 
         var result = await io.RunAsync();
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
     }
 
     #endregion

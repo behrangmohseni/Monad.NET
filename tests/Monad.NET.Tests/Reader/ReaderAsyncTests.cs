@@ -333,7 +333,7 @@ public class ReaderAsyncTests
 
         var result = await attempted.RunAsync(env);
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(42, result.GetValue());
     }
 
@@ -347,7 +347,7 @@ public class ReaderAsyncTests
 
         var result = await attempted.RunAsync(env);
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
         Assert.IsType<InvalidOperationException>(result.GetExceptionOrThrow());
     }
 

@@ -15,7 +15,7 @@ public class ValidationLinqTests
         var validation = Validation<int, string>.Valid(42);
         var result = validation.Select(x => x * 2);
 
-        Assert.True(result.IsValid);
+        Assert.True(result.IsOk);
         Assert.Equal(84, result.GetValue());
     }
 
@@ -25,7 +25,7 @@ public class ValidationLinqTests
         var validation = Validation<int, string>.Invalid("error");
         var result = validation.Select(x => x * 2);
 
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
         var errors = result.GetErrorsOrThrow();
         Assert.Single(errors);
         Assert.Equal("error", errors[0]);
@@ -37,7 +37,7 @@ public class ValidationLinqTests
         var validation = Validation<int, string>.Invalid(new[] { "error1", "error2" });
         var result = validation.Select(x => x * 2);
 
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
         var errors = result.GetErrorsOrThrow();
         Assert.Equal(2, errors.Length);
         Assert.Contains("error1", errors);
@@ -54,7 +54,7 @@ public class ValidationLinqTests
         var result = Validation<int, string>.Valid(10)
             .SelectMany(x => Validation<int, string>.Valid(x + 20));
 
-        Assert.True(result.IsValid);
+        Assert.True(result.IsOk);
         Assert.Equal(30, result.GetValue());
     }
 
@@ -66,7 +66,7 @@ public class ValidationLinqTests
         var result = Validation<int, string>.Invalid("first error")
             .SelectMany(_ => Validation<int, string>.Invalid("second error"));
 
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
         var errors = result.GetErrorsOrThrow();
         Assert.Equal(2, errors.Length);
         Assert.Contains("first error", errors);
@@ -81,7 +81,7 @@ public class ValidationLinqTests
         var result = Validation<int, string>.Invalid("first error")
             .SelectMany(x => Validation<int, string>.Valid(x + 20));
 
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
         var errors = result.GetErrorsOrThrow();
         Assert.Single(errors);
         Assert.Equal("first error", errors[0]);
@@ -93,7 +93,7 @@ public class ValidationLinqTests
         var result = Validation<int, string>.Valid(10)
             .SelectMany(_ => Validation<int, string>.Invalid("second error"));
 
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
         var errors = result.GetErrorsOrThrow();
         Assert.Single(errors);
         Assert.Equal("second error", errors[0]);
@@ -107,7 +107,7 @@ public class ValidationLinqTests
             x => Validation<string, string>.Valid($"Value: {x}"),
             (x, y) => $"{y} (original: {x})");
 
-        Assert.True(result.IsValid);
+        Assert.True(result.IsOk);
         Assert.Equal("Value: 10 (original: 10)", result.GetValue());
     }
 
@@ -120,7 +120,7 @@ public class ValidationLinqTests
             _ => Validation<string, string>.Invalid("second error"),
             (x, y) => $"{y} (original: {x})");
 
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
         var errors = result.GetErrorsOrThrow();
         Assert.Equal(2, errors.Length);
         Assert.Contains("first error", errors);
@@ -136,7 +136,7 @@ public class ValidationLinqTests
             x => Validation<string, string>.Valid($"Value: {x}"),
             (x, y) => $"{y} (original: {x})");
 
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
         var errors = result.GetErrorsOrThrow();
         Assert.Single(errors);
         Assert.Equal("error", errors[0]);
@@ -150,7 +150,7 @@ public class ValidationLinqTests
             _ => Validation<string, string>.Invalid("error"),
             (x, y) => $"{y} (original: {x})");
 
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
     }
 
     [Fact]
@@ -195,7 +195,7 @@ public class ValidationLinqTests
                      from b in Validation<int, string>.Valid(2)
                      select a + b;
 
-        Assert.True(result.IsValid);
+        Assert.True(result.IsOk);
         Assert.Equal(3, result.GetValue());
     }
 
@@ -207,7 +207,7 @@ public class ValidationLinqTests
                      from b in Validation<int, string>.Valid(3)
                      select doubled + b;
 
-        Assert.True(result.IsValid);
+        Assert.True(result.IsOk);
         Assert.Equal(13, result.GetValue());
     }
 
@@ -219,7 +219,7 @@ public class ValidationLinqTests
                      from c in Validation<int, string>.Valid(3)
                      select a + b + c;
 
-        Assert.True(result.IsValid);
+        Assert.True(result.IsOk);
         Assert.Equal(6, result.GetValue());
     }
 
@@ -231,7 +231,7 @@ public class ValidationLinqTests
                      from b in Validation<int, string>.Invalid("second")
                      select a + b;
 
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
         var errors = result.GetErrorsOrThrow();
         Assert.Equal(2, errors.Length);
         Assert.Contains("first", errors);
@@ -246,7 +246,7 @@ public class ValidationLinqTests
                      from b in Validation<int, string>.Valid(2)
                      select a + b;
 
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
         // Only first error because second validation depends on 'a' via closure/default behavior
         var errors = result.GetErrorsOrThrow();
         Assert.Single(errors);
@@ -261,7 +261,7 @@ public class ValidationLinqTests
                      from c in Validation<int, string>.Valid(3)
                      select a + b + c;
 
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
     }
 
     [Fact]
@@ -273,7 +273,7 @@ public class ValidationLinqTests
                      from c in Validation<int, string>.Invalid("error3")
                      select a + b + c;
 
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
         var errors = result.GetErrorsOrThrow();
         // At least 2 errors accumulated (depends on how many selectors can be evaluated)
         Assert.True(errors.Length >= 2);

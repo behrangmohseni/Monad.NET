@@ -222,7 +222,7 @@ public class OptionAsyncTests
             return "error";
         });
 
-        Assert.True(result.IsErr);
+        Assert.True(result.IsError);
         Assert.Equal("error", result.GetError());
     }
 

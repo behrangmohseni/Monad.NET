@@ -14,7 +14,7 @@ public class TryExtendedTests2
     {
         var @try = Try<int>.Success(42);
 
-        Assert.True(@try.IsSuccess);
+        Assert.True(@try.IsOk);
         Assert.Equal(42, @try.GetValue());
     }
 
@@ -24,7 +24,7 @@ public class TryExtendedTests2
         var ex = new InvalidOperationException("error");
         var @try = Try<int>.Failure(ex);
 
-        Assert.True(@try.IsFailure);
+        Assert.True(@try.IsError);
         Assert.Same(ex, @try.GetException());
     }
 
@@ -33,7 +33,7 @@ public class TryExtendedTests2
     {
         var @try = Try<int>.Of(() => 42);
 
-        Assert.True(@try.IsSuccess);
+        Assert.True(@try.IsOk);
         Assert.Equal(42, @try.GetValue());
     }
 
@@ -42,7 +42,7 @@ public class TryExtendedTests2
     {
         var @try = Try<int>.Of(() => throw new InvalidOperationException("test"));
 
-        Assert.True(@try.IsFailure);
+        Assert.True(@try.IsError);
         Assert.IsType<InvalidOperationException>(@try.GetException());
     }
 
@@ -56,7 +56,7 @@ public class TryExtendedTests2
         var @try = Try<int>.Success(42);
         var result = @try.Map(x => x * 2);
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(84, result.GetValue());
     }
 
@@ -67,7 +67,7 @@ public class TryExtendedTests2
         var @try = Try<int>.Failure(ex);
         var result = @try.Map(x => x * 2);
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
     }
 
     [Fact]
@@ -76,7 +76,7 @@ public class TryExtendedTests2
         var @try = Try<int>.Success(42);
         var result = @try.Map<int>(x => throw new InvalidOperationException("mapper error"));
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
     }
 
     #endregion
@@ -89,7 +89,7 @@ public class TryExtendedTests2
         var @try = Try<int>.Success(42);
         var result = @try.Bind(x => Try<string>.Success(x.ToString()));
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal("42", result.GetValue());
     }
 
@@ -99,7 +99,7 @@ public class TryExtendedTests2
         var @try = Try<int>.Failure(new InvalidOperationException("error"));
         var result = @try.Bind(x => Try<string>.Success(x.ToString()));
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
     }
 
     [Fact]
@@ -108,7 +108,7 @@ public class TryExtendedTests2
         var @try = Try<int>.Success(42);
         var result = @try.Bind(_ => Try<string>.Failure(new InvalidOperationException("chained error")));
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
     }
 
     #endregion
@@ -121,7 +121,7 @@ public class TryExtendedTests2
         var @try = Try<int>.Failure(new InvalidOperationException("error"));
         var result = @try.Recover(_ => 99);
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(99, result.GetValue());
     }
 
@@ -131,7 +131,7 @@ public class TryExtendedTests2
         var @try = Try<int>.Success(42);
         var result = @try.Recover(_ => 99);
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(42, result.GetValue());
     }
 
@@ -141,7 +141,7 @@ public class TryExtendedTests2
         var @try = Try<int>.Failure(new InvalidOperationException("error"));
         var result = @try.RecoverWith(_ => Try<int>.Success(99));
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(99, result.GetValue());
     }
 
@@ -151,7 +151,7 @@ public class TryExtendedTests2
         var @try = Try<int>.Success(42);
         var result = @try.RecoverWith(_ => Try<int>.Success(99));
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(42, result.GetValue());
     }
 
@@ -165,7 +165,7 @@ public class TryExtendedTests2
         var @try = Try<int>.Success(42);
         var result = @try.Filter(x => x > 40);
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
     }
 
     [Fact]
@@ -174,7 +174,7 @@ public class TryExtendedTests2
         var @try = Try<int>.Success(42);
         var result = @try.Filter(x => x > 50);
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
     }
 
     [Fact]
@@ -183,7 +183,7 @@ public class TryExtendedTests2
         var @try = Try<int>.Failure(new InvalidOperationException("error"));
         var result = @try.Filter(x => x > 40);
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
     }
 
     #endregion
@@ -199,7 +199,7 @@ public class TryExtendedTests2
         var result = @try.Tap(x => executed = true);
 
         Assert.True(executed);
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
     }
 
     [Fact]
@@ -211,7 +211,7 @@ public class TryExtendedTests2
         var result = @try.Tap(x => executed = true);
 
         Assert.False(executed);
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
     }
 
     [Fact]
@@ -223,7 +223,7 @@ public class TryExtendedTests2
         var result = @try.TapFailure(ex => executed = true);
 
         Assert.True(executed);
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
     }
 
     [Fact]
@@ -235,7 +235,7 @@ public class TryExtendedTests2
         var result = @try.TapFailure(ex => executed = true);
 
         Assert.False(executed);
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
     }
 
     #endregion
@@ -303,7 +303,7 @@ public class TryExtendedTests2
         var @try = Try<int>.Failure(ex);
         var result = @try.ToResult();
 
-        Assert.True(result.IsErr);
+        Assert.True(result.IsError);
         Assert.Same(ex, result.GetError());
     }
 

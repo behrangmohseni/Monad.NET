@@ -25,7 +25,7 @@ public sealed class RemoteDataFormatter<T, TErr> : IMessagePackFormatter<RemoteD
             writer.Write(Loading);
             writer.WriteNil();
         }
-        else if (value.IsSuccess)
+        else if (value.IsOk)
         {
             writer.Write(Success);
             var formatter = options.Resolver.GetFormatterWithVerify<T>();

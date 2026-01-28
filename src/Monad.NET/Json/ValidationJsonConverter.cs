@@ -66,9 +66,9 @@ public class ValidationJsonConverter<T, E> : JsonConverter<Validation<T, E>>
     public override void Write(Utf8JsonWriter writer, Validation<T, E> value, JsonSerializerOptions options)
     {
         writer.WriteStartObject();
-        writer.WriteBoolean("isValid", value.IsValid);
+        writer.WriteBoolean("isValid", value.IsOk);
 
-        if (value.IsValid)
+        if (value.IsOk)
         {
             writer.WritePropertyName("value");
             JsonSerializer.Serialize(writer, value.Match(static v => v, static _ => default!), options);

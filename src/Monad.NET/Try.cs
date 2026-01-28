@@ -46,7 +46,10 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
     /// <summary>
     /// Returns true if the computation succeeded.
     /// </summary>
-    public bool IsSuccess
+    /// <remarks>
+    /// This follows F# naming conventions for consistency across monadic types.
+    /// </remarks>
+    public bool IsOk
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => _isSuccess;
@@ -55,7 +58,10 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
     /// <summary>
     /// Returns true if the computation failed with an exception.
     /// </summary>
-    public bool IsFailure
+    /// <remarks>
+    /// This follows F# naming conventions for consistency across monadic types.
+    /// </remarks>
+    public bool IsError
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => !_isSuccess;
@@ -69,8 +75,8 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
     /// <code>
     /// var message = tryResult switch
     /// {
-    ///     { IsSuccess: true, Value: var v } => $"Success: {v}",
-    ///     { IsFailure: true, Exception: var e } => $"Failed: {e.Message}",
+    ///     { IsOk: true, Value: var v } => $"Success: {v}",
+    ///     { IsError: true, Exception: var e } => $"Failed: {e.Message}",
     ///     _ => "Unknown"
     /// };
     /// </code>
@@ -464,7 +470,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
     {
         if (!_isSuccess)
             return Try<(T, U)>.Failure(_exception!);
-        if (!other.IsSuccess)
+        if (!other.IsOk)
             return Try<(T, U)>.Failure(other.GetException());
         return Try<(T, U)>.Success((_value!, other.GetValue()));
     }
@@ -490,7 +496,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
     {
         if (!_isSuccess)
             return Try<V>.Failure(_exception!);
-        if (!other.IsSuccess)
+        if (!other.IsOk)
             return Try<V>.Failure(other.GetException());
 
         try
@@ -783,7 +789,7 @@ public static class TryExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Try<T> Tap<T>(this Try<T> @try, Action<T> action)
     {
-        if (@try.IsSuccess)
+        if (@try.IsOk)
         {
             try
             {
@@ -804,7 +810,7 @@ public static class TryExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Try<T> TapFailure<T>(this Try<T> @try, Action<Exception> action)
     {
-        if (@try.IsFailure)
+        if (@try.IsError)
             action(@try.GetException());
 
         return @try;
@@ -843,7 +849,7 @@ public static class TryExtensions
         Func<T, Task<U>> mapper,
         CancellationToken cancellationToken = default)
     {
-        if (!@try.IsSuccess)
+        if (!@try.IsOk)
             return Try<U>.Failure(@try.GetException());
 
         try
@@ -874,7 +880,7 @@ public static class TryExtensions
         Func<T, Task<Try<U>>> binder,
         CancellationToken cancellationToken = default)
     {
-        if (!@try.IsSuccess)
+        if (!@try.IsOk)
             return Try<U>.Failure(@try.GetException());
 
         try
@@ -904,7 +910,7 @@ public static class TryExtensions
         Func<T, CancellationToken, Task<U>> mapper,
         CancellationToken cancellationToken = default)
     {
-        if (!@try.IsSuccess)
+        if (!@try.IsOk)
             return Try<U>.Failure(@try.GetException());
 
         try
@@ -931,7 +937,7 @@ public static class TryExtensions
         Func<T, CancellationToken, Task<Try<U>>> binder,
         CancellationToken cancellationToken = default)
     {
-        if (!@try.IsSuccess)
+        if (!@try.IsOk)
             return Try<U>.Failure(@try.GetException());
 
         try
@@ -996,7 +1002,7 @@ public static class TryExtensions
         cancellationToken.ThrowIfCancellationRequested();
 
         var @try = await tryTask.ConfigureAwait(false);
-        if (!@try.IsSuccess)
+        if (!@try.IsOk)
             return Try<U>.Failure(@try.GetException());
 
         try
@@ -1053,7 +1059,7 @@ public static class TryExtensions
         cancellationToken.ThrowIfCancellationRequested();
 
         var @try = await tryTask.ConfigureAwait(false);
-        if (!@try.IsSuccess)
+        if (!@try.IsOk)
             return Try<U>.Failure(@try.GetException());
 
         try
@@ -1113,11 +1119,11 @@ internal sealed class TryDebugView<T>
         _try = @try;
     }
 
-    public bool IsSuccess => _try.IsSuccess;
-    public bool IsFailure => _try.IsFailure;
+    public bool IsSuccess => _try.IsOk;
+    public bool IsFailure => _try.IsError;
 
     [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-    public object? Value => _try.IsSuccess ? _try.GetValue() : null;
+    public object? Value => _try.IsOk ? _try.GetValue() : null;
 
-    public Exception? Exception => _try.IsFailure ? _try.GetException() : null;
+    public Exception? Exception => _try.IsError ? _try.GetException() : null;
 }

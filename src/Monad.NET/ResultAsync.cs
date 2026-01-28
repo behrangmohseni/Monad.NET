@@ -248,7 +248,7 @@ public static class ResultAsyncExtensions
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await resultTask.ConfigureAwait(false);
-        if (result.IsErr)
+        if (result.IsError)
         {
             cancellationToken.ThrowIfCancellationRequested();
             await action(result.GetError()).ConfigureAwait(false);
@@ -509,7 +509,7 @@ public static class ResultAsyncExtensions
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await resultTask.ConfigureAwait(false);
-        if (result.IsErr)
+        if (result.IsError)
         {
             cancellationToken.ThrowIfCancellationRequested();
             await action(result.GetError(), cancellationToken).ConfigureAwait(false);
@@ -877,7 +877,7 @@ public static class ResultAsyncExtensions
         {
             cancellationToken.ThrowIfCancellationRequested();
             var r = resultTask.Result;
-            if (r.IsErr)
+            if (r.IsError)
                 action(r.GetError());
             return new(r);
         }
@@ -887,7 +887,7 @@ public static class ResultAsyncExtensions
         {
             ct.ThrowIfCancellationRequested();
             var r = await t.ConfigureAwait(false);
-            if (r.IsErr)
+            if (r.IsError)
                 a(r.GetError());
             return r;
         }

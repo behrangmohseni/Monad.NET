@@ -287,7 +287,7 @@ public async Task<Try<T>> RetryWithBackoff<T>(
     {
         var result = await Try<T>.OfAsync(operation);
         
-        if (result.IsSuccess)
+        if (result.IsOk)
             return result;
         
         lastException = result.GetException();

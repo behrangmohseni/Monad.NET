@@ -916,7 +916,7 @@ var email = FindUser(id)
 
 // Where = Filter - keep values matching predicate
 var positive = option.Where(x => x > 0);
-var validOrder = result.Where(order => order.IsValid, OrderError.Invalid);
+var validOrder = result.Where(order => order.IsOk, OrderError.Invalid);
 
 // Combine them fluently
 var result = GetUserId(request)

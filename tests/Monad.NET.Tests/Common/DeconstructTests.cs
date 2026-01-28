@@ -296,7 +296,7 @@ public class DeconstructTests
     {
         var remoteData = RemoteData<int, string>.Success(99);
 
-        var message = (remoteData.IsNotAsked, remoteData.IsLoading, remoteData.IsSuccess, remoteData.IsFailure) switch
+        var message = (remoteData.IsNotAsked, remoteData.IsLoading, remoteData.IsOk, remoteData.IsError) switch
         {
             (true, _, _, _) => "Not asked",
             (_, true, _, _) => "Loading",

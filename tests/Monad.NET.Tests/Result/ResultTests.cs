@@ -10,7 +10,7 @@ public class ResultTests
         var result = Result<int, string>.Ok(42);
 
         Assert.True(result.IsOk);
-        Assert.False(result.IsErr);
+        Assert.False(result.IsError);
         Assert.Equal(42, result.GetValue());
     }
 
@@ -20,7 +20,7 @@ public class ResultTests
         var result = Result<int, string>.Err("error");
 
         Assert.False(result.IsOk);
-        Assert.True(result.IsErr);
+        Assert.True(result.IsError);
         Assert.Equal("error", result.GetError());
     }
 
@@ -121,7 +121,7 @@ public class ResultTests
         var result = Result<int, string>.Err("error");
         var mapped = result.Map(x => x * 2);
 
-        Assert.True(mapped.IsErr);
+        Assert.True(mapped.IsError);
         Assert.Equal("error", mapped.GetError());
     }
 
@@ -141,7 +141,7 @@ public class ResultTests
         var result = Result<int, string>.Err("error");
         var mapped = result.MapError(err => err.Length);
 
-        Assert.True(mapped.IsErr);
+        Assert.True(mapped.IsError);
         Assert.Equal(5, mapped.GetError());
     }
 
@@ -161,7 +161,7 @@ public class ResultTests
         var result = Result<int, string>.Err("error");
         var chained = result.Bind(x => Result<string, string>.Ok(x.ToString()));
 
-        Assert.True(chained.IsErr);
+        Assert.True(chained.IsError);
         Assert.Equal("error", chained.GetError());
     }
 
@@ -185,7 +185,7 @@ public class ResultTests
 
         var combined = result1.Zip(result2);
 
-        Assert.True(combined.IsErr);
+        Assert.True(combined.IsError);
         Assert.Equal("first error", combined.GetError());
     }
 
@@ -197,7 +197,7 @@ public class ResultTests
 
         var combined = result1.Zip(result2);
 
-        Assert.True(combined.IsErr);
+        Assert.True(combined.IsError);
         Assert.Equal("second error", combined.GetError());
     }
 
@@ -221,7 +221,7 @@ public class ResultTests
 
         var combined = result1.ZipWith(result2, (a, b) => a + b);
 
-        Assert.True(combined.IsErr);
+        Assert.True(combined.IsError);
         Assert.Equal("first error", combined.GetError());
     }
 
@@ -233,7 +233,7 @@ public class ResultTests
 
         var combined = result1.ZipWith(result2, (a, b) => a + b);
 
-        Assert.True(combined.IsErr);
+        Assert.True(combined.IsError);
         Assert.Equal("second error", combined.GetError());
     }
 
@@ -383,7 +383,7 @@ public class ResultTests
         var nested = Result<Result<int, string>, string>.Ok(Result<int, string>.Err("inner error"));
         var flattened = nested.Flatten();
 
-        Assert.True(flattened.IsErr);
+        Assert.True(flattened.IsError);
         Assert.Equal("inner error", flattened.GetError());
     }
 
@@ -449,7 +449,7 @@ public class ResultTests
     {
         var result = ResultExtensions.Try<int>(() => throw new InvalidOperationException("test error"));
 
-        Assert.True(result.IsErr);
+        Assert.True(result.IsError);
         Assert.IsType<InvalidOperationException>(result.GetError());
         Assert.Contains("test error", result.GetError().Message);
     }
@@ -469,7 +469,7 @@ public class ResultTests
         var result = await ResultExtensions.TryAsync<int>(() =>
             Task.FromException<int>(new InvalidOperationException("test error")));
 
-        Assert.True(result.IsErr);
+        Assert.True(result.IsError);
         Assert.IsType<InvalidOperationException>(result.GetError());
     }
 

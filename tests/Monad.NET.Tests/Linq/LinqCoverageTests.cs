@@ -25,7 +25,7 @@ public class LinqCoverageTests
         var result = Result<int, string>.Ok(42);
         var filtered = result.Where(x => x > 50, "Value too small");
 
-        Assert.True(filtered.IsErr);
+        Assert.True(filtered.IsError);
         Assert.Equal("Value too small", filtered.GetError());
     }
 
@@ -35,7 +35,7 @@ public class LinqCoverageTests
         var result = Result<int, string>.Err("original error");
         var filtered = result.Where(x => x > 50, "Value too small");
 
-        Assert.True(filtered.IsErr);
+        Assert.True(filtered.IsError);
         Assert.Equal("original error", filtered.GetError());
     }
 
@@ -55,7 +55,7 @@ public class LinqCoverageTests
         var result = Result<int, string>.Ok(42);
         var filtered = result.Where(x => x > 50, x => $"Value {x} is too small");
 
-        Assert.True(filtered.IsErr);
+        Assert.True(filtered.IsError);
         Assert.Equal("Value 42 is too small", filtered.GetError());
     }
 
@@ -65,7 +65,7 @@ public class LinqCoverageTests
         var result = Result<int, string>.Err("original error");
         var filtered = result.Where(x => x > 50, x => $"Value {x} is too small");
 
-        Assert.True(filtered.IsErr);
+        Assert.True(filtered.IsError);
         Assert.Equal("original error", filtered.GetError());
     }
 
@@ -79,7 +79,7 @@ public class LinqCoverageTests
         var result = Try<int>.Success(42);
         var filtered = result.Where(x => x > 40);
 
-        Assert.True(filtered.IsSuccess);
+        Assert.True(filtered.IsOk);
         Assert.Equal(42, filtered.GetValue());
     }
 
@@ -89,7 +89,7 @@ public class LinqCoverageTests
         var result = Try<int>.Success(42);
         var filtered = result.Where(x => x > 50);
 
-        Assert.True(filtered.IsFailure);
+        Assert.True(filtered.IsError);
     }
 
     [Fact]
@@ -98,7 +98,7 @@ public class LinqCoverageTests
         var result = Try<int>.Failure(new InvalidOperationException("error"));
         var filtered = result.Where(x => x > 50);
 
-        Assert.True(filtered.IsFailure);
+        Assert.True(filtered.IsError);
     }
 
     #endregion
@@ -179,7 +179,7 @@ public class LinqCoverageTests
             from y in RemoteData<int, string>.Success(x + 5)
             select x + y;
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(25, result.GetValue()); // 10 + (10 + 5)
     }
 
@@ -193,7 +193,7 @@ public class LinqCoverageTests
             from y in RemoteData<int, string>.Success(x + 5)
             select x + y;
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
         Assert.Equal("error", result.GetError());
     }
 

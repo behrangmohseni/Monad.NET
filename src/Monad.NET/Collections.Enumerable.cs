@@ -19,7 +19,7 @@ public static partial class MonadCollectionExtensions
     /// <example>
     /// <code>
     /// var results = items
-    ///     .Where(x => x.IsValid)
+    ///     .Where(x => x.IsOk)
     ///     .Do(x => Console.WriteLine($"Processing: {x}"))
     ///     .Select(x => x.Transform())
     ///     .ToList();

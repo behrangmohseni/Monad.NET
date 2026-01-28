@@ -132,7 +132,7 @@ public class BehavioralContractTests
         var result = Result<int, string>.Ok(42);
 
         Assert.True(result.IsOk);
-        Assert.False(result.IsErr);
+        Assert.False(result.IsError);
         Assert.Equal(42, result.GetValue());
     }
 
@@ -142,7 +142,7 @@ public class BehavioralContractTests
         var result = Result<int, string>.Err("error");
 
         Assert.False(result.IsOk);
-        Assert.True(result.IsErr);
+        Assert.True(result.IsError);
         Assert.Equal("error", result.GetError());
     }
 
@@ -307,7 +307,7 @@ public class BehavioralContractTests
 
         var mapped = result.Map(x => x * 2);
 
-        Assert.True(mapped.IsErr);
+        Assert.True(mapped.IsError);
         Assert.Equal("error", mapped.GetError());
     }
 
@@ -318,7 +318,7 @@ public class BehavioralContractTests
 
         var mapped = result.MapError(e => e.ToUpper());
 
-        Assert.True(mapped.IsErr);
+        Assert.True(mapped.IsError);
         Assert.Equal("ERROR", mapped.GetError());
     }
 
@@ -356,7 +356,7 @@ public class BehavioralContractTests
             return Result<string, string>.Ok(x.ToString());
         });
 
-        Assert.True(chained.IsErr);
+        Assert.True(chained.IsError);
         Assert.False(executed);
     }
 
@@ -411,8 +411,8 @@ public class BehavioralContractTests
     {
         var validation = Validation<int, string>.Valid(42);
 
-        Assert.True(validation.IsValid);
-        Assert.False(validation.IsInvalid);
+        Assert.True(validation.IsOk);
+        Assert.False(validation.IsError);
         Assert.Equal(42, validation.GetValue());
     }
 
@@ -421,8 +421,8 @@ public class BehavioralContractTests
     {
         var validation = Validation<int, string>.Invalid("error");
 
-        Assert.False(validation.IsValid);
-        Assert.True(validation.IsInvalid);
+        Assert.False(validation.IsOk);
+        Assert.True(validation.IsError);
     }
 
     [Fact]
@@ -433,7 +433,7 @@ public class BehavioralContractTests
 
         var result = v1.Apply(v2, (a, b) => a + b);
 
-        Assert.True(result.IsValid);
+        Assert.True(result.IsOk);
         Assert.Equal(30, result.GetValue());
     }
 
@@ -445,7 +445,7 @@ public class BehavioralContractTests
 
         var result = v1.Apply(v2, (a, b) => a + b);
 
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
         var errors = result.GetErrors();
         Assert.Contains("error1", errors);
         Assert.Contains("error2", errors);
@@ -459,7 +459,7 @@ public class BehavioralContractTests
 
         var result = v1.Apply(v2, (a, b) => a + b);
 
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
         Assert.Contains("error1", result.GetErrors());
     }
 
@@ -472,8 +472,8 @@ public class BehavioralContractTests
     {
         var tryValue = Try<int>.Success(42);
 
-        Assert.True(tryValue.IsSuccess);
-        Assert.False(tryValue.IsFailure);
+        Assert.True(tryValue.IsOk);
+        Assert.False(tryValue.IsError);
         Assert.Equal(42, tryValue.GetValue());
     }
 
@@ -483,8 +483,8 @@ public class BehavioralContractTests
         var exception = new InvalidOperationException("error");
         var tryValue = Try<int>.Failure(exception);
 
-        Assert.False(tryValue.IsSuccess);
-        Assert.True(tryValue.IsFailure);
+        Assert.False(tryValue.IsOk);
+        Assert.True(tryValue.IsError);
         Assert.Equal(exception, tryValue.GetException());
     }
 
@@ -493,7 +493,7 @@ public class BehavioralContractTests
     {
         var tryValue = Try<int>.Of(() => 42);
 
-        Assert.True(tryValue.IsSuccess);
+        Assert.True(tryValue.IsOk);
         Assert.Equal(42, tryValue.GetValue());
     }
 
@@ -502,7 +502,7 @@ public class BehavioralContractTests
     {
         var tryValue = Try<int>.Of(() => throw new InvalidOperationException("error"));
 
-        Assert.True(tryValue.IsFailure);
+        Assert.True(tryValue.IsError);
     }
 
     [Fact]
@@ -512,7 +512,7 @@ public class BehavioralContractTests
 
         var result = tryValue.Recover(_ => 0);
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(0, result.GetValue());
     }
 
@@ -523,7 +523,7 @@ public class BehavioralContractTests
 
         var result = tryValue.Recover(_ => 0);
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(42, result.GetValue());
     }
 

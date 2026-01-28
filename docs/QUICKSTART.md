@@ -245,7 +245,7 @@ var order = ParseOrderId(input)
 // Chain Try operations
 var config = Try<string>.Of(() => File.ReadAllText("config.json"))
     .Select(json => JsonSerializer.Deserialize<Config>(json))
-    .Where(cfg => cfg.IsValid);
+    .Where(cfg => cfg.IsOk);
 ```
 
 ### LINQ Query Syntax

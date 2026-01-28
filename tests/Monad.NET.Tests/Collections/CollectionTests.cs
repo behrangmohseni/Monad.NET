@@ -157,7 +157,7 @@ public class CollectionTests
 
         var result = results.Sequence();
 
-        Assert.True(result.IsErr);
+        Assert.True(result.IsError);
         Assert.Equal("error1", result.GetError());
     }
 
@@ -185,7 +185,7 @@ public class CollectionTests
                 ? Result<int, string>.Ok(value)
                 : Result<int, string>.Err($"Invalid: {s}"));
 
-        Assert.True(result.IsErr);
+        Assert.True(result.IsError);
         Assert.Equal("Invalid: invalid", result.GetError());
     }
 
@@ -268,7 +268,7 @@ public class CollectionTests
 
         var result = results.FirstOk();
 
-        Assert.True(result.IsErr);
+        Assert.True(result.IsError);
         Assert.Equal("error3", result.GetError());
     }
 
@@ -351,7 +351,7 @@ public class CollectionTests
                 : Result<int, string>.Ok(x * 2);
         });
 
-        Assert.True(result.IsErr);
+        Assert.True(result.IsError);
         Assert.Equal("error", result.GetError());
     }
 
@@ -371,7 +371,7 @@ public class CollectionTests
 
         var result = validations.Sequence();
 
-        Assert.True(result.IsValid);
+        Assert.True(result.IsOk);
         Assert.Equal(new[] { 1, 2, 3 }, result.GetValue());
     }
 
@@ -387,7 +387,7 @@ public class CollectionTests
 
         var result = validations.Sequence();
 
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
         var errors = result.GetErrors();
         Assert.Equal(2, errors.Length);
         Assert.Contains("error1", errors);
@@ -405,7 +405,7 @@ public class CollectionTests
 
         var result = validations.Sequence();
 
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
         var errors = result.GetErrors();
         Assert.Equal(3, errors.Length);
         Assert.Contains("error1", errors);
@@ -423,7 +423,7 @@ public class CollectionTests
                 ? Validation<int, string>.Valid(value)
                 : Validation<int, string>.Invalid($"Invalid: {s}"));
 
-        Assert.True(result.IsValid);
+        Assert.True(result.IsOk);
         Assert.Equal(new[] { 1, 2, 3 }, result.GetValue());
     }
 
@@ -437,7 +437,7 @@ public class CollectionTests
                 ? Validation<int, string>.Valid(value)
                 : Validation<int, string>.Invalid($"Invalid: {s}"));
 
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
         var errors = result.GetErrors();
         Assert.Equal(2, errors.Length);
         Assert.Contains("Invalid: invalid", errors);
@@ -511,7 +511,7 @@ public class CollectionTests
 
         var result = tries.Sequence();
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(new[] { 1, 2, 3 }, result.GetValue());
     }
 
@@ -530,7 +530,7 @@ public class CollectionTests
 
         var result = tries.Sequence();
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
         Assert.Same(exception1, result.GetException());
     }
 
@@ -542,7 +542,7 @@ public class CollectionTests
         var result = numbers.Traverse(s =>
             Try<int>.Of(() => int.Parse(s)));
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(new[] { 1, 2, 3 }, result.GetValue());
     }
 
@@ -554,7 +554,7 @@ public class CollectionTests
         var result = numbers.Traverse(s =>
             Try<int>.Of(() => int.Parse(s)));
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
         Assert.IsType<FormatException>(result.GetException());
     }
 
@@ -631,7 +631,7 @@ public class CollectionTests
 
         var result = tries.FirstSuccess();
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(1, result.GetValue());
     }
 
@@ -651,7 +651,7 @@ public class CollectionTests
 
         var result = tries.FirstSuccess();
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
         Assert.Same(ex3, result.GetException());
     }
 
@@ -671,7 +671,7 @@ public class CollectionTests
 
         var result = items.Sequence();
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(new[] { 1, 2, 3 }, result.GetValue());
     }
 
@@ -687,7 +687,7 @@ public class CollectionTests
 
         var result = items.Sequence();
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
         Assert.Equal("error1", result.GetError());
     }
 
@@ -718,7 +718,7 @@ public class CollectionTests
 
         var result = items.Sequence();
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
         Assert.Equal("error", result.GetError());
     }
 
@@ -747,7 +747,7 @@ public class CollectionTests
                 ? RemoteData<int, string>.Success(value)
                 : RemoteData<int, string>.Failure($"Invalid: {s}"));
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(new[] { 1, 2, 3 }, result.GetValue());
     }
 
@@ -761,7 +761,7 @@ public class CollectionTests
                 ? RemoteData<int, string>.Success(value)
                 : RemoteData<int, string>.Failure($"Invalid: {s}"));
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
         Assert.Equal("Invalid: invalid", result.GetError());
     }
 
@@ -833,7 +833,7 @@ public class CollectionTests
 
         var result = items.FirstSuccess();
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(1, result.GetValue());
     }
 
@@ -868,7 +868,7 @@ public class CollectionTests
 
         var result = await validationTasks.SequenceAsync();
 
-        Assert.True(result.IsValid);
+        Assert.True(result.IsOk);
         Assert.Equal(new[] { 1, 2, 3 }, result.GetValue());
     }
 
@@ -884,7 +884,7 @@ public class CollectionTests
 
         var result = await validationTasks.SequenceAsync();
 
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
         var errors = result.GetErrors();
         Assert.Equal(2, errors.Length);
         Assert.Contains("error1", errors);
@@ -902,7 +902,7 @@ public class CollectionTests
             return Validation<int, string>.Valid(x * 2);
         });
 
-        Assert.True(result.IsValid);
+        Assert.True(result.IsOk);
         Assert.Equal(new[] { 2, 4, 6 }, result.GetValue());
     }
 
@@ -919,7 +919,7 @@ public class CollectionTests
                 : Validation<int, string>.Invalid($"Negative: {x}");
         });
 
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
         var errors = result.GetErrors();
         Assert.Equal(2, errors.Length);
         Assert.Contains("Negative: -2", errors);
@@ -942,7 +942,7 @@ public class CollectionTests
 
         var result = await tryTasks.SequenceAsync();
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(new[] { 1, 2, 3 }, result.GetValue());
     }
 
@@ -959,7 +959,7 @@ public class CollectionTests
 
         var result = await tryTasks.SequenceAsync();
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
         Assert.Same(exception, result.GetException());
     }
 
@@ -974,7 +974,7 @@ public class CollectionTests
             return Try<int>.Success(x * 2);
         });
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(new[] { 2, 4, 6 }, result.GetValue());
     }
 
@@ -992,7 +992,7 @@ public class CollectionTests
                 : Try<int>.Success(x * 2);
         });
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
         Assert.Same(exception, result.GetException());
     }
 
@@ -1012,7 +1012,7 @@ public class CollectionTests
 
         var result = await tasks.SequenceAsync();
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(new[] { 1, 2, 3 }, result.GetValue());
     }
 
@@ -1028,7 +1028,7 @@ public class CollectionTests
 
         var result = await tasks.SequenceAsync();
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
         Assert.Equal("error", result.GetError());
     }
 
@@ -1043,7 +1043,7 @@ public class CollectionTests
             return RemoteData<int, string>.Success(x * 2);
         });
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(new[] { 2, 4, 6 }, result.GetValue());
     }
 
@@ -1092,7 +1092,7 @@ public class CollectionTests
                 ? Result<int, string>.Ok(value)
                 : Result<int, string>.Err($"Invalid input: {input}"));
 
-        Assert.True(result.IsErr);
+        Assert.True(result.IsError);
         Assert.Contains("invalid", result.GetError());
     }
 
@@ -1145,7 +1145,7 @@ public class CollectionTests
 
         var result = validations.Sequence();
 
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
         var errors = result.GetErrors();
         Assert.Equal(3, errors.Length);
         Assert.Contains("name is required", errors);

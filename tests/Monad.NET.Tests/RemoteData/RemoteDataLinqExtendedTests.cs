@@ -16,7 +16,7 @@ public class RemoteDataLinqExtendedTests
         var result = from x in rd
                      select x * 2;
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(42, result.GetValue());
     }
 
@@ -47,7 +47,7 @@ public class RemoteDataLinqExtendedTests
         var result = from x in rd
                      select x * 2;
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
         Assert.Equal("error", result.GetError());
     }
 
@@ -65,7 +65,7 @@ public class RemoteDataLinqExtendedTests
                      from y in rd2
                      select x + y;
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(42, result.GetValue());
     }
 
@@ -105,7 +105,7 @@ public class RemoteDataLinqExtendedTests
                      from y in rd2
                      select x + y;
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
     }
 
     #endregion
@@ -124,7 +124,7 @@ public class RemoteDataLinqExtendedTests
                      from c in city
                      select $"{n}, {a}, {c}";
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal("John, 30, NYC", result.GetValue());
     }
 

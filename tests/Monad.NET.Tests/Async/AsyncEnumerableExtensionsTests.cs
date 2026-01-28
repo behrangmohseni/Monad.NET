@@ -221,7 +221,7 @@ public class AsyncEnumerableExtensionsTests
 
         var result = await source.SequenceAsync();
 
-        Assert.True(result.IsErr);
+        Assert.True(result.IsError);
         Assert.Equal("first error", result.GetError());
     }
 

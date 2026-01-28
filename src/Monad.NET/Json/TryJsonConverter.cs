@@ -66,9 +66,9 @@ public class TryJsonConverter<T> : JsonConverter<Try<T>>
     public override void Write(Utf8JsonWriter writer, Try<T> value, JsonSerializerOptions options)
     {
         writer.WriteStartObject();
-        writer.WriteBoolean("isSuccess", value.IsSuccess);
+        writer.WriteBoolean("isSuccess", value.IsOk);
 
-        if (value.IsSuccess)
+        if (value.IsOk)
         {
             writer.WritePropertyName("value");
             JsonSerializer.Serialize(writer, value.GetValue(), options);

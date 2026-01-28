@@ -59,7 +59,7 @@ public class NonEmptyListExtendedTests
     {
         var result = NonEmptyList<int>.FromEnumerable(Array.Empty<int>(), "empty");
 
-        Assert.True(result.IsErr);
+        Assert.True(result.IsError);
         Assert.Equal("empty", result.GetError());
     }
 

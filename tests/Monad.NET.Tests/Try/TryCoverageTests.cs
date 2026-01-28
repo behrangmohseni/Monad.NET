@@ -61,7 +61,7 @@ public class TryCoverageTests
             return 42;
         }, CancellationToken.None);
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(42, result.GetValue());
     }
 
@@ -74,7 +74,7 @@ public class TryCoverageTests
             throw new InvalidOperationException("test error");
         }, CancellationToken.None);
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
         Assert.IsType<InvalidOperationException>(result.GetException());
     }
 
@@ -106,7 +106,7 @@ public class TryCoverageTests
             return x * 2;
         }, CancellationToken.None);
 
-        Assert.True(mapped.IsSuccess);
+        Assert.True(mapped.IsOk);
         Assert.Equal(42, mapped.GetValue());
     }
 
@@ -120,7 +120,7 @@ public class TryCoverageTests
             return x * 2;
         }, CancellationToken.None);
 
-        Assert.True(mapped.IsFailure);
+        Assert.True(mapped.IsError);
     }
 
     [Fact]
@@ -133,7 +133,7 @@ public class TryCoverageTests
             throw new InvalidOperationException("mapper error");
         }, CancellationToken.None);
 
-        Assert.True(mapped.IsFailure);
+        Assert.True(mapped.IsError);
         Assert.IsType<InvalidOperationException>(mapped.GetException());
     }
 
@@ -151,7 +151,7 @@ public class TryCoverageTests
             return Try<int>.Success(x * 2);
         }, CancellationToken.None);
 
-        Assert.True(chained.IsSuccess);
+        Assert.True(chained.IsOk);
         Assert.Equal(42, chained.GetValue());
     }
 
@@ -165,7 +165,7 @@ public class TryCoverageTests
             return Try<int>.Success(x * 2);
         }, CancellationToken.None);
 
-        Assert.True(chained.IsFailure);
+        Assert.True(chained.IsError);
     }
 
     [Fact]
@@ -178,7 +178,7 @@ public class TryCoverageTests
             throw new InvalidOperationException("binder error");
         }, CancellationToken.None);
 
-        Assert.True(chained.IsFailure);
+        Assert.True(chained.IsError);
         Assert.IsType<InvalidOperationException>(chained.GetException());
     }
 

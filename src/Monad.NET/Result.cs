@@ -55,9 +55,12 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     }
 
     /// <summary>
-    /// Returns true if the result is Err.
+    /// Returns true if the result is an error (Err).
     /// </summary>
-    public bool IsErr
+    /// <remarks>
+    /// This follows F# naming conventions for consistency across monadic types.
+    /// </remarks>
+    public bool IsError
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => !_isOk;
@@ -72,7 +75,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// var message = result switch
     /// {
     ///     { IsOk: true, Value: var v } => $"Success: {v}",
-    ///     { IsErr: true, Error: var e } => $"Error: {e}",
+    ///     { IsError: true, Error: var e } => $"Error: {e}",
     ///     _ => "Unknown"
     /// };
     /// </code>
@@ -909,7 +912,7 @@ public static class ResultExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Result<T, TErr> TapErr<T, TErr>(this Result<T, TErr> result, Action<TErr> action)
     {
-        if (result.IsErr)
+        if (result.IsError)
             action(result.GetError());
 
         return result;
@@ -939,7 +942,7 @@ public static class ResultExtensions
     {
         ThrowHelper.ThrowIfNull(exception);
 
-        if (result.IsErr)
+        if (result.IsError)
             throw exception;
 
         return result.GetValue();
@@ -965,7 +968,7 @@ public static class ResultExtensions
     {
         ThrowHelper.ThrowIfNull(exceptionFactory);
 
-        if (result.IsErr)
+        if (result.IsError)
             throw exceptionFactory(result.GetError());
 
         return result.GetValue();
@@ -1029,9 +1032,9 @@ public static class ResultExtensions
         Result<T1, TErr> first,
         Result<T2, TErr> second)
     {
-        if (first.IsErr)
+        if (first.IsError)
             return Result<(T1, T2), TErr>.Err(first.GetError());
-        if (second.IsErr)
+        if (second.IsError)
             return Result<(T1, T2), TErr>.Err(second.GetError());
         return Result<(T1, T2), TErr>.Ok((first.GetValue(), second.GetValue()));
     }
@@ -1055,9 +1058,9 @@ public static class ResultExtensions
         Result<T2, TErr> second,
         Func<T1, T2, TResult> combiner)
     {
-        if (first.IsErr)
+        if (first.IsError)
             return Result<TResult, TErr>.Err(first.GetError());
-        if (second.IsErr)
+        if (second.IsError)
             return Result<TResult, TErr>.Err(second.GetError());
         return Result<TResult, TErr>.Ok(combiner(first.GetValue(), second.GetValue()));
     }
@@ -1072,11 +1075,11 @@ public static class ResultExtensions
         Result<T2, TErr> second,
         Result<T3, TErr> third)
     {
-        if (first.IsErr)
+        if (first.IsError)
             return Result<(T1, T2, T3), TErr>.Err(first.GetError());
-        if (second.IsErr)
+        if (second.IsError)
             return Result<(T1, T2, T3), TErr>.Err(second.GetError());
-        if (third.IsErr)
+        if (third.IsError)
             return Result<(T1, T2, T3), TErr>.Err(third.GetError());
         return Result<(T1, T2, T3), TErr>.Ok((first.GetValue(), second.GetValue(), third.GetValue()));
     }
@@ -1092,11 +1095,11 @@ public static class ResultExtensions
         Result<T3, TErr> third,
         Func<T1, T2, T3, TResult> combiner)
     {
-        if (first.IsErr)
+        if (first.IsError)
             return Result<TResult, TErr>.Err(first.GetError());
-        if (second.IsErr)
+        if (second.IsError)
             return Result<TResult, TErr>.Err(second.GetError());
-        if (third.IsErr)
+        if (third.IsError)
             return Result<TResult, TErr>.Err(third.GetError());
         return Result<TResult, TErr>.Ok(combiner(first.GetValue(), second.GetValue(), third.GetValue()));
     }
@@ -1112,13 +1115,13 @@ public static class ResultExtensions
         Result<T3, TErr> third,
         Result<T4, TErr> fourth)
     {
-        if (first.IsErr)
+        if (first.IsError)
             return Result<(T1, T2, T3, T4), TErr>.Err(first.GetError());
-        if (second.IsErr)
+        if (second.IsError)
             return Result<(T1, T2, T3, T4), TErr>.Err(second.GetError());
-        if (third.IsErr)
+        if (third.IsError)
             return Result<(T1, T2, T3, T4), TErr>.Err(third.GetError());
-        if (fourth.IsErr)
+        if (fourth.IsError)
             return Result<(T1, T2, T3, T4), TErr>.Err(fourth.GetError());
         return Result<(T1, T2, T3, T4), TErr>.Ok((first.GetValue(), second.GetValue(), third.GetValue(), fourth.GetValue()));
     }
@@ -1135,13 +1138,13 @@ public static class ResultExtensions
         Result<T4, TErr> fourth,
         Func<T1, T2, T3, T4, TResult> combiner)
     {
-        if (first.IsErr)
+        if (first.IsError)
             return Result<TResult, TErr>.Err(first.GetError());
-        if (second.IsErr)
+        if (second.IsError)
             return Result<TResult, TErr>.Err(second.GetError());
-        if (third.IsErr)
+        if (third.IsError)
             return Result<TResult, TErr>.Err(third.GetError());
-        if (fourth.IsErr)
+        if (fourth.IsError)
             return Result<TResult, TErr>.Err(fourth.GetError());
         return Result<TResult, TErr>.Ok(combiner(first.GetValue(), second.GetValue(), third.GetValue(), fourth.GetValue()));
     }
@@ -1162,7 +1165,7 @@ public static class ResultExtensions
         var list = new List<T>();
         foreach (var result in results)
         {
-            if (result.IsErr)
+            if (result.IsError)
                 return Result<IReadOnlyList<T>, TErr>.Err(result.GetError());
             list.Add(result.GetValue());
         }
@@ -1185,7 +1188,7 @@ public static class ResultExtensions
     {
         foreach (var result in results)
         {
-            if (result.IsErr)
+            if (result.IsError)
                 return Result<Unit, TErr>.Err(result.GetError());
         }
         return Result<Unit, TErr>.Ok(Unit.Value);
@@ -1363,9 +1366,9 @@ public static class ResultExtensions
     {
         var errors = new List<TErr>();
 
-        if (first.IsErr)
+        if (first.IsError)
             errors.Add(first.GetError());
-        if (second.IsErr)
+        if (second.IsError)
             errors.Add(second.GetError());
 
         if (errors.Count > 0)
@@ -1386,9 +1389,9 @@ public static class ResultExtensions
 
         var errors = new List<TErr>();
 
-        if (first.IsErr)
+        if (first.IsError)
             errors.Add(first.GetError());
-        if (second.IsErr)
+        if (second.IsError)
             errors.Add(second.GetError());
 
         if (errors.Count > 0)
@@ -1407,11 +1410,11 @@ public static class ResultExtensions
     {
         var errors = new List<TErr>();
 
-        if (first.IsErr)
+        if (first.IsError)
             errors.Add(first.GetError());
-        if (second.IsErr)
+        if (second.IsError)
             errors.Add(second.GetError());
-        if (third.IsErr)
+        if (third.IsError)
             errors.Add(third.GetError());
 
         if (errors.Count > 0)
@@ -1433,11 +1436,11 @@ public static class ResultExtensions
 
         var errors = new List<TErr>();
 
-        if (first.IsErr)
+        if (first.IsError)
             errors.Add(first.GetError());
-        if (second.IsErr)
+        if (second.IsError)
             errors.Add(second.GetError());
-        if (third.IsErr)
+        if (third.IsError)
             errors.Add(third.GetError());
 
         if (errors.Count > 0)
@@ -1457,13 +1460,13 @@ public static class ResultExtensions
     {
         var errors = new List<TErr>();
 
-        if (first.IsErr)
+        if (first.IsError)
             errors.Add(first.GetError());
-        if (second.IsErr)
+        if (second.IsError)
             errors.Add(second.GetError());
-        if (third.IsErr)
+        if (third.IsError)
             errors.Add(third.GetError());
-        if (fourth.IsErr)
+        if (fourth.IsError)
             errors.Add(fourth.GetError());
 
         if (errors.Count > 0)
@@ -1556,10 +1559,10 @@ internal sealed class ResultDebugView<T, TErr>
     }
 
     public bool IsOk => _result.IsOk;
-    public bool IsErr => _result.IsErr;
+    public bool IsErr => _result.IsError;
 
     [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
     public object? Value => _result.IsOk ? _result.GetValue() : null;
 
-    public object? Error => _result.IsErr ? _result.GetError() : null;
+    public object? Error => _result.IsError ? _result.GetError() : null;
 }

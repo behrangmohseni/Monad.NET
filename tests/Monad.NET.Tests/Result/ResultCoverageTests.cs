@@ -65,7 +65,7 @@ public class ResultCoverageTests
     {
         var result = Result<int, string>.Ok(42);
         var filtered = result.FilterOrElse(x => x > 50, () => "too small");
-        Assert.True(filtered.IsErr);
+        Assert.True(filtered.IsError);
         Assert.Equal("too small", filtered.GetError());
     }
 
@@ -74,7 +74,7 @@ public class ResultCoverageTests
     {
         var result = Result<int, string>.Err("original error");
         var filtered = result.FilterOrElse(x => x > 50, () => "too small");
-        Assert.True(filtered.IsErr);
+        Assert.True(filtered.IsError);
         // FilterOrElse on Err preserves the original error
         Assert.Equal("original error", filtered.GetError());
     }
@@ -97,7 +97,7 @@ public class ResultCoverageTests
     {
         var result = Result<int, string>.Ok(42);
         var filtered = result.FilterOrElse(x => x > 50, x => $"Value {x} is too small");
-        Assert.True(filtered.IsErr);
+        Assert.True(filtered.IsError);
         Assert.Equal("Value 42 is too small", filtered.GetError());
     }
 
@@ -106,7 +106,7 @@ public class ResultCoverageTests
     {
         var result = Result<int, string>.Err("original error");
         var filtered = result.FilterOrElse(x => x > 50, x => $"Value {x} is too small");
-        Assert.True(filtered.IsErr);
+        Assert.True(filtered.IsError);
         Assert.Equal("original error", filtered.GetError());
     }
 
@@ -190,7 +190,7 @@ public class ResultCoverageTests
         };
 
         var combined = ResultExtensions.Combine(results);
-        Assert.True(combined.IsErr);
+        Assert.True(combined.IsError);
         Assert.Equal("error", combined.GetError());
     }
 
@@ -220,7 +220,7 @@ public class ResultCoverageTests
         };
 
         var combined = ResultExtensions.CombineAll(results);
-        Assert.True(combined.IsErr);
+        Assert.True(combined.IsError);
         Assert.Equal("error", combined.GetError());
     }
 

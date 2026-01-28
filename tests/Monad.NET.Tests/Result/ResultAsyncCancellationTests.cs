@@ -33,7 +33,7 @@ public class ResultAsyncCancellationTests
             return x * 2;
         }, CancellationToken.None);
 
-        Assert.True(mapped.IsErr);
+        Assert.True(mapped.IsError);
         Assert.Equal("error", mapped.GetError());
     }
 
@@ -77,7 +77,7 @@ public class ResultAsyncCancellationTests
             return x * 2;
         }, CancellationToken.None);
 
-        Assert.True(mapped.IsErr);
+        Assert.True(mapped.IsError);
         Assert.Equal("error", mapped.GetError());
     }
 
@@ -109,7 +109,7 @@ public class ResultAsyncCancellationTests
             return e.Length;
         }, CancellationToken.None);
 
-        Assert.True(mapped.IsErr);
+        Assert.True(mapped.IsError);
         Assert.Equal(5, mapped.GetError());
     }
 
@@ -141,7 +141,7 @@ public class ResultAsyncCancellationTests
             return Result<int, string>.Ok(x * 2);
         }, CancellationToken.None);
 
-        Assert.True(chained.IsErr);
+        Assert.True(chained.IsError);
     }
 
     [Fact]
@@ -168,7 +168,7 @@ public class ResultAsyncCancellationTests
             return Result<int, string>.Ok(x * 2);
         }, CancellationToken.None);
 
-        Assert.True(chained.IsErr);
+        Assert.True(chained.IsError);
     }
 
     #endregion
@@ -338,7 +338,7 @@ public class ResultAsyncCancellationTests
         }, CancellationToken.None);
 
         Assert.False(executed);
-        Assert.True(tapped.IsErr);
+        Assert.True(tapped.IsError);
     }
 
     [Fact]
@@ -370,7 +370,7 @@ public class ResultAsyncCancellationTests
         }, CancellationToken.None);
 
         Assert.False(executed);
-        Assert.True(tapped.IsErr);
+        Assert.True(tapped.IsError);
     }
 
     #endregion
@@ -390,7 +390,7 @@ public class ResultAsyncCancellationTests
         }, CancellationToken.None);
 
         Assert.Equal("error", capturedError);
-        Assert.True(tapped.IsErr);
+        Assert.True(tapped.IsError);
     }
 
     [Fact]
@@ -429,7 +429,7 @@ public class ResultAsyncCancellationTests
         var resultTask = Task.FromResult(Result<int, string>.Err("error"));
         var mapped = await resultTask.MapAsync(x => x * 2);
 
-        Assert.True(mapped.IsErr);
+        Assert.True(mapped.IsError);
     }
 
     [Fact]
@@ -448,7 +448,7 @@ public class ResultAsyncCancellationTests
         var resultTask = Task.FromResult(Result<int, string>.Err("error"));
         var mapped = await resultTask.MapErrorAsync(e => e.Length);
 
-        Assert.True(mapped.IsErr);
+        Assert.True(mapped.IsError);
         Assert.Equal(5, mapped.GetError());
     }
 
@@ -468,7 +468,7 @@ public class ResultAsyncCancellationTests
         var resultTask = Task.FromResult(Result<int, string>.Err("error"));
         var chained = await resultTask.BindAsync(x => Result<int, string>.Ok(x * 2));
 
-        Assert.True(chained.IsErr);
+        Assert.True(chained.IsError);
     }
 
     [Fact]

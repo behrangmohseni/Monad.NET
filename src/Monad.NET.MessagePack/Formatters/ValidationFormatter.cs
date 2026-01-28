@@ -9,9 +9,9 @@ public sealed class ValidationFormatter<T, TErr> : IMessagePackFormatter<Validat
     public void Serialize(ref MessagePackWriter writer, Validation<T, TErr> value, MessagePackSerializerOptions options)
     {
         writer.WriteArrayHeader(2);
-        writer.Write(value.IsValid);
+        writer.Write(value.IsOk);
 
-        if (value.IsValid)
+        if (value.IsOk)
         {
             var formatter = options.Resolver.GetFormatterWithVerify<T>();
             formatter.Serialize(ref writer, value.GetValue(), options);

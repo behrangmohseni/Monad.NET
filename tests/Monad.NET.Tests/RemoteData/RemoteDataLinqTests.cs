@@ -15,7 +15,7 @@ public class RemoteDataLinqTests
         var data = RemoteData<int, string>.Success(42);
         var result = from x in data select x * 2;
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(84, result.GetValue());
     }
 
@@ -43,7 +43,7 @@ public class RemoteDataLinqTests
         var data = RemoteData<int, string>.Failure("error");
         var result = from x in data select x * 2;
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
         Assert.Equal("error", result.GetError());
     }
 
@@ -58,7 +58,7 @@ public class RemoteDataLinqTests
                      from y in RemoteData<int, string>.Success(20)
                      select x + y;
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(30, result.GetValue());
     }
 
@@ -89,7 +89,7 @@ public class RemoteDataLinqTests
                      from y in RemoteData<int, string>.Success(20)
                      select x + y;
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
         Assert.Equal("error", result.GetError());
     }
 
@@ -120,7 +120,7 @@ public class RemoteDataLinqTests
                      from y in RemoteData<int, string>.Failure("error")
                      select x + y;
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
         Assert.Equal("error", result.GetError());
     }
 
@@ -132,7 +132,7 @@ public class RemoteDataLinqTests
                      from c in RemoteData<int, string>.Success(3)
                      select a + b + c;
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(6, result.GetValue());
     }
 
@@ -150,7 +150,7 @@ public class RemoteDataLinqTests
             x => second,
             (x, y) => $"{y}: {x}");
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal("hello: 10", result.GetValue());
     }
 
@@ -190,7 +190,7 @@ public class RemoteDataLinqTests
             x => second,
             (x, y) => $"{y}: {x}");
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
         Assert.Equal("error", result.GetError());
     }
 

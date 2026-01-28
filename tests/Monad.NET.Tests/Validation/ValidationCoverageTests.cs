@@ -57,7 +57,7 @@ public class ValidationCoverageTests
     {
         var validation = Validation<int, string>.Valid(42);
         var result = validation.Ensure(x => x > 40, () => "too small");
-        Assert.True(result.IsValid);
+        Assert.True(result.IsOk);
         Assert.Equal(42, result.GetValue());
     }
 
@@ -66,7 +66,7 @@ public class ValidationCoverageTests
     {
         var validation = Validation<int, string>.Valid(42);
         var result = validation.Ensure(x => x > 50, () => "too small");
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
         Assert.Equal("too small", result.GetErrors()[0]);
     }
 
@@ -75,7 +75,7 @@ public class ValidationCoverageTests
     {
         var validation = Validation<int, string>.Invalid("original error");
         var result = validation.Ensure(x => x > 50, () => "too small");
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
         Assert.Equal("original error", result.GetErrors()[0]);
     }
 
@@ -94,7 +94,7 @@ public class ValidationCoverageTests
         };
 
         var combined = validations.Combine();
-        Assert.True(combined.IsValid);
+        Assert.True(combined.IsOk);
         Assert.Equal(3, combined.GetValue());
     }
 
@@ -109,7 +109,7 @@ public class ValidationCoverageTests
         };
 
         var combined = validations.Combine();
-        Assert.True(combined.IsInvalid);
+        Assert.True(combined.IsError);
         Assert.Equal(2, combined.GetErrors().Length);
         Assert.Contains("error1", combined.GetErrors());
         Assert.Contains("error2", combined.GetErrors());
@@ -127,7 +127,7 @@ public class ValidationCoverageTests
         var task3 = Task.FromResult(Validation<int, string>.Valid(3));
 
         var combined = await ValidationExtensions.ZipAsync(task1, task2, task3);
-        Assert.True(combined.IsValid);
+        Assert.True(combined.IsOk);
         Assert.Equal((1, 2, 3), combined.GetValue());
     }
 
@@ -139,7 +139,7 @@ public class ValidationCoverageTests
         var task3 = Task.FromResult(Validation<int, string>.Invalid("error2"));
 
         var combined = await ValidationExtensions.ZipAsync(task1, task2, task3);
-        Assert.True(combined.IsInvalid);
+        Assert.True(combined.IsError);
         Assert.Equal(2, combined.GetErrors().Length);
         Assert.Contains("error1", combined.GetErrors());
         Assert.Contains("error2", combined.GetErrors());
@@ -160,7 +160,7 @@ public class ValidationCoverageTests
         };
 
         var combined = await tasks.CombineAsync();
-        Assert.True(combined.IsValid);
+        Assert.True(combined.IsOk);
         Assert.Equal(new[] { 1, 2, 3 }, combined.GetValue());
     }
 
@@ -175,7 +175,7 @@ public class ValidationCoverageTests
         };
 
         var combined = await tasks.CombineAsync();
-        Assert.True(combined.IsInvalid);
+        Assert.True(combined.IsError);
         Assert.Equal(2, combined.GetErrors().Length);
     }
 

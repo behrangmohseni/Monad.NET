@@ -16,7 +16,7 @@ public class ImprovementTests
 
         var result = validation.Ensure(x => x > 0, "Must be positive");
 
-        Assert.True(result.IsValid);
+        Assert.True(result.IsOk);
         Assert.Equal(42, result.GetValue());
     }
 
@@ -27,7 +27,7 @@ public class ImprovementTests
 
         var result = validation.Ensure(x => x > 100, "Must be greater than 100");
 
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
         Assert.Equal("Must be greater than 100", result.GetErrors()[0]);
     }
 
@@ -38,7 +38,7 @@ public class ImprovementTests
 
         var result = validation.Ensure(x => x > 0, "Must be positive");
 
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
         Assert.Equal("original error", result.GetErrors()[0]);
     }
 
@@ -50,7 +50,7 @@ public class ImprovementTests
             .Ensure(x => x < 100, "Must be less than 100")
             .Ensure(x => x % 2 == 0, "Must be even");
 
-        Assert.True(result.IsValid);
+        Assert.True(result.IsOk);
         Assert.Equal(50, result.GetValue());
     }
 
@@ -61,7 +61,7 @@ public class ImprovementTests
             .Ensure(x => x > 0, "Must be positive")
             .Ensure(x => x < 100, "Must be less than 100");
 
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
         Assert.Equal("Must be positive", result.GetErrors()[0]);
     }
 
@@ -97,7 +97,7 @@ public class ImprovementTests
                 return "error";
             });
 
-        Assert.True(result.IsValid);
+        Assert.True(result.IsOk);
         Assert.False(factoryCalled);
     }
 
@@ -115,7 +115,7 @@ public class ImprovementTests
                 return "Must be > 100";
             });
 
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
         Assert.True(factoryCalled);
         Assert.Equal("Must be > 100", result.GetErrors()[0]);
     }
@@ -134,7 +134,7 @@ public class ImprovementTests
                 return "error";
             });
 
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
         Assert.False(factoryCalled);
         Assert.Equal("original error", result.GetErrors()[0]);
     }
@@ -151,7 +151,7 @@ public class ImprovementTests
 
         var result = nested.Flatten();
 
-        Assert.True(result.IsValid);
+        Assert.True(result.IsOk);
         Assert.Equal(42, result.GetValue());
     }
 
@@ -162,7 +162,7 @@ public class ImprovementTests
 
         var result = nested.Flatten();
 
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
         Assert.Equal("outer error", result.GetErrors()[0]);
     }
 
@@ -174,7 +174,7 @@ public class ImprovementTests
 
         var result = nested.Flatten();
 
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
         Assert.Equal("inner error", result.GetErrors()[0]);
     }
 
@@ -186,7 +186,7 @@ public class ImprovementTests
 
         var result = nested.Flatten();
 
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
         Assert.Equal(2, result.GetErrors().Length);
         Assert.Contains("error1", result.GetErrors());
         Assert.Contains("error2", result.GetErrors());
@@ -218,7 +218,7 @@ public class ImprovementTests
             x => x.ToString(),
             e => e.Length);
 
-        Assert.True(mapped.IsErr);
+        Assert.True(mapped.IsError);
         Assert.Equal(5, mapped.GetError());
     }
 
@@ -260,7 +260,7 @@ public class ImprovementTests
         var biMapped = result.BiMap(x => x.ToString(), e => e.Length);
         var separateMapped = result.Map(x => x.ToString()).MapError(e => e.Length);
 
-        Assert.Equal(biMapped.IsErr, separateMapped.IsErr);
+        Assert.Equal(biMapped.IsError, separateMapped.IsError);
         Assert.Equal(biMapped.GetError(), separateMapped.GetError());
     }
 

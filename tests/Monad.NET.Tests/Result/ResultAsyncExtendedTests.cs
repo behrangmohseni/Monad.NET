@@ -33,7 +33,7 @@ public class ResultAsyncExtendedTests
             return x * 2;
         });
 
-        Assert.True(mapped.IsErr);
+        Assert.True(mapped.IsError);
         Assert.Equal("error", mapped.GetError());
     }
 
@@ -65,7 +65,7 @@ public class ResultAsyncExtendedTests
             return e.ToUpper();
         });
 
-        Assert.True(mapped.IsErr);
+        Assert.True(mapped.IsError);
         Assert.Equal("ERROR", mapped.GetError());
     }
 
@@ -97,7 +97,7 @@ public class ResultAsyncExtendedTests
             return Result<int, string>.Ok(x * 2);
         });
 
-        Assert.True(chained.IsErr);
+        Assert.True(chained.IsError);
     }
 
     [Fact]
@@ -110,7 +110,7 @@ public class ResultAsyncExtendedTests
             return Result<int, string>.Err("chained error");
         });
 
-        Assert.True(chained.IsErr);
+        Assert.True(chained.IsError);
         Assert.Equal("chained error", chained.GetError());
     }
 
@@ -221,7 +221,7 @@ public class ResultAsyncExtendedTests
         });
 
         Assert.False(executed);
-        Assert.True(tapped.IsErr);
+        Assert.True(tapped.IsError);
     }
 
     #endregion
@@ -248,7 +248,7 @@ public class ResultAsyncExtendedTests
 
         var combined = await ResultExtensions.CombineAsync(result1, result2, (a, b) => a + b);
 
-        Assert.True(combined.IsErr);
+        Assert.True(combined.IsError);
     }
 
     [Fact]
@@ -259,7 +259,7 @@ public class ResultAsyncExtendedTests
 
         var combined = await ResultExtensions.CombineAsync(result1, result2, (a, b) => a + b);
 
-        Assert.True(combined.IsErr);
+        Assert.True(combined.IsError);
     }
 
     #endregion

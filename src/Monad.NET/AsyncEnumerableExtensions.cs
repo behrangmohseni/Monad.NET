@@ -234,7 +234,7 @@ public static class AsyncEnumerableExtensions
 
         await foreach (var result in source.WithCancellation(cancellationToken).ConfigureAwait(false))
         {
-            if (result.IsErr)
+            if (result.IsError)
             {
                 yield return result.GetError();
             }
@@ -292,7 +292,7 @@ public static class AsyncEnumerableExtensions
 
         await foreach (var result in source.WithCancellation(cancellationToken).ConfigureAwait(false))
         {
-            if (result.IsErr)
+            if (result.IsError)
             {
                 return Result<IReadOnlyList<T>, E>.Err(result.GetError());
             }
@@ -321,7 +321,7 @@ public static class AsyncEnumerableExtensions
 
         await foreach (var result in source.WithCancellation(cancellationToken).ConfigureAwait(false))
         {
-            if (result.IsSuccess)
+            if (result.IsOk)
             {
                 yield return result.GetValue();
             }
@@ -343,7 +343,7 @@ public static class AsyncEnumerableExtensions
 
         await foreach (var result in source.WithCancellation(cancellationToken).ConfigureAwait(false))
         {
-            if (result.IsFailure)
+            if (result.IsError)
             {
                 yield return result.GetException();
             }

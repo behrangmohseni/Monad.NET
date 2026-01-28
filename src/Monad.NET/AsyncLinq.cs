@@ -216,7 +216,7 @@ public static class AsyncLinqExtensions
         cancellationToken.ThrowIfCancellationRequested();
 
         var @try = await source.ConfigureAwait(false);
-        if (!@try.IsSuccess)
+        if (!@try.IsOk)
             return Try<TResult>.Failure(@try.GetException());
 
         var value = @try.GetValue();
@@ -225,7 +225,7 @@ public static class AsyncLinqExtensions
         try
         {
             var collection = await collectionSelector(value).ConfigureAwait(false);
-            if (!collection.IsSuccess)
+            if (!collection.IsOk)
                 return Try<TResult>.Failure(collection.GetException());
 
             return Try<TResult>.Success(resultSelector(value, collection.GetValue()));
@@ -256,7 +256,7 @@ public static class AsyncLinqExtensions
         cancellationToken.ThrowIfCancellationRequested();
 
         var @try = await source.ConfigureAwait(false);
-        if (!@try.IsSuccess)
+        if (!@try.IsOk)
             return Try<TResult>.Failure(@try.GetException());
 
         var value = @try.GetValue();
@@ -264,7 +264,7 @@ public static class AsyncLinqExtensions
         try
         {
             var collection = collectionSelector(value);
-            if (!collection.IsSuccess)
+            if (!collection.IsOk)
                 return Try<TResult>.Failure(collection.GetException());
 
             return Try<TResult>.Success(resultSelector(value, collection.GetValue()));
@@ -313,14 +313,14 @@ public static class AsyncLinqExtensions
         cancellationToken.ThrowIfCancellationRequested();
 
         var validation = await source.ConfigureAwait(false);
-        if (validation.IsInvalid)
+        if (validation.IsError)
             return Validation<TResult, TErr>.Invalid(validation.GetErrors());
 
         var value = validation.GetValue();
         cancellationToken.ThrowIfCancellationRequested();
 
         var collection = await collectionSelector(value).ConfigureAwait(false);
-        if (collection.IsInvalid)
+        if (collection.IsError)
             return Validation<TResult, TErr>.Invalid(collection.GetErrors());
 
         return Validation<TResult, TErr>.Valid(resultSelector(value, collection.GetValue()));
@@ -342,12 +342,12 @@ public static class AsyncLinqExtensions
         cancellationToken.ThrowIfCancellationRequested();
 
         var validation = await source.ConfigureAwait(false);
-        if (validation.IsInvalid)
+        if (validation.IsError)
             return Validation<TResult, TErr>.Invalid(validation.GetErrors());
 
         var value = validation.GetValue();
         var collection = collectionSelector(value);
-        if (collection.IsInvalid)
+        if (collection.IsError)
             return Validation<TResult, TErr>.Invalid(collection.GetErrors());
 
         return Validation<TResult, TErr>.Valid(resultSelector(value, collection.GetValue()));
