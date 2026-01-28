@@ -49,7 +49,6 @@ var options = MessagePackSerializerOptions.Standard.WithResolver(resolver);
 |:-----|:--------------------|
 | `Option<T>` | `[isSome, value]` or `null` for None |
 | `Result<T, E>` | `[isOk, value/error]` |
-| `Either<L, R>` | `[isRight, value]` |
 | `Try<T>` | `[isSuccess, value/errorMessage]` |
 | `Validation<T, E>` | `[isValid, value/errors]` |
 | `NonEmptyList<T>` | Array of elements |

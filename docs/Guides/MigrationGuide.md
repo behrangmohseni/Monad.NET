@@ -31,7 +31,7 @@ This guide helps you migrate from other functional programming libraries to Mona
 | language-ext | Monad.NET | Notes |
 |--------------|-----------|-------|
 | `Option<A>` | `Option<T>` | Nearly identical API |
-| `Either<L, R>` | `Either<L, R>` | Similar, but Monad.NET is right-biased |
+| `Either<L, R>` | `Result<T, E>` or `[Union]` | Use Result for error handling, [Union] for discriminated unions |
 | `Try<A>` | `Try<T>` | Same concept, different API style |
 | `Validation<FAIL, SUCCESS>` | `Validation<T, E>` | Same concept, simplified API |
 | `Seq<A>` | `IEnumerable<T>` | Use standard .NET collections |
@@ -74,7 +74,7 @@ var value = opt.GetValueOr(0);
 var value2 = opt.GetValueOrElse(() => ComputeDefault());
 ```
 
-#### Either
+#### Either → Result
 
 ```csharp
 // language-ext
@@ -84,11 +84,11 @@ result.Map(u => u.Name);          // Maps right
 result.MapLeft(e => e.Message);   // Maps left
 result.Bind(u => GetProfile(u));
 
-// Monad.NET
-var result = Either<Error, User>.Right(user);
-result.Match(left: err => HandleError(err), right: user => Process(user));
-result.Map(u => u.Name);           // Maps right
-result.MapLeft(e => e.Message);    // Maps left  
+// Monad.NET - Use Result<T, E> for error handling scenarios
+var result = Result<User, Error>.Ok(user);
+result.Match(ok: user => Process(user), err: err => HandleError(err));
+result.Map(u => u.Name);           // Maps ok value
+result.MapError(e => e.Message);   // Maps error
 result.Bind(u => GetProfile(u));
 ```
 
@@ -175,7 +175,7 @@ var result = from user in GetUser(id)
 
 | OneOf | Monad.NET |
 |-------|-----------|
-| `OneOf<T0, T1>` | `Either<T0, T1>` or `[Union]` attribute |
+| `OneOf<T0, T1>` | `[Union]` attribute |
 | `OneOf<T0, T1, T2>` | `[Union]` attribute for 3+ cases |
 
 ### Migration Examples

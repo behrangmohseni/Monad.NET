@@ -71,7 +71,6 @@ var user = from name in ValidateName(input.Name)
 |-------|--------|------------|-------|
 | `Option<T>` | Map value | Chain Options | Filter by predicate |
 | `Result<T,E>` | Map Ok value | Chain Results | With error value/factory |
-| `Either<L,R>` | Map Right | Chain Eithers | With Left value |
 | `Try<T>` | Map success | Chain Trys | Filter with predicate |
 | `Validation<T,E>` | Map valid | Chain (short-circuits) | — |
 | `RemoteData<T,E>` | Map success | Chain RemoteData | — |
@@ -251,10 +250,6 @@ Console.WriteLine(isOk ? $"Success: {val}" : $"Error: {err}");
 var tryResult = Try<int>.Of(() => int.Parse(input));
 var (parsed, ex, success) = tryResult;
 
-// Either: var (left, right, isRight) = either
-var either = Either<string, int>.Right(42);
-var (l, r, isRight) = either;
-
 // Validation: var (value, errors, isValid) = validation
 var validation = ValidateName(name);
 var (validValue, errors, isValid) = validation;
@@ -279,9 +274,6 @@ Option<string> none = null!;              // Same as Option<string>.None()
 
 // Result: value → Ok
 Result<int, string> result = 42;          // Same as Result<int, string>.Ok(42)
-
-// Either: right value → Right
-Either<string, int> either = 42;          // Same as Either<string, int>.Right(42)
 
 // Try: value → Success, Exception → Failure
 Try<int> success = 42;                    // Same as Try<int>.Success(42)

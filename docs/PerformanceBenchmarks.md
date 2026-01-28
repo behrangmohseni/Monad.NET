@@ -195,7 +195,6 @@ catch { return 0; }
 |------|------------|--------|
 | `Option<T>` | 0 bytes | `readonly struct` |
 | `Result<T, E>` | 0 bytes | `readonly struct` |
-| `Either<L, R>` | 0 bytes | `readonly struct` |
 | `Try<T>` | 0-32 bytes | Captures exception if failed |
 | `Validation<T, E>` | 0-N bytes | Allocates list for errors |
 | `NonEmptyList<T>` | N bytes | Wraps underlying list |

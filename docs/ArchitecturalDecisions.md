@@ -30,17 +30,17 @@ This section provides visual diagrams showing how Monad.NET types relate to each
 ┌─────────────────────────────────────────────────────────────────────────────────┐
 │                              ERROR HANDLING TYPES                                │
 │                                                                                  │
-│  ┌─────────────┐    ┌─────────────────┐    ┌─────────────┐    ┌─────────────┐  │
-│  │  Result<T,E>│    │ Validation<T,E> │    │   Try<T>    │    │ Either<L,R> │  │
-│  ├─────────────┤    ├─────────────────┤    ├─────────────┤    ├─────────────┤  │
-│  │ • Ok(value) │    │ • Valid(value)  │    │ • Success   │    │ • Left(L)   │  │
-│  │ • Err(error)│    │ • Invalid(errs) │    │ • Failure   │    │ • Right(R)  │  │
-│  ├─────────────┤    ├─────────────────┤    ├─────────────┤    ├─────────────┤  │
-│  │Short-circuit│    │Accumulates ALL  │    │ Captures    │    │ Unbiased    │  │
-│  │on first err │    │errors           │    │ exceptions  │    │ two values  │  │
-│  └─────────────┘    └─────────────────┘    └─────────────┘    └─────────────┘  │
-│         │                   │                    │                   │          │
-│         └───────────────────┴────────────────────┴───────────────────┘          │
+│  ┌─────────────┐    ┌─────────────────┐    ┌─────────────┐                      │
+│  │  Result<T,E>│    │ Validation<T,E> │    │   Try<T>    │                      │
+│  ├─────────────┤    ├─────────────────┤    ├─────────────┤                      │
+│  │ • Ok(value) │    │ • Valid(value)  │    │ • Success   │                      │
+│  │ • Err(error)│    │ • Invalid(errs) │    │ • Failure   │                      │
+│  ├─────────────┤    ├─────────────────┤    ├─────────────┤                      │
+│  │Short-circuit│    │Accumulates ALL  │    │ Captures    │                      │
+│  │on first err │    │errors           │    │ exceptions  │                      │
+│  └─────────────┘    └─────────────────┘    └─────────────┘                      │
+│         │                   │                    │                               │
+│         └───────────────────┴────────────────────┘                               │
 │                                      │                                           │
 │                           All are readonly structs                               │
 │                           Zero heap allocation                                   │
@@ -192,7 +192,6 @@ This section provides visual diagrams showing how Monad.NET types relate to each
 │ • Result<T,E>     │       │   warnings        │       │ • [ErrorUnion]    │
 │ • Validation<T,E> │       │ • Code fixes      │       │ • Async methods   │
 │ • Try<T>          │       │ • Best practices  │       │                   │
-│ • Either<L,R>     │       │                   │       │                   │
 │ • Reader/Writer   │       │                   │       │                   │
 │ • State/IO        │       │                   │       │                   │
 └───────────────────┘       └───────────────────┘       └───────────────────┘
@@ -225,7 +224,7 @@ Accepted
 When designing monadic types like `Option<T>`, `Result<T, E>`, and others, we needed to decide between reference types (classes) and value types (structs).
 
 ### Decision
-All primary monadic types (`Option<T>`, `Result<T, E>`, `Either<L, R>`, `Try<T>`, `Validation<T, E>`) are implemented as **readonly structs**.
+All primary monadic types (`Option<T>`, `Result<T, E>`, `Try<T>`, `Validation<T, E>`) are implemented as **readonly structs**.
 
 ### Rationale
 

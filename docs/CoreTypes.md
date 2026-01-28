@@ -6,7 +6,6 @@ This document provides detailed documentation for all monad types in Monad.NET.
 
 - [Option\<T\>](#optiont)
 - [Result\<T, E\>](#resultt-e)
-- [Either\<L, R\>](#eitherl-r)
 - [Validation\<T, E\>](#validationt-e)
 - [Try\<T\>](#tryt)
 - [RemoteData\<T, E\>](#remotedatat-e)
@@ -74,7 +73,7 @@ var message = some.Match(
 
 Represents either success (`Ok`) or failure (`Err`) with a typed error.
 
-**Inspired by:** Rust `Result<T, E>`, Haskell `Either a b` (when used for errors)
+**Inspired by:** Rust `Result<T, E>`
 
 ```csharp
 // Creation
@@ -124,34 +123,6 @@ var allResults = ResultExtensions.Combine(ids.Select(GetById));
 ```
 
 **When to use:** Operations that can fail with meaningful error information.
-
----
-
-## Either\<L, R\>
-
-Represents a value of one of two types. More general than `Result`.
-
-**Inspired by:** Haskell `Either a b`, Scala `Either[A, B]`
-
-```csharp
-var right = Either<ValidationError, User>.Right(user);
-var left = Either<ValidationError, User>.Left(error);
-
-// Transform either side
-var mapped = either.BiMap(
-    left: err => err.Message,
-    right: user => user.Id
-);
-
-// Swap sides
-var swapped = either.Swap();
-
-// Conversions
-var asResult = either.ToResult();
-var asOption = either.ToOption();  // Right → Some, Left → None
-```
-
-**When to use:** When both sides represent valid outcomes, not just success/failure.
 
 ---
 

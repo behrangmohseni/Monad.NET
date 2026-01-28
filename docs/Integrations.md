@@ -242,7 +242,6 @@ app.MapControllers();
 | `Result<T,E>` | `ToCreatedResult(location)` | 201 Created | Custom status code |
 | `Result<T,E>` | `ToNoContentResult()` | 204 No Content | Custom status code |
 | `Validation<T,E>` | `ToValidationProblemResult()` | 200 OK | 422 with ValidationProblemDetails |
-| `Either<L,R>` | `ToActionResult()` | 200 OK (Right) | Custom status code (Left) |
 | `Try<T>` | `ToActionResult()` | 200 OK | 500 Internal Server Error |
 
 All extensions have async variants (`ToActionResultAsync`).

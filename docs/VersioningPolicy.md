@@ -254,7 +254,6 @@ var value = option.GetValueOr(default);
 |---------|------------|--------------|
 | `Option<T>` | 1.0.0-alpha.1 | 1.0.0 |
 | `Result<T,E>` | 1.0.0-alpha.1 | 1.0.0 |
-| `Either<L,R>` | 1.0.0-alpha.1 | 1.0.0 |
 | `Validation<T,E>` | 1.0.0-alpha.1 | 1.0.0 |
 | `Try<T>` | 1.0.0-alpha.1 | 1.0.0 |
 | `NonEmptyList<T>` | 1.0.0-alpha.1 | 1.0.0 |

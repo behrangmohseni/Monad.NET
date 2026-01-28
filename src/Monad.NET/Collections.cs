@@ -5,7 +5,7 @@ using Monad.NET.Internal;
 namespace Monad.NET;
 
 /// <summary>
-/// Collection extensions for working with sequences of Option&lt;T&gt;, Result&lt;T, E&gt;, and Either&lt;L, R&gt;.
+/// Collection extensions for working with sequences of Option&lt;T&gt;, Result&lt;T, E&gt;, and other monadic types.
 /// </summary>
 [EditorBrowsable(EditorBrowsableState.Never)]
 public static partial class MonadCollectionExtensions

@@ -13,7 +13,7 @@
     <Company>Behrang Mohseni</Company>
     <Product>Monad.NET.MessagePack</Product>
     <Copyright>Copyright © 2025 Behrang Mohseni</Copyright>
-    <Description>MessagePack serialization support for Monad.NET types. High-performance binary serialization for Option, Result, Either, Try, Validation, and other monad types.</Description>
+    <Description>MessagePack serialization support for Monad.NET types. High-performance binary serialization for Option, Result, Try, Validation, and other monad types.</Description>
     <PackageTags>monad;functional;messagepack;serialization;binary;high-performance</PackageTags>
     <PackageProjectUrl>https://github.com/behrangmohseni/Monad.NET</PackageProjectUrl>
     <RepositoryUrl>https://github.com/behrangmohseni/Monad.NET</RepositoryUrl>

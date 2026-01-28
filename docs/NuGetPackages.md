@@ -6,7 +6,7 @@ Monad.NET is distributed as multiple NuGet packages, allowing you to install onl
 
 | Package | Version | Downloads | Description |
 |---------|---------|-----------|-------------|
-| **Monad.NET** | [![NuGet](https://img.shields.io/nuget/v/Monad.NET.svg)](https://www.nuget.org/packages/Monad.NET/) | [![Downloads](https://img.shields.io/nuget/dt/Monad.NET.svg)](https://www.nuget.org/packages/Monad.NET/) | Core library with Option, Result, Either, Validation, Try, and more |
+| **Monad.NET** | [![NuGet](https://img.shields.io/nuget/v/Monad.NET.svg)](https://www.nuget.org/packages/Monad.NET/) | [![Downloads](https://img.shields.io/nuget/dt/Monad.NET.svg)](https://www.nuget.org/packages/Monad.NET/) | Core library with Option, Result, Validation, Try, and more |
 | **Monad.NET.Analyzers** | [![NuGet](https://img.shields.io/nuget/v/Monad.NET.Analyzers.svg)](https://www.nuget.org/packages/Monad.NET.Analyzers/) | [![Downloads](https://img.shields.io/nuget/dt/Monad.NET.Analyzers.svg)](https://www.nuget.org/packages/Monad.NET.Analyzers/) | Roslyn analyzers for common mistakes and best practices |
 | **Monad.NET.SourceGenerators** | [![NuGet](https://img.shields.io/nuget/v/Monad.NET.SourceGenerators.svg)](https://www.nuget.org/packages/Monad.NET.SourceGenerators/) | [![Downloads](https://img.shields.io/nuget/dt/Monad.NET.SourceGenerators.svg)](https://www.nuget.org/packages/Monad.NET.SourceGenerators/) | Source generators for discriminated unions (`[Union]` attribute) |
 | **Monad.NET.AspNetCore** | [![NuGet](https://img.shields.io/nuget/v/Monad.NET.AspNetCore.svg)](https://www.nuget.org/packages/Monad.NET.AspNetCore/) | [![Downloads](https://img.shields.io/nuget/dt/Monad.NET.AspNetCore.svg)](https://www.nuget.org/packages/Monad.NET.AspNetCore/) | ASP.NET Core integration (Result-to-ActionResult conversions) |
@@ -52,7 +52,6 @@ The core library containing all monad types:
 
 - `Option<T>` — Handle missing values without null
 - `Result<T, E>` — Type-safe error handling
-- `Either<L, R>` — Discriminated union of two types
 - `Validation<T, E>` — Accumulate all validation errors
 - `Try<T>` — Wrap exception-throwing code
 - `NonEmptyList<T>` — List guaranteed to have at least one element

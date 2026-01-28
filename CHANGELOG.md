@@ -58,7 +58,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Improved Error Messages** - Specialized ThrowHelper methods for better diagnostics
   - `Option`: Use `ThrowCannotCreateSomeWithNull()`, `ThrowOptionIsNone()`
   - `Result`: Use `ThrowCannotCreateOkWithNull()`, `ThrowCannotCreateErrWithNull()`, `ThrowResultIsErr()`, `ThrowResultIsOk()`
-  - `Either`: Use `ThrowEitherIsLeft()`, `ThrowEitherIsRight()`
   - `Try`: Use `ThrowTryIsFailure()`, `ThrowTryIsSuccess()`
   - `Validation`: Use `ThrowValidationIsInvalid()`, `ThrowValidationIsValid()`
 
@@ -69,7 +68,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Code Organization** - Split `Collections.cs` (1126 lines) into focused files
   - `Collections.cs` (276 lines): ParallelHelper + Option collections
   - `Collections.Result.cs` (188 lines): Result collection extensions
-  - `Collections.Either.cs` (74 lines): Either collection extensions
   - `Collections.Async.cs` (120 lines): Async collection extensions
   - `Collections.ParallelAsync.cs` (274 lines): Parallel async extensions
   - `Collections.Enumerable.cs` (166 lines): General enumerable extensions
@@ -102,7 +100,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `Option.ParseGuid`, `Option.ParseDateTime`, `Option.ParseEnum<T>`
   - `ReadOnlySpan<char>` overloads for high-performance parsing
 
-- **New Methods on Either, Try, Validation**
+- **New Methods on Try, Validation**
   - Additional combinators and convenience methods
   - Enhanced XML documentation with cross-references
 
@@ -132,7 +130,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Examples
 
 - **Restructured Example Project** - Organized by monad type
-  - Individual example files for each monad (Option, Result, Either, etc.)
+  - Individual example files for each monad (Option, Result, Validation, etc.)
   - New real-world scenario examples
   - Async pipeline examples
 
@@ -166,7 +164,7 @@ This is the first stable release of Monad.NET! The library is now production-rea
 
 #### Highlights
 
-- **12 Monad Types**: Option, Result, Either, Validation, Try, RemoteData, NonEmptyList, Writer, Reader, ReaderAsync, State, IO
+- **11 Monad Types**: Option, Result, Validation, Try, RemoteData, NonEmptyList, Writer, Reader, ReaderAsync, State, IO
 - **Full Async Support**: Async variants for all operations with `ConfigureAwait(false)`
 - **LINQ Integration**: Query syntax and method syntax support
 - **Zero Dependencies**: Core library has no external dependencies
@@ -384,7 +382,6 @@ All features from the alpha releases (1.0.0-alpha.1 through 1.0.0-alpha.13) are 
 - **Implicit operators** for cleaner syntax across all monads
   - `Option<T>`: `Option<int> x = 42;` (value → Some, null → None)
   - `Result<T, E>`: `Result<int, string> r = 42;` (value → Ok)
-  - `Either<L, R>`: `Either<string, int> e = 42;` (value → Right)
   - `Try<T>`: `Try<int> t = 42;` or `Try<int> t = new Exception("err");`
   - `Validation<T, E>`: `Validation<int, string> v = 42;` (value → Valid)
   - `NonEmptyList<T>`: `NonEmptyList<int> l = 42;` (value → single-element list)
@@ -403,7 +400,7 @@ All features from the alpha releases (1.0.0-alpha.1 through 1.0.0-alpha.13) are 
 ### Added
 
 - **Monad.NET.AspNetCore** - New ASP.NET Core integration package
-  - IActionResult extensions for `Option`, `Result`, `Validation`, `Either`, `Try`
+  - IActionResult extensions for `Option`, `Result`, `Validation`, `Try`
   - `ToActionResult()`, `ToCreatedResult()`, `ToNoContentResult()` extensions
   - `ToValidationProblemResult()` for RFC 7807 ValidationProblemDetails
   - `ResultExceptionMiddleware` for global exception handling
@@ -413,7 +410,6 @@ All features from the alpha releases (1.0.0-alpha.1 through 1.0.0-alpha.13) are 
 - **Deconstruction support** for all monad types
   - `Option<T>`: `var (value, isSome) = option`
   - `Result<T, E>`: `var (value, isOk)` or `var (value, error, isOk)`
-  - `Either<L, R>`: `var (left, right, isRight)`
   - `Try<T>`: `var (value, isSuccess)` or `var (value, exception, isSuccess)`
   - `Validation<T, E>`: `var (value, isValid)` or `var (value, errors, isValid)`
   - `RemoteData<T, E>`: `var (data, isSuccess)` or full state deconstruction
@@ -447,7 +443,7 @@ All features from the alpha releases (1.0.0-alpha.1 through 1.0.0-alpha.13) are 
 
 ### Changed
 
-- Optimized core monad types: `Option<T>`, `Result<T,E>`, `Either<L,R>`, `Try<T>`
+- Optimized core monad types: `Option<T>`, `Result<T,E>`, `Try<T>`
 - Optimized async extensions: `OptionAsync`, `ResultAsync`
 - Optimized `Collections` and `Linq` extension methods
 
@@ -504,12 +500,6 @@ All features from the alpha releases (1.0.0-alpha.1 through 1.0.0-alpha.13) are 
   - `Tap`, `TapErr` for side effects
   - `Transpose` for Option/Result conversion
 
-- **Either\<L, R\>** - Value of one of two possible types
-  - `Left(value)` / `Right(value)` constructors
-  - `MapLeft`, `MapRight`, `BiMap` operations
-  - `Swap` to exchange sides
-  - `ToResult`, `ToOption` conversions
-
 - **Validation\<T, E\>** - Error accumulation for form validation
   - `Valid(value)` / `Invalid(errors)` constructors
   - `Apply` for applicative combination (accumulates ALL errors)
@@ -558,7 +548,7 @@ All features from the alpha releases (1.0.0-alpha.1 through 1.0.0-alpha.13) are 
 - `MapAsync`, `FlatMapAsync` for Try
 
 #### LINQ Support
-- `Select` (Map) for Option, Result, Either
+- `Select` (Map) for Option, Result
 - `SelectMany` (FlatMap) for monadic binding
 - `Where` (Filter) for Option and Result
 - Full query syntax support: `from x in ... select ...`
