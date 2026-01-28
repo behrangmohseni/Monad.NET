@@ -719,6 +719,98 @@ public static class RemoteDataExtensions
     {
         return remoteData.IsNotAsked || remoteData.IsLoading;
     }
+
+    #region ValueTask Overloads
+
+    /// <summary>
+    /// Wraps a RemoteData in a completed ValueTask. More efficient than Task.FromResult.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<RemoteData<T, TErr>> AsValueTask<T, TErr>(this RemoteData<T, TErr> remoteData)
+        => new(remoteData);
+
+    /// <summary>
+    /// Maps the value using a synchronous function. Optimized for already-completed scenarios.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<RemoteData<U, TErr>> MapAsync<T, TErr, U>(
+        this ValueTask<RemoteData<T, TErr>> remoteDataTask,
+        Func<T, U> mapper,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(mapper);
+        if (remoteDataTask.IsCompletedSuccessfully)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return new(remoteDataTask.Result.Map(mapper));
+        }
+        return Core(remoteDataTask, mapper, cancellationToken);
+
+        static async ValueTask<RemoteData<U, TErr>> Core(ValueTask<RemoteData<T, TErr>> t, Func<T, U> m, CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            var rd = await t.ConfigureAwait(false);
+            return rd.Map(m);
+        }
+    }
+
+    /// <summary>
+    /// Maps the value using an async function.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async ValueTask<RemoteData<U, TErr>> MapAsync<T, TErr, U>(
+        this ValueTask<RemoteData<T, TErr>> remoteDataTask,
+        Func<T, CancellationToken, ValueTask<U>> mapper,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(mapper);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var remoteData = await remoteDataTask.ConfigureAwait(false);
+        if (!remoteData.IsSuccess)
+            return remoteData.Map(static _ => default(U)!);
+
+        cancellationToken.ThrowIfCancellationRequested();
+        var result = await mapper(remoteData.GetValue(), cancellationToken).ConfigureAwait(false);
+        return RemoteData<U, TErr>.Success(result);
+    }
+
+    /// <summary>
+    /// Pattern matches with synchronous handlers. Optimized for already-completed scenarios.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<U> MatchAsync<T, TErr, U>(
+        this ValueTask<RemoteData<T, TErr>> remoteDataTask,
+        Func<U> notAskedFunc,
+        Func<U> loadingFunc,
+        Func<T, U> successFunc,
+        Func<TErr, U> failureFunc,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(notAskedFunc);
+        ThrowHelper.ThrowIfNull(loadingFunc);
+        ThrowHelper.ThrowIfNull(successFunc);
+        ThrowHelper.ThrowIfNull(failureFunc);
+
+        if (remoteDataTask.IsCompletedSuccessfully)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return new(remoteDataTask.Result.Match(notAskedFunc, loadingFunc, successFunc, failureFunc));
+        }
+        return Core(remoteDataTask, notAskedFunc, loadingFunc, successFunc, failureFunc, cancellationToken);
+
+        static async ValueTask<U> Core(
+            ValueTask<RemoteData<T, TErr>> t,
+            Func<U> na, Func<U> l, Func<T, U> s, Func<TErr, U> f,
+            CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            var rd = await t.ConfigureAwait(false);
+            return rd.Match(na, l, s, f);
+        }
+    }
+
+    #endregion
 }
 
 /// <summary>

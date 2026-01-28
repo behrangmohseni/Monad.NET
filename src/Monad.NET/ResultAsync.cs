@@ -592,4 +592,306 @@ public static class ResultAsyncExtensions
     }
 
     #endregion
+
+    #region ValueTask Overloads
+
+    /// <summary>
+    /// Wraps a Result in a completed ValueTask. More efficient than Task.FromResult.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<Result<T, TErr>> AsValueTask<T, TErr>(this Result<T, TErr> result)
+        => new(result);
+
+    /// <summary>
+    /// Maps the Ok value using a synchronous function. Optimized for already-completed scenarios.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<Result<U, TErr>> MapAsync<T, TErr, U>(
+        this ValueTask<Result<T, TErr>> resultTask,
+        Func<T, U> mapper,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(mapper);
+        if (resultTask.IsCompletedSuccessfully)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return new(resultTask.Result.Map(mapper));
+        }
+        return Core(resultTask, mapper, cancellationToken);
+
+        static async ValueTask<Result<U, TErr>> Core(ValueTask<Result<T, TErr>> t, Func<T, U> m, CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            var r = await t.ConfigureAwait(false);
+            return r.Map(m);
+        }
+    }
+
+    /// <summary>
+    /// Maps the Ok value using an async function.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async ValueTask<Result<U, TErr>> MapAsync<T, TErr, U>(
+        this ValueTask<Result<T, TErr>> resultTask,
+        Func<T, CancellationToken, ValueTask<U>> mapper,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(mapper);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var result = await resultTask.ConfigureAwait(false);
+        if (!result.IsOk)
+            return Result<U, TErr>.Err(result.GetError());
+
+        cancellationToken.ThrowIfCancellationRequested();
+        var value = await mapper(result.GetValue(), cancellationToken).ConfigureAwait(false);
+        return Result<U, TErr>.Ok(value);
+    }
+
+    /// <summary>
+    /// Maps the Err value using a synchronous function. Optimized for already-completed scenarios.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<Result<T, F>> MapErrorAsync<T, TErr, F>(
+        this ValueTask<Result<T, TErr>> resultTask,
+        Func<TErr, F> mapper,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(mapper);
+        if (resultTask.IsCompletedSuccessfully)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return new(resultTask.Result.MapError(mapper));
+        }
+        return Core(resultTask, mapper, cancellationToken);
+
+        static async ValueTask<Result<T, F>> Core(ValueTask<Result<T, TErr>> t, Func<TErr, F> m, CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            var r = await t.ConfigureAwait(false);
+            return r.MapError(m);
+        }
+    }
+
+    /// <summary>
+    /// Chains a synchronous operation. Optimized for already-completed scenarios.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<Result<U, TErr>> BindAsync<T, TErr, U>(
+        this ValueTask<Result<T, TErr>> resultTask,
+        Func<T, Result<U, TErr>> binder,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(binder);
+        if (resultTask.IsCompletedSuccessfully)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return new(resultTask.Result.Bind(binder));
+        }
+        return Core(resultTask, binder, cancellationToken);
+
+        static async ValueTask<Result<U, TErr>> Core(ValueTask<Result<T, TErr>> t, Func<T, Result<U, TErr>> b, CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            var r = await t.ConfigureAwait(false);
+            return r.Bind(b);
+        }
+    }
+
+    /// <summary>
+    /// Chains an async operation.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async ValueTask<Result<U, TErr>> BindAsync<T, TErr, U>(
+        this ValueTask<Result<T, TErr>> resultTask,
+        Func<T, CancellationToken, ValueTask<Result<U, TErr>>> binder,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(binder);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var result = await resultTask.ConfigureAwait(false);
+        if (!result.IsOk)
+            return Result<U, TErr>.Err(result.GetError());
+
+        cancellationToken.ThrowIfCancellationRequested();
+        return await binder(result.GetValue(), cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Pattern matches with synchronous handlers. Optimized for already-completed scenarios.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<U> MatchAsync<T, TErr, U>(
+        this ValueTask<Result<T, TErr>> resultTask,
+        Func<T, U> okFunc,
+        Func<TErr, U> errFunc,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(okFunc);
+        ThrowHelper.ThrowIfNull(errFunc);
+        if (resultTask.IsCompletedSuccessfully)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return new(resultTask.Result.Match(okFunc, errFunc));
+        }
+        return Core(resultTask, okFunc, errFunc, cancellationToken);
+
+        static async ValueTask<U> Core(ValueTask<Result<T, TErr>> t, Func<T, U> ok, Func<TErr, U> err, CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            var r = await t.ConfigureAwait(false);
+            return r.Match(ok, err);
+        }
+    }
+
+    /// <summary>
+    /// Pattern matches with async handlers.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async ValueTask<U> MatchAsync<T, TErr, U>(
+        this ValueTask<Result<T, TErr>> resultTask,
+        Func<T, CancellationToken, ValueTask<U>> okFunc,
+        Func<TErr, CancellationToken, ValueTask<U>> errFunc,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(okFunc);
+        ThrowHelper.ThrowIfNull(errFunc);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var result = await resultTask.ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return result.IsOk
+            ? await okFunc(result.GetValue(), cancellationToken).ConfigureAwait(false)
+            : await errFunc(result.GetError(), cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Returns the Ok value or computes a default. Optimized for already-completed scenarios.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<T> GetValueOrElseAsync<T, TErr>(
+        this ValueTask<Result<T, TErr>> resultTask,
+        Func<TErr, T> op,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(op);
+        if (resultTask.IsCompletedSuccessfully)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return new(resultTask.Result.GetValueOrElse(op));
+        }
+        return Core(resultTask, op, cancellationToken);
+
+        static async ValueTask<T> Core(ValueTask<Result<T, TErr>> t, Func<TErr, T> o, CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            var r = await t.ConfigureAwait(false);
+            return r.GetValueOrElse(o);
+        }
+    }
+
+    /// <summary>
+    /// Returns the Ok value or computes a default asynchronously.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async ValueTask<T> GetValueOrElseAsync<T, TErr>(
+        this ValueTask<Result<T, TErr>> resultTask,
+        Func<TErr, CancellationToken, ValueTask<T>> op,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(op);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var result = await resultTask.ConfigureAwait(false);
+        if (result.IsOk)
+            return result.GetValue();
+
+        cancellationToken.ThrowIfCancellationRequested();
+        return await op(result.GetError(), cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Executes an action if Ok. Optimized for already-completed scenarios.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<Result<T, TErr>> TapAsync<T, TErr>(
+        this ValueTask<Result<T, TErr>> resultTask,
+        Action<T> action,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(action);
+        if (resultTask.IsCompletedSuccessfully)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var r = resultTask.Result;
+            if (r.IsOk)
+                action(r.GetValue());
+            return new(r);
+        }
+        return Core(resultTask, action, cancellationToken);
+
+        static async ValueTask<Result<T, TErr>> Core(ValueTask<Result<T, TErr>> t, Action<T> a, CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            var r = await t.ConfigureAwait(false);
+            if (r.IsOk)
+                a(r.GetValue());
+            return r;
+        }
+    }
+
+    /// <summary>
+    /// Executes an async action if Ok.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async ValueTask<Result<T, TErr>> TapAsync<T, TErr>(
+        this ValueTask<Result<T, TErr>> resultTask,
+        Func<T, CancellationToken, ValueTask> action,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(action);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var result = await resultTask.ConfigureAwait(false);
+        if (result.IsOk)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            await action(result.GetValue(), cancellationToken).ConfigureAwait(false);
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Executes an action if Err. Optimized for already-completed scenarios.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<Result<T, TErr>> TapErrAsync<T, TErr>(
+        this ValueTask<Result<T, TErr>> resultTask,
+        Action<TErr> action,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(action);
+        if (resultTask.IsCompletedSuccessfully)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var r = resultTask.Result;
+            if (r.IsErr)
+                action(r.GetError());
+            return new(r);
+        }
+        return Core(resultTask, action, cancellationToken);
+
+        static async ValueTask<Result<T, TErr>> Core(ValueTask<Result<T, TErr>> t, Action<TErr> a, CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            var r = await t.ConfigureAwait(false);
+            if (r.IsErr)
+                a(r.GetError());
+            return r;
+        }
+    }
+
+    #endregion
 }
