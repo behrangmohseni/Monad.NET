@@ -162,32 +162,6 @@ public class ResultCoverageTests
 
     #endregion
 
-    #region IComparable Tests
-
-    [Fact]
-    public void CompareTo_Object_Null_ReturnsPositive()
-    {
-        var result = Result<int, string>.Ok(42);
-        Assert.Equal(1, ((IComparable)result).CompareTo(null));
-    }
-
-    [Fact]
-    public void CompareTo_Object_InvalidType_ThrowsArgumentException()
-    {
-        var result = Result<int, string>.Ok(42);
-        Assert.Throws<ArgumentException>(() => ((IComparable)result).CompareTo("not a Result"));
-    }
-
-    [Fact]
-    public void CompareTo_Object_ValidResult_ComparesCorrectly()
-    {
-        var result1 = Result<int, string>.Ok(42);
-        var result2 = Result<int, string>.Ok(50);
-        Assert.True(((IComparable)result1).CompareTo(result2) < 0);
-    }
-
-    #endregion
-
     #region Combine Collection Tests
 
     [Fact]

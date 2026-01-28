@@ -183,22 +183,4 @@ public class TryCoverageTests
     }
 
     #endregion
-
-    #region IComparable Tests
-
-    [Fact]
-    public void CompareTo_Object_Null_ReturnsPositive()
-    {
-        var result = Try<int>.Success(42);
-        Assert.Equal(1, ((IComparable)result).CompareTo(null));
-    }
-
-    [Fact]
-    public void CompareTo_Object_InvalidType_ThrowsArgumentException()
-    {
-        var result = Try<int>.Success(42);
-        Assert.Throws<ArgumentException>(() => ((IComparable)result).CompareTo("not a Try"));
-    }
-
-    #endregion
 }

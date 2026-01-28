@@ -28,7 +28,7 @@ namespace Monad.NET;
 [Serializable]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DebuggerTypeProxy(typeof(ResultDebugView<,>))]
-public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparable<Result<T, TErr>>, IComparable
+public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparable<Result<T, TErr>>
 {
     private readonly T? _value;
     private readonly TErr? _error;
@@ -720,17 +720,6 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
         if (!_isOk && !other._isOk)
             return Comparer<TErr>.Default.Compare(_error, other._error);
         return _isOk ? 1 : -1;
-    }
-
-    /// <inheritdoc />
-    int IComparable.CompareTo(object? obj)
-    {
-        if (obj is null)
-            return 1;
-        if (obj is Result<T, TErr> other)
-            return CompareTo(other);
-        ThrowHelper.ThrowArgument(nameof(obj), $"Object must be of type Result<{typeof(T).Name}, {typeof(TErr).Name}>");
-        return 0; // unreachable
     }
 
     /// <inheritdoc />

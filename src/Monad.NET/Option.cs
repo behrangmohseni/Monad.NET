@@ -28,7 +28,7 @@ namespace Monad.NET;
 [Serializable]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DebuggerTypeProxy(typeof(OptionDebugView<>))]
-public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>, IComparable
+public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
 {
     private readonly T? _value;
     private readonly bool _isSome;
@@ -525,17 +525,6 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
         if (!other._isSome)
             return 1;
         return Comparer<T>.Default.Compare(_value, other._value);
-    }
-
-    /// <inheritdoc />
-    int IComparable.CompareTo(object? obj)
-    {
-        if (obj is null)
-            return 1;
-        if (obj is Option<T> other)
-            return CompareTo(other);
-        ThrowHelper.ThrowArgument(nameof(obj), $"Object must be of type Option<{typeof(T).Name}>");
-        return 0; // unreachable
     }
 
     /// <inheritdoc />

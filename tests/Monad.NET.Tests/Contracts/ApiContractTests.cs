@@ -147,7 +147,6 @@ public class ApiContractTests
         var type = typeof(Option<int>);
         Assert.True(typeof(IEquatable<Option<int>>).IsAssignableFrom(type));
         Assert.True(typeof(IComparable<Option<int>>).IsAssignableFrom(type));
-        Assert.True(typeof(IComparable).IsAssignableFrom(type));
     }
 
     #endregion
@@ -223,7 +222,6 @@ public class ApiContractTests
         var type = typeof(Result<int, string>);
         Assert.True(typeof(IEquatable<Result<int, string>>).IsAssignableFrom(type));
         Assert.True(typeof(IComparable<Result<int, string>>).IsAssignableFrom(type));
-        Assert.True(typeof(IComparable).IsAssignableFrom(type));
     }
 
     #endregion
@@ -471,7 +469,6 @@ public class ApiContractTests
     public void Unit_ShouldBeComparable()
     {
         Assert.True(typeof(IComparable<Unit>).IsAssignableFrom(typeof(Unit)));
-        Assert.True(typeof(IComparable).IsAssignableFrom(typeof(Unit)));
     }
 
     #endregion

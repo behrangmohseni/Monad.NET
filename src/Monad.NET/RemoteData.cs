@@ -15,7 +15,7 @@ namespace Monad.NET;
 [Serializable]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DebuggerTypeProxy(typeof(RemoteDataDebugView<,>))]
-public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>, IComparable<RemoteData<T, TErr>>, IComparable
+public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>, IComparable<RemoteData<T, TErr>>
 {
     private readonly T? _data;
     private readonly TErr? _error;
@@ -475,17 +475,6 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>, IC
             RemoteDataState.Failure => Comparer<TErr>.Default.Compare(_error, other._error),
             _ => 0
         };
-    }
-
-    /// <inheritdoc />
-    int IComparable.CompareTo(object? obj)
-    {
-        if (obj is null)
-            return 1;
-        if (obj is RemoteData<T, TErr> other)
-            return CompareTo(other);
-        ThrowHelper.ThrowArgument(nameof(obj), $"Object must be of type RemoteData<{typeof(T).Name}, {typeof(TErr).Name}>");
-        return 0; // unreachable
     }
 
     /// <inheritdoc />
