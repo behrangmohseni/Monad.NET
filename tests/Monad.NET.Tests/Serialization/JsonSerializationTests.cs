@@ -200,7 +200,7 @@ public class JsonSerializationTests
         var original = NonEmptyList<string>.Of("a", "b", "c");
         var json = JsonSerializer.Serialize(original, _options);
         var deserialized = JsonSerializer.Deserialize<NonEmptyList<string>>(json, _options);
-        Assert.NotNull(deserialized);
+        Assert.True(deserialized.IsInitialized);
         Assert.Equal(3, deserialized.Count);
         Assert.Equal("a", deserialized.Head);
     }

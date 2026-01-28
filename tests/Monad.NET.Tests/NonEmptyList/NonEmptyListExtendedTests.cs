@@ -206,7 +206,7 @@ public class NonEmptyListExtendedTests
         var result = list.Tap(x => sum += x);
 
         Assert.Equal(6, sum);
-        Assert.Same(list, result);
+        Assert.Equal(list, result);
     }
 
     [Fact]
@@ -425,7 +425,7 @@ public class NonEmptyListExtendedTests
         var result = list.TakeFirst(10);
 
         Assert.True(result.IsSome);
-        Assert.Same(list, result.GetValue());
+        Assert.Equal(list, result.GetValue());
     }
 
     #endregion

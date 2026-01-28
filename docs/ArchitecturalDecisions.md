@@ -224,7 +224,7 @@ Accepted
 When designing monadic types like `Option<T>`, `Result<T, E>`, and others, we needed to decide between reference types (classes) and value types (structs).
 
 ### Decision
-All primary monadic types (`Option<T>`, `Result<T, E>`, `Try<T>`, `Validation<T, E>`) are implemented as **readonly structs**.
+All primary monadic types (`Option<T>`, `Result<T, E>`, `Try<T>`, `Validation<T, E>`, `NonEmptyList<T>`, `RemoteData<T, E>`) are implemented as **readonly structs**.
 
 ### Rationale
 
