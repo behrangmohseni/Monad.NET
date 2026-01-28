@@ -89,7 +89,6 @@ Monad.NET/
 │   └── Monad.NET/           # Main library
 │       ├── Option.cs        # Option<T> monad
 │       ├── Result.cs        # Result<T, E> monad
-│       ├── Either.cs        # Either<L, R> monad
 │       ├── Validation.cs    # Validation<T, E> monad
 │       ├── Try.cs           # Try<T> monad
 │       ├── RemoteData.cs    # RemoteData<T, E> monad

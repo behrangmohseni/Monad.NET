@@ -183,14 +183,6 @@ Response:
 | `ToCreatedResult(location)` | Valid → 201 |
 | `ToActionResultAsync()` | Async versions |
 
-### Either Extensions
-
-| Method | Description |
-|--------|-------------|
-| `ToActionResult(leftCode)` | Right → 200, Left → specified code |
-| `ToActionResult(onLeft, onRight)` | Custom mapping |
-| `ToActionResultAsync()` | Async versions |
-
 ### Try Extensions
 
 | Method | Description |

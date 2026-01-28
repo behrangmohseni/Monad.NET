@@ -10,7 +10,6 @@ This document provides a comprehensive comparison of all APIs across all monad t
 |------|------------|------------|------------|------------|
 | **Option\<T\>** | `IsSome` | `IsNone` | - | - |
 | **Result\<T,E\>** | `IsOk` | `IsErr` | - | - |
-| **Either\<L,R\>** | `IsRight` | `IsLeft` | - | - |
 | **Validation\<T,E\>** | `IsValid` | `IsInvalid` | - | - |
 | **Try\<T\>** | `IsSuccess` | `IsFailure` | - | - |
 | **RemoteData\<T,E\>** | `IsSuccess` | `IsFailure` | `IsNotAsked` | `IsLoading` |
@@ -18,7 +17,6 @@ This document provides a comprehensive comparison of all APIs across all monad t
 ### Inconsistencies
 - `Option`: `IsSome/IsNone` (Rust-inspired)
 - `Result`: `IsOk/IsErr` (Rust-inspired)
-- `Either`: `IsRight/IsLeft` (Haskell-inspired)
 - `Validation`: `IsValid/IsInvalid` (domain-specific)
 - `Try`: `IsSuccess/IsFailure` (Scala-inspired)
 - `RemoteData`: `IsSuccess/IsFailure` (matches Try)
@@ -31,7 +29,6 @@ This document provides a comprehensive comparison of all APIs across all monad t
 |------|-----------------|-----------------|-------|
 | **Option\<T\>** | `Some(T)` | `None()` | - |
 | **Result\<T,E\>** | `Ok(T)` | `Err(E)` | - |
-| **Either\<L,R\>** | `Right(R)` | `Left(L)` | - |
 | **Validation\<T,E\>** | `Valid(T)` | `Invalid(E)`, `Invalid(IEnumerable<E>)` | - |
 | **Try\<T\>** | `Success(T)` | `Failure(Exception)` | `Of(Func<T>)`, `OfAsync(...)` |
 | **RemoteData\<T,E\>** | `Success(T)` | `Failure(E)` | `NotAsked()`, `Loading()` |
@@ -46,7 +43,6 @@ This document provides a comprehensive comparison of all APIs across all monad t
 - ~~Some types use `Pure` (Reader, State, IO) while others don't~~ → **V2.0: All use `Return`**
 - ~~`IO.Delay` redundant with `IO.Of`~~ → **V2.0: `Delay` removed**
 - `Try` uses `Success/Failure` while `Result` uses `Ok/Err` (kept - semantic to each type)
-- `Either` uses `Left/Right` which is the reverse semantic of `Result` (kept - Haskell convention)
 
 ---
 
@@ -58,7 +54,6 @@ This document provides a comprehensive comparison of all APIs across all monad t
 |------|-----------|-----------|
 | **Option\<T\>** | `GetValue()` | - |
 | **Result\<T,E\>** | `GetValue()` | `GetError()` |
-| **Either\<L,R\>** | `GetRight()` | `GetLeft()` |
 | **Validation\<T,E\>** | `GetValue()` | `GetErrors()` |
 | **Try\<T\>** | `GetValue()` | `GetException()` |
 | **RemoteData\<T,E\>** | `GetValue()` | `GetError()` |
@@ -69,7 +64,6 @@ This document provides a comprehensive comparison of all APIs across all monad t
 |------|------------|----------------|-------------------|
 | **Option\<T\>** | `GetValueOr(T)` | `GetValueOrElse(Func<T>)` | `GetValueOrDefault()` |
 | **Result\<T,E\>** | `GetValueOr(T)` | `GetValueOrElse(Func<E,T>)` | `GetValueOrDefault()` |
-| **Either\<L,R\>** | `RightOr(R)` | - | - |
 | **Validation\<T,E\>** | `GetValueOr(T)` | - | - |
 | **Try\<T\>** | `GetValueOr(T)` | `GetValueOrElse(Func<T>)`, `GetValueOrRecover(Func<Ex,T>)` | - |
 | **RemoteData\<T,E\>** | `GetValueOr(T)` | `GetValueOrElse(Func<T>)` | - |
@@ -80,7 +74,6 @@ This document provides a comprehensive comparison of all APIs across all monad t
 |------|------------------|------------------|
 | **Option\<T\>** | `GetOrThrow(string)` | - |
 | **Result\<T,E\>** | `GetOrThrow(string)` | `GetErrorOrThrow(string)` |
-| **Either\<L,R\>** | `GetRightOrThrow(string)` | `GetLeftOrThrow(string)` |
 | **Validation\<T,E\>** | `GetOrThrow(string)` | `GetErrorsOrThrow(string)` |
 | **Try\<T\>** | `GetOrThrow(string)` | `GetExceptionOrThrow(string)` |
 | **RemoteData\<T,E\>** | - | - |
@@ -91,7 +84,6 @@ This document provides a comprehensive comparison of all APIs across all monad t
 |------|--------------|-----------------|-------------------|----------------------|
 | **Option\<T\>** | ✅ | ✅ | - | - |
 | **Result\<T,E\>** | ✅ | ✅ | ✅ | ✅ |
-| **Either\<L,R\>** | `GetRightOrThrow()` | `GetRightOrThrow(msg)` | `GetLeftOrThrow()` | `GetLeftOrThrow(msg)` |
 | **Validation\<T,E\>** | ✅ | ✅ | `GetErrorsOrThrow()` | `GetErrorsOrThrow(msg)` |
 | **Try\<T\>** | ✅ | ✅ | `GetExceptionOrThrow()` | `GetExceptionOrThrow(msg)` |
 | **RemoteData\<T,E\>** | ❌ | ❌ | ❌ | ❌ |
@@ -102,7 +94,6 @@ This document provides a comprehensive comparison of all APIs across all monad t
 |------|--------------|--------------|
 | **Option\<T\>** | `TryGet(out T?)` | - |
 | **Result\<T,E\>** | `TryGet(out T?)` | `TryGetError(out E?)` |
-| **Either\<L,R\>** | `TryGetRight(out R?)` | `TryGetLeft(out L?)` |
 | **Validation\<T,E\>** | `TryGet(out T?)` | `TryGetErrors(out list)` |
 | **Try\<T\>** | `TryGet(out T?)` | `TryGetException(out Ex?)` |
 | **RemoteData\<T,E\>** | `TryGet(out T?)` | `TryGetError(out E?)` |
@@ -117,7 +108,6 @@ This document provides a comprehensive comparison of all APIs across all monad t
 |------|-----------|-----------|-------|
 | **Option\<T\>** | `Map<U>(Func<T,U>)` | - | ❌ |
 | **Result\<T,E\>** | `Map<U>(Func<T,U>)` | `MapErr<F>(Func<E,F>)` | `BiMap<U,F>(...)` |
-| **Either\<L,R\>** | `MapRight<U>(...)` | `MapLeft<U>(...)` | `BiMap<L2,R2>(...)` |
 | **Validation\<T,E\>** | `Map<U>(Func<T,U>)` | `MapErrors<F>(...)` | `BiMap<U,F>(...)` |
 | **Try\<T\>** | `Map<U>(Func<T,U>)` | - | ❌ |
 | **RemoteData\<T,E\>** | `Map<U>(Func<T,U>)` | `MapError<F>(...)` | `BiMap<U,F>(...)` |
@@ -131,7 +121,6 @@ This document provides a comprehensive comparison of all APIs across all monad t
 - `Result`: `MapErr` → **V2.0: `MapError`**
 - `Validation`: `MapErrors` (plural - kept, multiple errors)
 - `RemoteData`: `MapError` (singular - kept)
-- `Either`: `MapLeft` (kept - semantic to Either)
 
 ### Monadic Bind (V2.0 - Consolidated to `Bind`)
 
@@ -139,7 +128,6 @@ This document provides a comprehensive comparison of all APIs across all monad t
 |------|-------------|------------------------|
 | **Option\<T\>** | ✅ | `AndThen` |
 | **Result\<T,E\>** | ✅ | `FlatMap`, `AndThen` |
-| **Either\<L,R\>** | ✅ | `FlatMap`, `AndThen` |
 | **Validation\<T,E\>** | ✅ | `FlatMap`, `AndThen` |
 | **Try\<T\>** | ✅ | `FlatMap`, `AndThen` |
 | **RemoteData\<T,E\>** | ✅ | `FlatMap`, `AndThen` |
@@ -161,7 +149,6 @@ This document provides a comprehensive comparison of all APIs across all monad t
 |------|--------|-------------------|--------|
 | **Option\<T\>** | `Filter(pred)` | ❌ | ❌ |
 | **Result\<T,E\>** | `Filter(pred, E)` | `Filter(pred, Func<E>)`, `Filter(pred, Func<T,E>)` | ❌ |
-| **Either\<L,R\>** | `FilterRight(pred, L)` | `FilterRight(pred, Func<L>)`, `FilterLeft(pred, R)` | ❌ |
 | **Validation\<T,E\>** | ❌ | ❌ | `Ensure(pred, E)`, `Ensure(pred, Func<E>)` |
 | **Try\<T\>** | `Filter(pred)` | `Filter(pred, string)`, `Filter(pred, Func<Ex>)` | ❌ |
 | **NonEmptyList\<T\>** | `Filter(pred)` → `Option<NonEmptyList<T>>` | ❌ | ❌ |
@@ -180,7 +167,6 @@ This document provides a comprehensive comparison of all APIs across all monad t
 |------|-----|---------|
 | **Option\<T\>** | `Zip<U>(Option<U>)` | `ZipWith<U,V>(Option<U>, Func<T,U,V>)` |
 | **Result\<T,E\>** | `Zip<U>(Result)` | `ZipWith<U,V>(...)` |
-| **Either\<L,R\>** | ❌ | ❌ |
 | **Validation\<T,E\>** | `Zip<U>(...)` | `ZipWith<U,V>(...)` |
 | **Try\<T\>** | `Zip<U>(...)` | `ZipWith<U,V>(...)` |
 | **RemoteData\<T,E\>** | ❌ | ❌ |
@@ -189,7 +175,7 @@ This document provides a comprehensive comparison of all APIs across all monad t
 | **Reader\<R,A\>** | ❌ | `Zip<B,C>(other, combiner)` |
 
 ### Inconsistency
-- `Either` and `RemoteData` missing `Zip/ZipWith`
+- `RemoteData` missing `Zip/ZipWith`
 - `Reader` has `Zip` but with different signature
 
 ### And / Or / OrElse
@@ -198,7 +184,6 @@ This document provides a comprehensive comparison of all APIs across all monad t
 |------|-----|----|--------|
 | **Option\<T\>** | `And<U>(Option<U>)` | `Or(Option<T>)` | `OrElse(Func<Option<T>>)` |
 | **Result\<T,E\>** | `And<U>(Result)` | `Or(Result)` | `OrElse<F>(Func)` |
-| **Either\<L,R\>** | ❌ | ❌ | `OrElse<U>(Func)` |
 | **Validation\<T,E\>** | `And(Validation)` | ❌ | ❌ |
 | **Try\<T\>** | ❌ | ❌ | ❌ |
 | **RemoteData\<T,E\>** | ❌ | `Or(RemoteData)` | `OrElse(Func)` |
@@ -212,7 +197,6 @@ This document provides a comprehensive comparison of all APIs across all monad t
 |------|-------------|-------------|----------|
 | **Option\<T\>** | `Tap(Action<T>)` | `TapNone(Action)` | Instance |
 | **Result\<T,E\>** | `Tap(Action<T>)` | `TapErr(Action<E>)` | Extension |
-| **Either\<L,R\>** | `TapRight(Action<R>)` | `TapLeft(Action<L>)` | Extension |
 | **Validation\<T,E\>** | `Tap(Action<T>)` | `TapErrors(Action<list>)` | Extension |
 | **Try\<T\>** | `Tap(Action<T>)` | `TapFailure(Action<Ex>)` | Extension |
 | **RemoteData\<T,E\>** | `Tap(Action<T>)` | `TapFailure`, `TapNotAsked`, `TapLoading` | Extension |
@@ -240,7 +224,6 @@ This document provides a comprehensive comparison of all APIs across all monad t
 |------|--------------|------------|
 | **Option\<T\>** | `Match(someAction, noneAction)` | `Match<U>(someFunc, noneFunc)` |
 | **Result\<T,E\>** | `Match(okAction, errAction)` | `Match<U>(okFunc, errFunc)` |
-| **Either\<L,R\>** | `Match(leftAction, rightAction)` | `Match<U>(leftFunc, rightFunc)` |
 | **Validation\<T,E\>** | `Match(validAction, invalidAction)` | `Match<U>(validFunc, invalidFunc)` |
 | **Try\<T\>** | `Match(successAction, failureAction)` | `Match<U>(successFunc, failureFunc)` |
 | **RemoteData\<T,E\>** | 4-way match | 4-way match |
@@ -253,12 +236,11 @@ All types consistently have Match, but parameter naming varies with the type sem
 
 ## 9. Conversion Methods
 
-| Type | ToOption | ToResult | ToValidation | ToEither | Other |
-|------|----------|----------|--------------|----------|-------|
-| **Option\<T\>** | - | `OkOr<E>(E)`, `OkOrElse<E>(Func)` | ❌ | ❌ | `AsEnumerable()`, `ToArray()`, `ToList()` |
-| **Result\<T,E\>** | `Ok()` | - | `ToValidation()` | `ToEither()` | `Err()`, `AsEnumerable()`, `ToArray()`, `ToList()` |
-| **Either\<L,R\>** | `RightOption()`, `LeftOption()` | `ToResult()` | ❌ | - | `Swap()` |
-| **Validation\<T,E\>** | `ToOption()` | `ToResult()`, `ToResult(combine)` | - | ❌ | ❌ |
+| Type | ToOption | ToResult | ToValidation | Other |
+|------|----------|----------|--------------|-------|
+| **Option\<T\>** | - | `OkOr<E>(E)`, `OkOrElse<E>(Func)` | ❌ | `AsEnumerable()`, `ToArray()`, `ToList()` |
+| **Result\<T,E\>** | `Ok()` | - | `ToValidation()` | `Err()`, `AsEnumerable()`, `ToArray()`, `ToList()` |
+| **Validation\<T,E\>** | `ToOption()` | `ToResult()`, `ToResult(combine)` | - | ❌ |
 | **Try\<T\>** | `ToOption()` | `ToResult()`, `ToResult<E>(mapper)` | ❌ | ❌ | ❌ |
 | **RemoteData\<T,E\>** | `ToOption()` | `ToResult()`, `ToResult(notAsked, loading)` | ❌ | ❌ | ❌ |
 
@@ -266,7 +248,6 @@ All types consistently have Match, but parameter naming varies with the type sem
 - `Option` doesn't have `ToOption()` (identity)
 - `Option.OkOr` is different naming from `ToResult`
 - Missing `ToValidation` on most types
-- Missing `ToEither` on most types
 
 ---
 
@@ -276,7 +257,6 @@ All types consistently have Match, but parameter naming varies with the type sem
 |------|----------|---------------|--------|-------------|
 | **Option\<T\>** | ✅ | - | ✅ | - |
 | **Result\<T,E\>** | ✅ | ✅ | ✅ | ✅ |
-| **Either\<L,R\>** | `ContainsRight` | `ContainsLeft` | `ExistsRight` | `ExistsLeft` |
 | **Validation\<T,E\>** | ✅ | ❌ | ✅ | ❌ |
 | **Try\<T\>** | ✅ | ❌ | ✅ | ❌ |
 | **RemoteData\<T,E\>** | ❌ | ❌ | ❌ | ❌ |
@@ -310,7 +290,6 @@ All types consistently have Match, but parameter naming varies with the type sem
 |------|---------------|---------------|
 | **Option\<T\>** | `(T? value, bool isSome)` | - |
 | **Result\<T,E\>** | `(T? value, bool isOk)` | `(T? value, E? error, bool isOk)` |
-| **Either\<L,R\>** | `(L? left, R? right, bool isRight)` | - |
 | **Validation\<T,E\>** | `(T? value, bool isValid)` | `(T? value, IReadOnlyList<E> errors, bool isValid)` |
 | **Try\<T\>** | `(T? value, bool isSuccess)` | `(T? value, Exception? ex, bool isSuccess)` |
 | **RemoteData\<T,E\>** | `(T? data, bool isSuccess)` | 6-tuple with all states |
@@ -326,7 +305,6 @@ All types consistently have Match, but parameter naming varies with the type sem
 |------|------------|------------|
 | **Option\<T\>** | `T` → `Option<T>` (handles null → None) | - |
 | **Result\<T,E\>** | `T` → `Result<T,E>` (Ok) | ❌ |
-| **Either\<L,R\>** | `R` → `Either<L,R>` (Right) | ❌ |
 | **Validation\<T,E\>** | `T` → `Validation<T,E>` (Valid) | ❌ |
 | **Try\<T\>** | `T` → `Try<T>` (Success) | `Exception` → `Try<T>` (Failure) |
 | **RemoteData\<T,E\>** | `T` → `RemoteData<T,E>` (Success) | ❌ |
@@ -370,7 +348,6 @@ All types consistently have Match, but parameter naming varies with the type sem
 
 ### 2. Missing APIs
 - `Option`: Missing `FlatMap`, `Bind`, `BiMap`, async support
-- `Either`: Missing `Zip`, `ZipWith`
 - `RemoteData`: Missing `GetOrThrow`, `Contains`, `Exists`
 - `IO`: Missing `TapError`
 
@@ -399,7 +376,6 @@ All three names refer to the same monadic bind operation:
 |------|---------|---------|------|-------------------|
 | **Option\<T\>** | ✅ | ❌ | ❌ | None (only 1) |
 | **Result\<T,E\>** | ✅ | ✅ | ✅ | **HIGH - 3 aliases** |
-| **Either\<L,R\>** | ✅ | ✅ | ✅ | **HIGH - 3 aliases** |
 | **Validation\<T,E\>** | ✅ | ✅ | ✅ | **HIGH - 3 aliases** |
 | **Try\<T\>** | ✅ | ✅ | ✅ | **HIGH - 3 aliases** |
 | **RemoteData\<T,E\>** | ✅ | ✅ | ✅ | **HIGH - 3 aliases** |
@@ -552,16 +528,7 @@ If removing methods is too breaking, consider:
 | `ExpectErr(msg)` | `GetErrorOrThrow(msg)` | Result |
 | `ExpectErrors(msg)` | `GetErrorsOrThrow(msg)` | Validation |
 
-### 4. Either Type Renamed
-
-| Old Name (Removed) | New Name (Kept) |
-|-------------------|-----------------|
-| `UnwrapLeft()` | `GetLeft()` |
-| `UnwrapRight()` | `GetRight()` |
-| `ExpectLeft(msg)` | `GetLeftOrThrow(msg)` |
-| `ExpectRight(msg)` | `GetRightOrThrow(msg)` |
-
-### 5. Pure → Return Consolidation
+### 4. Pure → Return Consolidation
 
 | Type | Removed | Kept |
 |------|---------|------|

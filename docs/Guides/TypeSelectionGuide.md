@@ -110,19 +110,13 @@ Choose RemoteData<T,E> when:
 
 ### Composition Types
 
-| Question | Either<L,R> | Reader<R,A> | Writer<W,T> | State<S,A> |
-|----------|-------------|-------------|-------------|------------|
-| **Purpose?** | Two alternatives | Dependency injection | Logging/traces | Threading state |
-| **Biased?** | Right-biased | N/A | N/A | N/A |
-| **Use case?** | Different outcomes | Shared environment | Audit trails | Pure state |
+| Question | Reader<R,A> | Writer<W,T> | State<S,A> |
+|----------|-------------|-------------|------------|
+| **Purpose?** | Dependency injection | Logging/traces | Threading state |
+| **Biased?** | N/A | N/A | N/A |
+| **Use case?** | Shared environment | Audit trails | Pure state |
 
 ```
-Choose Either<L,R> when:
-  ✓ Both outcomes are valid (not just success/failure)
-  ✓ You need to work with "left" side too
-  ✓ Return different types based on conditions
-  ✓ Examples: Union of types, A-or-B returns
-
 Choose Reader<R,A> when:
   ✓ Passing configuration/services through call chains
   ✓ Avoiding parameter drilling
@@ -302,19 +296,6 @@ public Result<User, UserError> GetUser(int id)
 }
 ```
 
-### Don't: Use Either when you mean Result
-
-```csharp
-// Bad: Using Either for error handling (confusing semantics)
-public Either<Error, User> GetUser(int id);
-
-// Good: Use Result for success/failure semantics
-public Result<User, Error> GetUser(int id);
-
-// Good: Use Either when both sides are valid outcomes
-public Either<CachedUser, FreshUser> GetUser(int id);
-```
-
 ### Don't: Overuse Validation for single checks
 
 ```csharp
@@ -402,7 +383,6 @@ Component Data
 | Handle expected failures | `Result<T, E>` |
 | Show ALL validation errors | `Validation<T, E>` |
 | Wrap throwing code | `Try<T>` |
-| Represent two valid alternatives | `Either<L, R>` |
 | Model async UI state | `RemoteData<T, E>` |
 | Guarantee non-empty collection | `NonEmptyList<T>` |
 | Thread state through pure functions | `State<S, A>` |
@@ -424,7 +404,6 @@ The table above provides a quick reference, but real-world scenarios often requi
 | An operation can fail with a typed error **AND** I want to short-circuit on first error | `Result<T, E>` | Fail-fast semantics; stops processing immediately on error |
 | An operation can fail **AND** I want to accumulate ALL errors | `Validation<T, E>` | Applicative semantics; collects all errors before failing |
 | I'm wrapping legacy code that throws exceptions | `Try<T>` | Converts exception-based APIs to value-based error handling |
-| I need to defer error handling decisions to the caller | `Either<L, R>` | Both sides are equally valid; no inherent success/failure semantics |
 | Error handling AND tracking async loading state (UI) | `RemoteData<T, E>` | Adds `NotAsked` and `Loading` states for UI rendering |
 
 ### Detailed Comparison: Result vs Validation vs Try
@@ -500,18 +479,6 @@ Example scenarios:
   - Legacy library: Try<Data>.Of(() => legacyApi.GetData())
 ```
 
-#### Use `Either<L, R>` when:
-```
-✓ Both outcomes are valid (not success/failure)
-✓ You need to process both sides equally
-✓ Return type can be genuinely one of two things
-✓ Error handling decision should be made by caller
-✓ Modeling union types without the [Union] attribute
-
-Example scenarios:
-  - CachedData | FreshData (both valid, different handling)
-  - TextResponse | BinaryResponse (different processing)
-  - LocalUser | RemoteUser (different capabilities)
 ```
 
 ### Optional Value Decision Guide

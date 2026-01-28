@@ -12,7 +12,6 @@ Complete API documentation for Monad.NET.
 
 - [Option\<T\>](#optiont)
 - [Result\<T, E\>](#resultt-e)
-- [Either\<L, R\>](#eitherl-r)
 - [Validation\<T, E\>](#validationt-e)
 - [Try\<T\>](#tryt)
 - [RemoteData\<T, E\>](#remotedatat-e)
@@ -38,7 +37,6 @@ These types are proven patterns from functional programming. Here's the lineage:
 |-----------|-----|------|---------|
 | `Option<T>` | `Option<'T>` | `Option<T>` | `Maybe a` |
 | `Result<T, E>` | `Result<'T, 'E>` | `Result<T, E>` | `Either a b` |
-| `Either<L, R>` | `Choice<'T1, 'T2>` | — | `Either a b` |
 | `Validation<T, E>` | — | — | `Validation e a` |
 | `Try<T>` | — | — | — (Scala) |
 | `RemoteData<T, E>` | — | — | — (Elm) |
@@ -199,7 +197,7 @@ Represents an optional value - either `Some(value)` or `None`.
 
 Represents success (`Ok`) or failure (`Err`).
 
-> **Inspired by:** Rust's `Result<T, E>`, F#'s `Result<'T, 'E>`, Haskell's `Either a b` (Left=Error convention)
+> **Inspired by:** Rust's `Result<T, E>`, F#'s `Result<'T, 'E>`
 
 ### Constructors
 
@@ -276,50 +274,6 @@ Represents success (`Ok`) or failure (`Err`).
 | Operator | Description |
 |----------|-------------|
 | `implicit operator Result<T, E>(T value)` | Converts value to `Ok` |
-
----
-
-## Either\<L, R\>
-
-Represents a value of one of two types.
-
-> **Inspired by:** Haskell's `Either a b`, F#'s `Choice<'T1, 'T2>`
-
-### Constructors
-
-| Method | Description |
-|--------|-------------|
-| `Left(L value)` | Creates a Left Either |
-| `Right(R value)` | Creates a Right Either |
-
-### Properties
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `IsLeft` | `bool` | True if Left |
-| `IsRight` | `bool` | True if Right |
-
-### Methods
-
-| Method | Return Type | Description |
-|--------|-------------|-------------|
-| `GetLeft()` | `L` | Gets Left value or throws |
-| `GetRight()` | `R` | Gets Right value or throws |
-| `MapLeft<L2>(Func<L, L2>)` | `Either<L2, R>` | Transforms Left |
-| `MapRight<R2>(Func<R, R2>)` | `Either<L, R2>` | Transforms Right |
-| `BiMap<L2, R2>(leftFunc, rightFunc)` | `Either<L2, R2>` | Transforms both |
-| `Bind<R2>(Func<R, Either<L, R2>>)` | `Either<L, R2>` | Chains on Right |
-| `Swap()` | `Either<R, L>` | Swaps Left and Right |
-| `Match<U>(leftFunc, rightFunc)` | `U` | Pattern matching |
-| `ToResult()` | `Result<R, L>` | Converts to Result |
-| `ToOption()` | `Option<R>` | Right to Some, Left to None |
-| `Deconstruct(out L?, out R?, out bool)` | `void` | Deconstructs to `(left, right, isRight)` |
-
-### Operators
-
-| Operator | Description |
-|----------|-------------|
-| `implicit operator Either<L, R>(R value)` | Converts value to `Right` |
 
 ---
 
@@ -905,14 +859,6 @@ program.Run();
 | `FirstOk()` | First Ok or last Err (throws if empty) |
 | `FirstOkOrDefault(defaultError)` | First Ok or last Err or default |
 
-### Either Collections
-
-| Method | Description |
-|--------|-------------|
-| `CollectRights()` | Get all Right values |
-| `CollectLefts()` | Get all Left values |
-| `Partition()` | Separate into (lefts, rights) |
-
 ### Async Collection Extensions
 
 | Method | Description |
@@ -1003,7 +949,6 @@ var result = FindUser(id)
 |-------|--------|------------|-------|
 | `Option<T>` | Yes | Yes | `Where(predicate)` |
 | `Result<T,E>` | Yes | Yes | `Where(predicate, error)` |
-| `Either<L,R>` | Yes (Right) | Yes | `Where(predicate, leftValue)` |
 | `Try<T>` | Yes | Yes | `Where(predicate)` |
 | `Validation<T,E>` | Yes | Yes (short-circuits) | — |
 | `RemoteData<T,E>` | Yes | Yes | — |
