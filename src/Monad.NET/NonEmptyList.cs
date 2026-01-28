@@ -598,7 +598,6 @@ public readonly struct NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList
         head = _head;
         tail = _tail;
     }
-
 }
 
 /// <summary>
