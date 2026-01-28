@@ -684,6 +684,96 @@ public static class OptionAsyncExtensions
         return new ValueTask<Option<T>>(option);
     }
 
+    /// <summary>
+    /// Returns the value or a default from a ValueTask&lt;Option&lt;T&gt;&gt;.
+    /// Optimized for scenarios where the option is frequently Some or already completed.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<T> GetValueOrElseAsync<T>(
+        this ValueTask<Option<T>> optionTask,
+        Func<T> defaultFunc)
+    {
+        ThrowHelper.ThrowIfNull(defaultFunc);
+
+        if (optionTask.IsCompletedSuccessfully)
+        {
+            var option = optionTask.Result;
+            return new ValueTask<T>(option.GetValueOrElse(defaultFunc));
+        }
+
+        return GetValueOrElseAsyncCore(optionTask, defaultFunc);
+
+        static async ValueTask<T> GetValueOrElseAsyncCore(ValueTask<Option<T>> task, Func<T> d)
+        {
+            var option = await task.ConfigureAwait(false);
+            return option.GetValueOrElse(d);
+        }
+    }
+
+    /// <summary>
+    /// Returns the value or a default asynchronously from a ValueTask&lt;Option&lt;T&gt;&gt;.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async ValueTask<T> GetValueOrElseAsync<T>(
+        this ValueTask<Option<T>> optionTask,
+        Func<ValueTask<T>> defaultFunc)
+    {
+        ThrowHelper.ThrowIfNull(defaultFunc);
+
+        var option = await optionTask.ConfigureAwait(false);
+        if (option.IsSome)
+            return option.GetValue();
+
+        return await defaultFunc().ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Executes a synchronous action if the option is Some from a ValueTask&lt;Option&lt;T&gt;&gt;.
+    /// Optimized for scenarios where the option is frequently None or already completed.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<Option<T>> TapAsync<T>(
+        this ValueTask<Option<T>> optionTask,
+        Action<T> action)
+    {
+        ThrowHelper.ThrowIfNull(action);
+
+        if (optionTask.IsCompletedSuccessfully)
+        {
+            var option = optionTask.Result;
+            if (option.IsSome)
+                action(option.GetValue());
+            return new ValueTask<Option<T>>(option);
+        }
+
+        return TapAsyncCore(optionTask, action);
+
+        static async ValueTask<Option<T>> TapAsyncCore(ValueTask<Option<T>> task, Action<T> a)
+        {
+            var option = await task.ConfigureAwait(false);
+            if (option.IsSome)
+                a(option.GetValue());
+            return option;
+        }
+    }
+
+    /// <summary>
+    /// Executes an async action if the option is Some from a ValueTask&lt;Option&lt;T&gt;&gt;.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async ValueTask<Option<T>> TapAsync<T>(
+        this ValueTask<Option<T>> optionTask,
+        Func<T, ValueTask> action)
+    {
+        ThrowHelper.ThrowIfNull(action);
+
+        var option = await optionTask.ConfigureAwait(false);
+        if (option.IsSome)
+            await action(option.GetValue()).ConfigureAwait(false);
+
+        return option;
+    }
+
     #endregion
 
     #region CancellationToken Overloads
@@ -772,6 +862,279 @@ public static class OptionAsyncExtensions
             return await someFunc(option.GetValue(), cancellationToken).ConfigureAwait(false);
 
         return await noneFunc(cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Filters a Task&lt;Option&lt;T&gt;&gt; using an async predicate with cancellation support.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async Task<Option<T>> FilterAsync<T>(
+        this Task<Option<T>> optionTask,
+        Func<T, CancellationToken, Task<bool>> predicate,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(optionTask);
+        ThrowHelper.ThrowIfNull(predicate);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var option = await optionTask.ConfigureAwait(false);
+        if (!option.IsSome)
+            return Option<T>.None();
+
+        cancellationToken.ThrowIfCancellationRequested();
+        var value = option.GetValue();
+        var passes = await predicate(value, cancellationToken).ConfigureAwait(false);
+        return passes ? option : Option<T>.None();
+    }
+
+    /// <summary>
+    /// Returns the value or computes a default asynchronously with cancellation support.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async Task<T> GetValueOrElseAsync<T>(
+        this Task<Option<T>> optionTask,
+        Func<CancellationToken, Task<T>> defaultFunc,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(optionTask);
+        ThrowHelper.ThrowIfNull(defaultFunc);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var option = await optionTask.ConfigureAwait(false);
+        if (option.IsSome)
+            return option.GetValue();
+
+        cancellationToken.ThrowIfCancellationRequested();
+        return await defaultFunc(cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Executes an async action if the option is Some with cancellation support.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async Task<Option<T>> TapAsync<T>(
+        this Task<Option<T>> optionTask,
+        Func<T, CancellationToken, Task> action,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(optionTask);
+        ThrowHelper.ThrowIfNull(action);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var option = await optionTask.ConfigureAwait(false);
+        if (option.IsSome)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            await action(option.GetValue(), cancellationToken).ConfigureAwait(false);
+        }
+
+        return option;
+    }
+
+    /// <summary>
+    /// Converts a Task&lt;Option&lt;T&gt;&gt; to a Task&lt;Result&lt;T, E&gt;&gt; with async error function and cancellation support.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async Task<Result<T, TErr>> OkOrElseAsync<T, TErr>(
+        this Task<Option<T>> optionTask,
+        Func<CancellationToken, Task<TErr>> errFunc,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(optionTask);
+        ThrowHelper.ThrowIfNull(errFunc);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var option = await optionTask.ConfigureAwait(false);
+        if (option.IsSome)
+            return Result<T, TErr>.Ok(option.GetValue());
+
+        cancellationToken.ThrowIfCancellationRequested();
+        return Result<T, TErr>.Err(await errFunc(cancellationToken).ConfigureAwait(false));
+    }
+
+    /// <summary>
+    /// Executes an async action if the option is None with cancellation support.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async Task<Option<T>> TapNoneAsync<T>(
+        this Task<Option<T>> optionTask,
+        Func<CancellationToken, Task> action,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(optionTask);
+        ThrowHelper.ThrowIfNull(action);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var option = await optionTask.ConfigureAwait(false);
+        if (option.IsNone)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            await action(cancellationToken).ConfigureAwait(false);
+        }
+
+        return option;
+    }
+
+    /// <summary>
+    /// Asynchronously zips two Option tasks with cancellation support.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async Task<Option<(T, U)>> ZipAsync<T, U>(
+        Task<Option<T>> firstTask,
+        Task<Option<U>> secondTask,
+        CancellationToken cancellationToken)
+    {
+        ThrowHelper.ThrowIfNull(firstTask);
+        ThrowHelper.ThrowIfNull(secondTask);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var result1 = await firstTask.ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+        var result2 = await secondTask.ConfigureAwait(false);
+
+        return result1.IsSome && result2.IsSome
+            ? Option<(T, U)>.Some((result1.GetValue(), result2.GetValue()))
+            : Option<(T, U)>.None();
+    }
+
+    /// <summary>
+    /// Asynchronously zips two Option tasks using a combiner function with cancellation support.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async Task<Option<V>> ZipWithAsync<T, U, V>(
+        Task<Option<T>> firstTask,
+        Task<Option<U>> secondTask,
+        Func<T, U, V> combiner,
+        CancellationToken cancellationToken)
+    {
+        ThrowHelper.ThrowIfNull(firstTask);
+        ThrowHelper.ThrowIfNull(secondTask);
+        ThrowHelper.ThrowIfNull(combiner);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var result1 = await firstTask.ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+        var result2 = await secondTask.ConfigureAwait(false);
+
+        return result1.IsSome && result2.IsSome
+            ? Option<V>.Some(combiner(result1.GetValue(), result2.GetValue()))
+            : Option<V>.None();
+    }
+
+    /// <summary>
+    /// Returns the first Some option with cancellation support.
+    /// </summary>
+    public static async Task<Option<T>> FirstSomeAsync<T>(
+        this IEnumerable<Task<Option<T>>> optionTasks,
+        CancellationToken cancellationToken)
+    {
+        ThrowHelper.ThrowIfNull(optionTasks);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        foreach (var task in optionTasks)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var option = await task.ConfigureAwait(false);
+            if (option.IsSome)
+                return option;
+        }
+        return Option<T>.None();
+    }
+
+    /// <summary>
+    /// Returns the Option if Some, otherwise returns the alternative computed asynchronously with cancellation support.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async Task<Option<T>> OrElseAsync<T>(
+        this Option<T> option,
+        Func<CancellationToken, Task<Option<T>>> alternativeAsync,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(alternativeAsync);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (option.IsSome)
+            return option;
+
+        return await alternativeAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Returns the Option if Some, otherwise returns the alternative computed asynchronously with cancellation support.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async Task<Option<T>> OrElseAsync<T>(
+        this Task<Option<T>> optionTask,
+        Func<CancellationToken, Task<Option<T>>> alternativeAsync,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(optionTask);
+        ThrowHelper.ThrowIfNull(alternativeAsync);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var option = await optionTask.ConfigureAwait(false);
+        if (option.IsSome)
+            return option;
+
+        cancellationToken.ThrowIfCancellationRequested();
+        return await alternativeAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Filters an Option&lt;T&gt; using an async predicate with cancellation support.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async Task<Option<T>> FilterAsync<T>(
+        this Option<T> option,
+        Func<T, CancellationToken, Task<bool>> predicate,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(predicate);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (!option.IsSome)
+            return Option<T>.None();
+
+        var value = option.GetValue();
+        var passes = await predicate(value, cancellationToken).ConfigureAwait(false);
+        return passes ? option : Option<T>.None();
+    }
+
+    /// <summary>
+    /// Maps an Option&lt;T&gt; using an async function with cancellation support.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async Task<Option<U>> MapAsync<T, U>(
+        this Option<T> option,
+        Func<T, CancellationToken, Task<U>> mapper,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(mapper);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (!option.IsSome)
+            return Option<U>.None();
+
+        var result = await mapper(option.GetValue(), cancellationToken).ConfigureAwait(false);
+        return Option<U>.Some(result);
+    }
+
+    /// <summary>
+    /// Chains an async operation on an Option&lt;T&gt; with cancellation support.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async Task<Option<U>> BindAsync<T, U>(
+        this Option<T> option,
+        Func<T, CancellationToken, Task<Option<U>>> binder,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(binder);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (!option.IsSome)
+            return Option<U>.None();
+
+        return await binder(option.GetValue(), cancellationToken).ConfigureAwait(false);
     }
 
     #endregion

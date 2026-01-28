@@ -671,6 +671,31 @@ public static class RemoteDataExtensions
     }
 
     /// <summary>
+    /// Wraps an async operation in RemoteData with cancellation support.
+    /// </summary>
+    public static async Task<RemoteData<T, Exception>> FromTaskAsync<T>(
+        Func<CancellationToken, Task<T>> taskFunc,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(taskFunc);
+
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var result = await taskFunc(cancellationToken).ConfigureAwait(false);
+            return RemoteData<T, Exception>.Success(result);
+        }
+        catch (OperationCanceledException)
+        {
+            throw; // Re-throw cancellation
+        }
+        catch (Exception ex)
+        {
+            return RemoteData<T, Exception>.Failure(ex);
+        }
+    }
+
+    /// <summary>
     /// Maps RemoteData with an async function.
     /// </summary>
     public static async Task<RemoteData<U, TErr>> MapAsync<T, TErr, U>(
@@ -683,6 +708,24 @@ public static class RemoteDataExtensions
             return remoteData.Map(static _ => default(U)!); // Preserves state
 
         var result = await mapper(remoteData.GetValue()).ConfigureAwait(false);
+        return RemoteData<U, TErr>.Success(result);
+    }
+
+    /// <summary>
+    /// Maps RemoteData with an async function and cancellation support.
+    /// </summary>
+    public static async Task<RemoteData<U, TErr>> MapAsync<T, TErr, U>(
+        this RemoteData<T, TErr> remoteData,
+        Func<T, CancellationToken, Task<U>> mapper,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(mapper);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (!remoteData.IsSuccess)
+            return remoteData.Map(static _ => default(U)!); // Preserves state
+
+        var result = await mapper(remoteData.GetValue(), cancellationToken).ConfigureAwait(false);
         return RemoteData<U, TErr>.Success(result);
     }
 
