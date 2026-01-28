@@ -62,6 +62,36 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
     }
 
     /// <summary>
+    /// Gets the contained value for pattern matching. Returns the value if Success, default otherwise.
+    /// Use with pattern matching in switch expressions.
+    /// </summary>
+    /// <example>
+    /// <code>
+    /// var message = tryResult switch
+    /// {
+    ///     { IsSuccess: true, Value: var v } => $"Success: {v}",
+    ///     { IsFailure: true, Exception: var e } => $"Failed: {e.Message}",
+    ///     _ => "Unknown"
+    /// };
+    /// </code>
+    /// </example>
+    public T? Value
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _value;
+    }
+
+    /// <summary>
+    /// Gets the contained exception for pattern matching. Returns the exception if Failure, null otherwise.
+    /// Use with pattern matching in switch expressions.
+    /// </summary>
+    public Exception? Exception
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _exception;
+    }
+
+    /// <summary>
     /// Creates a successful Try.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

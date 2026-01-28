@@ -336,6 +336,15 @@ public class UnionGenerator : IIncrementalGenerator
             GenerateFactoryMethods(sb, info);
         }
 
+        // Generate MatchAsync methods for async handlers
+        GenerateMatchAsyncMethods(sb, info);
+
+        // Generate With methods for immutable updates on record cases
+        if (info.IsRecord)
+        {
+            GenerateWithMethods(sb, info);
+        }
+
         sb.Append("}\n");
 
         context.AddSource(
@@ -506,6 +515,133 @@ public class UnionGenerator : IIncrementalGenerator
                 sb.Append("    public static ").Append(unionCase.FullTypeName).Append(" New").Append(unionCase.Name).Append("()\n")
                   .Append("        => new ").Append(unionCase.FullTypeName).Append("();\n\n");
             }
+        }
+
+        sb.Append("    #endregion\n\n");
+    }
+
+    private static void GenerateMatchAsyncMethods(StringBuilder sb, UnionInfo info)
+    {
+        sb.Append("    #region MatchAsync Methods\n\n");
+
+        // MatchAsync<TResult> - returns Task<TResult>
+        sb.Append("    /// <summary>\n")
+          .Append("    /// Pattern matches on all cases asynchronously, returning a Task&lt;TResult&gt;.\n")
+          .Append("    /// Each handler returns a Task&lt;TResult&gt; for async operations.\n")
+          .Append("    /// </summary>\n")
+          .Append("    public async global::System.Threading.Tasks.Task<TResult> MatchAsync<TResult>(");
+
+        // Append async Func parameters
+        for (var i = 0; i < info.Cases.Length; i++)
+        {
+            if (i > 0)
+                sb.Append(", ");
+
+            var c = info.Cases[i];
+            sb.Append("global::System.Func<").Append(c.FullTypeName).Append(", global::System.Threading.Tasks.Task<TResult>> ").Append(c.ParameterName);
+        }
+
+        sb.Append(")\n")
+          .Append("    {\n")
+          .Append("        return this switch\n")
+          .Append("        {\n");
+
+        foreach (var unionCase in info.Cases)
+        {
+            sb.Append("            ").Append(unionCase.FullTypeName).Append(" __case__ => await ").Append(unionCase.ParameterName).Append("(__case__).ConfigureAwait(false),\n");
+        }
+
+        sb.Append("            _ => throw new global::System.InvalidOperationException($\"Unknown case: {GetType().Name}\")\n")
+          .Append("        };\n")
+          .Append("    }\n\n");
+
+        // MatchAsync void - returns Task
+        sb.Append("    /// <summary>\n")
+          .Append("    /// Pattern matches on all cases asynchronously, executing an async action.\n")
+          .Append("    /// Each handler returns a Task for async operations.\n")
+          .Append("    /// </summary>\n")
+          .Append("    public async global::System.Threading.Tasks.Task MatchAsync(");
+
+        // Append async Func<T, Task> parameters
+        for (var i = 0; i < info.Cases.Length; i++)
+        {
+            if (i > 0)
+                sb.Append(", ");
+
+            var c = info.Cases[i];
+            sb.Append("global::System.Func<").Append(c.FullTypeName).Append(", global::System.Threading.Tasks.Task> ").Append(c.ParameterName);
+        }
+
+        sb.Append(")\n")
+          .Append("    {\n")
+          .Append("        switch (this)\n")
+          .Append("        {\n");
+
+        foreach (var unionCase in info.Cases)
+        {
+            sb.Append("            case ").Append(unionCase.FullTypeName).Append(" __case__:\n")
+              .Append("                await ").Append(unionCase.ParameterName).Append("(__case__).ConfigureAwait(false);\n")
+              .Append("                break;\n");
+        }
+
+        sb.Append("            default:\n")
+          .Append("                throw new global::System.InvalidOperationException($\"Unknown case: {GetType().Name}\");\n")
+          .Append("        }\n")
+          .Append("    }\n\n")
+          .Append("    #endregion\n\n");
+    }
+
+    private static void GenerateWithMethods(StringBuilder sb, UnionInfo info)
+    {
+        // Only generate With methods for cases that have parameters
+        var casesWithParameters = info.Cases.Where(c => c.Parameters.Length > 0).ToArray();
+        if (casesWithParameters.Length == 0)
+            return;
+
+        sb.Append("    #region With Methods\n\n");
+
+        foreach (var unionCase in casesWithParameters)
+        {
+            sb.Append("    /// <summary>\n")
+              .Append("    /// Creates a copy of this ").Append(unionCase.Name).Append(" with optionally updated values.\n")
+              .Append("    /// Returns null if this is not a ").Append(unionCase.Name).Append(" case.\n")
+              .Append("    /// </summary>\n")
+              .Append("    public ").Append(unionCase.FullTypeName).Append("? With").Append(unionCase.Name).Append("(");
+
+            // Generate optional parameters with default null values
+            for (var i = 0; i < unionCase.Parameters.Length; i++)
+            {
+                if (i > 0)
+                    sb.Append(", ");
+
+                var p = unionCase.Parameters[i];
+                sb.Append(p.FullTypeName).Append("? ").Append(p.Name).Append(" = default");
+            }
+
+            sb.Append(")\n")
+              .Append("    {\n")
+              .Append("        if (this is not ").Append(unionCase.FullTypeName).Append(" __current__)\n")
+              .Append("            return null;\n\n")
+              .Append("        return new ").Append(unionCase.FullTypeName).Append("(\n");
+
+            // Use provided value or current value with null-coalescing
+            for (var i = 0; i < unionCase.Parameters.Length; i++)
+            {
+                var p = unionCase.Parameters[i];
+                var pascalName = char.ToUpperInvariant(p.Name[0]) + p.Name.Substring(1);
+                
+                sb.Append("            ");
+                if (i > 0)
+                    sb.Append(", ");
+                
+                sb.Append(p.Name).Append(" ?? __current__.").Append(pascalName);
+                
+                if (i < unionCase.Parameters.Length - 1)
+                    sb.Append('\n');
+            }
+
+            sb.Append(");\n")
+              .Append("    }\n\n");
         }
 
         sb.Append("    #endregion\n");
