@@ -32,8 +32,8 @@ public readonly struct NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList
     private readonly bool _isInitialized;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private string DebuggerDisplay => _isInitialized 
-        ? $"NonEmptyList[{Count}] {{ {_head}, ... }}" 
+    private string DebuggerDisplay => _isInitialized
+        ? $"NonEmptyList[{Count}] {{ {_head}, ... }}"
         : "NonEmptyList (uninitialized)";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
