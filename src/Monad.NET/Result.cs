@@ -1362,15 +1362,15 @@ public static class ResultExtensions
         Result<T2, TErr> second)
     {
         var errors = new List<TErr>();
-        
+
         if (first.IsErr)
             errors.Add(first.GetError());
         if (second.IsErr)
             errors.Add(second.GetError());
-        
+
         if (errors.Count > 0)
             return Result<(T1, T2), IReadOnlyList<TErr>>.Err(errors);
-        
+
         return Result<(T1, T2), IReadOnlyList<TErr>>.Ok((first.GetValue(), second.GetValue()));
     }
 
@@ -1383,17 +1383,17 @@ public static class ResultExtensions
         Func<T1, T2, TResult> combiner)
     {
         ThrowHelper.ThrowIfNull(combiner);
-        
+
         var errors = new List<TErr>();
-        
+
         if (first.IsErr)
             errors.Add(first.GetError());
         if (second.IsErr)
             errors.Add(second.GetError());
-        
+
         if (errors.Count > 0)
             return Result<TResult, IReadOnlyList<TErr>>.Err(errors);
-        
+
         return Result<TResult, IReadOnlyList<TErr>>.Ok(combiner(first.GetValue(), second.GetValue()));
     }
 
@@ -1406,17 +1406,17 @@ public static class ResultExtensions
         Result<T3, TErr> third)
     {
         var errors = new List<TErr>();
-        
+
         if (first.IsErr)
             errors.Add(first.GetError());
         if (second.IsErr)
             errors.Add(second.GetError());
         if (third.IsErr)
             errors.Add(third.GetError());
-        
+
         if (errors.Count > 0)
             return Result<(T1, T2, T3), IReadOnlyList<TErr>>.Err(errors);
-        
+
         return Result<(T1, T2, T3), IReadOnlyList<TErr>>.Ok((first.GetValue(), second.GetValue(), third.GetValue()));
     }
 
@@ -1430,19 +1430,19 @@ public static class ResultExtensions
         Func<T1, T2, T3, TResult> combiner)
     {
         ThrowHelper.ThrowIfNull(combiner);
-        
+
         var errors = new List<TErr>();
-        
+
         if (first.IsErr)
             errors.Add(first.GetError());
         if (second.IsErr)
             errors.Add(second.GetError());
         if (third.IsErr)
             errors.Add(third.GetError());
-        
+
         if (errors.Count > 0)
             return Result<TResult, IReadOnlyList<TErr>>.Err(errors);
-        
+
         return Result<TResult, IReadOnlyList<TErr>>.Ok(combiner(first.GetValue(), second.GetValue(), third.GetValue()));
     }
 
@@ -1456,7 +1456,7 @@ public static class ResultExtensions
         Result<T4, TErr> fourth)
     {
         var errors = new List<TErr>();
-        
+
         if (first.IsErr)
             errors.Add(first.GetError());
         if (second.IsErr)
@@ -1465,10 +1465,10 @@ public static class ResultExtensions
             errors.Add(third.GetError());
         if (fourth.IsErr)
             errors.Add(fourth.GetError());
-        
+
         if (errors.Count > 0)
             return Result<(T1, T2, T3, T4), IReadOnlyList<TErr>>.Err(errors);
-        
+
         return Result<(T1, T2, T3, T4), IReadOnlyList<TErr>>.Ok((
             first.GetValue(), second.GetValue(), third.GetValue(), fourth.GetValue()));
     }
@@ -1487,10 +1487,10 @@ public static class ResultExtensions
         IEnumerable<Result<T, TErr>> results)
     {
         ThrowHelper.ThrowIfNull(results);
-        
+
         var values = new List<T>();
         var errors = new List<TErr>();
-        
+
         foreach (var result in results)
         {
             if (result.IsOk)
@@ -1498,10 +1498,10 @@ public static class ResultExtensions
             else
                 errors.Add(result.GetError());
         }
-        
+
         if (errors.Count > 0)
             return Result<IReadOnlyList<T>, IReadOnlyList<TErr>>.Err(errors);
-        
+
         return Result<IReadOnlyList<T>, IReadOnlyList<TErr>>.Ok(values);
     }
 
@@ -1520,7 +1520,7 @@ public static class ResultExtensions
         var result1 = await first.ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
         var result2 = await second.ConfigureAwait(false);
-        
+
         return CombineErrors(result1, result2);
     }
 
@@ -1536,7 +1536,7 @@ public static class ResultExtensions
 
         var results = await Task.WhenAll(resultTasks).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
-        
+
         return CombineErrors(results);
     }
 

@@ -629,13 +629,13 @@ public class UnionGenerator : IIncrementalGenerator
             {
                 var p = unionCase.Parameters[i];
                 var pascalName = char.ToUpperInvariant(p.Name[0]) + p.Name.Substring(1);
-                
+
                 sb.Append("            ");
                 if (i > 0)
                     sb.Append(", ");
-                
+
                 sb.Append(p.Name).Append(" ?? __current__.").Append(pascalName);
-                
+
                 if (i < unionCase.Parameters.Length - 1)
                     sb.Append('\n');
             }
