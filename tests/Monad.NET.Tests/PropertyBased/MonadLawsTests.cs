@@ -266,7 +266,7 @@ public class MonadLawsTests
             var result = v1.Apply(v2, (a, b) => a + b);
 
             return result.IsInvalid &&
-                   result.GetErrors().Count == 2 &&
+                   result.GetErrors().Length == 2 &&
                    result.GetErrors().Contains(err1.Get) &&
                    result.GetErrors().Contains(err2.Get);
         });

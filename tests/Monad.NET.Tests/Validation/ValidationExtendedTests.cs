@@ -36,7 +36,7 @@ public class ValidationExtendedTests
 
         Assert.True(validation.IsInvalid);
         var errors = validation.GetErrorsOrThrow();
-        Assert.Equal(2, errors.Count);
+        Assert.Equal(2, errors.Length);
         Assert.Contains("error1", errors);
         Assert.Contains("error2", errors);
     }
@@ -146,7 +146,7 @@ public class ValidationExtendedTests
 
         Assert.True(result.IsInvalid);
         var errors = result.GetErrorsOrThrow();
-        Assert.Equal(2, errors.Count);
+        Assert.Equal(2, errors.Length);
         Assert.Contains("error1", errors);
         Assert.Contains("error2", errors);
     }
@@ -225,7 +225,7 @@ public class ValidationExtendedTests
         var validation = Validation<int, string>.Valid(42);
         var result = validation.Match(
             x => $"Value: {x}",
-            errors => $"Errors: {errors.Count}");
+            errors => $"Errors: {errors.Length}");
 
         Assert.Equal("Value: 42", result);
     }
@@ -236,7 +236,7 @@ public class ValidationExtendedTests
         var validation = Validation<int, string>.Invalid(new[] { "e1", "e2" });
         var result = validation.Match(
             x => $"Value: {x}",
-            errors => $"Errors: {errors.Count}");
+            errors => $"Errors: {errors.Length}");
 
         Assert.Equal("Errors: 2", result);
     }
@@ -262,7 +262,7 @@ public class ValidationExtendedTests
 
         validation.Match(
             x => { },
-            errors => capturedCount = errors.Count);
+            errors => capturedCount = errors.Length);
 
         Assert.Equal(1, capturedCount);
     }
@@ -315,7 +315,7 @@ public class ValidationExtendedTests
 
         Assert.True(result.IsInvalid);
         var errors = result.GetErrors();
-        Assert.Equal(2, errors.Count);
+        Assert.Equal(2, errors.Length);
     }
 
     #endregion

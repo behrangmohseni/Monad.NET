@@ -32,7 +32,7 @@ public class ValidationTests
         var validation = Validation<int, string>.Invalid(errors);
 
         Assert.False(validation.IsValid);
-        Assert.Equal(3, validation.GetErrors().Count);
+        Assert.Equal(3, validation.GetErrors().Length);
         Assert.Equal(errors, validation.GetErrors());
     }
 
@@ -68,7 +68,7 @@ public class ValidationTests
         var validation = Validation<int, string>.Invalid(new[] { "error1", "error2" });
         var errors = validation.GetErrors();
 
-        Assert.Equal(2, errors.Count);
+        Assert.Equal(2, errors.Length);
         Assert.Contains("error1", errors);
         Assert.Contains("error2", errors);
     }
@@ -130,7 +130,7 @@ public class ValidationTests
         var result = validation.TryGetErrors(out var errors);
 
         Assert.True(result);
-        Assert.Equal(2, errors.Count);
+        Assert.Equal(2, errors.Length);
         Assert.Equal("error1", errors[0]);
         Assert.Equal("error2", errors[1]);
     }
@@ -177,7 +177,7 @@ public class ValidationTests
         var result = val1.Apply(val2, (a, b) => a + b);
 
         Assert.True(result.IsInvalid);
-        Assert.Equal(2, result.GetErrors().Count);
+        Assert.Equal(2, result.GetErrors().Length);
         Assert.Contains("error1", result.GetErrors());
         Assert.Contains("error2", result.GetErrors());
     }
@@ -216,7 +216,7 @@ public class ValidationTests
         var result = val1.Zip(val2);
 
         Assert.True(result.IsInvalid);
-        Assert.Equal(3, result.GetErrors().Count);
+        Assert.Equal(3, result.GetErrors().Length);
         Assert.Contains("error1", result.GetErrors());
         Assert.Contains("error2", result.GetErrors());
         Assert.Contains("error3", result.GetErrors());
@@ -269,7 +269,7 @@ public class ValidationTests
         var result = val1.ZipWith(val2, (a, b) => a + b);
 
         Assert.True(result.IsInvalid);
-        Assert.Equal(2, result.GetErrors().Count);
+        Assert.Equal(2, result.GetErrors().Length);
         Assert.Contains("error1", result.GetErrors());
         Assert.Contains("error2", result.GetErrors());
     }
@@ -295,7 +295,7 @@ public class ValidationTests
         var result = val1.And(val2);
 
         Assert.True(result.IsInvalid);
-        Assert.Equal(4, result.GetErrors().Count);
+        Assert.Equal(4, result.GetErrors().Length);
         Assert.Equal(new[] { "error1", "error2", "error3", "error4" }, result.GetErrors());
     }
 
@@ -344,7 +344,7 @@ public class ValidationTests
 
         validation.Match(
             validAction: x => errorCount = 0,
-            invalidAction: errors => errorCount = errors.Count
+            invalidAction: errors => errorCount = errors.Length
         );
 
         Assert.Equal(2, errorCount);
@@ -452,7 +452,7 @@ public class ValidationTests
         var combined = validations.Combine();
 
         Assert.True(combined.IsInvalid);
-        Assert.Equal(3, combined.GetErrors().Count);
+        Assert.Equal(3, combined.GetErrors().Length);
         Assert.Equal(new[] { "error1", "error2", "error3" }, combined.GetErrors());
     }
 

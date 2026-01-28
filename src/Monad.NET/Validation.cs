@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -32,14 +33,14 @@ namespace Monad.NET;
 public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IComparable<Validation<T, TErr>>, IComparable
 {
     private readonly T? _value;
-    private readonly IReadOnlyList<TErr>? _errors;
+    private readonly ImmutableArray<TErr> _errors;
     private readonly bool _isValid;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private string DebuggerDisplay => _isValid ? $"Valid({_value})" : $"Invalid({_errors?.Count ?? 0} errors)";
+    private string DebuggerDisplay => _isValid ? $"Valid({_value})" : $"Invalid({_errors.Length} errors)";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private Validation(T value, IReadOnlyList<TErr> errors, bool isValid)
+    private Validation(T value, ImmutableArray<TErr> errors, bool isValid)
     {
         _value = value;
         _errors = errors;
@@ -73,7 +74,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
         if (value is null)
             ThrowHelper.ThrowArgumentNull(nameof(value), "Cannot create Valid with null value.");
 
-        return new Validation<T, TErr>(value, Array.Empty<TErr>(), true);
+        return new Validation<T, TErr>(value, ImmutableArray<TErr>.Empty, true);
     }
 
     /// <summary>
@@ -85,7 +86,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
         if (error is null)
             ThrowHelper.ThrowArgumentNull(nameof(error), "Cannot create Invalid with null error.");
 
-        return new Validation<T, TErr>(default!, new[] { error }, false);
+        return new Validation<T, TErr>(default!, ImmutableArray.Create(error), false);
     }
 
     /// <summary>
@@ -95,11 +96,24 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     {
         ThrowHelper.ThrowIfNull(errors);
 
-        var errorList = errors.ToList();
-        if (errorList.Count == 0)
+        var errorArray = errors.ToImmutableArray();
+        if (errorArray.IsEmpty)
             ThrowHelper.ThrowArgument(nameof(errors), "Must provide at least one error.");
 
-        return new Validation<T, TErr>(default!, errorList, false);
+        return new Validation<T, TErr>(default!, errorArray, false);
+    }
+
+    /// <summary>
+    /// Creates an invalid validation with multiple errors from an ImmutableArray.
+    /// This overload avoids allocation when errors are already in an ImmutableArray.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Validation<T, TErr> Invalid(ImmutableArray<TErr> errors)
+    {
+        if (errors.IsDefaultOrEmpty)
+            ThrowHelper.ThrowArgument(nameof(errors), "Must provide at least one error.");
+
+        return new Validation<T, TErr>(default!, errors, false);
     }
 
     /// <summary>
@@ -116,16 +130,16 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     }
 
     /// <summary>
-    /// Returns the errors.
+    /// Returns the errors as an immutable array for efficient concatenation.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the validation is valid</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public IReadOnlyList<TErr> GetErrors()
+    public ImmutableArray<TErr> GetErrors()
     {
         if (_isValid)
             ThrowHelper.ThrowValidationIsValid(_value!);
 
-        return _errors!;
+        return _errors;
     }
 
     /// <summary>
@@ -197,12 +211,12 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// </code>
     /// </example>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public IReadOnlyList<TErr> GetErrorsOrThrow()
+    public ImmutableArray<TErr> GetErrorsOrThrow()
     {
         if (_isValid)
             ThrowHelper.ThrowValidationIsValid(_value!);
 
-        return _errors!;
+        return _errors;
     }
 
     /// <summary>
@@ -221,12 +235,12 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// </code>
     /// </example>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public IReadOnlyList<TErr> GetErrorsOrThrow(string message)
+    public ImmutableArray<TErr> GetErrorsOrThrow(string message)
     {
         if (_isValid)
             ThrowHelper.ThrowInvalidOperation($"{message}: {_value}");
 
-        return _errors!;
+        return _errors;
     }
 
     /// <summary>
@@ -252,7 +266,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// <summary>
     /// Tries to get the contained errors using the familiar C# TryGet pattern.
     /// </summary>
-    /// <param name="errors">When this method returns, contains the errors if invalid; otherwise, an empty list.</param>
+    /// <param name="errors">When this method returns, contains the errors if invalid; otherwise, an empty array.</param>
     /// <returns>True if the Validation is invalid; otherwise, false.</returns>
     /// <example>
     /// <code>
@@ -264,9 +278,9 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// </code>
     /// </example>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool TryGetErrors(out IReadOnlyList<TErr> errors)
+    public bool TryGetErrors(out ImmutableArray<TErr> errors)
     {
-        errors = _errors ?? Array.Empty<TErr>();
+        errors = _errors.IsDefault ? ImmutableArray<TErr>.Empty : _errors;
         return !_isValid;
     }
 
@@ -331,7 +345,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
 
         return _isValid
             ? Validation<T, F>.Valid(_value!)
-            : Validation<T, F>.Invalid(_errors!.Select(mapper).ToList());
+            : Validation<T, F>.Invalid(_errors.Select(mapper).ToImmutableArray());
     }
 
     /// <summary>
@@ -350,7 +364,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
 
         return _isValid
             ? Validation<U, F>.Valid(valueMapper(_value!))
-            : Validation<U, F>.Invalid(_errors!.Select(errorMapper).ToList());
+            : Validation<U, F>.Invalid(_errors.Select(errorMapper).ToImmutableArray());
     }
 
     /// <summary>
@@ -369,13 +383,14 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
 
         if (!_isValid && !other.IsValid)
         {
-            var allErrors = _errors!.Concat(other._errors!).ToList();
+            // Efficient concatenation using ImmutableArray.AddRange
+            var allErrors = _errors.AddRange(other._errors);
             return Validation<U, TErr>.Invalid(allErrors);
         }
 
         return _isValid
-            ? Validation<U, TErr>.Invalid(other._errors!)
-            : Validation<U, TErr>.Invalid(_errors!);
+            ? Validation<U, TErr>.Invalid(other._errors)
+            : Validation<U, TErr>.Invalid(_errors);
     }
 
     /// <summary>
@@ -400,13 +415,13 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
 
         if (!_isValid && !other.IsValid)
         {
-            var allErrors = _errors!.Concat(other.GetErrors()).ToList();
+            var allErrors = _errors.AddRange(other._errors);
             return Validation<(T, U), TErr>.Invalid(allErrors);
         }
 
         return _isValid
-            ? Validation<(T, U), TErr>.Invalid(other.GetErrors())
-            : Validation<(T, U), TErr>.Invalid(_errors!);
+            ? Validation<(T, U), TErr>.Invalid(other._errors)
+            : Validation<(T, U), TErr>.Invalid(_errors);
     }
 
     /// <summary>
@@ -435,13 +450,13 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
 
         if (!_isValid && !other.IsValid)
         {
-            var allErrors = _errors!.Concat(other.GetErrors()).ToList();
+            var allErrors = _errors.AddRange(other._errors);
             return Validation<V, TErr>.Invalid(allErrors);
         }
 
         return _isValid
-            ? Validation<V, TErr>.Invalid(other.GetErrors())
-            : Validation<V, TErr>.Invalid(_errors!);
+            ? Validation<V, TErr>.Invalid(other._errors)
+            : Validation<V, TErr>.Invalid(_errors);
     }
 
     /// <summary>
@@ -456,7 +471,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
 
         if (!_isValid && !other.IsValid)
         {
-            var allErrors = _errors!.Concat(other._errors!).ToList();
+            var allErrors = _errors.AddRange(other._errors);
             return Validation<T, TErr>.Invalid(allErrors);
         }
 
@@ -540,7 +555,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// Pattern matches on the validation.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Match(Action<T> validAction, Action<IReadOnlyList<TErr>> invalidAction)
+    public void Match(Action<T> validAction, Action<ImmutableArray<TErr>> invalidAction)
     {
         ThrowHelper.ThrowIfNull(validAction);
         ThrowHelper.ThrowIfNull(invalidAction);
@@ -548,19 +563,19 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
         if (_isValid)
             validAction(_value!);
         else
-            invalidAction(_errors!);
+            invalidAction(_errors);
     }
 
     /// <summary>
     /// Pattern matches on the validation and returns a result.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public U Match<U>(Func<T, U> validFunc, Func<IReadOnlyList<TErr>, U> invalidFunc)
+    public U Match<U>(Func<T, U> validFunc, Func<ImmutableArray<TErr>, U> invalidFunc)
     {
         ThrowHelper.ThrowIfNull(validFunc);
         ThrowHelper.ThrowIfNull(invalidFunc);
 
-        return _isValid ? validFunc(_value!) : invalidFunc(_errors!);
+        return _isValid ? validFunc(_value!) : invalidFunc(_errors);
     }
 
     /// <summary>
@@ -579,13 +594,13 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// Converts this Validation to a Result with a combined error.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Result<T, TErr> ToResult(Func<IReadOnlyList<TErr>, TErr> combineErrors)
+    public Result<T, TErr> ToResult(Func<ImmutableArray<TErr>, TErr> combineErrors)
     {
         ThrowHelper.ThrowIfNull(combineErrors);
 
         return _isValid
             ? Result<T, TErr>.Ok(_value!)
-            : Result<T, TErr>.Err(combineErrors(_errors!));
+            : Result<T, TErr>.Err(combineErrors(_errors));
     }
 
     /// <summary>
@@ -608,7 +623,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
         if (_isValid)
             return EqualityComparer<T>.Default.Equals(_value, other._value);
 
-        if (_errors!.Count != other._errors!.Count)
+        if (_errors.Length != other._errors.Length)
             return false;
 
         return _errors.SequenceEqual(other._errors);
@@ -649,10 +664,10 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
             return Comparer<T>.Default.Compare(_value, other._value);
         if (!_isValid && !other._isValid)
         {
-            var countCompare = _errors!.Count.CompareTo(other._errors!.Count);
+            var countCompare = _errors.Length.CompareTo(other._errors.Length);
             if (countCompare != 0)
                 return countCompare;
-            for (int i = 0; i < _errors.Count; i++)
+            for (int i = 0; i < _errors.Length; i++)
             {
                 var cmp = Comparer<TErr>.Default.Compare(_errors[i], other._errors[i]);
                 if (cmp != 0)
@@ -723,7 +738,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// Deconstructs the Validation into all its components for pattern matching.
     /// </summary>
     /// <param name="value">The valid value, or default if Invalid.</param>
-    /// <param name="errors">The errors, or empty list if Valid.</param>
+    /// <param name="errors">The errors, or empty array if Valid.</param>
     /// <param name="isValid">True if the Validation is valid.</param>
     /// <example>
     /// <code>
@@ -734,10 +749,10 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// </code>
     /// </example>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Deconstruct(out T? value, out IReadOnlyList<TErr> errors, out bool isValid)
+    public void Deconstruct(out T? value, out ImmutableArray<TErr> errors, out bool isValid)
     {
         value = _value;
-        errors = _errors ?? Array.Empty<TErr>();
+        errors = _errors.IsDefault ? ImmutableArray<TErr>.Empty : _errors;
         isValid = _isValid;
     }
 }
@@ -761,7 +776,7 @@ public static class ValidationExtensions
         if (validationList.Count == 0)
             ThrowHelper.ThrowArgument(nameof(validations), "Must provide at least one validation.");
 
-        var allErrors = new List<TErr>();
+        var errorBuilder = ImmutableArray.CreateBuilder<TErr>();
         T? lastValue = default;
 
         foreach (var validation in validationList)
@@ -769,12 +784,12 @@ public static class ValidationExtensions
             if (validation.IsValid)
                 lastValue = validation.GetValue();
             else
-                allErrors.AddRange(validation.GetErrors());
+                errorBuilder.AddRange(validation.GetErrors());
         }
 
-        return allErrors.Count == 0
+        return errorBuilder.Count == 0
             ? Validation<T, TErr>.Valid(lastValue!)
-            : Validation<T, TErr>.Invalid(allErrors);
+            : Validation<T, TErr>.Invalid(errorBuilder.ToImmutable());
     }
 
     /// <summary>
@@ -799,7 +814,7 @@ public static class ValidationExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Validation<T, TErr> TapErrors<T, TErr>(
         this Validation<T, TErr> validation,
-        Action<IReadOnlyList<TErr>> action)
+        Action<ImmutableArray<TErr>> action)
     {
         ThrowHelper.ThrowIfNull(action);
 
@@ -958,17 +973,17 @@ public static class ValidationExtensions
         cancellationToken.ThrowIfCancellationRequested();
         var result3 = await third.ConfigureAwait(false);
 
-        // Accumulate all errors
-        var allErrors = new List<TErr>();
+        // Accumulate all errors using ImmutableArray.Builder
+        var errorBuilder = ImmutableArray.CreateBuilder<TErr>();
         if (result1.IsInvalid)
-            allErrors.AddRange(result1.GetErrors());
+            errorBuilder.AddRange(result1.GetErrors());
         if (result2.IsInvalid)
-            allErrors.AddRange(result2.GetErrors());
+            errorBuilder.AddRange(result2.GetErrors());
         if (result3.IsInvalid)
-            allErrors.AddRange(result3.GetErrors());
+            errorBuilder.AddRange(result3.GetErrors());
 
-        if (allErrors.Count > 0)
-            return Validation<(T1, T2, T3), TErr>.Invalid(allErrors);
+        if (errorBuilder.Count > 0)
+            return Validation<(T1, T2, T3), TErr>.Invalid(errorBuilder.ToImmutable());
 
         return Validation<(T1, T2, T3), TErr>.Valid((
             result1.GetValue(),
@@ -989,7 +1004,7 @@ public static class ValidationExtensions
     ///     .CombineAsync();
     /// </code>
     /// </example>
-    public static async Task<Validation<IReadOnlyList<T>, TErr>> CombineAsync<T, TErr>(
+    public static async Task<Validation<ImmutableArray<T>, TErr>> CombineAsync<T, TErr>(
         this IEnumerable<Task<Validation<T, TErr>>> validationTasks,
         CancellationToken cancellationToken = default)
     {
@@ -999,20 +1014,20 @@ public static class ValidationExtensions
         var validations = await Task.WhenAll(validationTasks).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var allErrors = new List<TErr>();
-        var values = new List<T>();
+        var errorBuilder = ImmutableArray.CreateBuilder<TErr>();
+        var valueBuilder = ImmutableArray.CreateBuilder<T>();
 
         foreach (var validation in validations)
         {
             if (validation.IsValid)
-                values.Add(validation.GetValue());
+                valueBuilder.Add(validation.GetValue());
             else
-                allErrors.AddRange(validation.GetErrors());
+                errorBuilder.AddRange(validation.GetErrors());
         }
 
-        return allErrors.Count == 0
-            ? Validation<IReadOnlyList<T>, TErr>.Valid(values)
-            : Validation<IReadOnlyList<T>, TErr>.Invalid(allErrors);
+        return errorBuilder.Count == 0
+            ? Validation<ImmutableArray<T>, TErr>.Valid(valueBuilder.ToImmutable())
+            : Validation<ImmutableArray<T>, TErr>.Invalid(errorBuilder.ToImmutable());
     }
 
     /// <summary>
@@ -1042,7 +1057,7 @@ public static class ValidationExtensions
     /// </summary>
     public static async Task<Validation<T, TErr>> TapErrorsAsync<T, TErr>(
         this Task<Validation<T, TErr>> validationTask,
-        Func<IReadOnlyList<TErr>, Task> action,
+        Func<ImmutableArray<TErr>, Task> action,
         CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(validationTask);
@@ -1124,7 +1139,7 @@ public static class ValidationExtensions
     /// </summary>
     public static async Task<Validation<T, TErr>> TapErrorsAsync<T, TErr>(
         this Task<Validation<T, TErr>> validationTask,
-        Func<IReadOnlyList<TErr>, CancellationToken, Task> action,
+        Func<ImmutableArray<TErr>, CancellationToken, Task> action,
         CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(validationTask);
@@ -1307,7 +1322,7 @@ public static class ValidationExtensions
     public static ValueTask<U> MatchAsync<T, TErr, U>(
         this ValueTask<Validation<T, TErr>> validationTask,
         Func<T, U> validFunc,
-        Func<IReadOnlyList<TErr>, U> invalidFunc,
+        Func<ImmutableArray<TErr>, U> invalidFunc,
         CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(validFunc);
@@ -1319,7 +1334,7 @@ public static class ValidationExtensions
         }
         return Core(validationTask, validFunc, invalidFunc, cancellationToken);
 
-        static async ValueTask<U> Core(ValueTask<Validation<T, TErr>> t, Func<T, U> v, Func<IReadOnlyList<TErr>, U> i, CancellationToken ct)
+        static async ValueTask<U> Core(ValueTask<Validation<T, TErr>> t, Func<T, U> v, Func<ImmutableArray<TErr>, U> i, CancellationToken ct)
         {
             ct.ThrowIfCancellationRequested();
             var validation = await t.ConfigureAwait(false);
@@ -1381,5 +1396,5 @@ internal sealed class ValidationDebugView<T, TErr>
     [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
     public object? Value => _validation.IsValid ? _validation.GetValue() : null;
 
-    public IReadOnlyList<TErr>? Errors => _validation.IsInvalid ? _validation.GetErrorsOrThrow() : null;
+    public ImmutableArray<TErr>? Errors => _validation.IsInvalid ? _validation.GetErrorsOrThrow() : null;
 }

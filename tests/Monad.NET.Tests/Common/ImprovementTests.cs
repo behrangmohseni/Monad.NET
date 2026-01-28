@@ -187,7 +187,7 @@ public class ImprovementTests
         var result = nested.Flatten();
 
         Assert.True(result.IsInvalid);
-        Assert.Equal(2, result.GetErrors().Count);
+        Assert.Equal(2, result.GetErrors().Length);
         Assert.Contains("error1", result.GetErrors());
         Assert.Contains("error2", result.GetErrors());
     }

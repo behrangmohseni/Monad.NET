@@ -389,7 +389,7 @@ public class CollectionTests
 
         Assert.True(result.IsInvalid);
         var errors = result.GetErrors();
-        Assert.Equal(2, errors.Count);
+        Assert.Equal(2, errors.Length);
         Assert.Contains("error1", errors);
         Assert.Contains("error2", errors);
     }
@@ -407,7 +407,7 @@ public class CollectionTests
 
         Assert.True(result.IsInvalid);
         var errors = result.GetErrors();
-        Assert.Equal(3, errors.Count);
+        Assert.Equal(3, errors.Length);
         Assert.Contains("error1", errors);
         Assert.Contains("error2", errors);
         Assert.Contains("error3", errors);
@@ -439,7 +439,7 @@ public class CollectionTests
 
         Assert.True(result.IsInvalid);
         var errors = result.GetErrors();
-        Assert.Equal(2, errors.Count);
+        Assert.Equal(2, errors.Length);
         Assert.Contains("Invalid: invalid", errors);
         Assert.Contains("Invalid: bad", errors);
     }
@@ -886,7 +886,7 @@ public class CollectionTests
 
         Assert.True(result.IsInvalid);
         var errors = result.GetErrors();
-        Assert.Equal(2, errors.Count);
+        Assert.Equal(2, errors.Length);
         Assert.Contains("error1", errors);
         Assert.Contains("error2", errors);
     }
@@ -921,7 +921,7 @@ public class CollectionTests
 
         Assert.True(result.IsInvalid);
         var errors = result.GetErrors();
-        Assert.Equal(2, errors.Count);
+        Assert.Equal(2, errors.Length);
         Assert.Contains("Negative: -2", errors);
         Assert.Contains("Negative: -4", errors);
     }
@@ -1147,7 +1147,7 @@ public class CollectionTests
 
         Assert.True(result.IsInvalid);
         var errors = result.GetErrors();
-        Assert.Equal(3, errors.Count);
+        Assert.Equal(3, errors.Length);
         Assert.Contains("name is required", errors);
         Assert.Contains("Invalid email format", errors);
         Assert.Contains("Age must be a positive number", errors);
