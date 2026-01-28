@@ -413,5 +413,129 @@ Component Data
 
 ---
 
+## Nuanced Type Selection Guide
+
+The table above provides a quick reference, but real-world scenarios often require more nuanced decisions. Use this detailed guide when you need precise type selection.
+
+### Error Handling Decision Matrix
+
+| Scenario | Type | Why |
+|----------|------|-----|
+| An operation can fail with a typed error **AND** I want to short-circuit on first error | `Result<T, E>` | Fail-fast semantics; stops processing immediately on error |
+| An operation can fail **AND** I want to accumulate ALL errors | `Validation<T, E>` | Applicative semantics; collects all errors before failing |
+| I'm wrapping legacy code that throws exceptions | `Try<T>` | Converts exception-based APIs to value-based error handling |
+| I need to defer error handling decisions to the caller | `Either<L, R>` | Both sides are equally valid; no inherent success/failure semantics |
+| Error handling AND tracking async loading state (UI) | `RemoteData<T, E>` | Adds `NotAsked` and `Loading` states for UI rendering |
+
+### Detailed Comparison: Result vs Validation vs Try
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       Which Error Type Should I Use?                         │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+                    ┌───────────────────────────────┐
+                    │ Does the code throw exceptions │
+                    │ that I cannot modify?          │
+                    └───────────────────────────────┘
+                           │                │
+                          YES              NO
+                           │                │
+                           ▼                ▼
+                    ┌─────────────┐  ┌─────────────────────────────┐
+                    │   Try<T>    │  │ Do I need ALL errors        │
+                    │             │  │ reported at once?           │
+                    └─────────────┘  └─────────────────────────────┘
+                                           │                │
+                                          YES              NO
+                                           │                │
+                                           ▼                ▼
+                                    ┌──────────────┐  ┌──────────────┐
+                                    │Validation<T,E│  │ Result<T,E>  │
+                                    └──────────────┘  └──────────────┘
+```
+
+### When to Use Each Error Type
+
+#### Use `Result<T, E>` when:
+```
+✓ Business logic validation where first error is sufficient
+✓ API calls where you stop on first failure
+✓ Database operations with single-point-of-failure
+✓ Pipeline operations where subsequent steps depend on previous success
+✓ You want maximum performance (zero allocation)
+
+Example scenarios:
+  - Authenticating a user (wrong password = stop)
+  - Processing a payment (declined = stop)
+  - Loading a configuration file (invalid = stop)
+```
+
+#### Use `Validation<T, E>` when:
+```
+✓ Form validation where users need to see all problems
+✓ Data import validation where you want a complete error report
+✓ Configuration validation at startup
+✓ Any scenario where fixing one error might reveal more
+✓ Combining multiple independent validations
+
+Example scenarios:
+  - User registration form (show all invalid fields)
+  - CSV import (report all bad rows)
+  - API request validation (return all constraint violations)
+```
+
+#### Use `Try<T>` when:
+```
+✓ Wrapping third-party libraries that throw
+✓ Parsing operations (int.Parse, DateTime.Parse)
+✓ File I/O operations with potential exceptions
+✓ Network calls to legacy HTTP clients
+✓ Any code you can't modify that uses exceptions
+
+Example scenarios:
+  - Parsing user input: Try<int>.Of(() => int.Parse(input))
+  - Reading files: Try<string>.Of(() => File.ReadAllText(path))
+  - Legacy library: Try<Data>.Of(() => legacyApi.GetData())
+```
+
+#### Use `Either<L, R>` when:
+```
+✓ Both outcomes are valid (not success/failure)
+✓ You need to process both sides equally
+✓ Return type can be genuinely one of two things
+✓ Error handling decision should be made by caller
+✓ Modeling union types without the [Union] attribute
+
+Example scenarios:
+  - CachedData | FreshData (both valid, different handling)
+  - TextResponse | BinaryResponse (different processing)
+  - LocalUser | RemoteUser (different capabilities)
+```
+
+### Optional Value Decision Guide
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    How Should I Model "Maybe" Values?                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                    ┌───────────────┼───────────────┐
+                    │               │               │
+                    ▼               ▼               ▼
+             ┌───────────┐  ┌─────────────┐  ┌──────────────┐
+             │ Zero or   │  │ One or more │  │ Async with   │
+             │ one value │  │ values      │  │ loading state│
+             └───────────┘  └─────────────┘  └──────────────┘
+                    │               │               │
+                    ▼               ▼               ▼
+             ┌───────────┐  ┌─────────────┐  ┌──────────────┐
+             │ Option<T> │  │NonEmptyList │  │RemoteData<T,E│
+             └───────────┘  └─────────────┘  └──────────────┘
+```
+
+---
+
 [← Back to Documentation](../../README.md) | [Migration Guide →](MigrationGuide.md)
 

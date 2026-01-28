@@ -4,6 +4,7 @@ This document records the architectural decisions made for Monad.NET, explaining
 
 ## Table of Contents
 
+- [Type Hierarchy and Relationships](#type-hierarchy-and-relationships)
 - [ADR-001: Struct-Based Monadic Types](#adr-001-struct-based-monadic-types)
 - [ADR-002: AggressiveInlining Usage](#adr-002-aggressiveinlining-usage)
 - [ADR-003: ThrowHelper Pattern](#adr-003-throwhelper-pattern)
@@ -12,6 +13,206 @@ This document records the architectural decisions made for Monad.NET, explaining
 - [ADR-006: Roslyn Analyzers as Separate Package](#adr-006-roslyn-analyzers-as-separate-package)
 - [ADR-007: Source Generator for Async Extensions](#adr-007-source-generator-for-async-extensions)
 - [ADR-008: Multi-Target Framework Strategy](#adr-008-multi-target-framework-strategy)
+
+---
+
+## Type Hierarchy and Relationships
+
+This section provides visual diagrams showing how Monad.NET types relate to each other and their design patterns.
+
+### Core Type Categories
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                           MONAD.NET TYPE ARCHITECTURE                            │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                              ERROR HANDLING TYPES                                │
+│                                                                                  │
+│  ┌─────────────┐    ┌─────────────────┐    ┌─────────────┐    ┌─────────────┐  │
+│  │  Result<T,E>│    │ Validation<T,E> │    │   Try<T>    │    │ Either<L,R> │  │
+│  ├─────────────┤    ├─────────────────┤    ├─────────────┤    ├─────────────┤  │
+│  │ • Ok(value) │    │ • Valid(value)  │    │ • Success   │    │ • Left(L)   │  │
+│  │ • Err(error)│    │ • Invalid(errs) │    │ • Failure   │    │ • Right(R)  │  │
+│  ├─────────────┤    ├─────────────────┤    ├─────────────┤    ├─────────────┤  │
+│  │Short-circuit│    │Accumulates ALL  │    │ Captures    │    │ Unbiased    │  │
+│  │on first err │    │errors           │    │ exceptions  │    │ two values  │  │
+│  └─────────────┘    └─────────────────┘    └─────────────┘    └─────────────┘  │
+│         │                   │                    │                   │          │
+│         └───────────────────┴────────────────────┴───────────────────┘          │
+│                                      │                                           │
+│                           All are readonly structs                               │
+│                           Zero heap allocation                                   │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                              OPTIONAL VALUE TYPES                                │
+│                                                                                  │
+│  ┌───────────────┐    ┌───────────────────┐    ┌─────────────────────────────┐  │
+│  │   Option<T>   │    │  NonEmptyList<T>  │    │     RemoteData<T,E>         │  │
+│  ├───────────────┤    ├───────────────────┤    ├─────────────────────────────┤  │
+│  │ • Some(value) │    │ • First element   │    │ • NotAsked                  │  │
+│  │ • None        │    │ • Rest elements   │    │ • Loading                   │  │
+│  ├───────────────┤    ├───────────────────┤    │ • Success(data)             │  │
+│  │ 0 or 1 value  │    │ 1 or more values  │    │ • Failure(error)            │  │
+│  │ Nullable      │    │ Guaranteed Head   │    ├─────────────────────────────┤  │
+│  │ replacement   │    │                   │    │ UI async state management   │  │
+│  └───────────────┘    └───────────────────┘    └─────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                            COMPUTATIONAL CONTEXT TYPES                           │
+│                                                                                  │
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐       │
+│  │ Reader<R,A> │    │ Writer<W,T> │    │ State<S,A>  │    │    IO<T>    │       │
+│  ├─────────────┤    ├─────────────┤    ├─────────────┤    ├─────────────┤       │
+│  │ Reads from  │    │ Writes to   │    │ Reads and   │    │ Defers side │       │
+│  │ environment │    │ log/output  │    │ writes state│    │ effects     │       │
+│  ├─────────────┤    ├─────────────┤    ├─────────────┤    ├─────────────┤       │
+│  │ DI without  │    │ Audit logs  │    │ Pure state  │    │ Lazy effect │       │
+│  │ containers  │    │ tracing     │    │ threading   │    │ execution   │       │
+│  └─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘       │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                               SOURCE GENERATORS                                  │
+│                                                                                  │
+│  ┌─────────────────────────────────────┐    ┌─────────────────────────────────┐ │
+│  │           [Union] Attribute          │    │       [ErrorUnion] Attribute    │ │
+│  ├─────────────────────────────────────┤    ├─────────────────────────────────┤ │
+│  │ Generates discriminated unions from │    │ Generates error hierarchies     │ │
+│  │ partial record declarations         │    │ with predefined structure       │ │
+│  ├─────────────────────────────────────┤    ├─────────────────────────────────┤ │
+│  │ • Match() exhaustive matching       │    │ • Error code constants          │ │
+│  │ • MatchAsync() for async handlers   │    │ • Category grouping             │ │
+│  │ • Factory methods (Create*)         │    │ • Serialization support         │ │
+│  │ • With*() for immutable updates     │    │                                 │ │
+│  │ • Is* type checking properties      │    │                                 │ │
+│  └─────────────────────────────────────┘    └─────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Type Relationship Diagram
+
+```
+                              ┌───────────────────────┐
+                              │    Common Operations  │
+                              │  (Functor/Monad Laws) │
+                              └───────────────────────┘
+                                         │
+            ┌────────────────────────────┼────────────────────────────┐
+            │                            │                            │
+            ▼                            ▼                            ▼
+    ┌───────────────┐           ┌───────────────┐           ┌───────────────┐
+    │     Map()     │           │    Bind()     │           │   Match()     │
+    │ Transform     │           │ Chain/Flatmap │           │ Pattern match │
+    │ inner value   │           │ operations    │           │ on state      │
+    └───────────────┘           └───────────────┘           └───────────────┘
+            │                            │                            │
+            └────────────────────────────┼────────────────────────────┘
+                                         │
+    ┌────────────────────────────────────┼────────────────────────────────────┐
+    │                                    │                                    │
+    │   ┌────────────┐  ┌────────────┐  │  ┌────────────┐  ┌────────────┐   │
+    │   │ Option<T>  │  │Result<T,E> │  │  │Validation  │  │  Try<T>    │   │
+    │   │            │  │            │  │  │   <T,E>    │  │            │   │
+    │   │ ✓ Map      │  │ ✓ Map      │  │  │ ✓ Map      │  │ ✓ Map      │   │
+    │   │ ✓ Bind     │  │ ✓ Bind     │  │  │ ✓ Bind     │  │ ✓ Bind     │   │
+    │   │ ✓ Match    │  │ ✓ Match    │  │  │ ✓ Match    │  │ ✓ Match    │   │
+    │   │ ✓ Filter   │  │ ✓ MapError │  │  │ ✓ Apply    │  │ ✓ Recover  │   │
+    │   │ ✓ GetOr    │  │ ✓ GetOr    │  │  │ ✓ Combine  │  │ ✓ GetOr    │   │
+    │   └────────────┘  └────────────┘  │  └────────────┘  └────────────┘   │
+    │                                    │                                    │
+    └────────────────────────────────────┼────────────────────────────────────┘
+                                         │
+                              ┌──────────┴──────────┐
+                              │                     │
+                              ▼                     ▼
+                      ┌─────────────┐       ┌─────────────┐
+                      │   Async     │       │   LINQ      │
+                      │ Extensions  │       │ Integration │
+                      ├─────────────┤       ├─────────────┤
+                      │ MapAsync    │       │ from x in   │
+                      │ BindAsync   │       │ select      │
+                      │ MatchAsync  │       │ where       │
+                      │ FilterAsync │       │ join        │
+                      └─────────────┘       └─────────────┘
+```
+
+### Error Type Semantics Comparison
+
+```
+                    OPERATION FAILS
+                          │
+         ┌────────────────┼────────────────┐
+         │                │                │
+         ▼                ▼                ▼
+   ┌──────────┐     ┌──────────┐     ┌──────────┐
+   │Result<T,E│     │Validation│     │  Try<T>  │
+   │          │     │   <T,E>  │     │          │
+   └────┬─────┘     └────┬─────┘     └────┬─────┘
+        │                │                │
+        ▼                ▼                ▼
+   ┌──────────┐     ┌──────────┐     ┌──────────┐
+   │ STOPS    │     │CONTINUES │     │ CAPTURES │
+   │processing│     │collecting│     │exception │
+   │          │     │more errs │     │          │
+   └────┬─────┘     └────┬─────┘     └────┬─────┘
+        │                │                │
+        ▼                ▼                ▼
+   ┌──────────┐     ┌──────────┐     ┌──────────┐
+   │ Returns  │     │ Returns  │     │ Returns  │
+   │Err(first)│     │Invalid(  │     │Failure(  │
+   │          │     │ all errs)│     │ ex)      │
+   └──────────┘     └──────────┘     └──────────┘
+
+   Use when:        Use when:        Use when:
+   • First error    • Show ALL       • Wrapping code
+     is sufficient    errors           that throws
+   • Fail-fast      • Form/input     • Can't modify
+     semantics        validation       the source
+```
+
+### Integration Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                            MONAD.NET ECOSYSTEM                                   │
+└─────────────────────────────────────────────────────────────────────────────────┘
+                                      │
+        ┌─────────────────────────────┼─────────────────────────────┐
+        │                             │                             │
+        ▼                             ▼                             ▼
+┌───────────────────┐       ┌───────────────────┐       ┌───────────────────┐
+│   Monad.NET       │       │ Monad.NET         │       │ Monad.NET         │
+│   (Core)          │       │ .Analyzers        │       │ .SourceGenerators │
+├───────────────────┤       ├───────────────────┤       ├───────────────────┤
+│ • Option<T>       │       │ • Compile-time    │       │ • [Union]         │
+│ • Result<T,E>     │       │   warnings        │       │ • [ErrorUnion]    │
+│ • Validation<T,E> │       │ • Code fixes      │       │ • Async methods   │
+│ • Try<T>          │       │ • Best practices  │       │                   │
+│ • Either<L,R>     │       │                   │       │                   │
+│ • Reader/Writer   │       │                   │       │                   │
+│ • State/IO        │       │                   │       │                   │
+└───────────────────┘       └───────────────────┘       └───────────────────┘
+        │                                                         │
+        └────────────────────────┬────────────────────────────────┘
+                                 │
+        ┌────────────────────────┼────────────────────────────────┐
+        │                        │                                │
+        ▼                        ▼                                ▼
+┌───────────────────┐   ┌───────────────────┐   ┌───────────────────────────┐
+│ Monad.NET         │   │ Monad.NET         │   │ Monad.NET                 │
+│ .AspNetCore       │   │ .EntityFramework  │   │ .MessagePack              │
+├───────────────────┤   │  Core             │   ├───────────────────────────┤
+│ • Result → HTTP   │   ├───────────────────┤   │ • Serialization           │
+│ • Validation →    │   │ • DbContext       │   │ • Formatters for all      │
+│   BadRequest      │   │   extensions      │   │   monadic types           │
+│ • Option →        │   │ • LINQ to EF      │   │                           │
+│   NotFound        │   │   integration     │   │                           │
+└───────────────────┘   └───────────────────┘   └───────────────────────────┘
+```
 
 ---
 
