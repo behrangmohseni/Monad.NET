@@ -971,11 +971,21 @@ public static class ResultExtensions
     /// <summary>
     /// Wraps an async function that may throw an exception into a Result.
     /// </summary>
-    public static async Task<Result<T, Exception>> TryAsync<T>(Func<Task<T>> func)
+    /// <param name="func">The async function to execute.</param>
+    /// <param name="cancellationToken">A cancellation token to observe.</param>
+    /// <returns>Ok with the result, or Err with the exception.</returns>
+    public static async Task<Result<T, Exception>> TryAsync<T>(
+        Func<Task<T>> func,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         try
         {
             return Result<T, Exception>.Ok(await func().ConfigureAwait(false));
+        }
+        catch (OperationCanceledException)
+        {
+            throw; // Re-throw cancellation
         }
         catch (Exception ex)
         {
@@ -1178,12 +1188,16 @@ public static class ResultExtensions
     /// </example>
     public static async Task<Result<(T1, T2), TErr>> CombineAsync<T1, T2, TErr>(
         Task<Result<T1, TErr>> first,
-        Task<Result<T2, TErr>> second)
+        Task<Result<T2, TErr>> second,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(first);
         ThrowHelper.ThrowIfNull(second);
+        cancellationToken.ThrowIfCancellationRequested();
 
-        var (result1, result2) = (await first.ConfigureAwait(false), await second.ConfigureAwait(false));
+        var result1 = await first.ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+        var result2 = await second.ConfigureAwait(false);
         return Combine(result1, result2);
     }
 
@@ -1203,13 +1217,17 @@ public static class ResultExtensions
     public static async Task<Result<TResult, TErr>> CombineAsync<T1, T2, TErr, TResult>(
         Task<Result<T1, TErr>> first,
         Task<Result<T2, TErr>> second,
-        Func<T1, T2, TResult> combiner)
+        Func<T1, T2, TResult> combiner,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(first);
         ThrowHelper.ThrowIfNull(second);
         ThrowHelper.ThrowIfNull(combiner);
+        cancellationToken.ThrowIfCancellationRequested();
 
-        var (result1, result2) = (await first.ConfigureAwait(false), await second.ConfigureAwait(false));
+        var result1 = await first.ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+        var result2 = await second.ConfigureAwait(false);
         return Combine(result1, result2, combiner);
     }
 
@@ -1220,14 +1238,18 @@ public static class ResultExtensions
     public static async Task<Result<(T1, T2, T3), TErr>> CombineAsync<T1, T2, T3, TErr>(
         Task<Result<T1, TErr>> first,
         Task<Result<T2, TErr>> second,
-        Task<Result<T3, TErr>> third)
+        Task<Result<T3, TErr>> third,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(first);
         ThrowHelper.ThrowIfNull(second);
         ThrowHelper.ThrowIfNull(third);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var result1 = await first.ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
         var result2 = await second.ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
         var result3 = await third.ConfigureAwait(false);
         return Combine(result1, result2, result3);
     }
@@ -1240,15 +1262,19 @@ public static class ResultExtensions
         Task<Result<T1, TErr>> first,
         Task<Result<T2, TErr>> second,
         Task<Result<T3, TErr>> third,
-        Func<T1, T2, T3, TResult> combiner)
+        Func<T1, T2, T3, TResult> combiner,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(first);
         ThrowHelper.ThrowIfNull(second);
         ThrowHelper.ThrowIfNull(third);
         ThrowHelper.ThrowIfNull(combiner);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var result1 = await first.ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
         var result2 = await second.ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
         var result3 = await third.ConfigureAwait(false);
         return Combine(result1, result2, result3, combiner);
     }
@@ -1267,11 +1293,14 @@ public static class ResultExtensions
     /// </code>
     /// </example>
     public static async Task<Result<IReadOnlyList<T>, TErr>> CombineAsync<T, TErr>(
-        IEnumerable<Task<Result<T, TErr>>> resultTasks)
+        IEnumerable<Task<Result<T, TErr>>> resultTasks,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(resultTasks);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var results = await Task.WhenAll(resultTasks).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
         return Combine(results);
     }
 
@@ -1281,11 +1310,14 @@ public static class ResultExtensions
     /// Returns the first error encountered if any Result is Err.
     /// </summary>
     public static async Task<Result<Unit, TErr>> CombineAllAsync<T, TErr>(
-        IEnumerable<Task<Result<T, TErr>>> resultTasks)
+        IEnumerable<Task<Result<T, TErr>>> resultTasks,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(resultTasks);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var results = await Task.WhenAll(resultTasks).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
         return CombineAll(results);
     }
 

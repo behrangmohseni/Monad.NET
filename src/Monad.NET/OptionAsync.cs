@@ -5,6 +5,7 @@ namespace Monad.NET;
 
 /// <summary>
 /// Async extensions for Option&lt;T&gt; to work seamlessly with Task-based asynchronous code.
+/// All async methods support CancellationToken for proper cancellation handling.
 /// </summary>
 [EditorBrowsable(EditorBrowsableState.Never)]
 public static class OptionAsyncExtensions
@@ -16,19 +17,23 @@ public static class OptionAsyncExtensions
     /// <typeparam name="U">The type of the value in the resulting option.</typeparam>
     /// <param name="optionTask">The task containing the option to map.</param>
     /// <param name="mapper">An async function to apply to the value if Some.</param>
+    /// <param name="cancellationToken">A cancellation token to observe.</param>
     /// <returns>A task containing Some with the mapped value, or None if the original was None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<Option<U>> MapAsync<T, U>(
         this Task<Option<T>> optionTask,
-        Func<T, Task<U>> mapper)
+        Func<T, Task<U>> mapper,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(optionTask);
         ThrowHelper.ThrowIfNull(mapper);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var option = await optionTask.ConfigureAwait(false);
         if (!option.IsSome)
             return Option<U>.None();
 
+        cancellationToken.ThrowIfCancellationRequested();
         var result = await mapper(option.GetValue()).ConfigureAwait(false);
         return Option<U>.Some(result);
     }
@@ -40,14 +45,17 @@ public static class OptionAsyncExtensions
     /// <typeparam name="U">The type of the value in the resulting option.</typeparam>
     /// <param name="optionTask">The task containing the option to map.</param>
     /// <param name="mapper">A function to apply to the value if Some.</param>
+    /// <param name="cancellationToken">A cancellation token to observe.</param>
     /// <returns>A task containing Some with the mapped value, or None if the original was None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<Option<U>> MapAsync<T, U>(
         this Task<Option<T>> optionTask,
-        Func<T, U> mapper)
+        Func<T, U> mapper,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(optionTask);
         ThrowHelper.ThrowIfNull(mapper);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var option = await optionTask.ConfigureAwait(false);
         return option.Map(mapper);
@@ -59,19 +67,23 @@ public static class OptionAsyncExtensions
     /// <typeparam name="T">The type of the value in the option.</typeparam>
     /// <param name="optionTask">The task containing the option to filter.</param>
     /// <param name="predicate">An async predicate to test the value.</param>
+    /// <param name="cancellationToken">A cancellation token to observe.</param>
     /// <returns>A task containing the original Some if the predicate passes, otherwise None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<Option<T>> FilterAsync<T>(
         this Task<Option<T>> optionTask,
-        Func<T, Task<bool>> predicate)
+        Func<T, Task<bool>> predicate,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(optionTask);
         ThrowHelper.ThrowIfNull(predicate);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var option = await optionTask.ConfigureAwait(false);
         if (!option.IsSome)
             return Option<T>.None();
 
+        cancellationToken.ThrowIfCancellationRequested();
         var value = option.GetValue();
         var passes = await predicate(value).ConfigureAwait(false);
         return passes ? option : Option<T>.None();
@@ -83,14 +95,17 @@ public static class OptionAsyncExtensions
     /// <typeparam name="T">The type of the value in the option.</typeparam>
     /// <param name="optionTask">The task containing the option to filter.</param>
     /// <param name="predicate">A predicate to test the value.</param>
+    /// <param name="cancellationToken">A cancellation token to observe.</param>
     /// <returns>A task containing the original Some if the predicate passes, otherwise None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<Option<T>> FilterAsync<T>(
         this Task<Option<T>> optionTask,
-        Func<T, bool> predicate)
+        Func<T, bool> predicate,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(optionTask);
         ThrowHelper.ThrowIfNull(predicate);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var option = await optionTask.ConfigureAwait(false);
         return option.Filter(predicate);
@@ -103,19 +118,23 @@ public static class OptionAsyncExtensions
     /// <typeparam name="U">The type of the value in the resulting option.</typeparam>
     /// <param name="optionTask">The task containing the option to chain.</param>
     /// <param name="binder">An async function that returns a new option based on the value.</param>
+    /// <param name="cancellationToken">A cancellation token to observe.</param>
     /// <returns>A task containing the result of the binder if Some, otherwise None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<Option<U>> BindAsync<T, U>(
         this Task<Option<T>> optionTask,
-        Func<T, Task<Option<U>>> binder)
+        Func<T, Task<Option<U>>> binder,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(optionTask);
         ThrowHelper.ThrowIfNull(binder);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var option = await optionTask.ConfigureAwait(false);
         if (!option.IsSome)
             return Option<U>.None();
 
+        cancellationToken.ThrowIfCancellationRequested();
         return await binder(option.GetValue()).ConfigureAwait(false);
     }
 
@@ -126,14 +145,17 @@ public static class OptionAsyncExtensions
     /// <typeparam name="U">The type of the value in the resulting option.</typeparam>
     /// <param name="optionTask">The task containing the option to chain.</param>
     /// <param name="binder">A function that returns a new option based on the value.</param>
+    /// <param name="cancellationToken">A cancellation token to observe.</param>
     /// <returns>A task containing the result of the binder if Some, otherwise None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<Option<U>> BindAsync<T, U>(
         this Task<Option<T>> optionTask,
-        Func<T, Option<U>> binder)
+        Func<T, Option<U>> binder,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(optionTask);
         ThrowHelper.ThrowIfNull(binder);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var option = await optionTask.ConfigureAwait(false);
         return option.Bind(binder);
@@ -145,19 +167,23 @@ public static class OptionAsyncExtensions
     /// <typeparam name="T">The type of the value in the option.</typeparam>
     /// <param name="optionTask">The task containing the option.</param>
     /// <param name="defaultFunc">An async function to compute the default value if None.</param>
+    /// <param name="cancellationToken">A cancellation token to observe.</param>
     /// <returns>A task containing the value if Some, or the computed default if None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<T> GetValueOrElseAsync<T>(
         this Task<Option<T>> optionTask,
-        Func<Task<T>> defaultFunc)
+        Func<Task<T>> defaultFunc,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(optionTask);
         ThrowHelper.ThrowIfNull(defaultFunc);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var option = await optionTask.ConfigureAwait(false);
         if (option.IsSome)
             return option.GetValue();
 
+        cancellationToken.ThrowIfCancellationRequested();
         return await defaultFunc().ConfigureAwait(false);
     }
 
@@ -169,18 +195,23 @@ public static class OptionAsyncExtensions
     /// <param name="optionTask">The task containing the option to match.</param>
     /// <param name="someFunc">An async function to call if Some.</param>
     /// <param name="noneFunc">An async function to call if None.</param>
+    /// <param name="cancellationToken">A cancellation token to observe.</param>
     /// <returns>A task containing the result of the matched handler.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<U> MatchAsync<T, U>(
         this Task<Option<T>> optionTask,
         Func<T, Task<U>> someFunc,
-        Func<Task<U>> noneFunc)
+        Func<Task<U>> noneFunc,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(optionTask);
         ThrowHelper.ThrowIfNull(someFunc);
         ThrowHelper.ThrowIfNull(noneFunc);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var option = await optionTask.ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+
         if (option.IsSome)
             return await someFunc(option.GetValue()).ConfigureAwait(false);
 
@@ -195,16 +226,19 @@ public static class OptionAsyncExtensions
     /// <param name="optionTask">The task containing the option to match.</param>
     /// <param name="someFunc">A function to call if Some.</param>
     /// <param name="noneFunc">A function to call if None.</param>
+    /// <param name="cancellationToken">A cancellation token to observe.</param>
     /// <returns>A task containing the result of the matched handler.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<U> MatchAsync<T, U>(
         this Task<Option<T>> optionTask,
         Func<T, U> someFunc,
-        Func<U> noneFunc)
+        Func<U> noneFunc,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(optionTask);
         ThrowHelper.ThrowIfNull(someFunc);
         ThrowHelper.ThrowIfNull(noneFunc);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var option = await optionTask.ConfigureAwait(false);
         return option.Match(someFunc, noneFunc);
@@ -216,18 +250,24 @@ public static class OptionAsyncExtensions
     /// <typeparam name="T">The type of the value in the option.</typeparam>
     /// <param name="optionTask">The task containing the option.</param>
     /// <param name="action">An async action to execute if Some.</param>
+    /// <param name="cancellationToken">A cancellation token to observe.</param>
     /// <returns>A task containing the original option, unchanged.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<Option<T>> TapAsync<T>(
         this Task<Option<T>> optionTask,
-        Func<T, Task> action)
+        Func<T, Task> action,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(optionTask);
         ThrowHelper.ThrowIfNull(action);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var option = await optionTask.ConfigureAwait(false);
         if (option.IsSome)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
             await action(option.GetValue()).ConfigureAwait(false);
+        }
 
         return option;
     }
@@ -239,19 +279,23 @@ public static class OptionAsyncExtensions
     /// <typeparam name="TErr">The type of the error value.</typeparam>
     /// <param name="optionTask">The task containing the option to convert.</param>
     /// <param name="errFunc">An async function to compute the error if None.</param>
+    /// <param name="cancellationToken">A cancellation token to observe.</param>
     /// <returns>A task containing Ok with the value if Some, or Err with the computed error if None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<Result<T, TErr>> OkOrElseAsync<T, TErr>(
         this Task<Option<T>> optionTask,
-        Func<Task<TErr>> errFunc)
+        Func<Task<TErr>> errFunc,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(optionTask);
         ThrowHelper.ThrowIfNull(errFunc);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var option = await optionTask.ConfigureAwait(false);
         if (option.IsSome)
             return Result<T, TErr>.Ok(option.GetValue());
 
+        cancellationToken.ThrowIfCancellationRequested();
         return Result<T, TErr>.Err(await errFunc().ConfigureAwait(false));
     }
 
@@ -262,13 +306,16 @@ public static class OptionAsyncExtensions
     /// <typeparam name="U">The type of the value in the resulting option.</typeparam>
     /// <param name="option">The option to map.</param>
     /// <param name="mapper">An async function to apply to the value if Some.</param>
+    /// <param name="cancellationToken">A cancellation token to observe.</param>
     /// <returns>A task containing Some with the mapped value, or None if the original was None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<Option<U>> MapAsync<T, U>(
         this Option<T> option,
-        Func<T, Task<U>> mapper)
+        Func<T, Task<U>> mapper,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(mapper);
+        cancellationToken.ThrowIfCancellationRequested();
 
         if (!option.IsSome)
             return Option<U>.None();
@@ -284,13 +331,16 @@ public static class OptionAsyncExtensions
     /// <typeparam name="U">The type of the value in the resulting option.</typeparam>
     /// <param name="option">The option to chain.</param>
     /// <param name="binder">An async function that returns a new option based on the value.</param>
+    /// <param name="cancellationToken">A cancellation token to observe.</param>
     /// <returns>A task containing the result of the binder if Some, otherwise None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<Option<U>> BindAsync<T, U>(
         this Option<T> option,
-        Func<T, Task<Option<U>>> binder)
+        Func<T, Task<Option<U>>> binder,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(binder);
+        cancellationToken.ThrowIfCancellationRequested();
 
         if (!option.IsSome)
             return Option<U>.None();
@@ -304,13 +354,16 @@ public static class OptionAsyncExtensions
     /// <typeparam name="T">The type of the value in the option.</typeparam>
     /// <param name="option">The option to filter.</param>
     /// <param name="predicate">An async predicate to test the value.</param>
+    /// <param name="cancellationToken">A cancellation token to observe.</param>
     /// <returns>A task containing the original Some if the predicate passes, otherwise None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<Option<T>> FilterAsync<T>(
         this Option<T> option,
-        Func<T, Task<bool>> predicate)
+        Func<T, Task<bool>> predicate,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(predicate);
+        cancellationToken.ThrowIfCancellationRequested();
 
         if (!option.IsSome)
             return Option<T>.None();
@@ -338,18 +391,24 @@ public static class OptionAsyncExtensions
     /// <typeparam name="T">The type of the value in the option.</typeparam>
     /// <param name="optionTask">The task containing the option.</param>
     /// <param name="action">An async action to execute if None.</param>
+    /// <param name="cancellationToken">A cancellation token to observe.</param>
     /// <returns>A task containing the original option, unchanged.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<Option<T>> TapNoneAsync<T>(
         this Task<Option<T>> optionTask,
-        Func<Task> action)
+        Func<Task> action,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(optionTask);
         ThrowHelper.ThrowIfNull(action);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var option = await optionTask.ConfigureAwait(false);
         if (option.IsNone)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
             await action().ConfigureAwait(false);
+        }
 
         return option;
     }
@@ -362,17 +421,22 @@ public static class OptionAsyncExtensions
     /// <typeparam name="U">The type of the second option's value.</typeparam>
     /// <param name="firstTask">The first option task.</param>
     /// <param name="secondTask">The second option task.</param>
+    /// <param name="cancellationToken">A cancellation token to observe.</param>
     /// <returns>A task containing Some with a tuple of both values if both are Some, otherwise None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<Option<(T, U)>> ZipAsync<T, U>(
         Task<Option<T>> firstTask,
-        Task<Option<U>> secondTask)
+        Task<Option<U>> secondTask,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(firstTask);
         ThrowHelper.ThrowIfNull(secondTask);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var result1 = await firstTask.ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
         var result2 = await secondTask.ConfigureAwait(false);
+
         return result1.IsSome && result2.IsSome
             ? Option<(T, U)>.Some((result1.GetValue(), result2.GetValue()))
             : Option<(T, U)>.None();
@@ -388,19 +452,24 @@ public static class OptionAsyncExtensions
     /// <param name="firstTask">The first option task.</param>
     /// <param name="secondTask">The second option task.</param>
     /// <param name="combiner">A function to combine the values if both are Some.</param>
+    /// <param name="cancellationToken">A cancellation token to observe.</param>
     /// <returns>A task containing Some with the combined value if both are Some, otherwise None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<Option<V>> ZipWithAsync<T, U, V>(
         Task<Option<T>> firstTask,
         Task<Option<U>> secondTask,
-        Func<T, U, V> combiner)
+        Func<T, U, V> combiner,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(firstTask);
         ThrowHelper.ThrowIfNull(secondTask);
         ThrowHelper.ThrowIfNull(combiner);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var result1 = await firstTask.ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
         var result2 = await secondTask.ConfigureAwait(false);
+
         return result1.IsSome && result2.IsSome
             ? Option<V>.Some(combiner(result1.GetValue(), result2.GetValue()))
             : Option<V>.None();
@@ -411,14 +480,18 @@ public static class OptionAsyncExtensions
     /// </summary>
     /// <typeparam name="T">The type of the value in the options.</typeparam>
     /// <param name="optionTasks">The collection of option tasks to search.</param>
+    /// <param name="cancellationToken">A cancellation token to observe.</param>
     /// <returns>A task containing the first Some option found, or None if all are None.</returns>
     public static async Task<Option<T>> FirstSomeAsync<T>(
-        this IEnumerable<Task<Option<T>>> optionTasks)
+        this IEnumerable<Task<Option<T>>> optionTasks,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(optionTasks);
+        cancellationToken.ThrowIfCancellationRequested();
 
         foreach (var task in optionTasks)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var option = await task.ConfigureAwait(false);
             if (option.IsSome)
                 return option;
@@ -432,18 +505,16 @@ public static class OptionAsyncExtensions
     /// <typeparam name="T">The type of the value in the option.</typeparam>
     /// <param name="option">The option to check.</param>
     /// <param name="alternativeAsync">An async function to compute the alternative if None.</param>
+    /// <param name="cancellationToken">A cancellation token to observe.</param>
     /// <returns>A task containing the original Some or the computed alternative.</returns>
-    /// <example>
-    /// <code>
-    /// var result = await option.OrElseAsync(async () => await FetchDefaultAsync());
-    /// </code>
-    /// </example>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<Option<T>> OrElseAsync<T>(
         this Option<T> option,
-        Func<Task<Option<T>>> alternativeAsync)
+        Func<Task<Option<T>>> alternativeAsync,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(alternativeAsync);
+        cancellationToken.ThrowIfCancellationRequested();
 
         if (option.IsSome)
             return option;
@@ -457,24 +528,23 @@ public static class OptionAsyncExtensions
     /// <typeparam name="T">The type of the value in the option.</typeparam>
     /// <param name="optionTask">The task containing the option to check.</param>
     /// <param name="alternativeAsync">An async function to compute the alternative if None.</param>
+    /// <param name="cancellationToken">A cancellation token to observe.</param>
     /// <returns>A task containing the original Some or the computed alternative.</returns>
-    /// <example>
-    /// <code>
-    /// var result = await optionTask.OrElseAsync(async () => await FetchDefaultAsync());
-    /// </code>
-    /// </example>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<Option<T>> OrElseAsync<T>(
         this Task<Option<T>> optionTask,
-        Func<Task<Option<T>>> alternativeAsync)
+        Func<Task<Option<T>>> alternativeAsync,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(optionTask);
         ThrowHelper.ThrowIfNull(alternativeAsync);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var option = await optionTask.ConfigureAwait(false);
         if (option.IsSome)
             return option;
 
+        cancellationToken.ThrowIfCancellationRequested();
         return await alternativeAsync().ConfigureAwait(false);
     }
 
@@ -484,31 +554,27 @@ public static class OptionAsyncExtensions
     /// <typeparam name="T">The type of the value in the option.</typeparam>
     /// <param name="optionTask">The task containing the option to check.</param>
     /// <param name="alternative">The alternative to return if None.</param>
+    /// <param name="cancellationToken">A cancellation token to observe.</param>
     /// <returns>A task containing the original Some or the alternative.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<Option<T>> OrAsync<T>(
         this Task<Option<T>> optionTask,
-        Option<T> alternative)
+        Option<T> alternative,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(optionTask);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var option = await optionTask.ConfigureAwait(false);
         return option.IsSome ? option : alternative;
     }
 
     #region ValueTask Overloads
-    // ValueTask overloads provide better performance when the result is often 
-    // available synchronously or when frequent allocations need to be avoided.
 
     /// <summary>
     /// Maps the value inside a ValueTask&lt;Option&lt;T&gt;&gt; using a synchronous function.
     /// Optimized for scenarios where the option is frequently None or already completed.
     /// </summary>
-    /// <typeparam name="T">The type of the value in the source option.</typeparam>
-    /// <typeparam name="U">The type of the value in the resulting option.</typeparam>
-    /// <param name="optionTask">The value task containing the option to map.</param>
-    /// <param name="mapper">A function to apply to the value if Some.</param>
-    /// <returns>A value task containing Some with the mapped value, or None if the original was None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ValueTask<Option<U>> MapAsync<T, U>(
         this ValueTask<Option<T>> optionTask,
@@ -534,11 +600,6 @@ public static class OptionAsyncExtensions
     /// <summary>
     /// Maps the value inside a ValueTask&lt;Option&lt;T&gt;&gt; using an async function.
     /// </summary>
-    /// <typeparam name="T">The type of the value in the source option.</typeparam>
-    /// <typeparam name="U">The type of the value in the resulting option.</typeparam>
-    /// <param name="optionTask">The value task containing the option to map.</param>
-    /// <param name="mapper">An async function to apply to the value if Some.</param>
-    /// <returns>A value task containing Some with the mapped value, or None if the original was None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async ValueTask<Option<U>> MapAsync<T, U>(
         this ValueTask<Option<T>> optionTask,
@@ -558,11 +619,6 @@ public static class OptionAsyncExtensions
     /// Chains a synchronous operation on a ValueTask&lt;Option&lt;T&gt;&gt;.
     /// Optimized for scenarios where the option is frequently None or already completed.
     /// </summary>
-    /// <typeparam name="T">The type of the value in the source option.</typeparam>
-    /// <typeparam name="U">The type of the value in the resulting option.</typeparam>
-    /// <param name="optionTask">The value task containing the option to chain.</param>
-    /// <param name="binder">A function that returns a new option based on the value.</param>
-    /// <returns>A value task containing the result of the binder if Some, otherwise None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ValueTask<Option<U>> BindAsync<T, U>(
         this ValueTask<Option<T>> optionTask,
@@ -588,11 +644,6 @@ public static class OptionAsyncExtensions
     /// <summary>
     /// Chains an async operation on a ValueTask&lt;Option&lt;T&gt;&gt;.
     /// </summary>
-    /// <typeparam name="T">The type of the value in the source option.</typeparam>
-    /// <typeparam name="U">The type of the value in the resulting option.</typeparam>
-    /// <param name="optionTask">The value task containing the option to chain.</param>
-    /// <param name="binder">An async function that returns a new option based on the value.</param>
-    /// <returns>A value task containing the result of the binder if Some, otherwise None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async ValueTask<Option<U>> BindAsync<T, U>(
         this ValueTask<Option<T>> optionTask,
@@ -611,10 +662,6 @@ public static class OptionAsyncExtensions
     /// Filters a ValueTask&lt;Option&lt;T&gt;&gt; using a synchronous predicate.
     /// Optimized for scenarios where the option is frequently None or already completed.
     /// </summary>
-    /// <typeparam name="T">The type of the value in the option.</typeparam>
-    /// <param name="optionTask">The value task containing the option to filter.</param>
-    /// <param name="predicate">A predicate to test the value.</param>
-    /// <returns>A value task containing the original Some if the predicate passes, otherwise None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ValueTask<Option<T>> FilterAsync<T>(
         this ValueTask<Option<T>> optionTask,
@@ -641,12 +688,6 @@ public static class OptionAsyncExtensions
     /// Pattern matches on a ValueTask&lt;Option&lt;T&gt;&gt; with synchronous handlers.
     /// Optimized for scenarios where the option is frequently None or already completed.
     /// </summary>
-    /// <typeparam name="T">The type of the value in the option.</typeparam>
-    /// <typeparam name="U">The type of the result.</typeparam>
-    /// <param name="optionTask">The value task containing the option to match.</param>
-    /// <param name="someFunc">A function to call if Some.</param>
-    /// <param name="noneFunc">A function to call if None.</param>
-    /// <returns>A value task containing the result of the matched handler.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ValueTask<U> MatchAsync<T, U>(
         this ValueTask<Option<T>> optionTask,
@@ -675,9 +716,6 @@ public static class OptionAsyncExtensions
     /// Wraps an Option&lt;T&gt; in a completed ValueTask&lt;Option&lt;T&gt;&gt;.
     /// More efficient than Task.FromResult for frequently-called paths.
     /// </summary>
-    /// <typeparam name="T">The type of the value in the option.</typeparam>
-    /// <param name="option">The option to wrap.</param>
-    /// <returns>A completed value task containing the option.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ValueTask<Option<T>> AsValueTask<T>(this Option<T> option)
     {
@@ -686,17 +724,11 @@ public static class OptionAsyncExtensions
 
     #endregion
 
-    #region CancellationToken Overloads
+    #region CancellationToken with Func Overloads
 
     /// <summary>
     /// Maps the value inside a Task&lt;Option&lt;T&gt;&gt; using an async function with cancellation support.
     /// </summary>
-    /// <typeparam name="T">The type of the value in the source option.</typeparam>
-    /// <typeparam name="U">The type of the value in the resulting option.</typeparam>
-    /// <param name="optionTask">The task containing the option to map.</param>
-    /// <param name="mapper">An async function to apply to the value if Some.</param>
-    /// <param name="cancellationToken">A cancellation token to observe.</param>
-    /// <returns>A task containing Some with the mapped value, or None if the original was None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<Option<U>> MapAsync<T, U>(
         this Task<Option<T>> optionTask,
@@ -705,8 +737,8 @@ public static class OptionAsyncExtensions
     {
         ThrowHelper.ThrowIfNull(optionTask);
         ThrowHelper.ThrowIfNull(mapper);
-
         cancellationToken.ThrowIfCancellationRequested();
+
         var option = await optionTask.ConfigureAwait(false);
         if (!option.IsSome)
             return Option<U>.None();
@@ -719,12 +751,6 @@ public static class OptionAsyncExtensions
     /// <summary>
     /// Chains an async operation on a Task&lt;Option&lt;T&gt;&gt; with cancellation support.
     /// </summary>
-    /// <typeparam name="T">The type of the value in the source option.</typeparam>
-    /// <typeparam name="U">The type of the value in the resulting option.</typeparam>
-    /// <param name="optionTask">The task containing the option to chain.</param>
-    /// <param name="binder">An async function that returns a new option based on the value.</param>
-    /// <param name="cancellationToken">A cancellation token to observe.</param>
-    /// <returns>A task containing the result of the binder if Some, otherwise None.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<Option<U>> BindAsync<T, U>(
         this Task<Option<T>> optionTask,
@@ -733,8 +759,8 @@ public static class OptionAsyncExtensions
     {
         ThrowHelper.ThrowIfNull(optionTask);
         ThrowHelper.ThrowIfNull(binder);
-
         cancellationToken.ThrowIfCancellationRequested();
+
         var option = await optionTask.ConfigureAwait(false);
         if (!option.IsSome)
             return Option<U>.None();
@@ -746,13 +772,6 @@ public static class OptionAsyncExtensions
     /// <summary>
     /// Pattern matches on a Task&lt;Option&lt;T&gt;&gt; with async handlers and cancellation support.
     /// </summary>
-    /// <typeparam name="T">The type of the value in the option.</typeparam>
-    /// <typeparam name="U">The type of the result.</typeparam>
-    /// <param name="optionTask">The task containing the option to match.</param>
-    /// <param name="someFunc">An async function to call if Some.</param>
-    /// <param name="noneFunc">An async function to call if None.</param>
-    /// <param name="cancellationToken">A cancellation token to observe.</param>
-    /// <returns>A task containing the result of the matched handler.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<U> MatchAsync<T, U>(
         this Task<Option<T>> optionTask,
@@ -763,11 +782,11 @@ public static class OptionAsyncExtensions
         ThrowHelper.ThrowIfNull(optionTask);
         ThrowHelper.ThrowIfNull(someFunc);
         ThrowHelper.ThrowIfNull(noneFunc);
-
         cancellationToken.ThrowIfCancellationRequested();
+
         var option = await optionTask.ConfigureAwait(false);
-
         cancellationToken.ThrowIfCancellationRequested();
+
         if (option.IsSome)
             return await someFunc(option.GetValue(), cancellationToken).ConfigureAwait(false);
 

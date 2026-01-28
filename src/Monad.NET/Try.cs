@@ -104,11 +104,19 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>, ICompar
     /// <summary>
     /// Executes an async function and captures any exception.
     /// </summary>
-    public static async Task<Try<T>> OfAsync(Func<Task<T>> func)
+    /// <param name="func">The async function to execute.</param>
+    /// <param name="cancellationToken">A cancellation token to observe.</param>
+    /// <returns>Success with the result, or Failure with the exception.</returns>
+    public static async Task<Try<T>> OfAsync(Func<Task<T>> func, CancellationToken cancellationToken = default)
     {
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
             return Success(await func().ConfigureAwait(false));
+        }
+        catch (OperationCanceledException)
+        {
+            throw; // Re-throw cancellation
         }
         catch (Exception ex)
         {
@@ -807,15 +815,27 @@ public static class TryExtensions
     /// <summary>
     /// Maps the value with an async function.
     /// </summary>
-    public static async Task<Try<U>> MapAsync<T, U>(this Try<T> @try, Func<T, Task<U>> mapper)
+    /// <param name="try">The try to map.</param>
+    /// <param name="mapper">An async function to apply to the value if Success.</param>
+    /// <param name="cancellationToken">A cancellation token to observe.</param>
+    /// <returns>A task containing Success with the mapped value, or the original Failure.</returns>
+    public static async Task<Try<U>> MapAsync<T, U>(
+        this Try<T> @try,
+        Func<T, Task<U>> mapper,
+        CancellationToken cancellationToken = default)
     {
         if (!@try.IsSuccess)
             return Try<U>.Failure(@try.GetException());
 
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var result = await mapper(@try.GetValue()).ConfigureAwait(false);
             return Try<U>.Success(result);
+        }
+        catch (OperationCanceledException)
+        {
+            throw; // Re-throw cancellation
         }
         catch (Exception ex)
         {
@@ -826,14 +846,26 @@ public static class TryExtensions
     /// <summary>
     /// Chains an async operation.
     /// </summary>
-    public static async Task<Try<U>> BindAsync<T, U>(this Try<T> @try, Func<T, Task<Try<U>>> binder)
+    /// <param name="try">The try to chain.</param>
+    /// <param name="binder">An async function that returns a new Try based on the value.</param>
+    /// <param name="cancellationToken">A cancellation token to observe.</param>
+    /// <returns>A task containing the result of the binder if Success, otherwise the original Failure.</returns>
+    public static async Task<Try<U>> BindAsync<T, U>(
+        this Try<T> @try,
+        Func<T, Task<Try<U>>> binder,
+        CancellationToken cancellationToken = default)
     {
         if (!@try.IsSuccess)
             return Try<U>.Failure(@try.GetException());
 
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
             return await binder(@try.GetValue()).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            throw; // Re-throw cancellation
         }
         catch (Exception ex)
         {

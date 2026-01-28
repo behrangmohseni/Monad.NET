@@ -5,6 +5,7 @@ namespace Monad.NET;
 
 /// <summary>
 /// Async extensions for Result&lt;T, E&gt; to work seamlessly with Task-based asynchronous code.
+/// All async methods support CancellationToken for proper cancellation handling.
 /// </summary>
 [EditorBrowsable(EditorBrowsableState.Never)]
 public static class ResultAsyncExtensions
@@ -15,15 +16,18 @@ public static class ResultAsyncExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<Result<U, TErr>> MapAsync<T, TErr, U>(
         this Task<Result<T, TErr>> resultTask,
-        Func<T, Task<U>> mapper)
+        Func<T, Task<U>> mapper,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(resultTask);
         ThrowHelper.ThrowIfNull(mapper);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var result = await resultTask.ConfigureAwait(false);
         if (!result.IsOk)
             return Result<U, TErr>.Err(result.GetError());
 
+        cancellationToken.ThrowIfCancellationRequested();
         var value = await mapper(result.GetValue()).ConfigureAwait(false);
         return Result<U, TErr>.Ok(value);
     }
@@ -34,10 +38,12 @@ public static class ResultAsyncExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<Result<U, TErr>> MapAsync<T, TErr, U>(
         this Task<Result<T, TErr>> resultTask,
-        Func<T, U> mapper)
+        Func<T, U> mapper,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(resultTask);
         ThrowHelper.ThrowIfNull(mapper);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var result = await resultTask.ConfigureAwait(false);
         return result.Map(mapper);
@@ -49,15 +55,18 @@ public static class ResultAsyncExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<Result<T, F>> MapErrorAsync<T, TErr, F>(
         this Task<Result<T, TErr>> resultTask,
-        Func<TErr, Task<F>> mapper)
+        Func<TErr, Task<F>> mapper,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(resultTask);
         ThrowHelper.ThrowIfNull(mapper);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var result = await resultTask.ConfigureAwait(false);
         if (result.IsOk)
             return Result<T, F>.Ok(result.GetValue());
 
+        cancellationToken.ThrowIfCancellationRequested();
         var error = await mapper(result.GetError()).ConfigureAwait(false);
         return Result<T, F>.Err(error);
     }
@@ -68,10 +77,12 @@ public static class ResultAsyncExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<Result<T, F>> MapErrorAsync<T, TErr, F>(
         this Task<Result<T, TErr>> resultTask,
-        Func<TErr, F> mapper)
+        Func<TErr, F> mapper,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(resultTask);
         ThrowHelper.ThrowIfNull(mapper);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var result = await resultTask.ConfigureAwait(false);
         return result.MapError(mapper);
@@ -83,15 +94,18 @@ public static class ResultAsyncExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<Result<U, TErr>> BindAsync<T, TErr, U>(
         this Task<Result<T, TErr>> resultTask,
-        Func<T, Task<Result<U, TErr>>> binder)
+        Func<T, Task<Result<U, TErr>>> binder,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(resultTask);
         ThrowHelper.ThrowIfNull(binder);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var result = await resultTask.ConfigureAwait(false);
         if (!result.IsOk)
             return Result<U, TErr>.Err(result.GetError());
 
+        cancellationToken.ThrowIfCancellationRequested();
         return await binder(result.GetValue()).ConfigureAwait(false);
     }
 
@@ -101,10 +115,12 @@ public static class ResultAsyncExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<Result<U, TErr>> BindAsync<T, TErr, U>(
         this Task<Result<T, TErr>> resultTask,
-        Func<T, Result<U, TErr>> binder)
+        Func<T, Result<U, TErr>> binder,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(resultTask);
         ThrowHelper.ThrowIfNull(binder);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var result = await resultTask.ConfigureAwait(false);
         return result.Bind(binder);
@@ -116,15 +132,18 @@ public static class ResultAsyncExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<Result<T, F>> OrElseAsync<T, TErr, F>(
         this Task<Result<T, TErr>> resultTask,
-        Func<TErr, Task<Result<T, F>>> op)
+        Func<TErr, Task<Result<T, F>>> op,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(resultTask);
         ThrowHelper.ThrowIfNull(op);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var result = await resultTask.ConfigureAwait(false);
         if (result.IsOk)
             return Result<T, F>.Ok(result.GetValue());
 
+        cancellationToken.ThrowIfCancellationRequested();
         return await op(result.GetError()).ConfigureAwait(false);
     }
 
@@ -134,15 +153,18 @@ public static class ResultAsyncExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<T> GetValueOrElseAsync<T, TErr>(
         this Task<Result<T, TErr>> resultTask,
-        Func<TErr, Task<T>> op)
+        Func<TErr, Task<T>> op,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(resultTask);
         ThrowHelper.ThrowIfNull(op);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var result = await resultTask.ConfigureAwait(false);
         if (result.IsOk)
             return result.GetValue();
 
+        cancellationToken.ThrowIfCancellationRequested();
         return await op(result.GetError()).ConfigureAwait(false);
     }
 
@@ -153,13 +175,17 @@ public static class ResultAsyncExtensions
     public static async Task<U> MatchAsync<T, TErr, U>(
         this Task<Result<T, TErr>> resultTask,
         Func<T, Task<U>> okFunc,
-        Func<TErr, Task<U>> errFunc)
+        Func<TErr, Task<U>> errFunc,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(resultTask);
         ThrowHelper.ThrowIfNull(okFunc);
         ThrowHelper.ThrowIfNull(errFunc);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var result = await resultTask.ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+
         if (result.IsOk)
             return await okFunc(result.GetValue()).ConfigureAwait(false);
 
@@ -173,11 +199,13 @@ public static class ResultAsyncExtensions
     public static async Task<U> MatchAsync<T, TErr, U>(
         this Task<Result<T, TErr>> resultTask,
         Func<T, U> okFunc,
-        Func<TErr, U> errFunc)
+        Func<TErr, U> errFunc,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(resultTask);
         ThrowHelper.ThrowIfNull(okFunc);
         ThrowHelper.ThrowIfNull(errFunc);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var result = await resultTask.ConfigureAwait(false);
         return result.Match(okFunc, errFunc);
@@ -189,14 +217,19 @@ public static class ResultAsyncExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<Result<T, TErr>> TapAsync<T, TErr>(
         this Task<Result<T, TErr>> resultTask,
-        Func<T, Task> action)
+        Func<T, Task> action,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(resultTask);
         ThrowHelper.ThrowIfNull(action);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var result = await resultTask.ConfigureAwait(false);
         if (result.IsOk)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
             await action(result.GetValue()).ConfigureAwait(false);
+        }
 
         return result;
     }
@@ -207,14 +240,19 @@ public static class ResultAsyncExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<Result<T, TErr>> TapErrAsync<T, TErr>(
         this Task<Result<T, TErr>> resultTask,
-        Func<TErr, Task> action)
+        Func<TErr, Task> action,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(resultTask);
         ThrowHelper.ThrowIfNull(action);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var result = await resultTask.ConfigureAwait(false);
         if (result.IsErr)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
             await action(result.GetError()).ConfigureAwait(false);
+        }
 
         return result;
     }
@@ -225,9 +263,11 @@ public static class ResultAsyncExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<Result<U, TErr>> MapAsync<T, TErr, U>(
         this Result<T, TErr> result,
-        Func<T, Task<U>> mapper)
+        Func<T, Task<U>> mapper,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(mapper);
+        cancellationToken.ThrowIfCancellationRequested();
 
         if (!result.IsOk)
             return Result<U, TErr>.Err(result.GetError());
@@ -242,9 +282,11 @@ public static class ResultAsyncExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<Result<U, TErr>> BindAsync<T, TErr, U>(
         this Result<T, TErr> result,
-        Func<T, Task<Result<U, TErr>>> binder)
+        Func<T, Task<Result<U, TErr>>> binder,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(binder);
+        cancellationToken.ThrowIfCancellationRequested();
 
         if (!result.IsOk)
             return Result<U, TErr>.Err(result.GetError());
@@ -258,9 +300,11 @@ public static class ResultAsyncExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<Result<T, F>> OrElseAsync<T, TErr, F>(
         this Result<T, TErr> result,
-        Func<TErr, Task<Result<T, F>>> op)
+        Func<TErr, Task<Result<T, F>>> op,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(op);
+        cancellationToken.ThrowIfCancellationRequested();
 
         if (result.IsOk)
             return Result<T, F>.Ok(result.GetValue());
@@ -274,9 +318,11 @@ public static class ResultAsyncExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static async Task<Result<T, TErr>> TapAsync<T, TErr>(
         this Result<T, TErr> result,
-        Func<T, Task> action)
+        Func<T, Task> action,
+        CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(action);
+        cancellationToken.ThrowIfCancellationRequested();
 
         if (result.IsOk)
             await action(result.GetValue()).ConfigureAwait(false);
@@ -293,9 +339,7 @@ public static class ResultAsyncExtensions
         return Task.FromResult(result);
     }
 
-    // ============================================================================
-    // CancellationToken Overloads
-    // ============================================================================
+    #region CancellationToken with Func Overloads
 
     /// <summary>
     /// Maps the Ok value inside a Task&lt;Result&lt;T, E&gt;&gt; using an async function with cancellation support.
@@ -304,7 +348,7 @@ public static class ResultAsyncExtensions
     public static async Task<Result<U, TErr>> MapAsync<T, TErr, U>(
         this Task<Result<T, TErr>> resultTask,
         Func<T, CancellationToken, Task<U>> mapper,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         ThrowHelper.ThrowIfNull(resultTask);
         ThrowHelper.ThrowIfNull(mapper);
@@ -326,7 +370,7 @@ public static class ResultAsyncExtensions
     public static async Task<Result<T, F>> MapErrorAsync<T, TErr, F>(
         this Task<Result<T, TErr>> resultTask,
         Func<TErr, CancellationToken, Task<F>> mapper,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         ThrowHelper.ThrowIfNull(resultTask);
         ThrowHelper.ThrowIfNull(mapper);
@@ -348,7 +392,7 @@ public static class ResultAsyncExtensions
     public static async Task<Result<U, TErr>> BindAsync<T, TErr, U>(
         this Task<Result<T, TErr>> resultTask,
         Func<T, CancellationToken, Task<Result<U, TErr>>> binder,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         ThrowHelper.ThrowIfNull(resultTask);
         ThrowHelper.ThrowIfNull(binder);
@@ -369,7 +413,7 @@ public static class ResultAsyncExtensions
     public static async Task<Result<T, F>> OrElseAsync<T, TErr, F>(
         this Task<Result<T, TErr>> resultTask,
         Func<TErr, CancellationToken, Task<Result<T, F>>> op,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         ThrowHelper.ThrowIfNull(resultTask);
         ThrowHelper.ThrowIfNull(op);
@@ -390,7 +434,7 @@ public static class ResultAsyncExtensions
     public static async Task<T> GetValueOrElseAsync<T, TErr>(
         this Task<Result<T, TErr>> resultTask,
         Func<TErr, CancellationToken, Task<T>> op,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         ThrowHelper.ThrowIfNull(resultTask);
         ThrowHelper.ThrowIfNull(op);
@@ -412,7 +456,7 @@ public static class ResultAsyncExtensions
         this Task<Result<T, TErr>> resultTask,
         Func<T, CancellationToken, Task<U>> okFunc,
         Func<TErr, CancellationToken, Task<U>> errFunc,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         ThrowHelper.ThrowIfNull(resultTask);
         ThrowHelper.ThrowIfNull(okFunc);
@@ -435,7 +479,7 @@ public static class ResultAsyncExtensions
     public static async Task<Result<T, TErr>> TapAsync<T, TErr>(
         this Task<Result<T, TErr>> resultTask,
         Func<T, CancellationToken, Task> action,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         ThrowHelper.ThrowIfNull(resultTask);
         ThrowHelper.ThrowIfNull(action);
@@ -458,7 +502,7 @@ public static class ResultAsyncExtensions
     public static async Task<Result<T, TErr>> TapErrAsync<T, TErr>(
         this Task<Result<T, TErr>> resultTask,
         Func<TErr, CancellationToken, Task> action,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         ThrowHelper.ThrowIfNull(resultTask);
         ThrowHelper.ThrowIfNull(action);
@@ -481,7 +525,7 @@ public static class ResultAsyncExtensions
     public static async Task<Result<U, TErr>> MapAsync<T, TErr, U>(
         this Result<T, TErr> result,
         Func<T, CancellationToken, Task<U>> mapper,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         ThrowHelper.ThrowIfNull(mapper);
         cancellationToken.ThrowIfCancellationRequested();
@@ -500,7 +544,7 @@ public static class ResultAsyncExtensions
     public static async Task<Result<U, TErr>> BindAsync<T, TErr, U>(
         this Result<T, TErr> result,
         Func<T, CancellationToken, Task<Result<U, TErr>>> binder,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         ThrowHelper.ThrowIfNull(binder);
         cancellationToken.ThrowIfCancellationRequested();
@@ -518,7 +562,7 @@ public static class ResultAsyncExtensions
     public static async Task<Result<T, F>> OrElseAsync<T, TErr, F>(
         this Result<T, TErr> result,
         Func<TErr, CancellationToken, Task<Result<T, F>>> op,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         ThrowHelper.ThrowIfNull(op);
         cancellationToken.ThrowIfCancellationRequested();
@@ -536,7 +580,7 @@ public static class ResultAsyncExtensions
     public static async Task<Result<T, TErr>> TapAsync<T, TErr>(
         this Result<T, TErr> result,
         Func<T, CancellationToken, Task> action,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         ThrowHelper.ThrowIfNull(action);
         cancellationToken.ThrowIfCancellationRequested();
@@ -546,4 +590,6 @@ public static class ResultAsyncExtensions
 
         return result;
     }
+
+    #endregion
 }
