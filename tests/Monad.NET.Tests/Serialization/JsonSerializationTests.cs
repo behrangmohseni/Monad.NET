@@ -96,7 +96,7 @@ public class JsonSerializationTests
         var original = Result<string, string>.Err("failure");
         var json = JsonSerializer.Serialize(original, _options);
         var deserialized = JsonSerializer.Deserialize<Result<string, string>>(json, _options);
-        Assert.True(deserialized.IsErr);
+        Assert.True(deserialized.IsError);
         Assert.Equal("failure", deserialized.GetError());
     }
 
@@ -128,7 +128,7 @@ public class JsonSerializationTests
         var original = Try<string>.Success("hello");
         var json = JsonSerializer.Serialize(original, _options);
         var deserialized = JsonSerializer.Deserialize<Try<string>>(json, _options);
-        Assert.True(deserialized.IsSuccess);
+        Assert.True(deserialized.IsOk);
         Assert.Equal("hello", deserialized.GetValue());
     }
 
@@ -138,7 +138,7 @@ public class JsonSerializationTests
         var original = Try<string>.Failure(new Exception("test error"));
         var json = JsonSerializer.Serialize(original, _options);
         var deserialized = JsonSerializer.Deserialize<Try<string>>(json, _options);
-        Assert.False(deserialized.IsSuccess);
+        Assert.False(deserialized.IsOk);
     }
 
     #endregion
@@ -169,7 +169,7 @@ public class JsonSerializationTests
         var original = Validation<string, string>.Valid("success");
         var json = JsonSerializer.Serialize(original, _options);
         var deserialized = JsonSerializer.Deserialize<Validation<string, string>>(json, _options);
-        Assert.True(deserialized.IsValid);
+        Assert.True(deserialized.IsOk);
         Assert.Equal("success", deserialized.Match(v => v, _ => ""));
     }
 
@@ -179,7 +179,7 @@ public class JsonSerializationTests
         var original = Validation<string, string>.Invalid(new[] { "error1", "error2" });
         var json = JsonSerializer.Serialize(original, _options);
         var deserialized = JsonSerializer.Deserialize<Validation<string, string>>(json, _options);
-        Assert.False(deserialized.IsValid);
+        Assert.False(deserialized.IsOk);
     }
 
     #endregion
@@ -257,7 +257,7 @@ public class JsonSerializationTests
         var original = RemoteData<string, string>.Success("data");
         var json = JsonSerializer.Serialize(original, _options);
         var deserialized = JsonSerializer.Deserialize<RemoteData<string, string>>(json, _options);
-        Assert.True(deserialized.IsSuccess);
+        Assert.True(deserialized.IsOk);
     }
 
     [Fact]

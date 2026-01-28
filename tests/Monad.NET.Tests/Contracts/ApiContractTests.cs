@@ -167,7 +167,7 @@ public class ApiContractTests
 
     [Theory]
     [InlineData("IsOk", typeof(bool))]
-    [InlineData("IsErr", typeof(bool))]
+    [InlineData("IsError", typeof(bool))]
     public void Result_Properties_ShouldExist(string propertyName, Type propertyType)
     {
         var property = typeof(Result<int, string>).GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance);
@@ -241,8 +241,8 @@ public class ApiContractTests
     }
 
     [Theory]
-    [InlineData("IsValid", typeof(bool))]
-    [InlineData("IsInvalid", typeof(bool))]
+    [InlineData("IsOk", typeof(bool))]
+    [InlineData("IsError", typeof(bool))]
     public void Validation_Properties_ShouldExist(string propertyName, Type propertyType)
     {
         var property = typeof(Validation<int, string>).GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance);
@@ -301,8 +301,8 @@ public class ApiContractTests
     }
 
     [Theory]
-    [InlineData("IsSuccess", typeof(bool))]
-    [InlineData("IsFailure", typeof(bool))]
+    [InlineData("IsOk", typeof(bool))]
+    [InlineData("IsError", typeof(bool))]
     public void Try_Properties_ShouldExist(string propertyName, Type propertyType)
     {
         var property = typeof(Try<int>).GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance);
@@ -687,8 +687,8 @@ public class ApiContractTests
     [Theory]
     [InlineData("IsNotAsked", typeof(bool))]
     [InlineData("IsLoading", typeof(bool))]
-    [InlineData("IsSuccess", typeof(bool))]
-    [InlineData("IsFailure", typeof(bool))]
+    [InlineData("IsOk", typeof(bool))]
+    [InlineData("IsError", typeof(bool))]
     public void RemoteData_Properties_ShouldExist(string propertyName, Type propertyType)
     {
         var property = typeof(RemoteData<int, string>).GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance);

@@ -22,7 +22,7 @@ public class ValidationAsyncCancellationTests
         }, CancellationToken.None);
 
         Assert.Equal(42, capturedValue);
-        Assert.True(result.IsValid);
+        Assert.True(result.IsOk);
     }
 
     [Fact]
@@ -38,7 +38,7 @@ public class ValidationAsyncCancellationTests
         }, CancellationToken.None);
 
         Assert.False(executed);
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
     }
 
     #endregion
@@ -59,7 +59,7 @@ public class ValidationAsyncCancellationTests
 
         Assert.Single(capturedErrors);
         Assert.Equal("error", capturedErrors[0]);
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
     }
 
     [Fact]
@@ -75,7 +75,7 @@ public class ValidationAsyncCancellationTests
         }, CancellationToken.None);
 
         Assert.False(executed);
-        Assert.True(result.IsValid);
+        Assert.True(result.IsOk);
     }
 
     #endregion
@@ -92,7 +92,7 @@ public class ValidationAsyncCancellationTests
             return x * 2;
         }, CancellationToken.None);
 
-        Assert.True(mapped.IsValid);
+        Assert.True(mapped.IsOk);
         Assert.Equal(42, mapped.GetValue());
     }
 
@@ -106,7 +106,7 @@ public class ValidationAsyncCancellationTests
             return x * 2;
         }, CancellationToken.None);
 
-        Assert.True(mapped.IsInvalid);
+        Assert.True(mapped.IsError);
         Assert.Equal("error", mapped.GetErrors()[0]);
     }
 
@@ -120,7 +120,7 @@ public class ValidationAsyncCancellationTests
             return x * 2;
         }, CancellationToken.None);
 
-        Assert.True(mapped.IsValid);
+        Assert.True(mapped.IsOk);
         Assert.Equal(42, mapped.GetValue());
     }
 
@@ -134,7 +134,7 @@ public class ValidationAsyncCancellationTests
             return x * 2;
         }, CancellationToken.None);
 
-        Assert.True(mapped.IsInvalid);
+        Assert.True(mapped.IsError);
     }
 
     #endregion
@@ -155,7 +155,7 @@ public class ValidationAsyncCancellationTests
             (a, b) => a + b,
             CancellationToken.None);
 
-        Assert.True(result.IsValid);
+        Assert.True(result.IsOk);
         Assert.Equal(25, result.GetValue()); // 10 + (10 + 5)
     }
 
@@ -173,7 +173,7 @@ public class ValidationAsyncCancellationTests
             (a, b) => a + b,
             CancellationToken.None);
 
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
         Assert.Equal("first error", result.GetErrors()[0]);
     }
 
@@ -191,7 +191,7 @@ public class ValidationAsyncCancellationTests
             (a, b) => a + b,
             CancellationToken.None);
 
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
         Assert.Equal("second error", result.GetErrors()[0]);
     }
 
@@ -212,7 +212,7 @@ public class ValidationAsyncCancellationTests
             },
             CancellationToken.None);
 
-        Assert.True(result.IsValid);
+        Assert.True(result.IsOk);
         Assert.Equal((10, "hello"), result.GetValue());
     }
 
@@ -229,7 +229,7 @@ public class ValidationAsyncCancellationTests
             },
             CancellationToken.None);
 
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
     }
 
     #endregion
@@ -250,7 +250,7 @@ public class ValidationAsyncCancellationTests
             (a, b) => a + b,
             CancellationToken.None);
 
-        Assert.True(result.IsValid);
+        Assert.True(result.IsOk);
         Assert.Equal(42, result.GetValue());
     }
 
@@ -268,7 +268,7 @@ public class ValidationAsyncCancellationTests
             (a, b) => a + b,
             CancellationToken.None);
 
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
     }
 
     #endregion

@@ -9,8 +9,8 @@ public class TryTests
     {
         var tryValue = Try<int>.Success(42);
 
-        Assert.True(tryValue.IsSuccess);
-        Assert.False(tryValue.IsFailure);
+        Assert.True(tryValue.IsOk);
+        Assert.False(tryValue.IsError);
         Assert.Equal(42, tryValue.GetValue());
     }
 
@@ -20,8 +20,8 @@ public class TryTests
         var exception = new InvalidOperationException("test error");
         var tryValue = Try<int>.Failure(exception);
 
-        Assert.False(tryValue.IsSuccess);
-        Assert.True(tryValue.IsFailure);
+        Assert.False(tryValue.IsOk);
+        Assert.True(tryValue.IsError);
         Assert.Equal(exception, tryValue.GetException());
     }
 
@@ -72,7 +72,7 @@ public class TryTests
     {
         var tryValue = Try<int>.Of(() => 42);
 
-        Assert.True(tryValue.IsSuccess);
+        Assert.True(tryValue.IsOk);
         Assert.Equal(42, tryValue.GetValue());
     }
 
@@ -81,7 +81,7 @@ public class TryTests
     {
         var tryValue = Try<int>.Of(() => throw new InvalidOperationException("error"));
 
-        Assert.True(tryValue.IsFailure);
+        Assert.True(tryValue.IsError);
         Assert.IsType<InvalidOperationException>(tryValue.GetException());
     }
 
@@ -94,7 +94,7 @@ public class TryTests
             return 42;
         });
 
-        Assert.True(tryValue.IsSuccess);
+        Assert.True(tryValue.IsOk);
         Assert.Equal(42, tryValue.GetValue());
     }
 
@@ -110,7 +110,7 @@ public class TryTests
 #pragma warning restore CS0162
         });
 
-        Assert.True(tryValue.IsFailure);
+        Assert.True(tryValue.IsError);
     }
 
     [Fact]
@@ -149,7 +149,7 @@ public class TryTests
         var tryValue = Try<int>.Success(42);
         var mapped = tryValue.Map(x => x * 2);
 
-        Assert.True(mapped.IsSuccess);
+        Assert.True(mapped.IsOk);
         Assert.Equal(84, mapped.GetValue());
     }
 
@@ -160,7 +160,7 @@ public class TryTests
         var tryValue = Try<int>.Failure(exception);
         var mapped = tryValue.Map(x => x * 2);
 
-        Assert.True(mapped.IsFailure);
+        Assert.True(mapped.IsError);
         Assert.Equal(exception, mapped.GetException());
     }
 
@@ -170,7 +170,7 @@ public class TryTests
         var tryValue = Try<int>.Success(42);
         var mapped = tryValue.Map<int>(x => throw new InvalidOperationException("map error"));
 
-        Assert.True(mapped.IsFailure);
+        Assert.True(mapped.IsError);
         Assert.IsType<InvalidOperationException>(mapped.GetException());
     }
 
@@ -184,7 +184,7 @@ public class TryTests
             return x * 2;
         });
 
-        Assert.True(mapped.IsSuccess);
+        Assert.True(mapped.IsOk);
         Assert.Equal(84, mapped.GetValue());
     }
 
@@ -194,7 +194,7 @@ public class TryTests
         var tryValue = Try<int>.Success(42);
         var result = tryValue.Bind(x => Try<string>.Success(x.ToString()));
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal("42", result.GetValue());
     }
 
@@ -205,7 +205,7 @@ public class TryTests
         var tryValue = Try<int>.Failure(exception);
         var result = tryValue.Bind(x => Try<string>.Success(x.ToString()));
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
         Assert.Equal(exception, result.GetException());
     }
 
@@ -217,7 +217,7 @@ public class TryTests
 
         var result = try1.Zip(try2);
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal((42, "hello"), result.GetValue());
     }
 
@@ -230,7 +230,7 @@ public class TryTests
 
         var result = try1.Zip(try2);
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
         Assert.Equal(exception, result.GetException());
     }
 
@@ -243,7 +243,7 @@ public class TryTests
 
         var result = try1.Zip(try2);
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
         Assert.Equal(exception, result.GetException());
     }
 
@@ -255,7 +255,7 @@ public class TryTests
 
         var result = try1.ZipWith(try2, (a, b) => a + b);
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(30, result.GetValue());
     }
 
@@ -268,7 +268,7 @@ public class TryTests
 
         var result = try1.ZipWith(try2, (a, b) => a + b);
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
         Assert.Equal(exception, result.GetException());
     }
 
@@ -280,7 +280,7 @@ public class TryTests
 
         var result = try1.ZipWith<int, int>(try2, (a, b) => throw new InvalidOperationException("combiner failed"));
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
         Assert.IsType<InvalidOperationException>(result.GetException());
     }
 
@@ -290,7 +290,7 @@ public class TryTests
         var tryValue = Try<int>.Failure(new Exception("error"));
         var recovered = tryValue.Recover(ex => 100);
 
-        Assert.True(recovered.IsSuccess);
+        Assert.True(recovered.IsOk);
         Assert.Equal(100, recovered.GetValue());
     }
 
@@ -309,7 +309,7 @@ public class TryTests
         var tryValue = Try<int>.Failure(new Exception("error"));
         var recovered = tryValue.RecoverWith(ex => Try<int>.Success(100));
 
-        Assert.True(recovered.IsSuccess);
+        Assert.True(recovered.IsOk);
         Assert.Equal(100, recovered.GetValue());
     }
 
@@ -319,7 +319,7 @@ public class TryTests
         var tryValue = Try<int>.Success(42);
         var filtered = tryValue.Filter(x => x > 40);
 
-        Assert.True(filtered.IsSuccess);
+        Assert.True(filtered.IsOk);
         Assert.Equal(42, filtered.GetValue());
     }
 
@@ -329,7 +329,7 @@ public class TryTests
         var tryValue = Try<int>.Success(42);
         var filtered = tryValue.Filter(x => x < 40);
 
-        Assert.True(filtered.IsFailure);
+        Assert.True(filtered.IsError);
     }
 
     [Fact]
@@ -408,7 +408,7 @@ public class TryTests
         var tryValue = Try<int>.Failure(exception);
         var result = tryValue.ToResult();
 
-        Assert.True(result.IsErr);
+        Assert.True(result.IsError);
         Assert.Equal(exception, result.GetError());
     }
 
@@ -418,7 +418,7 @@ public class TryTests
         var tryValue = Try<int>.Failure(new Exception("error"));
         var result = tryValue.ToResult(ex => ex.Message);
 
-        Assert.True(result.IsErr);
+        Assert.True(result.IsError);
         Assert.Equal("error", result.GetError());
     }
 
@@ -431,7 +431,7 @@ public class TryTests
         var result = tryValue.Tap(x => executed = true);
 
         Assert.True(executed);
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
     }
 
     [Fact]
@@ -443,7 +443,7 @@ public class TryTests
         var result = tryValue.TapFailure(ex => executed = true);
 
         Assert.True(executed);
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
     }
 
     [Fact]
@@ -452,7 +452,7 @@ public class TryTests
         var nested = Try<Try<int>>.Success(Try<int>.Success(42));
         var flattened = nested.Flatten();
 
-        Assert.True(flattened.IsSuccess);
+        Assert.True(flattened.IsOk);
         Assert.Equal(42, flattened.GetValue());
     }
 
@@ -463,7 +463,7 @@ public class TryTests
         var nested = Try<Try<int>>.Failure(exception);
         var flattened = nested.Flatten();
 
-        Assert.True(flattened.IsFailure);
+        Assert.True(flattened.IsError);
         Assert.Equal(exception, flattened.GetException());
     }
 
@@ -473,7 +473,7 @@ public class TryTests
         var result = Result<int, Exception>.Ok(42);
         var tryValue = result.ToTry();
 
-        Assert.True(tryValue.IsSuccess);
+        Assert.True(tryValue.IsOk);
         Assert.Equal(42, tryValue.GetValue());
     }
 
@@ -484,7 +484,7 @@ public class TryTests
         var result = Result<int, Exception>.Err(exception);
         var tryValue = result.ToTry();
 
-        Assert.True(tryValue.IsFailure);
+        Assert.True(tryValue.IsError);
         Assert.Equal(exception, tryValue.GetException());
     }
 
@@ -493,7 +493,7 @@ public class TryTests
     {
         var tryValue = Try<int>.Of(() => int.Parse("42"));
 
-        Assert.True(tryValue.IsSuccess);
+        Assert.True(tryValue.IsOk);
         Assert.Equal(42, tryValue.GetValue());
     }
 
@@ -502,7 +502,7 @@ public class TryTests
     {
         var tryValue = Try<int>.Of(() => int.Parse("not a number"));
 
-        Assert.True(tryValue.IsFailure);
+        Assert.True(tryValue.IsError);
         Assert.IsType<FormatException>(tryValue.GetException());
     }
 

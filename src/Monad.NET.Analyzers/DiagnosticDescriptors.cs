@@ -19,11 +19,11 @@ internal static class DiagnosticDescriptors
     public static readonly DiagnosticDescriptor UncheckedUnwrap = new(
         id: "MNT001",
         title: "Unchecked Unwrap call",
-        messageFormat: "{0} should be checked with IsSuccess/IsSome before calling Unwrap()",
+        messageFormat: "{0} should be checked with IsOk/IsSome before calling Unwrap()",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
-        description: "Calling Unwrap() without first checking if the monad contains a value can throw an exception at runtime. Consider using Match, Map, or checking IsSuccess/IsSome first.",
+        description: "Calling Unwrap() without first checking if the monad contains a value can throw an exception at runtime. Consider using Match, Map, or checking IsOk/IsSome first.",
         helpLinkUri: "https://github.com/behrangmohseni/Monad.NET/blob/main/docs/Guides/Analyzers.md#mnt001");
 
     /// <summary>

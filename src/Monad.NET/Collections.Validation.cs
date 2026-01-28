@@ -38,7 +38,7 @@ public static partial class MonadCollectionExtensions
 
         foreach (var validation in validations)
         {
-            if (validation.IsValid)
+            if (validation.IsOk)
             {
                 values.Add(validation.GetValue());
             }
@@ -89,7 +89,7 @@ public static partial class MonadCollectionExtensions
         foreach (var item in source)
         {
             var validation = selector(item);
-            if (validation.IsValid)
+            if (validation.IsOk)
             {
                 values.Add(validation.GetValue());
             }
@@ -118,7 +118,7 @@ public static partial class MonadCollectionExtensions
 
         foreach (var validation in validations)
         {
-            if (validation.IsValid)
+            if (validation.IsOk)
                 yield return validation.GetValue();
         }
     }
@@ -137,7 +137,7 @@ public static partial class MonadCollectionExtensions
 
         foreach (var validation in validations)
         {
-            if (validation.IsInvalid)
+            if (validation.IsError)
             {
                 foreach (var error in validation.GetErrors())
                     yield return error;
@@ -163,7 +163,7 @@ public static partial class MonadCollectionExtensions
 
         foreach (var validation in validations)
         {
-            if (validation.IsValid)
+            if (validation.IsOk)
             {
                 valids.Add(validation.GetValue());
             }

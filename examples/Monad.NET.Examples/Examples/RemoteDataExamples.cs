@@ -26,8 +26,8 @@ public static class RemoteDataExamples
         Console.WriteLine("\n2. State Checking:");
         Console.WriteLine($"   notAsked.IsNotAsked: {notAsked.IsNotAsked}");
         Console.WriteLine($"   loading.IsLoading:   {loading.IsLoading}");
-        Console.WriteLine($"   success.IsSuccess:   {success.IsSuccess}");
-        Console.WriteLine($"   failure.IsFailure:   {failure.IsFailure}");
+        Console.WriteLine($"   success.IsOk:   {success.IsOk}");
+        Console.WriteLine($"   failure.IsError:   {failure.IsError}");
 
         // Pattern matching for UI rendering
         Console.WriteLine("\n3. UI Rendering Pattern:");

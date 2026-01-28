@@ -68,7 +68,10 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>, IC
     /// <summary>
     /// Returns true if the data was successfully loaded.
     /// </summary>
-    public bool IsSuccess
+    /// <remarks>
+    /// This follows F# naming conventions for consistency across monadic types.
+    /// </remarks>
+    public bool IsOk
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => _state == RemoteDataState.Success;
@@ -77,7 +80,10 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>, IC
     /// <summary>
     /// Returns true if loading the data failed.
     /// </summary>
-    public bool IsFailure
+    /// <remarks>
+    /// This follows F# naming conventions for consistency across monadic types.
+    /// </remarks>
+    public bool IsError
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => _state == RemoteDataState.Failure;
@@ -575,7 +581,7 @@ public static class RemoteDataExtensions
     {
         ThrowHelper.ThrowIfNull(action);
 
-        if (remoteData.IsSuccess)
+        if (remoteData.IsOk)
             action(remoteData.GetValue());
 
         return remoteData;
@@ -591,7 +597,7 @@ public static class RemoteDataExtensions
     {
         ThrowHelper.ThrowIfNull(action);
 
-        if (remoteData.IsFailure)
+        if (remoteData.IsError)
             action(remoteData.GetError());
 
         return remoteData;
@@ -684,7 +690,7 @@ public static class RemoteDataExtensions
         ThrowHelper.ThrowIfNull(mapper);
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (!remoteData.IsSuccess)
+        if (!remoteData.IsOk)
             return remoteData.Map(static _ => default(U)!); // Preserves state
 
         var result = await mapper(remoteData.GetValue()).ConfigureAwait(false);
@@ -697,7 +703,7 @@ public static class RemoteDataExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsLoaded<T, TErr>(this RemoteData<T, TErr> remoteData)
     {
-        return remoteData.IsSuccess || remoteData.IsFailure;
+        return remoteData.IsOk || remoteData.IsError;
     }
 
     /// <summary>
@@ -756,7 +762,7 @@ public static class RemoteDataExtensions
         cancellationToken.ThrowIfCancellationRequested();
 
         var remoteData = await remoteDataTask.ConfigureAwait(false);
-        if (!remoteData.IsSuccess)
+        if (!remoteData.IsOk)
             return remoteData.Map(static _ => default(U)!);
 
         cancellationToken.ThrowIfCancellationRequested();
@@ -816,11 +822,11 @@ internal sealed class RemoteDataDebugView<T, TErr>
 
     public bool IsNotAsked => _remoteData.IsNotAsked;
     public bool IsLoading => _remoteData.IsLoading;
-    public bool IsSuccess => _remoteData.IsSuccess;
-    public bool IsFailure => _remoteData.IsFailure;
+    public bool IsSuccess => _remoteData.IsOk;
+    public bool IsFailure => _remoteData.IsError;
 
     [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-    public object? Data => _remoteData.IsSuccess ? _remoteData.GetValue() : null;
+    public object? Data => _remoteData.IsOk ? _remoteData.GetValue() : null;
 
-    public object? Error => _remoteData.IsFailure ? _remoteData.GetError() : null;
+    public object? Error => _remoteData.IsError ? _remoteData.GetError() : null;
 }

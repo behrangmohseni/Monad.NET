@@ -39,14 +39,14 @@ public static partial class MonadCollectionExtensions
 
         foreach (var item in remoteDataItems)
         {
-            if (item.IsSuccess)
+            if (item.IsOk)
             {
                 values.Add(item.GetValue());
             }
             else if (firstNonSuccess is null)
             {
                 // Capture the first non-Success state with priority: Failure > Loading > NotAsked
-                if (item.IsFailure)
+                if (item.IsError)
                 {
                     firstNonSuccess = RemoteData<IReadOnlyList<T>, TErr>.Failure(item.GetError());
                 }
@@ -59,7 +59,7 @@ public static partial class MonadCollectionExtensions
                     firstNonSuccess = RemoteData<IReadOnlyList<T>, TErr>.NotAsked();
                 }
             }
-            else if (item.IsFailure && !firstNonSuccess.Value.IsFailure)
+            else if (item.IsError && !firstNonSuccess.Value.IsError)
             {
                 // Failure takes priority over Loading/NotAsked
                 firstNonSuccess = RemoteData<IReadOnlyList<T>, TErr>.Failure(item.GetError());
@@ -99,13 +99,13 @@ public static partial class MonadCollectionExtensions
         {
             var result = selector(item);
 
-            if (result.IsSuccess)
+            if (result.IsOk)
             {
                 values.Add(result.GetValue());
             }
             else if (firstNonSuccess is null)
             {
-                if (result.IsFailure)
+                if (result.IsError)
                 {
                     firstNonSuccess = RemoteData<IReadOnlyList<U>, TErr>.Failure(result.GetError());
                 }
@@ -118,7 +118,7 @@ public static partial class MonadCollectionExtensions
                     firstNonSuccess = RemoteData<IReadOnlyList<U>, TErr>.NotAsked();
                 }
             }
-            else if (result.IsFailure && !firstNonSuccess.Value.IsFailure)
+            else if (result.IsError && !firstNonSuccess.Value.IsError)
             {
                 firstNonSuccess = RemoteData<IReadOnlyList<U>, TErr>.Failure(result.GetError());
             }
@@ -145,7 +145,7 @@ public static partial class MonadCollectionExtensions
 
         foreach (var item in remoteDataItems)
         {
-            if (item.IsSuccess)
+            if (item.IsOk)
                 yield return item.GetValue();
         }
     }
@@ -164,7 +164,7 @@ public static partial class MonadCollectionExtensions
 
         foreach (var item in remoteDataItems)
         {
-            if (item.IsFailure)
+            if (item.IsError)
                 yield return item.GetError();
         }
     }
@@ -189,9 +189,9 @@ public static partial class MonadCollectionExtensions
 
         foreach (var item in remoteDataItems)
         {
-            if (item.IsSuccess)
+            if (item.IsOk)
                 successes.Add(item.GetValue());
-            else if (item.IsFailure)
+            else if (item.IsError)
                 failures.Add(item.GetError());
             else if (item.IsLoading)
                 loadingCount++;
@@ -218,7 +218,7 @@ public static partial class MonadCollectionExtensions
 
         foreach (var item in remoteDataItems)
         {
-            if (item.IsSuccess)
+            if (item.IsOk)
                 return item;
 
             firstNonSuccess ??= item;

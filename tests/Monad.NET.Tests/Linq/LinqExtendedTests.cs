@@ -16,7 +16,7 @@ public class LinqExtendedTests
         var @try = Try<int>.Failure(exception);
         var result = @try.Select(x => x * 2);
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
         Assert.Same(exception, result.GetException());
     }
 
@@ -27,7 +27,7 @@ public class LinqExtendedTests
         var @try = Try<int>.Failure(exception);
         var result = @try.SelectMany(x => Try<int>.Success(x + 5));
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
     }
 
     [Fact]
@@ -39,7 +39,7 @@ public class LinqExtendedTests
             x => Try<string>.Success($"Value: {x}"),
             (x, y) => $"{y}!");
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
     }
 
     [Fact]
@@ -50,7 +50,7 @@ public class LinqExtendedTests
             _ => Try<string>.Failure(new InvalidOperationException("second")),
             (x, y) => $"{y}!");
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
     }
 
     [Fact]
@@ -60,7 +60,7 @@ public class LinqExtendedTests
         var @try = Try<int>.Failure(exception);
         var result = @try.Where(x => x > 0);
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
     }
 
     #endregion
@@ -117,7 +117,7 @@ public class LinqExtendedTests
         var result = Result<int, string>.Err("error");
         var mapped = result.SelectMany(x => Result<int, string>.Ok(x + 5));
 
-        Assert.True(mapped.IsErr);
+        Assert.True(mapped.IsError);
         Assert.Equal("error", mapped.GetError());
     }
 
@@ -129,7 +129,7 @@ public class LinqExtendedTests
             x => Result<string, string>.Ok($"Value: {x}"),
             (x, y) => $"{y}!");
 
-        Assert.True(mapped.IsErr);
+        Assert.True(mapped.IsError);
     }
 
     [Fact]
@@ -140,7 +140,7 @@ public class LinqExtendedTests
             _ => Result<string, string>.Err("second error"),
             (x, y) => $"{y}!");
 
-        Assert.True(mapped.IsErr);
+        Assert.True(mapped.IsError);
         Assert.Equal("second error", mapped.GetError());
     }
 
@@ -150,7 +150,7 @@ public class LinqExtendedTests
         var result = Result<int, string>.Err("existing error");
         var filtered = result.Where(x => x > 0, "should not happen");
 
-        Assert.True(filtered.IsErr);
+        Assert.True(filtered.IsError);
         Assert.Equal("existing error", filtered.GetError());
     }
 
@@ -160,7 +160,7 @@ public class LinqExtendedTests
         var result = Result<int, string>.Err("existing error");
         var filtered = result.Where(x => x > 0, x => $"value {x} is invalid");
 
-        Assert.True(filtered.IsErr);
+        Assert.True(filtered.IsError);
         Assert.Equal("existing error", filtered.GetError());
     }
 

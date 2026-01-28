@@ -26,7 +26,7 @@ public static partial class MonadCollectionExtensions
 
         foreach (var result in results)
         {
-            if (result.IsErr)
+            if (result.IsError)
                 return Result<IReadOnlyList<T>, TErr>.Err(result.GetError());
 
             list.Add(result.GetValue());
@@ -59,7 +59,7 @@ public static partial class MonadCollectionExtensions
         foreach (var item in source)
         {
             var result = selector(item);
-            if (result.IsErr)
+            if (result.IsError)
                 return Result<IReadOnlyList<U>, TErr>.Err(result.GetError());
 
             list.Add(result.GetValue());
@@ -102,7 +102,7 @@ public static partial class MonadCollectionExtensions
 
         foreach (var result in results)
         {
-            if (result.IsErr)
+            if (result.IsError)
                 yield return result.GetError();
         }
     }

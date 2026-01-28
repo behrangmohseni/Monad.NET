@@ -201,8 +201,8 @@ public class MonadLawsTests
         {
             var left = Try<int>.Success(a).Bind(f);
             var right = f(a);
-            return left.IsSuccess == right.IsSuccess &&
-                   (!left.IsSuccess || left.GetValue() == right.GetValue());
+            return left.IsOk == right.IsOk &&
+                   (!left.IsOk || left.GetValue() == right.GetValue());
         });
     }
 
@@ -215,8 +215,8 @@ public class MonadLawsTests
                 ? Try<int>.Success(a)
                 : Try<int>.Failure(new InvalidOperationException("negative"));
             var result = @try.Bind(x => Try<int>.Success(x));
-            return result.IsSuccess == @try.IsSuccess &&
-                   (!result.IsSuccess || result.GetValue() == @try.GetValue());
+            return result.IsOk == @try.IsOk &&
+                   (!result.IsOk || result.GetValue() == @try.GetValue());
         });
     }
 
@@ -265,7 +265,7 @@ public class MonadLawsTests
 
             var result = v1.Apply(v2, (a, b) => a + b);
 
-            return result.IsInvalid &&
+            return result.IsError &&
                    result.GetErrors().Length == 2 &&
                    result.GetErrors().Contains(err1.Get) &&
                    result.GetErrors().Contains(err2.Get);
@@ -364,7 +364,7 @@ public class MonadLawsTests
         return Prop.ForAll<NonEmptyString>(err =>
         {
             var result = Result<int, string>.Err(err.Get).Bind(f);
-            return result.IsErr && result.GetError() == err.Get;
+            return result.IsError && result.GetError() == err.Get;
         });
     }
 

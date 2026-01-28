@@ -72,7 +72,7 @@ public static class ResultExamples
         var parsed = ResultExtensions.Try(() => int.Parse("42"));
         var failed = ResultExtensions.Try(() => int.Parse("not-a-number"));
         Console.WriteLine($"   Parse '42':          {parsed}");
-        Console.WriteLine($"   Parse 'not-a-number': IsErr = {failed.IsErr}");
+        Console.WriteLine($"   Parse 'not-a-number': IsErr = {failed.IsError}");
 
         // Side effects with Tap
         Console.WriteLine("\n11. Side Effects with Tap:");

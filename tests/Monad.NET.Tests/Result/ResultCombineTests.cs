@@ -26,7 +26,7 @@ public class ResultCombineTests
 
         var combined = ResultExtensions.Combine(r1, r2);
 
-        Assert.True(combined.IsErr);
+        Assert.True(combined.IsError);
         Assert.Equal("error1", combined.GetError());
     }
 
@@ -38,7 +38,7 @@ public class ResultCombineTests
 
         var combined = ResultExtensions.Combine(r1, r2);
 
-        Assert.True(combined.IsErr);
+        Assert.True(combined.IsError);
         Assert.Equal("error2", combined.GetError());
     }
 
@@ -50,7 +50,7 @@ public class ResultCombineTests
 
         var combined = ResultExtensions.Combine(r1, r2);
 
-        Assert.True(combined.IsErr);
+        Assert.True(combined.IsError);
         Assert.Equal("error1", combined.GetError());
     }
 
@@ -74,7 +74,7 @@ public class ResultCombineTests
 
         var combined = ResultExtensions.Combine(r1, r2, (a, b) => a + b);
 
-        Assert.True(combined.IsErr);
+        Assert.True(combined.IsError);
         Assert.Equal("error", combined.GetError());
     }
 
@@ -104,7 +104,7 @@ public class ResultCombineTests
 
         var combined = ResultExtensions.Combine(r1, r2, r3);
 
-        Assert.True(combined.IsErr);
+        Assert.True(combined.IsError);
         Assert.Equal("error3", combined.GetError());
     }
 
@@ -149,7 +149,7 @@ public class ResultCombineTests
 
         var combined = ResultExtensions.Combine(r1, r2, r3, r4);
 
-        Assert.True(combined.IsErr);
+        Assert.True(combined.IsError);
         Assert.Equal("error4", combined.GetError());
     }
 
@@ -199,7 +199,7 @@ public class ResultCombineTests
 
         var combined = ResultExtensions.Combine(results);
 
-        Assert.True(combined.IsErr);
+        Assert.True(combined.IsError);
         Assert.Equal("error", combined.GetError());
     }
 
@@ -226,7 +226,7 @@ public class ResultCombineTests
 
         var combined = ResultExtensions.Combine(results);
 
-        Assert.True(combined.IsErr);
+        Assert.True(combined.IsError);
         Assert.Equal("first", combined.GetError());
     }
 
@@ -262,7 +262,7 @@ public class ResultCombineTests
 
         var combined = ResultExtensions.CombineAll(results);
 
-        Assert.True(combined.IsErr);
+        Assert.True(combined.IsError);
         Assert.Equal("validation failed", combined.GetError());
     }
 
@@ -359,7 +359,7 @@ public class ResultCombineTests
             ValidateAge(-5),
             ValidateEmail("john@example.com")
         );
-        Assert.True(invalid.IsErr);
+        Assert.True(invalid.IsError);
         Assert.Equal("Age invalid", invalid.GetError());
     }
 

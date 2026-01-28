@@ -140,7 +140,7 @@ public static partial class MonadCollectionExtensions
         var values = new List<T>(results.Length);
         foreach (var result in results)
         {
-            if (result.IsErr)
+            if (result.IsError)
                 return Result<IReadOnlyList<T>, TErr>.Err(result.GetError());
             values.Add(result.GetValue());
         }

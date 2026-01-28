@@ -9,9 +9,9 @@ public sealed class TryFormatter<T> : IMessagePackFormatter<Try<T>>
     public void Serialize(ref MessagePackWriter writer, Try<T> value, MessagePackSerializerOptions options)
     {
         writer.WriteArrayHeader(2);
-        writer.Write(value.IsSuccess);
+        writer.Write(value.IsOk);
 
-        if (value.IsSuccess)
+        if (value.IsOk)
         {
             var formatter = options.Resolver.GetFormatterWithVerify<T>();
             formatter.Serialize(ref writer, value.GetValue(), options);

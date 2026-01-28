@@ -297,7 +297,7 @@ public static class ValidationLinq
     {
         ThrowHelper.ThrowIfNull(selector);
 
-        if (validation.IsValid)
+        if (validation.IsOk)
         {
             return selector(validation.GetValue());
         }
@@ -307,7 +307,7 @@ public static class ValidationLinq
         try
         {
             var second = selector(default!);
-            if (second.IsInvalid)
+            if (second.IsError)
             {
                 // Accumulate errors from both
                 return Validation<U, TErr>.Invalid(
@@ -344,10 +344,10 @@ public static class ValidationLinq
         ThrowHelper.ThrowIfNull(collectionSelector);
         ThrowHelper.ThrowIfNull(resultSelector);
 
-        if (validation.IsValid)
+        if (validation.IsOk)
         {
             var second = collectionSelector(validation.GetValue());
-            if (second.IsValid)
+            if (second.IsOk)
             {
                 return Validation<V, TErr>.Valid(
                     resultSelector(validation.GetValue(), second.GetValue()));
@@ -360,7 +360,7 @@ public static class ValidationLinq
         try
         {
             var second = collectionSelector(default!);
-            if (second.IsInvalid)
+            if (second.IsError)
             {
                 // Accumulate errors from both validations
                 return Validation<V, TErr>.Invalid(

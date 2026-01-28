@@ -35,7 +35,7 @@ public static partial class MonadCollectionExtensions
 
         foreach (var @try in tries)
         {
-            if (@try.IsFailure)
+            if (@try.IsError)
                 return Try<IReadOnlyList<T>>.Failure(@try.GetException());
 
             values.Add(@try.GetValue());
@@ -74,7 +74,7 @@ public static partial class MonadCollectionExtensions
         foreach (var item in source)
         {
             var result = selector(item);
-            if (result.IsFailure)
+            if (result.IsError)
                 return Try<IReadOnlyList<U>>.Failure(result.GetException());
 
             values.Add(result.GetValue());
@@ -96,7 +96,7 @@ public static partial class MonadCollectionExtensions
 
         foreach (var @try in tries)
         {
-            if (@try.IsSuccess)
+            if (@try.IsOk)
                 yield return @try.GetValue();
         }
     }
@@ -114,7 +114,7 @@ public static partial class MonadCollectionExtensions
 
         foreach (var @try in tries)
         {
-            if (@try.IsFailure)
+            if (@try.IsError)
                 yield return @try.GetException();
         }
     }
@@ -136,7 +136,7 @@ public static partial class MonadCollectionExtensions
 
         foreach (var @try in tries)
         {
-            if (@try.IsSuccess)
+            if (@try.IsOk)
                 successes.Add(@try.GetValue());
             else
                 failures.Add(@try.GetException());
@@ -160,7 +160,7 @@ public static partial class MonadCollectionExtensions
 
         foreach (var @try in tries)
         {
-            if (@try.IsSuccess)
+            if (@try.IsOk)
                 return @try;
 
             lastFailure = @try;

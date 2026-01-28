@@ -28,7 +28,7 @@ public class ResultAsyncTests
             return x * 2;
         });
 
-        Assert.True(mapped.IsErr);
+        Assert.True(mapped.IsError);
         Assert.Equal("error", mapped.GetError());
     }
 
@@ -57,7 +57,7 @@ public class ResultAsyncTests
             return err.Length;
         });
 
-        Assert.True(mapped.IsErr);
+        Assert.True(mapped.IsError);
         Assert.Equal(5, mapped.GetError());
     }
 
@@ -85,7 +85,7 @@ public class ResultAsyncTests
             return Result<string, string>.Ok(x.ToString());
         });
 
-        Assert.True(chained.IsErr);
+        Assert.True(chained.IsError);
         Assert.Equal("error", chained.GetError());
     }
 
@@ -187,7 +187,7 @@ public class ResultAsyncTests
         });
 
         Assert.False(executed);
-        Assert.True(result.IsErr);
+        Assert.True(result.IsError);
     }
 
     [Fact]
@@ -203,7 +203,7 @@ public class ResultAsyncTests
         });
 
         Assert.True(executed);
-        Assert.True(result.IsErr);
+        Assert.True(result.IsError);
     }
 
     [Fact]

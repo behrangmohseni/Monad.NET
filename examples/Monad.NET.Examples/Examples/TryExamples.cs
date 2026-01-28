@@ -110,7 +110,7 @@ public static class TryExamples
         for (int i = 0; i < maxRetries; i++)
         {
             lastResult = Try<T>.Of(operation);
-            if (lastResult.IsSuccess)
+            if (lastResult.IsOk)
                 return lastResult;
             if (i < maxRetries - 1)
                 Thread.Sleep((int)Math.Pow(2, i) * 50);

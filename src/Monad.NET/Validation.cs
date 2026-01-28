@@ -48,18 +48,24 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     }
 
     /// <summary>
-    /// Returns true if the validation is valid (no errors).
+    /// Returns true if the validation succeeded (no errors).
     /// </summary>
-    public bool IsValid
+    /// <remarks>
+    /// This follows F# naming conventions for consistency across monadic types.
+    /// </remarks>
+    public bool IsOk
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => _isValid;
     }
 
     /// <summary>
-    /// Returns true if the validation is invalid (has errors).
+    /// Returns true if the validation failed (has errors).
     /// </summary>
-    public bool IsInvalid
+    /// <remarks>
+    /// This follows F# naming conventions for consistency across monadic types.
+    /// </remarks>
+    public bool IsError
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => !_isValid;
@@ -73,8 +79,8 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// <code>
     /// var message = validation switch
     /// {
-    ///     { IsValid: true, Value: var v } => $"Valid: {v}",
-    ///     { IsInvalid: true, Errors: var e } => $"Errors: {e.Length}",
+    ///     { IsOk: true, Value: var v } => $"Valid: {v}",
+    ///     { IsError: true, Errors: var e } => $"Errors: {e.Length}",
     ///     _ => "Unknown"
     /// };
     /// </code>
@@ -408,10 +414,10 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     {
         ThrowHelper.ThrowIfNull(combiner);
 
-        if (_isValid && other.IsValid)
+        if (_isValid && other.IsOk)
             return Validation<U, TErr>.Valid(combiner(_value!, other._value!));
 
-        if (!_isValid && !other.IsValid)
+        if (!_isValid && !other.IsOk)
         {
             // Efficient concatenation using ImmutableArray.AddRange
             var allErrors = _errors.AddRange(other._errors);
@@ -440,10 +446,10 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Validation<(T, U), TErr> Zip<U>(Validation<U, TErr> other)
     {
-        if (_isValid && other.IsValid)
+        if (_isValid && other.IsOk)
             return Validation<(T, U), TErr>.Valid((_value!, other.GetValue()));
 
-        if (!_isValid && !other.IsValid)
+        if (!_isValid && !other.IsOk)
         {
             var allErrors = _errors.AddRange(other._errors);
             return Validation<(T, U), TErr>.Invalid(allErrors);
@@ -475,10 +481,10 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     {
         ThrowHelper.ThrowIfNull(combiner);
 
-        if (_isValid && other.IsValid)
+        if (_isValid && other.IsOk)
             return Validation<V, TErr>.Valid(combiner(_value!, other.GetValue()));
 
-        if (!_isValid && !other.IsValid)
+        if (!_isValid && !other.IsOk)
         {
             var allErrors = _errors.AddRange(other._errors);
             return Validation<V, TErr>.Invalid(allErrors);
@@ -496,10 +502,10 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Validation<T, TErr> And(Validation<T, TErr> other)
     {
-        if (_isValid && other.IsValid)
+        if (_isValid && other.IsOk)
             return other; // Return the last valid value
 
-        if (!_isValid && !other.IsValid)
+        if (!_isValid && !other.IsOk)
         {
             var allErrors = _errors.AddRange(other._errors);
             return Validation<T, TErr>.Invalid(allErrors);
@@ -800,7 +806,7 @@ public static class ValidationExtensions
 
         foreach (var validation in validationList)
         {
-            if (validation.IsValid)
+            if (validation.IsOk)
                 lastValue = validation.GetValue();
             else
                 errorBuilder.AddRange(validation.GetErrors());
@@ -821,7 +827,7 @@ public static class ValidationExtensions
     {
         ThrowHelper.ThrowIfNull(action);
 
-        if (validation.IsValid)
+        if (validation.IsOk)
             action(validation.GetValue());
 
         return validation;
@@ -837,7 +843,7 @@ public static class ValidationExtensions
     {
         ThrowHelper.ThrowIfNull(action);
 
-        if (validation.IsInvalid)
+        if (validation.IsError)
             action(validation.GetErrors());
 
         return validation;
@@ -994,11 +1000,11 @@ public static class ValidationExtensions
 
         // Accumulate all errors using ImmutableArray.Builder
         var errorBuilder = ImmutableArray.CreateBuilder<TErr>();
-        if (result1.IsInvalid)
+        if (result1.IsError)
             errorBuilder.AddRange(result1.GetErrors());
-        if (result2.IsInvalid)
+        if (result2.IsError)
             errorBuilder.AddRange(result2.GetErrors());
-        if (result3.IsInvalid)
+        if (result3.IsError)
             errorBuilder.AddRange(result3.GetErrors());
 
         if (errorBuilder.Count > 0)
@@ -1038,7 +1044,7 @@ public static class ValidationExtensions
 
         foreach (var validation in validations)
         {
-            if (validation.IsValid)
+            if (validation.IsOk)
                 valueBuilder.Add(validation.GetValue());
             else
                 errorBuilder.AddRange(validation.GetErrors());
@@ -1062,7 +1068,7 @@ public static class ValidationExtensions
         cancellationToken.ThrowIfCancellationRequested();
 
         var validation = await validationTask.ConfigureAwait(false);
-        if (validation.IsValid)
+        if (validation.IsOk)
         {
             cancellationToken.ThrowIfCancellationRequested();
             await action(validation.GetValue()).ConfigureAwait(false);
@@ -1084,7 +1090,7 @@ public static class ValidationExtensions
         cancellationToken.ThrowIfCancellationRequested();
 
         var validation = await validationTask.ConfigureAwait(false);
-        if (validation.IsInvalid)
+        if (validation.IsError)
         {
             cancellationToken.ThrowIfCancellationRequested();
             await action(validation.GetErrors()).ConfigureAwait(false);
@@ -1104,7 +1110,7 @@ public static class ValidationExtensions
         ThrowHelper.ThrowIfNull(mapper);
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (validation.IsInvalid)
+        if (validation.IsError)
             return Validation<U, TErr>.Invalid(validation.GetErrors());
 
         var result = await mapper(validation.GetValue()).ConfigureAwait(false);
@@ -1144,7 +1150,7 @@ public static class ValidationExtensions
         cancellationToken.ThrowIfCancellationRequested();
 
         var validation = await validationTask.ConfigureAwait(false);
-        if (validation.IsValid)
+        if (validation.IsOk)
         {
             cancellationToken.ThrowIfCancellationRequested();
             await action(validation.GetValue(), cancellationToken).ConfigureAwait(false);
@@ -1166,7 +1172,7 @@ public static class ValidationExtensions
         cancellationToken.ThrowIfCancellationRequested();
 
         var validation = await validationTask.ConfigureAwait(false);
-        if (validation.IsInvalid)
+        if (validation.IsError)
         {
             cancellationToken.ThrowIfCancellationRequested();
             await action(validation.GetErrors(), cancellationToken).ConfigureAwait(false);
@@ -1186,7 +1192,7 @@ public static class ValidationExtensions
         ThrowHelper.ThrowIfNull(mapper);
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (validation.IsInvalid)
+        if (validation.IsError)
             return Validation<U, TErr>.Invalid(validation.GetErrors());
 
         var result = await mapper(validation.GetValue(), cancellationToken).ConfigureAwait(false);
@@ -1225,13 +1231,13 @@ public static class ValidationExtensions
 
         var firstValidation = await first.ConfigureAwait(false);
 
-        if (firstValidation.IsInvalid)
+        if (firstValidation.IsError)
             return Validation<U, TErr>.Invalid(firstValidation.GetErrors());
 
         cancellationToken.ThrowIfCancellationRequested();
         var secondValidation = await second(firstValidation.GetValue(), cancellationToken).ConfigureAwait(false);
 
-        if (secondValidation.IsInvalid)
+        if (secondValidation.IsError)
             return Validation<U, TErr>.Invalid(secondValidation.GetErrors());
 
         return Validation<U, TErr>.Valid(combiner(firstValidation.GetValue(), secondValidation.GetValue()));
@@ -1326,7 +1332,7 @@ public static class ValidationExtensions
         cancellationToken.ThrowIfCancellationRequested();
 
         var validation = await validationTask.ConfigureAwait(false);
-        if (validation.IsInvalid)
+        if (validation.IsError)
             return Validation<U, TErr>.Invalid(validation.GetErrors());
 
         cancellationToken.ThrowIfCancellationRequested();
@@ -1409,11 +1415,11 @@ internal sealed class ValidationDebugView<T, TErr>
         _validation = validation;
     }
 
-    public bool IsValid => _validation.IsValid;
-    public bool IsInvalid => _validation.IsInvalid;
+    public bool IsOk => _validation.IsOk;
+    public bool IsError => _validation.IsError;
 
     [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-    public object? Value => _validation.IsValid ? _validation.GetValue() : null;
+    public object? Value => _validation.IsOk ? _validation.GetValue() : null;
 
-    public ImmutableArray<TErr>? Errors => _validation.IsInvalid ? _validation.GetErrorsOrThrow() : null;
+    public ImmutableArray<TErr>? Errors => _validation.IsError ? _validation.GetErrorsOrThrow() : null;
 }

@@ -253,7 +253,7 @@ public Result<User> GetUser(int id)
 }
 
 var result = GetUser(id);
-if (result.IsSuccess)
+if (result.IsOk)
     Console.WriteLine(result.Value.Name);
 else
     Console.WriteLine(result.Errors.First().Message);

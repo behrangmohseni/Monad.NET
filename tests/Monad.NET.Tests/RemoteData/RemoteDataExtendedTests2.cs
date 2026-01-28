@@ -14,10 +14,10 @@ public class RemoteDataExtendedTests2
     {
         var rd = RemoteData<int, string>.Success(42);
 
-        Assert.True(rd.IsSuccess);
+        Assert.True(rd.IsOk);
         Assert.False(rd.IsNotAsked);
         Assert.False(rd.IsLoading);
-        Assert.False(rd.IsFailure);
+        Assert.False(rd.IsError);
         Assert.Equal(42, rd.GetValue());
     }
 
@@ -26,10 +26,10 @@ public class RemoteDataExtendedTests2
     {
         var rd = RemoteData<int, string>.Failure("error");
 
-        Assert.True(rd.IsFailure);
+        Assert.True(rd.IsError);
         Assert.False(rd.IsNotAsked);
         Assert.False(rd.IsLoading);
-        Assert.False(rd.IsSuccess);
+        Assert.False(rd.IsOk);
         Assert.Equal("error", rd.GetError());
     }
 
@@ -61,7 +61,7 @@ public class RemoteDataExtendedTests2
         var rd = RemoteData<int, string>.Success(42);
         var result = rd.Map(x => x * 2);
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(84, result.GetValue());
     }
 
@@ -71,7 +71,7 @@ public class RemoteDataExtendedTests2
         var rd = RemoteData<int, string>.Failure("error");
         var result = rd.Map(x => x * 2);
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
         Assert.Equal("error", result.GetError());
     }
 
@@ -103,7 +103,7 @@ public class RemoteDataExtendedTests2
         var rd = RemoteData<int, string>.Success(42);
         var result = rd.Bind(x => RemoteData<string, string>.Success(x.ToString()));
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal("42", result.GetValue());
     }
 
@@ -113,7 +113,7 @@ public class RemoteDataExtendedTests2
         var rd = RemoteData<int, string>.Failure("error");
         var result = rd.Bind(x => RemoteData<string, string>.Success(x.ToString()));
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
     }
 
     #endregion
@@ -185,7 +185,7 @@ public class RemoteDataExtendedTests2
         var result = rd.Tap(x => executed = true);
 
         Assert.True(executed);
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
     }
 
     [Fact]
@@ -209,7 +209,7 @@ public class RemoteDataExtendedTests2
         var result = rd.TapFailure(e => executed = true);
 
         Assert.True(executed);
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
     }
 
     [Fact]
@@ -221,7 +221,7 @@ public class RemoteDataExtendedTests2
         var result = rd.TapFailure(e => executed = true);
 
         Assert.False(executed);
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
     }
 
     [Fact]

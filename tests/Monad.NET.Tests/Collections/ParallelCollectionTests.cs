@@ -207,7 +207,7 @@ public class ParallelCollectionTests
 
         var result = await tasks.SequenceParallelAsync();
 
-        Assert.True(result.IsErr);
+        Assert.True(result.IsError);
         Assert.Equal("error1", result.GetError());
     }
 
@@ -273,7 +273,7 @@ public class ParallelCollectionTests
                     : Result<int, string>.Ok(n * 2);
             });
 
-        Assert.True(result.IsErr);
+        Assert.True(result.IsError);
         Assert.Equal("error at 2", result.GetError());
     }
 

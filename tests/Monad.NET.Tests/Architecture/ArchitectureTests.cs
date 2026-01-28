@@ -66,12 +66,12 @@ public class ArchitectureTests
     [InlineData(typeof(Option<int>), "GetValue")]
     [InlineData(typeof(Option<int>), "GetValueOr")]
     [InlineData(typeof(Result<int, string>), "IsOk")]
-    [InlineData(typeof(Result<int, string>), "IsErr")]
+    [InlineData(typeof(Result<int, string>), "IsError")]
     [InlineData(typeof(Result<int, string>), "GetValue")]
-    [InlineData(typeof(Try<int>), "IsSuccess")]
-    [InlineData(typeof(Try<int>), "IsFailure")]
-    [InlineData(typeof(Validation<int, string>), "IsValid")]
-    [InlineData(typeof(Validation<int, string>), "IsInvalid")]
+    [InlineData(typeof(Try<int>), "IsOk")]
+    [InlineData(typeof(Try<int>), "IsError")]
+    [InlineData(typeof(Validation<int, string>), "IsOk")]
+    [InlineData(typeof(Validation<int, string>), "IsError")]
     public void HotPathMethods_ShouldHaveAggressiveInlining(Type type, string methodOrPropertyName)
     {
         // Check both methods and property getters

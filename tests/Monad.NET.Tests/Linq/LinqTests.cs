@@ -103,7 +103,7 @@ public class LinqTests
         var result = from x in Result<int, string>.Err("error")
                      select x * 2;
 
-        Assert.True(result.IsErr);
+        Assert.True(result.IsError);
         Assert.Equal("error", result.GetError());
     }
 
@@ -125,7 +125,7 @@ public class LinqTests
                      from y in Result<int, string>.Err("error")
                      select x + y;
 
-        Assert.True(result.IsErr);
+        Assert.True(result.IsError);
         Assert.Equal("error", result.GetError());
     }
 
@@ -145,7 +145,7 @@ public class LinqTests
         var okResult = Result<int, string>.Ok(42);
         var result = okResult.Where(x => x < 40, "too large");
 
-        Assert.True(result.IsErr);
+        Assert.True(result.IsError);
         Assert.Equal("too large", result.GetError());
     }
 
@@ -158,7 +158,7 @@ public class LinqTests
             x => $"Value {x} is too small"
         );
 
-        Assert.True(result.IsErr);
+        Assert.True(result.IsError);
         Assert.Equal("Value 30 is too small", result.GetError());
     }
 
@@ -184,7 +184,7 @@ public class LinqTests
                      from z in GetResultWithSideEffect(ref executedThird)
                      select x + y + z;
 
-        Assert.True(result.IsErr);
+        Assert.True(result.IsError);
         Assert.Equal("error", result.GetError());
         Assert.False(executedThird); // Should not execute due to short-circuiting
     }
@@ -279,7 +279,7 @@ public class LinqTests
         var result = from x in Try<int>.Success(42)
                      select x * 2;
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(84, result.GetValue());
     }
 
@@ -290,7 +290,7 @@ public class LinqTests
                      from y in Try<int>.Success(20)
                      select x + y;
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(30, result.GetValue());
     }
 
@@ -301,7 +301,7 @@ public class LinqTests
                      from y in Try<int>.Failure(new InvalidOperationException("Failed"))
                      select x + y;
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
     }
 
     [Fact]
@@ -311,7 +311,7 @@ public class LinqTests
                      where x > 40
                      select x;
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(42, result.GetValue());
     }
 
@@ -322,7 +322,7 @@ public class LinqTests
                      where x > 50
                      select x;
 
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
     }
 
     [Fact]
@@ -336,7 +336,7 @@ public class LinqTests
                      from z in ParseInt("30")
                      select x + y + z;
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(60, result.GetValue());
     }
 
@@ -350,7 +350,7 @@ public class LinqTests
         var result = from x in Validation<int, string>.Valid(42)
                      select x * 2;
 
-        Assert.True(result.IsValid);
+        Assert.True(result.IsOk);
         Assert.Equal(84, result.GetValue());
     }
 
@@ -361,7 +361,7 @@ public class LinqTests
                      from y in Validation<int, string>.Valid(20)
                      select x + y;
 
-        Assert.True(result.IsValid);
+        Assert.True(result.IsOk);
         Assert.Equal(30, result.GetValue());
     }
 
@@ -372,7 +372,7 @@ public class LinqTests
                      from y in Validation<int, string>.Invalid("Error")
                      select x + y;
 
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
     }
 
     [Fact]
@@ -392,7 +392,7 @@ public class LinqTests
                      from age in ValidateAge(30)
                      select $"{name} is {age} years old";
 
-        Assert.True(result.IsValid);
+        Assert.True(result.IsOk);
         Assert.Equal("John is 30 years old", result.GetValue());
     }
 

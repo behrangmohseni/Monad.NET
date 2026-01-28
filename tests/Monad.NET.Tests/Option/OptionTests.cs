@@ -300,7 +300,7 @@ public class OptionTests
         var option = Option<int>.None();
         var result = option.OkOr("error");
 
-        Assert.True(result.IsErr);
+        Assert.True(result.IsError);
         Assert.Equal("error", result.GetError());
     }
 

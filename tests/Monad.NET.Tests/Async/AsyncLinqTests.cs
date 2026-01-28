@@ -159,7 +159,7 @@ public class AsyncLinqTests
         );
 
         // Assert
-        Assert.True(result.IsErr);
+        Assert.True(result.IsError);
         Assert.Equal("User not found", result.GetError());
     }
 
@@ -177,7 +177,7 @@ public class AsyncLinqTests
         );
 
         // Assert
-        Assert.True(result.IsErr);
+        Assert.True(result.IsError);
         Assert.Equal("No orders found", result.GetError());
     }
 
@@ -216,7 +216,7 @@ public class AsyncLinqTests
         );
 
         // Assert
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(84, result.GetValue());
     }
 
@@ -234,7 +234,7 @@ public class AsyncLinqTests
         );
 
         // Assert
-        Assert.True(result.IsFailure);
+        Assert.True(result.IsError);
         Assert.IsType<InvalidOperationException>(result.GetException());
     }
 
@@ -251,7 +251,7 @@ public class AsyncLinqTests
         );
 
         // Assert
-        Assert.True(result.IsSuccess);
+        Assert.True(result.IsOk);
         Assert.Equal(10, result.GetValue());
     }
 
@@ -273,7 +273,7 @@ public class AsyncLinqTests
         );
 
         // Assert
-        Assert.True(result.IsValid);
+        Assert.True(result.IsOk);
         var value = result.GetValue();
         Assert.Equal("John", value.name);
         Assert.Equal(25, value.age);
@@ -293,7 +293,7 @@ public class AsyncLinqTests
         );
 
         // Assert
-        Assert.True(result.IsInvalid);
+        Assert.True(result.IsError);
         Assert.Contains("Name required", result.GetErrors());
     }
 
@@ -310,7 +310,7 @@ public class AsyncLinqTests
         );
 
         // Assert
-        Assert.True(result.IsValid);
+        Assert.True(result.IsOk);
         Assert.Equal(10, result.GetValue());
     }
 

@@ -129,7 +129,7 @@ public class UserValidator : AbstractValidator<UserRequest>
 
 // Usage
 var result = await validator.ValidateAsync(request);
-if (!result.IsValid)
+if (!result.IsOk)
     return BadRequest(result.Errors);
 ```
 

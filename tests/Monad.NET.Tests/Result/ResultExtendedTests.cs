@@ -115,7 +115,7 @@ public class ResultExtendedTests
         var nested = Result<Result<int, string>, string>.Err("outer error");
         var result = nested.Flatten();
 
-        Assert.True(result.IsErr);
+        Assert.True(result.IsError);
         Assert.Equal("outer error", result.GetError());
     }
 
@@ -125,7 +125,7 @@ public class ResultExtendedTests
         var nested = Result<Result<int, string>, string>.Ok(Result<int, string>.Err("inner error"));
         var result = nested.Flatten();
 
-        Assert.True(result.IsErr);
+        Assert.True(result.IsError);
         Assert.Equal("inner error", result.GetError());
     }
 
@@ -248,7 +248,7 @@ public class ResultExtendedTests
         var tapped = result.Tap(x => executed = true);
 
         Assert.False(executed);
-        Assert.True(tapped.IsErr);
+        Assert.True(tapped.IsError);
     }
 
     [Fact]
@@ -260,7 +260,7 @@ public class ResultExtendedTests
         var tapped = result.TapErr(x => executed = true);
 
         Assert.True(executed);
-        Assert.True(tapped.IsErr);
+        Assert.True(tapped.IsError);
     }
 
     [Fact]
@@ -307,7 +307,7 @@ public class ResultExtendedTests
         var result = Result<int, string>.Err("error");
         var mapped = result.MapError(e => e.ToUpper());
 
-        Assert.True(mapped.IsErr);
+        Assert.True(mapped.IsError);
         Assert.Equal("ERROR", mapped.GetError());
     }
 

@@ -95,7 +95,7 @@ public static partial class MonadCollectionExtensions
         {
             cancellationToken.ThrowIfCancellationRequested();
             var result = await task.ConfigureAwait(false);
-            if (result.IsErr)
+            if (result.IsError)
                 return Result<IReadOnlyList<T>, TErr>.Err(result.GetError());
 
             list.Add(result.GetValue());
@@ -131,7 +131,7 @@ public static partial class MonadCollectionExtensions
         {
             cancellationToken.ThrowIfCancellationRequested();
             var result = await selector(item).ConfigureAwait(false);
-            if (result.IsErr)
+            if (result.IsError)
                 return Result<IReadOnlyList<U>, TErr>.Err(result.GetError());
 
             list.Add(result.GetValue());
@@ -167,7 +167,7 @@ public static partial class MonadCollectionExtensions
         {
             cancellationToken.ThrowIfCancellationRequested();
             var validation = await task.ConfigureAwait(false);
-            if (validation.IsValid)
+            if (validation.IsOk)
             {
                 values.Add(validation.GetValue());
             }
@@ -209,7 +209,7 @@ public static partial class MonadCollectionExtensions
         {
             cancellationToken.ThrowIfCancellationRequested();
             var validation = await selector(item).ConfigureAwait(false);
-            if (validation.IsValid)
+            if (validation.IsOk)
             {
                 values.Add(validation.GetValue());
             }
@@ -249,7 +249,7 @@ public static partial class MonadCollectionExtensions
         {
             cancellationToken.ThrowIfCancellationRequested();
             var result = await task.ConfigureAwait(false);
-            if (result.IsFailure)
+            if (result.IsError)
                 return Try<IReadOnlyList<T>>.Failure(result.GetException());
 
             values.Add(result.GetValue());
@@ -283,7 +283,7 @@ public static partial class MonadCollectionExtensions
         {
             cancellationToken.ThrowIfCancellationRequested();
             var result = await selector(item).ConfigureAwait(false);
-            if (result.IsFailure)
+            if (result.IsError)
                 return Try<IReadOnlyList<U>>.Failure(result.GetException());
 
             values.Add(result.GetValue());
@@ -321,20 +321,20 @@ public static partial class MonadCollectionExtensions
             cancellationToken.ThrowIfCancellationRequested();
             var item = await task.ConfigureAwait(false);
 
-            if (item.IsSuccess)
+            if (item.IsOk)
             {
                 values.Add(item.GetValue());
             }
             else if (firstNonSuccess is null)
             {
-                if (item.IsFailure)
+                if (item.IsError)
                     firstNonSuccess = RemoteData<IReadOnlyList<T>, TErr>.Failure(item.GetError());
                 else if (item.IsLoading)
                     firstNonSuccess = RemoteData<IReadOnlyList<T>, TErr>.Loading();
                 else if (item.IsNotAsked)
                     firstNonSuccess = RemoteData<IReadOnlyList<T>, TErr>.NotAsked();
             }
-            else if (item.IsFailure && !firstNonSuccess.Value.IsFailure)
+            else if (item.IsError && !firstNonSuccess.Value.IsError)
             {
                 firstNonSuccess = RemoteData<IReadOnlyList<T>, TErr>.Failure(item.GetError());
             }
@@ -375,20 +375,20 @@ public static partial class MonadCollectionExtensions
             cancellationToken.ThrowIfCancellationRequested();
             var result = await selector(item).ConfigureAwait(false);
 
-            if (result.IsSuccess)
+            if (result.IsOk)
             {
                 values.Add(result.GetValue());
             }
             else if (firstNonSuccess is null)
             {
-                if (result.IsFailure)
+                if (result.IsError)
                     firstNonSuccess = RemoteData<IReadOnlyList<U>, TErr>.Failure(result.GetError());
                 else if (result.IsLoading)
                     firstNonSuccess = RemoteData<IReadOnlyList<U>, TErr>.Loading();
                 else if (result.IsNotAsked)
                     firstNonSuccess = RemoteData<IReadOnlyList<U>, TErr>.NotAsked();
             }
-            else if (result.IsFailure && !firstNonSuccess.Value.IsFailure)
+            else if (result.IsError && !firstNonSuccess.Value.IsError)
             {
                 firstNonSuccess = RemoteData<IReadOnlyList<U>, TErr>.Failure(result.GetError());
             }

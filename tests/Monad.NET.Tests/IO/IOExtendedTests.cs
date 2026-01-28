@@ -158,7 +158,7 @@ public class IOExtendedTests
         var io = IO<int>.Return(42).Attempt();
         var tryResult = io.Run();
 
-        Assert.True(tryResult.IsSuccess);
+        Assert.True(tryResult.IsOk);
         Assert.Equal(42, tryResult.GetValue());
     }
 
@@ -168,7 +168,7 @@ public class IOExtendedTests
         var io = IO<int>.Of(() => throw new InvalidOperationException("test")).Attempt();
         var tryResult = io.Run();
 
-        Assert.True(tryResult.IsFailure);
+        Assert.True(tryResult.IsError);
         Assert.IsType<InvalidOperationException>(tryResult.GetException());
     }
 
@@ -508,7 +508,7 @@ public class IOExtendedTests
         var io = IOAsync<int>.Return(42).Attempt();
         var tryResult = await io.RunAsync();
 
-        Assert.True(tryResult.IsSuccess);
+        Assert.True(tryResult.IsOk);
     }
 
     [Fact]
@@ -521,7 +521,7 @@ public class IOExtendedTests
         }).Attempt();
         var tryResult = await io.RunAsync();
 
-        Assert.True(tryResult.IsFailure);
+        Assert.True(tryResult.IsError);
     }
 
     [Fact]
