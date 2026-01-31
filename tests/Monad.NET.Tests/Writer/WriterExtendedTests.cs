@@ -537,13 +537,26 @@ public class WriterExtendedTests
     }
 
     [Fact]
-    public void ListMonoid_CompareTo_ByCount()
+    public void ListMonoid_CompareTo_Prefix_IsShorter()
     {
+        // ["a"] < ["a", "b"] because ["a"] is a prefix of ["a", "b"]
         var a = ListMonoid.Of("a");
         var b = ListMonoid.Of("a", "b");
 
         Assert.True(a.CompareTo(b) < 0);
         Assert.True(b.CompareTo(a) > 0);
+    }
+
+    [Fact]
+    public void ListMonoid_CompareTo_Lexicographic_ElementsFirst()
+    {
+        // True lexicographic: ["z"] > ["a", "b"] because 'z' > 'a'
+        // This is NOT shortlex where count would be compared first
+        var z = ListMonoid.Of("z");
+        var ab = ListMonoid.Of("a", "b");
+
+        Assert.True(z.CompareTo(ab) > 0);  // 'z' > 'a'
+        Assert.True(ab.CompareTo(z) < 0);
     }
 
     [Fact]
@@ -566,8 +579,9 @@ public class WriterExtendedTests
     }
 
     [Fact]
-    public void ListMonoid_ComparisonOperators_Work()
+    public void ListMonoid_ComparisonOperators_Prefix()
     {
+        // Prefix case: ["a"] < ["a", "b"]
         var a = ListMonoid.Of("a");
         var b = ListMonoid.Of("a", "b");
 
@@ -577,6 +591,19 @@ public class WriterExtendedTests
         Assert.False(a >= b);
         Assert.True(b > a);
         Assert.True(b >= a);
+    }
+
+    [Fact]
+    public void ListMonoid_ComparisonOperators_Lexicographic()
+    {
+        // Non-prefix case: ["z"] > ["a", "anything"] because 'z' > 'a'
+        var z = ListMonoid.Of("z");
+        var abc = ListMonoid.Of("a", "b", "c");
+
+        Assert.True(z > abc);
+        Assert.True(z >= abc);
+        Assert.False(z < abc);
+        Assert.False(z <= abc);
     }
 
     #endregion

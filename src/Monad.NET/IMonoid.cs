@@ -205,24 +205,32 @@ public readonly struct ListMonoid<T> : IMonoid<ListMonoid<T>>, IEquatable<ListMo
     public override string ToString() => $"[{string.Join(", ", Value)}]";
 
     /// <summary>
-    /// Compares this ListMonoid to another.
-    /// Comparison is lexicographic: first by count, then element-by-element.
+    /// Compares this ListMonoid to another using lexicographic ordering.
+    /// Elements are compared in order; a shorter sequence is considered smaller
+    /// only when it is a prefix of the longer sequence.
     /// </summary>
+    /// <example>
+    /// <code>
+    /// // ["a"] &lt; ["a", "b"] (prefix)
+    /// // ["z"] &gt; ["a", "b"] (because 'z' &gt; 'a')
+    /// // ["a", "c"] &gt; ["a", "b"] (because 'c' &gt; 'b')
+    /// </code>
+    /// </example>
     public int CompareTo(ListMonoid<T> other)
     {
-        var countComparison = Value.Count.CompareTo(other.Value.Count);
-        if (countComparison != 0)
-            return countComparison;
-
         var comparer = Comparer<T>.Default;
-        for (int i = 0; i < Value.Count; i++)
+        var minCount = Math.Min(Value.Count, other.Value.Count);
+
+        // Compare elements lexicographically
+        for (int i = 0; i < minCount; i++)
         {
             var elementComparison = comparer.Compare(Value[i], other.Value[i]);
             if (elementComparison != 0)
                 return elementComparison;
         }
 
-        return 0;
+        // If all compared elements are equal, shorter sequence is smaller (it's a prefix)
+        return Value.Count.CompareTo(other.Value.Count);
     }
 
     /// <summary>
