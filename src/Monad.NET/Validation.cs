@@ -18,8 +18,9 @@ namespace Monad.NET;
 /// Combine multiple validations with <see cref="Apply"/> or <see cref="Zip"/> to accumulate errors.
 /// </para>
 /// <para>
-/// <strong>Warning:</strong> LINQ query syntax (from...select) will short-circuit on the first error!
-/// Use <see cref="Apply"/> or <see cref="Zip"/> for error accumulation.
+/// <strong>DO NOT use LINQ query syntax (from...select) with Validation!</strong>
+/// LINQ short-circuits on the first error, defeating error accumulation entirely.
+/// The analyzer enforces this as an error (MNT013). Use <see cref="Apply"/> or <see cref="Zip"/> instead.
 /// </para>
 /// <para>
 /// For fail-fast error handling, use <see cref="Result{T,TErr}"/> instead.
