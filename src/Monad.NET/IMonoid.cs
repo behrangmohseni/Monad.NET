@@ -48,12 +48,14 @@ public interface IMonoid<T>
 /// // combined.Value == "Hello, World!"
 /// </code>
 /// </example>
-public readonly struct StringMonoid : IMonoid<StringMonoid>, IEquatable<StringMonoid>
+public readonly struct StringMonoid : IMonoid<StringMonoid>, IEquatable<StringMonoid>, IComparable<StringMonoid>
 {
+    private readonly string? _value;
+
     /// <summary>
-    /// The underlying string value.
+    /// The underlying string value. Returns empty string for default struct.
     /// </summary>
-    public string Value { get; }
+    public string Value => _value ?? string.Empty;
 
     /// <summary>
     /// Creates a new StringMonoid with the specified value.
@@ -61,7 +63,7 @@ public readonly struct StringMonoid : IMonoid<StringMonoid>, IEquatable<StringMo
     /// <param name="value">The string value. Null is treated as empty string.</param>
     public StringMonoid(string? value)
     {
-        Value = value ?? string.Empty;
+        _value = value ?? string.Empty;
     }
 
     /// <summary>
@@ -89,10 +91,15 @@ public readonly struct StringMonoid : IMonoid<StringMonoid>, IEquatable<StringMo
     public override bool Equals(object? obj) => obj is StringMonoid other && Equals(other);
 
     /// <inheritdoc />
-    public override int GetHashCode() => Value?.GetHashCode() ?? 0;
+    public override int GetHashCode() => Value.GetHashCode();
 
     /// <inheritdoc />
     public override string ToString() => Value;
+
+    /// <summary>
+    /// Compares this StringMonoid to another using ordinal string comparison.
+    /// </summary>
+    public int CompareTo(StringMonoid other) => string.Compare(Value, other.Value, StringComparison.Ordinal);
 
     /// <summary>
     /// Determines whether two StringMonoid instances are equal.
@@ -103,6 +110,26 @@ public readonly struct StringMonoid : IMonoid<StringMonoid>, IEquatable<StringMo
     /// Determines whether two StringMonoid instances are not equal.
     /// </summary>
     public static bool operator !=(StringMonoid left, StringMonoid right) => !left.Equals(right);
+
+    /// <summary>
+    /// Determines whether the left StringMonoid is less than the right.
+    /// </summary>
+    public static bool operator <(StringMonoid left, StringMonoid right) => left.CompareTo(right) < 0;
+
+    /// <summary>
+    /// Determines whether the left StringMonoid is less than or equal to the right.
+    /// </summary>
+    public static bool operator <=(StringMonoid left, StringMonoid right) => left.CompareTo(right) <= 0;
+
+    /// <summary>
+    /// Determines whether the left StringMonoid is greater than the right.
+    /// </summary>
+    public static bool operator >(StringMonoid left, StringMonoid right) => left.CompareTo(right) > 0;
+
+    /// <summary>
+    /// Determines whether the left StringMonoid is greater than or equal to the right.
+    /// </summary>
+    public static bool operator >=(StringMonoid left, StringMonoid right) => left.CompareTo(right) >= 0;
 }
 
 /// <summary>
@@ -116,7 +143,7 @@ public readonly struct StringMonoid : IMonoid<StringMonoid>, IEquatable<StringMo
 /// // combined.Value contains ["First", "Second"]
 /// </code>
 /// </example>
-public readonly struct ListMonoid<T> : IMonoid<ListMonoid<T>>, IEquatable<ListMonoid<T>>
+public readonly struct ListMonoid<T> : IMonoid<ListMonoid<T>>, IEquatable<ListMonoid<T>>, IComparable<ListMonoid<T>>
 {
     private readonly IReadOnlyList<T>? _value;
 
@@ -178,6 +205,27 @@ public readonly struct ListMonoid<T> : IMonoid<ListMonoid<T>>, IEquatable<ListMo
     public override string ToString() => $"[{string.Join(", ", Value)}]";
 
     /// <summary>
+    /// Compares this ListMonoid to another.
+    /// Comparison is lexicographic: first by count, then element-by-element.
+    /// </summary>
+    public int CompareTo(ListMonoid<T> other)
+    {
+        var countComparison = Value.Count.CompareTo(other.Value.Count);
+        if (countComparison != 0)
+            return countComparison;
+
+        var comparer = Comparer<T>.Default;
+        for (int i = 0; i < Value.Count; i++)
+        {
+            var elementComparison = comparer.Compare(Value[i], other.Value[i]);
+            if (elementComparison != 0)
+                return elementComparison;
+        }
+
+        return 0;
+    }
+
+    /// <summary>
     /// Determines whether two ListMonoid instances are equal.
     /// </summary>
     public static bool operator ==(ListMonoid<T> left, ListMonoid<T> right) => left.Equals(right);
@@ -186,6 +234,26 @@ public readonly struct ListMonoid<T> : IMonoid<ListMonoid<T>>, IEquatable<ListMo
     /// Determines whether two ListMonoid instances are not equal.
     /// </summary>
     public static bool operator !=(ListMonoid<T> left, ListMonoid<T> right) => !left.Equals(right);
+
+    /// <summary>
+    /// Determines whether the left ListMonoid is less than the right.
+    /// </summary>
+    public static bool operator <(ListMonoid<T> left, ListMonoid<T> right) => left.CompareTo(right) < 0;
+
+    /// <summary>
+    /// Determines whether the left ListMonoid is less than or equal to the right.
+    /// </summary>
+    public static bool operator <=(ListMonoid<T> left, ListMonoid<T> right) => left.CompareTo(right) <= 0;
+
+    /// <summary>
+    /// Determines whether the left ListMonoid is greater than the right.
+    /// </summary>
+    public static bool operator >(ListMonoid<T> left, ListMonoid<T> right) => left.CompareTo(right) > 0;
+
+    /// <summary>
+    /// Determines whether the left ListMonoid is greater than or equal to the right.
+    /// </summary>
+    public static bool operator >=(ListMonoid<T> left, ListMonoid<T> right) => left.CompareTo(right) >= 0;
 }
 
 /// <summary>

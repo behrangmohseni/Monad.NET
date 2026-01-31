@@ -386,6 +386,41 @@ public class WriterExtendedTests
     }
 
     [Fact]
+    public void StringMonoid_Default_ReturnsEmptyString()
+    {
+        var monoid = default(StringMonoid);
+
+        Assert.Equal("", monoid.Value);
+        Assert.Equal("", monoid.ToString());
+    }
+
+    [Fact]
+    public void StringMonoid_CompareTo_Works()
+    {
+        var a = new StringMonoid("aaa");
+        var b = new StringMonoid("bbb");
+        var c = new StringMonoid("aaa");
+
+        Assert.True(a.CompareTo(b) < 0);
+        Assert.True(b.CompareTo(a) > 0);
+        Assert.Equal(0, a.CompareTo(c));
+    }
+
+    [Fact]
+    public void StringMonoid_ComparisonOperators_Work()
+    {
+        var a = new StringMonoid("aaa");
+        var b = new StringMonoid("bbb");
+
+        Assert.True(a < b);
+        Assert.True(a <= b);
+        Assert.False(a > b);
+        Assert.False(a >= b);
+        Assert.True(b > a);
+        Assert.True(b >= a);
+    }
+
+    [Fact]
     public void StringMonoid_Bind_Works()
     {
         var writer = Writer<StringMonoid, int>.Tell(10, new StringMonoid("a"));
@@ -490,6 +525,107 @@ public class WriterExtendedTests
         var monoid = new ListMonoid<string>((IEnumerable<string>?)null);
 
         Assert.Empty(monoid.Value);
+    }
+
+    [Fact]
+    public void ListMonoid_Default_ReturnsEmptyList()
+    {
+        var monoid = default(ListMonoid<string>);
+
+        Assert.Empty(monoid.Value);
+        Assert.Equal("[]", monoid.ToString());
+    }
+
+    [Fact]
+    public void ListMonoid_CompareTo_ByCount()
+    {
+        var a = ListMonoid.Of("a");
+        var b = ListMonoid.Of("a", "b");
+
+        Assert.True(a.CompareTo(b) < 0);
+        Assert.True(b.CompareTo(a) > 0);
+    }
+
+    [Fact]
+    public void ListMonoid_CompareTo_ByElement()
+    {
+        var a = ListMonoid.Of("a", "a");
+        var b = ListMonoid.Of("a", "b");
+
+        Assert.True(a.CompareTo(b) < 0);
+        Assert.True(b.CompareTo(a) > 0);
+    }
+
+    [Fact]
+    public void ListMonoid_CompareTo_Equal()
+    {
+        var a = ListMonoid.Of("a", "b");
+        var b = ListMonoid.Of("a", "b");
+
+        Assert.Equal(0, a.CompareTo(b));
+    }
+
+    [Fact]
+    public void ListMonoid_ComparisonOperators_Work()
+    {
+        var a = ListMonoid.Of("a");
+        var b = ListMonoid.Of("a", "b");
+
+        Assert.True(a < b);
+        Assert.True(a <= b);
+        Assert.False(a > b);
+        Assert.False(a >= b);
+        Assert.True(b > a);
+        Assert.True(b >= a);
+    }
+
+    #endregion
+
+    #region Writer with Monoid Comparison Tests
+
+    [Fact]
+    public void Writer_StringMonoid_CompareTo_WithDifferentLogs()
+    {
+        // This was the main bug: Writer.CompareTo would fail with monoid types
+        var writer1 = Writer<StringMonoid, int>.Tell(42, new StringMonoid("aaa"));
+        var writer2 = Writer<StringMonoid, int>.Tell(42, new StringMonoid("bbb"));
+
+        Assert.True(writer1.CompareTo(writer2) < 0);
+        Assert.True(writer2.CompareTo(writer1) > 0);
+    }
+
+    [Fact]
+    public void Writer_StringMonoid_ComparisonOperators_Work()
+    {
+        var writer1 = Writer<StringMonoid, int>.Tell(42, new StringMonoid("aaa"));
+        var writer2 = Writer<StringMonoid, int>.Tell(42, new StringMonoid("bbb"));
+
+        Assert.True(writer1 < writer2);
+        Assert.True(writer1 <= writer2);
+        Assert.False(writer1 > writer2);
+        Assert.False(writer1 >= writer2);
+    }
+
+    [Fact]
+    public void Writer_ListMonoid_CompareTo_WithDifferentLogs()
+    {
+        var writer1 = Writer<ListMonoid<string>, int>.Tell(42, ListMonoid.Of("a"));
+        var writer2 = Writer<ListMonoid<string>, int>.Tell(42, ListMonoid.Of("a", "b"));
+
+        Assert.True(writer1.CompareTo(writer2) < 0);
+        Assert.True(writer2.CompareTo(writer1) > 0);
+    }
+
+    [Fact]
+    public void Writer_ListMonoid_ComparisonOperators_Work()
+    {
+        var writer1 = Writer<ListMonoid<string>, int>.Tell(42, ListMonoid.Of("a"));
+        var writer2 = Writer<ListMonoid<string>, int>.Tell(42, ListMonoid.Of("a", "b"));
+
+        Assert.True(writer1 < writer2);
+        Assert.True(writer1 <= writer2);
+        Assert.False(writer1 > writer2);
+        Assert.False(writer1 >= writer2);
     }
 
     #endregion
