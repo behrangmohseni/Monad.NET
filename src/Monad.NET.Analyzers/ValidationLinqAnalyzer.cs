@@ -7,9 +7,11 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Monad.NET.Analyzers;
 
 /// <summary>
-/// Analyzer that warns when LINQ is used with Validation types.
-/// While the SelectMany implementation attempts to accumulate errors,
-/// it only works reliably when validations are independent.
+/// Analyzer that errors when LINQ query syntax is used with Validation types.
+/// LINQ's SelectMany semantics short-circuit on the first error, which defeats
+/// the entire purpose of Validation (accumulating all errors). This is a semantic
+/// trap that causes users to lose validation errors without realizing it.
+/// Users should use Apply() or Zip() for proper error accumulation.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class ValidationLinqAnalyzer : DiagnosticAnalyzer
