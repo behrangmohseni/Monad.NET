@@ -9,9 +9,31 @@ namespace Monad.NET;
 /// The Writer monad allows you to accumulate values (logs, diagnostics, etc.) alongside computations.
 /// Useful for logging, tracing, and collecting metadata without side effects.
 /// </summary>
-/// <typeparam name="TLog">The type of the accumulated output (must be a monoid)</typeparam>
+/// <typeparam name="TLog">The type of the accumulated output. Should be a monoid (have Empty and Append) for proper behavior.</typeparam>
 /// <typeparam name="T">The type of the value</typeparam>
-public readonly struct Writer<TLog, T> : IEquatable<Writer<TLog, T>>
+/// <remarks>
+/// For proper Writer monad behavior, TLog should be a monoid with:
+/// <list type="bullet">
+///   <item><description>An identity/empty element</description></item>
+///   <item><description>An associative append/combine operation</description></item>
+/// </list>
+/// Use the built-in StringMonoid or ListMonoid&lt;T&gt; for type-safe monoid behavior,
+/// or use string/List&lt;TLog&gt; with the provided extension methods for convenience.
+/// </remarks>
+/// <example>
+/// <code>
+/// // Using string logs:
+/// var writer = Writer&lt;string, int&gt;.Tell(42, "Computed value");
+/// var result = writer.Bind(x => Writer&lt;string, int&gt;.Tell(x * 2, " and doubled"),
+///     (log1, log2) => log1 + log2);
+/// 
+/// // Using StringMonoid:
+/// var writer = Writer&lt;StringMonoid, int&gt;.Tell(42, new StringMonoid("Started"));
+/// var result = writer.Bind(x => Writer&lt;StringMonoid, int&gt;.Tell(x * 2, new StringMonoid(" doubled")),
+///     (a, b) => a.Append(b));
+/// </code>
+/// </example>
+public readonly struct Writer<TLog, T> : IEquatable<Writer<TLog, T>>, IComparable<Writer<TLog, T>>
 {
     private readonly T _value;
     private readonly TLog _log;
@@ -132,6 +154,10 @@ public readonly struct Writer<TLog, T> : IEquatable<Writer<TLog, T>>
     /// Requires a function to combine logs (append operation).
     /// This is the monadic bind operation.
     /// </summary>
+    /// <typeparam name="U">The type of the resulting value.</typeparam>
+    /// <param name="binder">The function that takes the current value and returns a new Writer.</param>
+    /// <param name="combine">The function to combine logs (should be associative for proper monad laws).</param>
+    /// <returns>A new Writer with the combined logs.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Writer<TLog, U> Bind<U>(Func<T, Writer<TLog, U>> binder, Func<TLog, TLog, TLog> combine)
     {
@@ -219,6 +245,26 @@ public readonly struct Writer<TLog, T> : IEquatable<Writer<TLog, T>>
         return HashCode.Combine(_value, _log);
     }
 
+    /// <summary>
+    /// Compares this Writer to another Writer.
+    /// Comparison is based on the value first, then the log.
+    /// </summary>
+    /// <param name="other">The Writer to compare to.</param>
+    /// <returns>
+    /// A value less than zero if this instance precedes other;
+    /// zero if they are equal;
+    /// a value greater than zero if this instance follows other.
+    /// </returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public int CompareTo(Writer<TLog, T> other)
+    {
+        var valueComparison = Comparer<T>.Default.Compare(_value, other._value);
+        if (valueComparison != 0)
+            return valueComparison;
+
+        return Comparer<TLog>.Default.Compare(_log, other._log);
+    }
+
     /// <inheritdoc />
     public override string ToString()
     {
@@ -241,6 +287,42 @@ public readonly struct Writer<TLog, T> : IEquatable<Writer<TLog, T>>
     public static bool operator !=(Writer<TLog, T> left, Writer<TLog, T> right)
     {
         return !left.Equals(right);
+    }
+
+    /// <summary>
+    /// Determines whether the left Writer is less than the right Writer.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator <(Writer<TLog, T> left, Writer<TLog, T> right)
+    {
+        return left.CompareTo(right) < 0;
+    }
+
+    /// <summary>
+    /// Determines whether the left Writer is less than or equal to the right Writer.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator <=(Writer<TLog, T> left, Writer<TLog, T> right)
+    {
+        return left.CompareTo(right) <= 0;
+    }
+
+    /// <summary>
+    /// Determines whether the left Writer is greater than the right Writer.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator >(Writer<TLog, T> left, Writer<TLog, T> right)
+    {
+        return left.CompareTo(right) > 0;
+    }
+
+    /// <summary>
+    /// Determines whether the left Writer is greater than or equal to the right Writer.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool operator >=(Writer<TLog, T> left, Writer<TLog, T> right)
+    {
+        return left.CompareTo(right) >= 0;
     }
 
     /// <summary>
@@ -318,6 +400,28 @@ public static class WriterExtensions
     }
 
     /// <summary>
+    /// Bind for StringMonoid-based Writers.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Writer<StringMonoid, U> Bind<T, U>(
+        this Writer<StringMonoid, T> writer,
+        Func<T, Writer<StringMonoid, U>> binder)
+    {
+        return writer.Bind(binder, static (log1, log2) => log1.Append(log2));
+    }
+
+    /// <summary>
+    /// Bind for ListMonoid-based Writers.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Writer<ListMonoid<TLog>, U> Bind<T, U, TLog>(
+        this Writer<ListMonoid<TLog>, T> writer,
+        Func<T, Writer<ListMonoid<TLog>, U>> binder)
+    {
+        return writer.Bind(binder, static (log1, log2) => log1.Append(log2));
+    }
+
+    /// <summary>
     /// Executes a side effect with the value, adding a log entry.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -369,6 +473,46 @@ public static class WriterExtensions
         }
 
         return Writer<List<TLog>, IEnumerable<T>>.Tell(values, combinedLog);
+    }
+
+    /// <summary>
+    /// Sequences a collection of Writers with StringMonoid logs.
+    /// </summary>
+    public static Writer<StringMonoid, IEnumerable<T>> Sequence<T>(
+        this IEnumerable<Writer<StringMonoid, T>> writers)
+    {
+        ThrowHelper.ThrowIfNull(writers);
+
+        var values = new List<T>();
+        var combinedLog = StringMonoid.Empty;
+
+        foreach (var writer in writers)
+        {
+            values.Add(writer.Value);
+            combinedLog = combinedLog.Append(writer.Log);
+        }
+
+        return Writer<StringMonoid, IEnumerable<T>>.Tell(values, combinedLog);
+    }
+
+    /// <summary>
+    /// Sequences a collection of Writers with ListMonoid logs.
+    /// </summary>
+    public static Writer<ListMonoid<TLog>, IEnumerable<T>> Sequence<T, TLog>(
+        this IEnumerable<Writer<ListMonoid<TLog>, T>> writers)
+    {
+        ThrowHelper.ThrowIfNull(writers);
+
+        var values = new List<T>();
+        var combinedLog = ListMonoid<TLog>.Empty;
+
+        foreach (var writer in writers)
+        {
+            values.Add(writer.Value);
+            combinedLog = combinedLog.Append(writer.Log);
+        }
+
+        return Writer<ListMonoid<TLog>, IEnumerable<T>>.Tell(values, combinedLog);
     }
 }
 

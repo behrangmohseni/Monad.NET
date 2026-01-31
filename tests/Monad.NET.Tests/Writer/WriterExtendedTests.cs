@@ -224,4 +224,486 @@ public class WriterExtendedTests
     }
 
     #endregion
+
+    #region Writer IComparable Tests
+
+    [Fact]
+    public void CompareTo_ReturnsZeroForEqualWriters()
+    {
+        var writer1 = Writer<string, int>.Tell(42, "log");
+        var writer2 = Writer<string, int>.Tell(42, "log");
+
+        Assert.Equal(0, writer1.CompareTo(writer2));
+    }
+
+    [Fact]
+    public void CompareTo_ReturnsNegativeWhenValueIsLess()
+    {
+        var writer1 = Writer<string, int>.Tell(10, "log");
+        var writer2 = Writer<string, int>.Tell(20, "log");
+
+        Assert.True(writer1.CompareTo(writer2) < 0);
+    }
+
+    [Fact]
+    public void CompareTo_ReturnsPositiveWhenValueIsGreater()
+    {
+        var writer1 = Writer<string, int>.Tell(30, "log");
+        var writer2 = Writer<string, int>.Tell(20, "log");
+
+        Assert.True(writer1.CompareTo(writer2) > 0);
+    }
+
+    [Fact]
+    public void CompareTo_ComparesLogWhenValuesAreEqual()
+    {
+        var writer1 = Writer<string, int>.Tell(42, "aaa");
+        var writer2 = Writer<string, int>.Tell(42, "bbb");
+
+        Assert.True(writer1.CompareTo(writer2) < 0);
+    }
+
+    [Fact]
+    public void LessThanOperator_Works()
+    {
+        var writer1 = Writer<string, int>.Tell(10, "log");
+        var writer2 = Writer<string, int>.Tell(20, "log");
+
+        Assert.True(writer1 < writer2);
+        Assert.False(writer2 < writer1);
+    }
+
+    [Fact]
+    public void LessThanOrEqualOperator_Works()
+    {
+        var writer1 = Writer<string, int>.Tell(10, "log");
+        var writer2 = Writer<string, int>.Tell(10, "log");
+        var writer3 = Writer<string, int>.Tell(20, "log");
+
+        Assert.True(writer1 <= writer2);
+        Assert.True(writer1 <= writer3);
+        Assert.False(writer3 <= writer1);
+    }
+
+    [Fact]
+    public void GreaterThanOperator_Works()
+    {
+        var writer1 = Writer<string, int>.Tell(20, "log");
+        var writer2 = Writer<string, int>.Tell(10, "log");
+
+        Assert.True(writer1 > writer2);
+        Assert.False(writer2 > writer1);
+    }
+
+    [Fact]
+    public void GreaterThanOrEqualOperator_Works()
+    {
+        var writer1 = Writer<string, int>.Tell(20, "log");
+        var writer2 = Writer<string, int>.Tell(20, "log");
+        var writer3 = Writer<string, int>.Tell(10, "log");
+
+        Assert.True(writer1 >= writer2);
+        Assert.True(writer1 >= writer3);
+        Assert.False(writer3 >= writer1);
+    }
+
+    #endregion
+
+    #region StringMonoid Tests
+
+    [Fact]
+    public void StringMonoid_Empty_ReturnsEmptyString()
+    {
+        var empty = StringMonoid.Empty;
+
+        Assert.Equal("", empty.Value);
+    }
+
+    [Fact]
+    public void StringMonoid_Append_ConcatenatesStrings()
+    {
+        var a = new StringMonoid("Hello, ");
+        var b = new StringMonoid("World!");
+
+        var result = a.Append(b);
+
+        Assert.Equal("Hello, World!", result.Value);
+    }
+
+    [Fact]
+    public void StringMonoid_ImplicitConversionFromString_Works()
+    {
+        StringMonoid monoid = "test";
+
+        Assert.Equal("test", monoid.Value);
+    }
+
+    [Fact]
+    public void StringMonoid_ImplicitConversionToString_Works()
+    {
+        var monoid = new StringMonoid("test");
+        string value = monoid;
+
+        Assert.Equal("test", value);
+    }
+
+    [Fact]
+    public void StringMonoid_HandlesNull_AsEmptyString()
+    {
+        var monoid = new StringMonoid(null);
+
+        Assert.Equal("", monoid.Value);
+    }
+
+    [Fact]
+    public void StringMonoid_Equals_Works()
+    {
+        var a = new StringMonoid("test");
+        var b = new StringMonoid("test");
+        var c = new StringMonoid("other");
+
+        Assert.True(a.Equals(b));
+        Assert.True(a == b);
+        Assert.False(a.Equals(c));
+        Assert.True(a != c);
+    }
+
+    [Fact]
+    public void StringMonoid_GetHashCode_SameForEqualValues()
+    {
+        var a = new StringMonoid("test");
+        var b = new StringMonoid("test");
+
+        Assert.Equal(a.GetHashCode(), b.GetHashCode());
+    }
+
+    [Fact]
+    public void StringMonoid_ToString_ReturnsValue()
+    {
+        var monoid = new StringMonoid("hello");
+
+        Assert.Equal("hello", monoid.ToString());
+    }
+
+    [Fact]
+    public void StringMonoid_Default_ReturnsEmptyString()
+    {
+        var monoid = default(StringMonoid);
+
+        Assert.Equal("", monoid.Value);
+        Assert.Equal("", monoid.ToString());
+    }
+
+    [Fact]
+    public void StringMonoid_CompareTo_Works()
+    {
+        var a = new StringMonoid("aaa");
+        var b = new StringMonoid("bbb");
+        var c = new StringMonoid("aaa");
+
+        Assert.True(a.CompareTo(b) < 0);
+        Assert.True(b.CompareTo(a) > 0);
+        Assert.Equal(0, a.CompareTo(c));
+    }
+
+    [Fact]
+    public void StringMonoid_ComparisonOperators_Work()
+    {
+        var a = new StringMonoid("aaa");
+        var b = new StringMonoid("bbb");
+
+        Assert.True(a < b);
+        Assert.True(a <= b);
+        Assert.False(a > b);
+        Assert.False(a >= b);
+        Assert.True(b > a);
+        Assert.True(b >= a);
+    }
+
+    [Fact]
+    public void StringMonoid_Bind_Works()
+    {
+        var writer = Writer<StringMonoid, int>.Tell(10, new StringMonoid("a"));
+        var result = writer.Bind(x => Writer<StringMonoid, int>.Tell(x * 2, new StringMonoid("b")));
+
+        Assert.Equal(20, result.Value);
+        Assert.Equal("ab", result.Log.Value);
+    }
+
+    #endregion
+
+    #region ListMonoid Tests
+
+    [Fact]
+    public void ListMonoid_Empty_ReturnsEmptyList()
+    {
+        var empty = ListMonoid<string>.Empty;
+
+        Assert.Empty(empty.Value);
+    }
+
+    [Fact]
+    public void ListMonoid_Of_CreatesSingleElementList()
+    {
+        var monoid = ListMonoid.Of("test");
+
+        Assert.Single(monoid.Value);
+        Assert.Equal("test", monoid.Value[0]);
+    }
+
+    [Fact]
+    public void ListMonoid_Of_CreatesMultiElementList()
+    {
+        var monoid = ListMonoid.Of("a", "b", "c");
+
+        Assert.Equal(3, monoid.Value.Count);
+        Assert.Equal(new[] { "a", "b", "c" }, monoid.Value);
+    }
+
+    [Fact]
+    public void ListMonoid_Append_CombinesLists()
+    {
+        var a = ListMonoid.Of("a", "b");
+        var b = ListMonoid.Of("c", "d");
+
+        var result = a.Append(b);
+
+        Assert.Equal(new[] { "a", "b", "c", "d" }, result.Value);
+    }
+
+    [Fact]
+    public void ListMonoid_Equals_Works()
+    {
+        var a = ListMonoid.Of("a", "b");
+        var b = ListMonoid.Of("a", "b");
+        var c = ListMonoid.Of("a", "c");
+
+        Assert.True(a.Equals(b));
+        Assert.True(a == b);
+        Assert.False(a.Equals(c));
+        Assert.True(a != c);
+    }
+
+    [Fact]
+    public void ListMonoid_GetHashCode_SameForEqualValues()
+    {
+        var a = ListMonoid.Of("a", "b");
+        var b = ListMonoid.Of("a", "b");
+
+        Assert.Equal(a.GetHashCode(), b.GetHashCode());
+    }
+
+    [Fact]
+    public void ListMonoid_ToString_FormatsCorrectly()
+    {
+        var monoid = ListMonoid.Of("a", "b", "c");
+
+        Assert.Equal("[a, b, c]", monoid.ToString());
+    }
+
+    [Fact]
+    public void ListMonoid_Empty_FactoryMethod_Works()
+    {
+        var empty = ListMonoid.Empty<int>();
+
+        Assert.Empty(empty.Value);
+    }
+
+    [Fact]
+    public void ListMonoid_Bind_Works()
+    {
+        var writer = Writer<ListMonoid<string>, int>.Tell(10, ListMonoid.Of("step1"));
+        var result = writer.Bind(x => Writer<ListMonoid<string>, int>.Tell(x * 2, ListMonoid.Of("step2")));
+
+        Assert.Equal(20, result.Value);
+        Assert.Equal(new[] { "step1", "step2" }, result.Log.Value);
+    }
+
+    [Fact]
+    public void ListMonoid_HandlesNullEnumerable_AsEmptyList()
+    {
+        var monoid = new ListMonoid<string>((IEnumerable<string>?)null);
+
+        Assert.Empty(monoid.Value);
+    }
+
+    [Fact]
+    public void ListMonoid_Default_ReturnsEmptyList()
+    {
+        var monoid = default(ListMonoid<string>);
+
+        Assert.Empty(monoid.Value);
+        Assert.Equal("[]", monoid.ToString());
+    }
+
+    [Fact]
+    public void ListMonoid_CompareTo_Prefix_IsShorter()
+    {
+        // ["a"] < ["a", "b"] because ["a"] is a prefix of ["a", "b"]
+        var a = ListMonoid.Of("a");
+        var b = ListMonoid.Of("a", "b");
+
+        Assert.True(a.CompareTo(b) < 0);
+        Assert.True(b.CompareTo(a) > 0);
+    }
+
+    [Fact]
+    public void ListMonoid_CompareTo_Lexicographic_ElementsFirst()
+    {
+        // True lexicographic: ["z"] > ["a", "b"] because 'z' > 'a'
+        // This is NOT shortlex where count would be compared first
+        var z = ListMonoid.Of("z");
+        var ab = ListMonoid.Of("a", "b");
+
+        Assert.True(z.CompareTo(ab) > 0);  // 'z' > 'a'
+        Assert.True(ab.CompareTo(z) < 0);
+    }
+
+    [Fact]
+    public void ListMonoid_CompareTo_ByElement()
+    {
+        var a = ListMonoid.Of("a", "a");
+        var b = ListMonoid.Of("a", "b");
+
+        Assert.True(a.CompareTo(b) < 0);
+        Assert.True(b.CompareTo(a) > 0);
+    }
+
+    [Fact]
+    public void ListMonoid_CompareTo_Equal()
+    {
+        var a = ListMonoid.Of("a", "b");
+        var b = ListMonoid.Of("a", "b");
+
+        Assert.Equal(0, a.CompareTo(b));
+    }
+
+    [Fact]
+    public void ListMonoid_ComparisonOperators_Prefix()
+    {
+        // Prefix case: ["a"] < ["a", "b"]
+        var a = ListMonoid.Of("a");
+        var b = ListMonoid.Of("a", "b");
+
+        Assert.True(a < b);
+        Assert.True(a <= b);
+        Assert.False(a > b);
+        Assert.False(a >= b);
+        Assert.True(b > a);
+        Assert.True(b >= a);
+    }
+
+    [Fact]
+    public void ListMonoid_ComparisonOperators_Lexicographic()
+    {
+        // Non-prefix case: ["z"] > ["a", "anything"] because 'z' > 'a'
+        var z = ListMonoid.Of("z");
+        var abc = ListMonoid.Of("a", "b", "c");
+
+        Assert.True(z > abc);
+        Assert.True(z >= abc);
+        Assert.False(z < abc);
+        Assert.False(z <= abc);
+    }
+
+    #endregion
+
+    #region Writer with Monoid Comparison Tests
+
+    [Fact]
+    public void Writer_StringMonoid_CompareTo_WithDifferentLogs()
+    {
+        // This was the main bug: Writer.CompareTo would fail with monoid types
+        var writer1 = Writer<StringMonoid, int>.Tell(42, new StringMonoid("aaa"));
+        var writer2 = Writer<StringMonoid, int>.Tell(42, new StringMonoid("bbb"));
+
+        Assert.True(writer1.CompareTo(writer2) < 0);
+        Assert.True(writer2.CompareTo(writer1) > 0);
+    }
+
+    [Fact]
+    public void Writer_StringMonoid_ComparisonOperators_Work()
+    {
+        var writer1 = Writer<StringMonoid, int>.Tell(42, new StringMonoid("aaa"));
+        var writer2 = Writer<StringMonoid, int>.Tell(42, new StringMonoid("bbb"));
+
+        Assert.True(writer1 < writer2);
+        Assert.True(writer1 <= writer2);
+        Assert.False(writer1 > writer2);
+        Assert.False(writer1 >= writer2);
+    }
+
+    [Fact]
+    public void Writer_ListMonoid_CompareTo_WithDifferentLogs()
+    {
+        var writer1 = Writer<ListMonoid<string>, int>.Tell(42, ListMonoid.Of("a"));
+        var writer2 = Writer<ListMonoid<string>, int>.Tell(42, ListMonoid.Of("a", "b"));
+
+        Assert.True(writer1.CompareTo(writer2) < 0);
+        Assert.True(writer2.CompareTo(writer1) > 0);
+    }
+
+    [Fact]
+    public void Writer_ListMonoid_ComparisonOperators_Work()
+    {
+        var writer1 = Writer<ListMonoid<string>, int>.Tell(42, ListMonoid.Of("a"));
+        var writer2 = Writer<ListMonoid<string>, int>.Tell(42, ListMonoid.Of("a", "b"));
+
+        Assert.True(writer1 < writer2);
+        Assert.True(writer1 <= writer2);
+        Assert.False(writer1 > writer2);
+        Assert.False(writer1 >= writer2);
+    }
+
+    #endregion
+
+    #region StringMonoid/ListMonoid Sequence Tests
+
+    [Fact]
+    public void Sequence_StringMonoidWriters_CombinesLogs()
+    {
+        var writers = new[]
+        {
+            Writer<StringMonoid, int>.Tell(1, new StringMonoid("a")),
+            Writer<StringMonoid, int>.Tell(2, new StringMonoid("b")),
+            Writer<StringMonoid, int>.Tell(3, new StringMonoid("c"))
+        };
+
+        var result = writers.Sequence();
+
+        Assert.Equal("abc", result.Log.Value);
+        Assert.Equal(new[] { 1, 2, 3 }, result.Value.ToList());
+    }
+
+    [Fact]
+    public void Sequence_ListMonoidWriters_CombinesLogs()
+    {
+        var writers = new[]
+        {
+            Writer<ListMonoid<string>, int>.Tell(1, ListMonoid.Of("a")),
+            Writer<ListMonoid<string>, int>.Tell(2, ListMonoid.Of("b", "b2")),
+            Writer<ListMonoid<string>, int>.Tell(3, ListMonoid.Of("c"))
+        };
+
+        var result = writers.Sequence();
+
+        Assert.Equal(new[] { "a", "b", "b2", "c" }, result.Log.Value);
+        Assert.Equal(new[] { 1, 2, 3 }, result.Value.ToList());
+    }
+
+    [Fact]
+    public void Sequence_StringMonoidWriters_ThrowsOnNull()
+    {
+        IEnumerable<Writer<StringMonoid, int>> nullWriters = null!;
+        Assert.Throws<ArgumentNullException>(() => nullWriters.Sequence());
+    }
+
+    [Fact]
+    public void Sequence_ListMonoidWriters_ThrowsOnNull()
+    {
+        IEnumerable<Writer<ListMonoid<string>, int>> nullWriters = null!;
+        Assert.Throws<ArgumentNullException>(() => nullWriters.Sequence());
+    }
+
+    #endregion
 }
