@@ -28,6 +28,14 @@ var result = user.ToOption()
 
 ---
 
+## Upgrading to v2.0
+
+Version 2.0 significantly reduces the API surface (~285 methods removed) for better discoverability. All core functionality remains - removed methods have straightforward replacements using `Match()`, `GetValueOr()`, and LINQ.
+
+**[See the full migration guide →](docs/BREAKING-CHANGES-V2.md)**
+
+---
+
 ## Table of Contents
 
 - [Why Monad.NET?](#why-monadnet)

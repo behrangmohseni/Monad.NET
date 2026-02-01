@@ -329,36 +329,34 @@ public class ResultExtendedTests
     public void Expect_OnOk_ReturnsValue()
     {
         var result = Result<int, string>.Ok(42);
-        var value = result.GetOrThrow("Should be ok");
+        var value = result.GetOrThrow();
 
         Assert.Equal(42, value);
     }
 
     [Fact]
-    public void Expect_OnErr_ThrowsWithMessage()
+    public void Expect_OnErr_Throws()
     {
         var result = Result<int, string>.Err("error");
 
-        var ex = Assert.Throws<InvalidOperationException>(() => result.GetOrThrow("Custom message"));
-        Assert.Contains("Custom message", ex.Message);
+        Assert.Throws<InvalidOperationException>(() => result.GetOrThrow());
     }
 
     [Fact]
     public void ExpectErr_OnErr_ReturnsError()
     {
         var result = Result<int, string>.Err("error");
-        var error = result.GetErrorOrThrow("Should be err");
+        var error = result.GetErrorOrThrow();
 
         Assert.Equal("error", error);
     }
 
     [Fact]
-    public void ExpectErr_OnOk_ThrowsWithMessage()
+    public void ExpectErr_OnOk_Throws()
     {
         var result = Result<int, string>.Ok(42);
 
-        var ex = Assert.Throws<InvalidOperationException>(() => result.GetErrorOrThrow("Custom message"));
-        Assert.Contains("Custom message", ex.Message);
+        Assert.Throws<InvalidOperationException>(() => result.GetErrorOrThrow());
     }
 
     #endregion

@@ -179,23 +179,6 @@ public sealed class Reader<R, A>
             return combiner(a, b);
         });
     }
-
-    /// <summary>
-    /// Converts this synchronous Reader to an async ReaderAsync.
-    /// </summary>
-    /// <returns>A ReaderAsync that wraps this Reader's computation.</returns>
-    /// <example>
-    /// <code>
-    /// var reader = Reader&lt;Config, int&gt;.Asks(c => c.Timeout);
-    /// var asyncReader = reader.ToAsync();
-    /// var result = await asyncReader.RunAsync(config);
-    /// </code>
-    /// </example>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ReaderAsync<R, A> ToAsync()
-    {
-        return ReaderAsync<R, A>.FromReader(this);
-    }
 }
 
 /// <summary>

@@ -183,22 +183,6 @@ public class ReaderExtendedTests
 
     #endregion
 
-    #region Reader ToAsync Tests
-
-    [Fact]
-    public async Task Reader_ToAsync_ConvertsToReaderAsync()
-    {
-        var reader = Reader<TestConfig, int>.Asks(cfg => cfg.Value);
-        var asyncReader = reader.ToAsync();
-
-        var config = new TestConfig { Value = 42 };
-        var result = await asyncReader.RunAsync(config);
-
-        Assert.Equal(42, result);
-    }
-
-    #endregion
-
     #region ReaderExtensions LINQ Tests
 
     [Fact]

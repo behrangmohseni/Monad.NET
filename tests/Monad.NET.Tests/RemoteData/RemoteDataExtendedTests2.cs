@@ -365,25 +365,29 @@ public class RemoteDataExtendedTests2
     }
 
     [Fact]
-    public void UnwrapOrElse_OnSuccess_ReturnsValue()
+    public void Match_OnSuccess_ReturnsValue()
     {
         var rd = RemoteData<int, string>.Success(42);
         var factoryExecuted = false;
-        var value = rd.GetValueOrElse(() =>
-        {
-            factoryExecuted = true;
-            return 99;
-        });
+        var value = rd.Match(
+            () => { factoryExecuted = true; return 99; },
+            () => { factoryExecuted = true; return 99; },
+            val => val,
+            _ => { factoryExecuted = true; return 99; });
 
         Assert.False(factoryExecuted);
         Assert.Equal(42, value);
     }
 
     [Fact]
-    public void UnwrapOrElse_OnNotSuccess_ExecutesFactory()
+    public void Match_OnNotSuccess_ExecutesFactory()
     {
         var rd = RemoteData<int, string>.Loading();
-        var value = rd.GetValueOrElse(() => 99);
+        var value = rd.Match(
+            () => 99,
+            () => 99,
+            val => val,
+            _ => 99);
 
         Assert.Equal(99, value);
     }

@@ -104,6 +104,7 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the value is None</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public T GetValue()
     {
         if (!_isSome)
@@ -119,24 +120,6 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     public T GetValueOr(T defaultValue)
     {
         return _isSome ? _value! : defaultValue;
-    }
-
-    /// <summary>
-    /// Returns the contained Some value or computes it from a function.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T GetValueOrElse(Func<T> defaultFunc)
-    {
-        return _isSome ? _value! : defaultFunc();
-    }
-
-    /// <summary>
-    /// Returns the contained Some value or a default value of type T.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T? GetValueOrDefault()
-    {
-        return _isSome ? _value : default;
     }
 
     /// <summary>
@@ -157,30 +140,6 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     {
         if (!_isSome)
             ThrowHelper.ThrowOptionIsNone();
-
-        return _value!;
-    }
-
-    /// <summary>
-    /// Returns the contained Some value, or throws an <see cref="InvalidOperationException"/> 
-    /// with the specified message if None.
-    /// </summary>
-    /// <param name="message">The exception message if None</param>
-    /// <exception cref="InvalidOperationException">Thrown if the value is None</exception>
-    /// <example>
-    /// <code>
-    /// var option = Option&lt;int&gt;.Some(42);
-    /// var value = option.GetOrThrow("Expected a value"); // 42
-    /// 
-    /// var none = Option&lt;int&gt;.None();
-    /// none.GetOrThrow("Config value required"); // throws with "Config value required"
-    /// </code>
-    /// </example>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T GetOrThrow(string message)
-    {
-        if (!_isSome)
-            ThrowHelper.ThrowInvalidOperation(message);
 
         return _value!;
     }

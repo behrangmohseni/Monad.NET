@@ -128,17 +128,17 @@ public class TryTests
     }
 
     [Fact]
-    public void GetValueOrElse_WithFunc_OnFailure_ExecutesFunc()
+    public void Match_OnFailure_ExecutesFunc()
     {
         var tryValue = Try<int>.Failure(new Exception("error"));
-        Assert.Equal(100, tryValue.GetValueOrElse(() => 100));
+        Assert.Equal(100, tryValue.Match(ok => ok, _ => 100));
     }
 
     [Fact]
-    public void GetValueOrRecover_WithRecovery_OnFailure_UsesException()
+    public void Match_WithRecovery_OnFailure_UsesException()
     {
         var tryValue = Try<int>.Failure(new Exception("error"));
-        var result = tryValue.GetValueOrRecover(ex => ex.Message.Length);
+        var result = tryValue.Match(ok => ok, ex => ex.Message.Length);
 
         Assert.Equal(5, result);
     }

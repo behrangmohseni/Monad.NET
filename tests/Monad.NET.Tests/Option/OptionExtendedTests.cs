@@ -385,18 +385,17 @@ public class OptionExtendedTests
     public void Expect_OnSome_ReturnsValue()
     {
         var option = Option<int>.Some(42);
-        var value = option.GetOrThrow("Should have value");
+        var value = option.GetOrThrow();
 
         Assert.Equal(42, value);
     }
 
     [Fact]
-    public void Expect_OnNone_ThrowsWithMessage()
+    public void Expect_OnNone_Throws()
     {
         var option = Option<int>.None();
 
-        var ex = Assert.Throws<InvalidOperationException>(() => option.GetOrThrow("Custom message"));
-        Assert.Contains("Custom message", ex.Message);
+        Assert.Throws<InvalidOperationException>(() => option.GetOrThrow());
     }
 
     #endregion

@@ -184,16 +184,8 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
     /// Returns the value if successful.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if failed</exception>
-    /// <example>
-    /// <code>
-    /// var result = Try&lt;int&gt;.Success(42);
-    /// var value = result.GetValue(); // 42
-    /// 
-    /// var failure = Try&lt;int&gt;.Failure(new Exception("error"));
-    /// failure.GetValue(); // throws InvalidOperationException
-    /// </code>
-    /// </example>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public T GetValue()
     {
         if (!_isSuccess)
@@ -225,27 +217,17 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
     }
 
     /// <summary>
-    /// Returns the value if successful, or throws an <see cref="InvalidOperationException"/> 
-    /// with the specified message if failed.
+    /// Returns the exception if failed.
     /// </summary>
-    /// <param name="message">The exception message if failed</param>
-    /// <exception cref="InvalidOperationException">Thrown if failed</exception>
-    /// <example>
-    /// <code>
-    /// var result = Try&lt;int&gt;.Success(42);
-    /// var value = result.GetOrThrow("Expected success"); // 42
-    /// 
-    /// var failure = Try&lt;int&gt;.Failure(new Exception("error"));
-    /// failure.GetOrThrow("Operation must succeed"); // throws with "Operation must succeed: error"
-    /// </code>
-    /// </example>
+    /// <exception cref="InvalidOperationException">Thrown if successful</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T GetOrThrow(string message)
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public Exception GetException()
     {
-        if (!_isSuccess)
-            ThrowHelper.ThrowInvalidOperation($"{message}: {_exception!.Message}");
+        if (_isSuccess)
+            ThrowHelper.ThrowTryIsSuccess(_value!);
 
-        return _value!;
+        return _exception!;
     }
 
     /// <summary>
@@ -271,67 +253,12 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
     }
 
     /// <summary>
-    /// Returns the exception if failed, or throws an <see cref="InvalidOperationException"/> 
-    /// with the specified message if successful.
-    /// </summary>
-    /// <param name="message">The exception message if successful</param>
-    /// <exception cref="InvalidOperationException">Thrown if successful</exception>
-    /// <example>
-    /// <code>
-    /// var failure = Try&lt;int&gt;.Failure(new Exception("error"));
-    /// var ex = failure.GetExceptionOrThrow("Expected failure"); // Exception
-    /// 
-    /// var success = Try&lt;int&gt;.Success(42);
-    /// success.GetExceptionOrThrow("Should have failed"); // throws with "Should have failed: 42"
-    /// </code>
-    /// </example>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Exception GetExceptionOrThrow(string message)
-    {
-        if (_isSuccess)
-            ThrowHelper.ThrowInvalidOperation($"{message}: {_value}");
-
-        return _exception!;
-    }
-
-    /// <summary>
-    /// Returns the exception if failed.
-    /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if successful</exception>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Exception GetException()
-    {
-        if (_isSuccess)
-            ThrowHelper.ThrowTryIsSuccess(_value!);
-
-        return _exception!;
-    }
-
-    /// <summary>
     /// Returns the value if successful, otherwise returns the default value.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T GetValueOr(T defaultValue)
     {
         return _isSuccess ? _value! : defaultValue;
-    }
-
-    /// <summary>
-    /// Returns the value if successful, otherwise computes a default.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T GetValueOrElse(Func<T> defaultFunc)
-    {
-        return _isSuccess ? _value! : defaultFunc();
-    }
-
-    /// <summary>
-    /// Returns the value if successful, otherwise computes from the exception.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T GetValueOrRecover(Func<Exception, T> recovery)
-    {
-        return _isSuccess ? _value! : recovery(_exception!);
     }
 
     /// <summary>

@@ -326,25 +326,27 @@ public class TryExtendedTests2
     }
 
     [Fact]
-    public void GetValueOrElse_WithFunc_OnSuccess_ReturnsValue()
+    public void Match_WithFunc_OnSuccess_ReturnsValue()
     {
         var @try = Try<int>.Success(42);
         var factoryExecuted = false;
-        var value = @try.GetValueOrElse(() =>
-        {
-            factoryExecuted = true;
-            return 99;
-        });
+        var value = @try.Match(
+            ok => ok,
+            _ =>
+            {
+                factoryExecuted = true;
+                return 99;
+            });
 
         Assert.False(factoryExecuted);
         Assert.Equal(42, value);
     }
 
     [Fact]
-    public void GetValueOrElse_WithFunc_OnFailure_ExecutesFactory()
+    public void Match_WithFunc_OnFailure_ExecutesFactory()
     {
         var @try = Try<int>.Failure(new InvalidOperationException("error"));
-        var value = @try.GetValueOrElse(() => 99);
+        var value = @try.Match(ok => ok, _ => 99);
 
         Assert.Equal(99, value);
     }

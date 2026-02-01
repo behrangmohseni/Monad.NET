@@ -125,6 +125,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the value is Err</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public T GetValue()
     {
         if (!_isOk)
@@ -156,24 +157,6 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     }
 
     /// <summary>
-    /// Returns the contained Ok value or computes it from the error.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T GetValueOrElse(Func<TErr, T> op)
-    {
-        return _isOk ? _value! : op(_error!);
-    }
-
-    /// <summary>
-    /// Returns the contained Ok value or a default value of type T.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T? GetValueOrDefault()
-    {
-        return _isOk ? _value : default;
-    }
-
-    /// <summary>
     /// Returns the contained Ok value, or throws an <see cref="InvalidOperationException"/> if Err.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the Result is Err</exception>
@@ -191,30 +174,6 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     {
         if (!_isOk)
             ThrowHelper.ThrowResultIsErr(_error!);
-
-        return _value!;
-    }
-
-    /// <summary>
-    /// Returns the contained Ok value, or throws an <see cref="InvalidOperationException"/> 
-    /// with the specified message if Err.
-    /// </summary>
-    /// <param name="message">The exception message if Err</param>
-    /// <exception cref="InvalidOperationException">Thrown if the Result is Err</exception>
-    /// <example>
-    /// <code>
-    /// var result = Result&lt;int, string&gt;.Ok(42);
-    /// var value = result.GetOrThrow("Expected success"); // 42
-    /// 
-    /// var error = Result&lt;int, string&gt;.Err("failed");
-    /// error.GetOrThrow("Operation must succeed"); // throws with "Operation must succeed: failed"
-    /// </code>
-    /// </example>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T GetOrThrow(string message)
-    {
-        if (!_isOk)
-            ThrowHelper.ThrowInvalidOperation($"{message}: {_error}");
 
         return _value!;
     }

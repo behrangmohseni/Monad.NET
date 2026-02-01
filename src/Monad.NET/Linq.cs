@@ -1,11 +1,35 @@
+// ============================================================================
+// ADVANCED USAGE: LINQ Query Syntax Support
+// ============================================================================
+// These extension methods enable LINQ query syntax (from...select) for monadic
+// types. While functional, the RECOMMENDED approach is to use the core methods
+// directly: Map(), Bind(), Filter(), Match().
+//
+// LINQ syntax may hide important behavior:
+// - Validation: LINQ short-circuits on first error (use Apply/Zip instead)
+// - Option/Result: LINQ is verbose compared to fluent chains
+//
+// For most use cases, prefer:
+//   option.Map(x => x * 2).Bind(Transform)
+// Over:
+//   from x in option
+//   let doubled = x * 2
+//   from result in Transform(doubled)
+//   select result
+// ============================================================================
+
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
 namespace Monad.NET;
 
 /// <summary>
-/// LINQ query syntax support for Option&lt;T&gt;.
+/// <strong>Advanced Usage:</strong> LINQ query syntax support for Option&lt;T&gt;.
 /// Enables C# query comprehension syntax with from, let, where, and select.
+/// <para>
+/// <strong>Recommended:</strong> Use <see cref="Option{T}.Map{U}"/> and <see cref="Option{T}.Bind{U}"/>
+/// directly for clearer, more explicit code.
+/// </para>
 /// </summary>
 [EditorBrowsable(EditorBrowsableState.Never)]
 public static class OptionLinq

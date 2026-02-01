@@ -158,6 +158,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the validation is invalid</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public T GetValue()
     {
         if (!_isValid)
@@ -211,30 +212,6 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     }
 
     /// <summary>
-    /// Returns the valid value, or throws an <see cref="InvalidOperationException"/> 
-    /// with the specified message if invalid.
-    /// </summary>
-    /// <param name="message">The exception message if invalid</param>
-    /// <exception cref="InvalidOperationException">Thrown if the validation is invalid</exception>
-    /// <example>
-    /// <code>
-    /// var valid = Validation&lt;int, string&gt;.Valid(42);
-    /// var value = valid.GetOrThrow("Expected success"); // 42
-    /// 
-    /// var invalid = Validation&lt;int, string&gt;.Invalid("error");
-    /// invalid.GetOrThrow("Must be valid"); // throws with "Must be valid: error"
-    /// </code>
-    /// </example>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T GetOrThrow(string message)
-    {
-        if (!_isValid)
-            ThrowHelper.ThrowInvalidOperation($"{message}: {string.Join(", ", _errors!)}");
-
-        return _value!;
-    }
-
-    /// <summary>
     /// Returns the errors, or throws an <see cref="InvalidOperationException"/> if valid.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the validation is valid</exception>
@@ -252,30 +229,6 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     {
         if (_isValid)
             ThrowHelper.ThrowValidationIsValid(_value!);
-
-        return _errors;
-    }
-
-    /// <summary>
-    /// Returns the errors, or throws an <see cref="InvalidOperationException"/> 
-    /// with the specified message if valid.
-    /// </summary>
-    /// <param name="message">The exception message if valid</param>
-    /// <exception cref="InvalidOperationException">Thrown if the validation is valid</exception>
-    /// <example>
-    /// <code>
-    /// var invalid = Validation&lt;int, string&gt;.Invalid("error");
-    /// var errors = invalid.GetErrorsOrThrow("Expected errors"); // ["error"]
-    /// 
-    /// var valid = Validation&lt;int, string&gt;.Valid(42);
-    /// valid.GetErrorsOrThrow("Should be invalid"); // throws with "Should be invalid: 42"
-    /// </code>
-    /// </example>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ImmutableArray<TErr> GetErrorsOrThrow(string message)
-    {
-        if (_isValid)
-            ThrowHelper.ThrowInvalidOperation($"{message}: {_value}");
 
         return _errors;
     }

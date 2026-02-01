@@ -118,19 +118,19 @@ public class TryExtendedTests
     }
 
     [Fact]
-    public void GetValueOrElse_WithFunc_ReturnsComputedOnFailure()
+    public void Match_WithFunc_ReturnsComputedOnFailure()
     {
         var result = Try<int>.Failure(new Exception());
 
-        Assert.Equal(100, result.GetValueOrElse(() => 100));
+        Assert.Equal(100, result.Match(ok => ok, _ => 100));
     }
 
     [Fact]
-    public void GetValueOrRecover_WithExFunc_ReturnsComputedFromException()
+    public void Match_WithExFunc_ReturnsComputedFromException()
     {
         var result = Try<int>.Failure(new Exception("error"));
 
-        Assert.Equal(5, result.GetValueOrRecover(ex => ex.Message.Length));
+        Assert.Equal(5, result.Match(ok => ok, ex => ex.Message.Length));
     }
 
     [Fact]
