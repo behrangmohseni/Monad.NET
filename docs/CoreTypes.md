@@ -75,10 +75,15 @@ Represents either success (`Ok`) or failure (`Err`) with a typed error.
 
 **Inspired by:** Rust `Result<T, E>`
 
+> **Important (v2.0):** `default(Result<T,E>)` now throws `InvalidOperationException` on any operation. Always use `Ok()` or `Err()` factory methods.
+
 ```csharp
-// Creation
+// Creation - always use factory methods
 var ok = Result<int, string>.Ok(42);
 var err = Result<int, string>.Err("Something went wrong");
+
+// Never do this - will throw on any operation:
+// var invalid = default(Result<int, string>);
 
 // Safe exception handling
 var parsed = ResultExtensions.Try(() => int.Parse(input));

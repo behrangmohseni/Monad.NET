@@ -4,7 +4,37 @@ This document describes the breaking changes in Monad.NET v2.0 and provides migr
 
 ## Overview
 
-Version 2.0 significantly reduces the API surface to improve discoverability, reduce IntelliSense noise, and lower the maintenance burden. The core functionality remains intact, with removed methods having straightforward replacements.
+Version 2.0 is a major release with three key focuses:
+
+1. **API Simplification** — Reduced from ~722 to ~437 public methods
+2. **C#-Idiomatic Naming** — Rust-style names replaced with C# conventions
+3. **Stricter Type Safety** — `default(Result<T,E>)` now protected
+
+The core functionality remains intact, with removed methods having straightforward replacements.
+
+## Behavioral Changes
+
+### `default(Result<T,E>)` Now Throws
+
+Previously, `default(Result<T, E>)` would silently create an invalid state where `IsOk` was false but `_error` was null. This violated the "make illegal states unrepresentable" principle.
+
+**Before (v1.x):**
+```csharp
+var result = default(Result<int, string>);
+result.IsOk;     // false
+result.IsError;  // true (but no error exists!)
+result.GetError(); // Returns null — invalid!
+```
+
+**After (v2.0):**
+```csharp
+var result = default(Result<int, string>);
+result.IsOk;       // throws InvalidOperationException
+result.IsError;    // throws InvalidOperationException
+result.IsInitialized; // false (new property)
+```
+
+**Migration:** Always use factory methods `Result<T,E>.Ok(value)` or `Result<T,E>.Err(error)` instead of default construction.
 
 ## Removed Extensions
 
@@ -152,4 +182,15 @@ var result = from x in option
 | Redundant getters | ~25 |
 | **Total** | **~285** |
 
+| Behavioral Changes | Description |
+|-------------------|-------------|
+| `default(Result<T,E>)` | Now throws `InvalidOperationException` on any operation |
+| Naming conventions | Rust-style → C#-style (`Unwrap` → `GetValue`, `FlatMap` → `Bind`) |
+
 The API surface has been reduced from ~722 to ~437 public methods, bringing it closer to industry standards while maintaining all core functionality.
+
+**Test Coverage:** 2,042 tests ensure all changes are correctly implemented:
+- Core library tests: 1,968
+- Source generator tests: 33
+- EF Core integration tests: 25
+- Analyzer tests: 16

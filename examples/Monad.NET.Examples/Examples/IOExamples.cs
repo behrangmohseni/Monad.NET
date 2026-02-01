@@ -31,8 +31,8 @@ public static class IOExamples
         var mapped = IO.Return(10).Map(x => x * 2);
         Console.WriteLine($"   Pure(10).Map(x * 2).Run(): {mapped.Run()}");
 
-        // FlatMap for sequencing effects
-        Console.WriteLine("\n4. FlatMap (sequence effects):");
+        // Bind for sequencing effects
+        Console.WriteLine("\n4. Bind (sequence effects):");
         var sequence = IO.Of(() => { Console.WriteLine("   Step 1"); return 10; })
             .Bind(x => IO.Of(() => { Console.WriteLine("   Step 2"); return x * 2; }))
             .Bind(x => IO.Of(() => { Console.WriteLine("   Step 3"); return x.ToString(); }));

@@ -38,8 +38,8 @@ public static class TryExamples
             .Map(x => x + 5);
         Console.WriteLine($"   Parse + double + add 5: {chain}");
 
-        // Chaining with FlatMap
-        Console.WriteLine("\n5. Chaining with FlatMap:");
+        // Chaining with Bind
+        Console.WriteLine("\n5. Chaining with Bind:");
         var flatMapped = Try<string>.Of(() => "42")
             .Bind(s => Try<int>.Of(() => int.Parse(s)))
             .Bind(n => Try<double>.Of(() => n / 2.0));
@@ -56,7 +56,7 @@ public static class TryExamples
                 : Try<int>.Failure(ex));
         Console.WriteLine($"   RecoverWith: {recoveredWith}");
 
-        // GetOrElse
+        // GetValueOr
         Console.WriteLine("\n7. Default Values:");
         Console.WriteLine($"   Success.GetValueOr(0):    {success.GetValueOr(0)}");
         Console.WriteLine($"   Failure.GetValueOr(0):    {failed.GetValueOr(0)}");

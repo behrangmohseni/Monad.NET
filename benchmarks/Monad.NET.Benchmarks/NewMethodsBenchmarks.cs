@@ -172,7 +172,7 @@ public class NewMethodsBenchmarks
     #region Comparison with Existing Methods
 
     /// <summary>
-    /// Compare BiMap vs separate Map + MapErr calls
+    /// Compare BiMap vs separate Map + MapError calls
     /// </summary>
     [Benchmark]
     public Result<string, int> BiMap_Comparison()
@@ -202,7 +202,7 @@ public class NewMethodsBenchmarks
     }
 
     /// <summary>
-    /// Compare Ensure vs AndThen validation pattern
+    /// Compare Ensure vs Bind validation pattern
     /// </summary>
     [Benchmark]
     public Validation<int, string> Ensure_Comparison()
@@ -211,7 +211,7 @@ public class NewMethodsBenchmarks
     }
 
     [Benchmark]
-    public Validation<int, string> AndThenValidation_Comparison()
+    public Validation<int, string> BindValidation_Comparison()
     {
         return _valid.Bind(x => x > 0 
             ? Validation<int, string>.Valid(x) 

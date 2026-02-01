@@ -61,7 +61,7 @@ option.Map(x => x.ToUpper().Trim());
 
 ---
 
-### MNT003: Map followed by GetOrElse can be simplified
+### MNT003: Map followed by GetValueOr can be simplified
 
 **Severity:** Info  
 **Default:** Enabled

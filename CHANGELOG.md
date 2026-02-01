@@ -9,6 +9,98 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.0] - 2026-02-01
+
+### Summary
+
+Version 2.0 is a major release focused on **API simplification**, **C#-idiomatic naming**, and **improved discoverability**. The API surface has been reduced from ~722 to ~437 public methods while maintaining all core functionality.
+
+### Breaking Changes
+
+#### API Surface Reduction (~285 methods removed)
+
+| Category | Methods Removed |
+|----------|-----------------|
+| Async extensions (OptionAsync, ResultAsync, etc.) | ~150 |
+| Parsing extensions (ParseInt, ParseGuid, etc.) | ~64 |
+| Collection extensions (Sequence, Traverse, Partition) | ~46 |
+| Redundant getters | ~25 |
+
+#### Naming Consolidation (Rust-style → C#-style)
+
+| Removed | Replacement | Reason |
+|---------|-------------|--------|
+| `FlatMap`, `AndThen` | `Bind` | Aligns with LINQ's `SelectMany` |
+| `Pure` | `Return` | C# convention |
+| `Unwrap()` | `GetValue()` | C#-idiomatic |
+| `UnwrapOr(T)` | `GetValueOr(T)` | Matches `GetValueOrDefault` pattern |
+| `UnwrapOrElse(Func)` | `GetValueOrElse(Func)` | Consistent naming |
+| `Expect(msg)` | `GetOrThrow(msg)` | Explicit about throwing |
+| `UnwrapErr()` | `GetError()` | C#-idiomatic |
+| `MapErr` | `MapError` | Full word, readable |
+| `IO.Delay` | `IO.Of` | Removed redundant alias |
+| `TapInvalid` | `TapErrors` | Removed alias |
+| `TapError` | `TapFailure` | Consistent naming |
+
+#### Result<T, TErr> Breaking Changes
+
+- `default(Result<T,E>)` now throws `InvalidOperationException` on any operation
+- Added `IsInitialized` property to detect uninitialized structs
+- This enforces "make illegal states unrepresentable" principle
+
+### Added
+
+#### Result<T, TErr> Default Struct Protection
+
+- `IsInitialized` property to detect default-constructed structs
+- All methods now throw `InvalidOperationException` if struct is uninitialized
+- Clear error messages guide users to use `Ok()` or `Err()` factory methods
+
+#### Test Coverage
+
+- 15 new tests for `default(Result<T,E>)` behavior
+- Total test count: 2,042 tests across all test projects:
+  - Monad.NET.Tests: 1,968
+  - Monad.NET.SourceGenerators.Tests: 33
+  - Monad.NET.EntityFrameworkCore.Tests: 25
+  - Monad.NET.Analyzers.Tests: 16
+
+### Changed
+
+#### Documentation Updates
+
+- Clarified dependency claims: "Zero dependencies on .NET 6+; minimal polyfills on netstandard2.x"
+- Updated README, CHANGELOG, Migration Guide, and .csproj descriptions
+- Fixed inaccurate test count claims (2,522 → 2,042)
+- Added detailed dependencies table to README
+
+#### LINQ Query Syntax
+
+- Now documented as **advanced usage**
+- Recommended approach is direct method calls (`Map`, `Bind`, `Match`)
+
+### Migration Guide
+
+See [BREAKING-CHANGES-V2.md](docs/BREAKING-CHANGES-V2.md) for detailed migration guidance.
+
+**Quick migration examples:**
+
+```csharp
+// Before (v1.x)
+option.Unwrap()
+option.UnwrapOr(default)
+result.FlatMap(...)
+result.MapErr(...)
+
+// After (v2.0)
+option.GetValue()
+option.GetValueOr(default)
+result.Bind(...)
+result.MapError(...)
+```
+
+---
+
 ## [1.1.2] - 2026-01-25
 
 ### Added
@@ -191,7 +283,7 @@ All features from the alpha releases (1.0.0-alpha.1 through 1.0.0-alpha.13) are 
 
 - **Result.BiMap** - Transform both success and error types
   - `BiMap<U, F>(Func<T, U> okMapper, Func<TErr, F> errMapper)` - Maps both sides
-  - Equivalent to `Map().MapErr()` but in one operation
+  - Equivalent to `Map().MapError()` but in one operation
   - Useful for adapting Result types between layers
 
 - **Validation.Flatten** - Flatten nested validations

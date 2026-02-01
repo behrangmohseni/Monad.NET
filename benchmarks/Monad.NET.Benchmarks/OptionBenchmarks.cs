@@ -45,13 +45,13 @@ public class OptionBenchmarks
     }
 
     [Benchmark]
-    public Option<int> AndThen_Some()
+    public Option<int> Bind_Some()
     {
         return _some.Bind(x => Option<int>.Some(x * 2));
     }
 
     [Benchmark]
-    public Option<int> AndThen_None()
+    public Option<int> Bind_None()
     {
         return _none.Bind(x => Option<int>.Some(x * 2));
     }
@@ -69,13 +69,13 @@ public class OptionBenchmarks
     }
 
     [Benchmark]
-    public int UnwrapOr_Some()
+    public int GetValueOr_Some()
     {
         return _some.GetValueOr(0);
     }
 
     [Benchmark]
-    public int UnwrapOr_None()
+    public int GetValueOr_None()
     {
         return _none.GetValueOr(0);
     }

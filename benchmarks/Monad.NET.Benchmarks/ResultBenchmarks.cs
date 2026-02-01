@@ -45,13 +45,13 @@ public class ResultBenchmarks
     }
 
     [Benchmark]
-    public Result<int, string> AndThen_Ok()
+    public Result<int, string> Bind_Ok()
     {
         return _ok.Bind(x => Result<int, string>.Ok(x * 2));
     }
 
     [Benchmark]
-    public Result<int, string> AndThen_Err()
+    public Result<int, string> Bind_Err()
     {
         return _err.Bind(x => Result<int, string>.Ok(x * 2));
     }
@@ -69,25 +69,25 @@ public class ResultBenchmarks
     }
 
     [Benchmark]
-    public int UnwrapOr_Ok()
+    public int GetValueOr_Ok()
     {
         return _ok.GetValueOr(0);
     }
 
     [Benchmark]
-    public int UnwrapOr_Err()
+    public int GetValueOr_Err()
     {
         return _err.GetValueOr(0);
     }
 
     [Benchmark]
-    public Result<int, string> MapErr_Ok()
+    public Result<int, string> MapError_Ok()
     {
         return _ok.MapError(e => e.ToUpper());
     }
 
     [Benchmark]
-    public Result<int, string> MapErr_Err()
+    public Result<int, string> MapError_Err()
     {
         return _err.MapError(e => e.ToUpper());
     }
