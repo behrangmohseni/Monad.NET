@@ -223,11 +223,12 @@ public class ArchitectureTests
     }
 
     /// <summary>
-    /// The library should have zero runtime dependencies.
-    /// ADR: Zero dependencies philosophy.
+    /// The library should have minimal runtime dependencies.
+    /// ADR: Zero dependencies on .NET 6+; only Microsoft polyfills on netstandard2.x.
+    /// All referenced assemblies must be from System/Microsoft namespaces.
     /// </summary>
     [Fact]
-    public void Library_ShouldHaveZeroRuntimeDependencies()
+    public void Library_ShouldHaveMinimalRuntimeDependencies()
     {
         var references = MonadAssembly.GetReferencedAssemblies();
 

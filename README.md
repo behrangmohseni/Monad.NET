@@ -9,7 +9,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET_Standard-2.0%2B-512BD4.svg)](https://dotnet.microsoft.com/)
 
-**Monad.NET** is a functional programming library for .NET. Option, Result, Validation, Try, and more — with zero dependencies.
+**Monad.NET** is a functional programming library for .NET. Option, Result, Validation, Try, and more — with zero dependencies on .NET 6+.
 
 ```csharp
 // Transform nullable chaos into composable clarity
@@ -181,7 +181,7 @@ result.Match(
 1. **Explicit over implicit** — No hidden nulls, no surprise exceptions
 2. **Composition over inheritance** — Small, focused types that combine well
 3. **Immutability by default** — All types are immutable and thread-safe
-4. **Zero dependencies** — Only the .NET runtime, nothing else
+4. **Minimal dependencies** — Zero on .NET 6+; only Microsoft polyfills on netstandard2.x
 
 ---
 
@@ -236,6 +236,16 @@ dotnet add package Monad.NET.AspNetCore
 # Optional: Entity Framework Core integration
 dotnet add package Monad.NET.EntityFrameworkCore
 ```
+
+### Dependencies
+
+| Target Framework | Dependencies |
+|-----------------|--------------|
+| .NET 6.0+ | None (zero dependencies) |
+| .NET Standard 2.1 | Microsoft.Bcl.AsyncInterfaces, System.Collections.Immutable, System.Text.Json |
+| .NET Standard 2.0 | Above + System.Memory |
+
+> **Note:** The netstandard2.x dependencies are Microsoft polyfill packages that provide modern .NET APIs to older frameworks. They are automatically included and have no transitive third-party dependencies.
 
 ---
 
