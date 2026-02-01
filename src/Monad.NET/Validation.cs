@@ -36,9 +36,12 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     private readonly T? _value;
     private readonly ImmutableArray<TErr> _errors;
     private readonly bool _isValid;
+    private readonly bool _isInitialized;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private string DebuggerDisplay => _isValid ? $"Valid({_value})" : $"Invalid({_errors.Length} errors)";
+    private string DebuggerDisplay => _isInitialized
+        ? (_isValid ? $"Valid({_value})" : $"Invalid({_errors.Length} errors)")
+        : "Uninitialized";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Validation(T value, ImmutableArray<TErr> errors, bool isValid)
@@ -46,6 +49,25 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
         _value = value;
         _errors = errors;
         _isValid = isValid;
+        _isInitialized = true;
+    }
+
+    /// <summary>
+    /// Indicates whether the Validation was properly initialized via factory methods.
+    /// A default-constructed Validation (e.g., default(Validation&lt;T,E&gt;)) is not initialized.
+    /// Always create Validations via <see cref="Valid(T)"/> or <see cref="Invalid(TErr)"/> factory methods.
+    /// </summary>
+    public bool IsInitialized
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _isInitialized;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void ThrowIfDefault()
+    {
+        if (!_isInitialized)
+            ThrowHelper.ThrowValidationIsDefault();
     }
 
     /// <summary>
@@ -54,10 +76,15 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// <remarks>
     /// This follows F# naming conventions for consistency across monadic types.
     /// </remarks>
+    /// <exception cref="InvalidOperationException">Thrown if the Validation was not properly initialized.</exception>
     public bool IsOk
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => _isValid;
+        get
+        {
+            ThrowIfDefault();
+            return _isValid;
+        }
     }
 
     /// <summary>
@@ -66,10 +93,15 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// <remarks>
     /// This follows F# naming conventions for consistency across monadic types.
     /// </remarks>
+    /// <exception cref="InvalidOperationException">Thrown if the Validation was not properly initialized.</exception>
     public bool IsError
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => !_isValid;
+        get
+        {
+            ThrowIfDefault();
+            return !_isValid;
+        }
     }
 
     /// <summary>
@@ -156,11 +188,12 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// <summary>
     /// Returns the valid value.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the validation is invalid</exception>
+    /// <exception cref="InvalidOperationException">Thrown if the validation is invalid or not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     [EditorBrowsable(EditorBrowsableState.Never)]
     public T GetValue()
     {
+        ThrowIfDefault();
         if (!_isValid)
             ThrowHelper.ThrowValidationIsInvalid(_errors!);
 
@@ -170,10 +203,11 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// <summary>
     /// Returns the errors as an immutable array for efficient concatenation.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the validation is valid</exception>
+    /// <exception cref="InvalidOperationException">Thrown if the validation is valid or not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ImmutableArray<TErr> GetErrors()
     {
+        ThrowIfDefault();
         if (_isValid)
             ThrowHelper.ThrowValidationIsValid(_value!);
 
@@ -183,16 +217,18 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// <summary>
     /// Returns the valid value or a default value.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the Validation was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T GetValueOr(T defaultValue)
     {
+        ThrowIfDefault();
         return _isValid ? _value! : defaultValue;
     }
 
     /// <summary>
     /// Returns the valid value, or throws an <see cref="InvalidOperationException"/> if invalid.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the validation is invalid</exception>
+    /// <exception cref="InvalidOperationException">Thrown if the validation is invalid or not properly initialized.</exception>
     /// <example>
     /// <code>
     /// var valid = Validation&lt;int, string&gt;.Valid(42);
@@ -205,6 +241,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T GetOrThrow()
     {
+        ThrowIfDefault();
         if (!_isValid)
             ThrowHelper.ThrowValidationIsInvalid(_errors!);
 
@@ -214,7 +251,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// <summary>
     /// Returns the errors, or throws an <see cref="InvalidOperationException"/> if valid.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the validation is valid</exception>
+    /// <exception cref="InvalidOperationException">Thrown if the validation is valid or not properly initialized.</exception>
     /// <example>
     /// <code>
     /// var invalid = Validation&lt;int, string&gt;.Invalid("error");
@@ -227,6 +264,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ImmutableArray<TErr> GetErrorsOrThrow()
     {
+        ThrowIfDefault();
         if (_isValid)
             ThrowHelper.ThrowValidationIsValid(_value!);
 
@@ -238,6 +276,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// </summary>
     /// <param name="value">When this method returns, contains the valid value if present; otherwise, the default value.</param>
     /// <returns>True if the Validation is valid; otherwise, false.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the Validation was not properly initialized.</exception>
     /// <example>
     /// <code>
     /// if (validation.TryGet(out var value))
@@ -249,6 +288,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryGet(out T? value)
     {
+        ThrowIfDefault();
         value = _value;
         return _isValid;
     }
@@ -258,6 +298,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// </summary>
     /// <param name="errors">When this method returns, contains the errors if invalid; otherwise, an empty array.</param>
     /// <returns>True if the Validation is invalid; otherwise, false.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the Validation was not properly initialized.</exception>
     /// <example>
     /// <code>
     /// if (validation.TryGetErrors(out var errors))
@@ -270,6 +311,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryGetErrors(out ImmutableArray<TErr> errors)
     {
+        ThrowIfDefault();
         errors = _errors.IsDefault ? ImmutableArray<TErr>.Empty : _errors;
         return !_isValid;
     }
@@ -280,6 +322,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// </summary>
     /// <param name="value">The value to check for.</param>
     /// <returns>True if the Validation is Valid and contains the specified value; otherwise, false.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the Validation was not properly initialized.</exception>
     /// <example>
     /// <code>
     /// var validation = Validation&lt;int, string&gt;.Valid(42);
@@ -290,6 +333,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Contains(T value)
     {
+        ThrowIfDefault();
         return _isValid && EqualityComparer<T>.Default.Equals(_value, value);
     }
 
@@ -298,6 +342,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// </summary>
     /// <param name="predicate">The predicate to test the value against.</param>
     /// <returns>True if the Validation is Valid and the predicate returns true; otherwise, false.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the Validation was not properly initialized.</exception>
     /// <example>
     /// <code>
     /// var validation = Validation&lt;int, string&gt;.Valid(42);
@@ -309,16 +354,19 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     public bool Exists(Func<T, bool> predicate)
     {
         ThrowHelper.ThrowIfNull(predicate);
+        ThrowIfDefault();
         return _isValid && predicate(_value!);
     }
 
     /// <summary>
     /// Maps the valid value if it exists.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the Validation was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Validation<U, TErr> Map<U>(Func<T, U> mapper)
     {
         ThrowHelper.ThrowIfNull(mapper);
+        ThrowIfDefault();
 
         return _isValid
             ? Validation<U, TErr>.Valid(mapper(_value!))
@@ -328,10 +376,12 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// <summary>
     /// Maps the errors if they exist.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the Validation was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Validation<T, F> MapErrors<F>(Func<TErr, F> mapper)
     {
         ThrowHelper.ThrowIfNull(mapper);
+        ThrowIfDefault();
 
         return _isValid
             ? Validation<T, F>.Valid(_value!)
@@ -346,11 +396,13 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// <param name="valueMapper">Function to transform the value if valid.</param>
     /// <param name="errorMapper">Function to transform each error if invalid.</param>
     /// <returns>A new Validation with transformed value or errors.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the Validation was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Validation<U, F> BiMap<U, F>(Func<T, U> valueMapper, Func<TErr, F> errorMapper)
     {
         ThrowHelper.ThrowIfNull(valueMapper);
         ThrowHelper.ThrowIfNull(errorMapper);
+        ThrowIfDefault();
 
         return _isValid
             ? Validation<U, F>.Valid(valueMapper(_value!))
@@ -361,12 +413,14 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// Combines two validations using applicative functor semantics.
     /// If both are valid, applies the function. If either/both are invalid, accumulates ALL errors.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if this Validation was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Validation<U, TErr> Apply<TIntermediate, U>(
         Validation<TIntermediate, TErr> other,
         Func<T, TIntermediate, U> combiner)
     {
         ThrowHelper.ThrowIfNull(combiner);
+        ThrowIfDefault();
 
         if (_isValid && other.IsOk)
             return Validation<U, TErr>.Valid(combiner(_value!, other._value!));
@@ -390,6 +444,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// <typeparam name="U">The type of the other value.</typeparam>
     /// <param name="other">The other Validation to combine with.</param>
     /// <returns>A Validation containing a tuple of both values, or accumulated errors.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if this Validation was not properly initialized.</exception>
     /// <example>
     /// <code>
     /// var nameValidation = ValidateName(name);   // Validation&lt;string, Error&gt;
@@ -400,6 +455,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Validation<(T, U), TErr> Zip<U>(Validation<U, TErr> other)
     {
+        ThrowIfDefault();
         if (_isValid && other.IsOk)
             return Validation<(T, U), TErr>.Valid((_value!, other.GetValue()));
 
@@ -423,6 +479,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// <param name="other">The other Validation to combine with.</param>
     /// <param name="combiner">A function to combine the values.</param>
     /// <returns>A Validation containing the combined result, or accumulated errors.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if this Validation was not properly initialized.</exception>
     /// <example>
     /// <code>
     /// var nameValidation = ValidateName(name);
@@ -434,6 +491,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     public Validation<V, TErr> ZipWith<U, V>(Validation<U, TErr> other, Func<T, U, V> combiner)
     {
         ThrowHelper.ThrowIfNull(combiner);
+        ThrowIfDefault();
 
         if (_isValid && other.IsOk)
             return Validation<V, TErr>.Valid(combiner(_value!, other.GetValue()));
@@ -453,9 +511,11 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// Combines this validation with another, accumulating errors from both if invalid.
     /// This is useful for running multiple independent validations.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if this Validation was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Validation<T, TErr> And(Validation<T, TErr> other)
     {
+        ThrowIfDefault();
         if (_isValid && other.IsOk)
             return other; // Return the last valid value
 
@@ -474,10 +534,12 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// Note: This does NOT accumulate errors like And() - it short-circuits like Result.
     /// This is the monadic bind operation.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if this Validation was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Validation<U, TErr> Bind<U>(Func<T, Validation<U, TErr>> binder)
     {
         ThrowHelper.ThrowIfNull(binder);
+        ThrowIfDefault();
 
         return _isValid ? binder(_value!) : Validation<U, TErr>.Invalid(_errors!);
     }
@@ -490,6 +552,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// <param name="predicate">The predicate to test the value against.</param>
     /// <param name="error">The error to return if the predicate fails.</param>
     /// <returns>This validation if valid and predicate passes; Invalid with error if predicate fails; or this if already invalid.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the Validation was not properly initialized.</exception>
     /// <example>
     /// <code>
     /// var validation = Validation&lt;int, string&gt;.Valid(18)
@@ -508,6 +571,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
         ThrowHelper.ThrowIfNull(predicate);
         if (error is null)
             ThrowHelper.ThrowArgumentNull(nameof(error), "Error cannot be null.");
+        ThrowIfDefault();
 
         if (!_isValid)
             return this;
@@ -523,6 +587,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// <param name="predicate">The predicate to test the value against.</param>
     /// <param name="errorFactory">The factory function to create the error if the predicate fails.</param>
     /// <returns>This validation if valid and predicate passes; Invalid with error if predicate fails; or this if already invalid.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the Validation was not properly initialized.</exception>
     /// <example>
     /// <code>
     /// var validation = Validation&lt;User, string&gt;.Valid(user)
@@ -534,6 +599,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     {
         ThrowHelper.ThrowIfNull(predicate);
         ThrowHelper.ThrowIfNull(errorFactory);
+        ThrowIfDefault();
 
         if (!_isValid)
             return this;
@@ -544,11 +610,13 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// <summary>
     /// Pattern matches on the validation.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the Validation was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Match(Action<T> validAction, Action<ImmutableArray<TErr>> invalidAction)
     {
         ThrowHelper.ThrowIfNull(validAction);
         ThrowHelper.ThrowIfNull(invalidAction);
+        ThrowIfDefault();
 
         if (_isValid)
             validAction(_value!);
@@ -559,11 +627,13 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// <summary>
     /// Pattern matches on the validation and returns a result.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the Validation was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public U Match<U>(Func<T, U> validFunc, Func<ImmutableArray<TErr>, U> invalidFunc)
     {
         ThrowHelper.ThrowIfNull(validFunc);
         ThrowHelper.ThrowIfNull(invalidFunc);
+        ThrowIfDefault();
 
         return _isValid ? validFunc(_value!) : invalidFunc(_errors);
     }
@@ -572,9 +642,11 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// Converts this Validation to a Result.
     /// If invalid with multiple errors, only the first error is used.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the Validation was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Result<T, TErr> ToResult()
     {
+        ThrowIfDefault();
         return _isValid
             ? Result<T, TErr>.Ok(_value!)
             : Result<T, TErr>.Err(_errors![0]);
@@ -583,10 +655,12 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// <summary>
     /// Converts this Validation to a Result with a combined error.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the Validation was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Result<T, TErr> ToResult(Func<ImmutableArray<TErr>, TErr> combineErrors)
     {
         ThrowHelper.ThrowIfNull(combineErrors);
+        ThrowIfDefault();
 
         return _isValid
             ? Result<T, TErr>.Ok(_value!)
@@ -597,9 +671,11 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// Converts this Validation to an Option.
     /// Discards error information if invalid.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the Validation was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Option<T> ToOption()
     {
+        ThrowIfDefault();
         return _isValid ? Option<T>.Some(_value!) : Option<T>.None();
     }
 
@@ -647,9 +723,12 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// </summary>
     /// <param name="other">The other Validation to compare to.</param>
     /// <returns>A negative value if this is less than other, zero if equal, positive if greater.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if either Validation was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int CompareTo(Validation<T, TErr> other)
     {
+        ThrowIfDefault();
+        other.ThrowIfDefault();
         if (_isValid && other._isValid)
             return Comparer<T>.Default.Compare(_value, other._value);
         if (!_isValid && !other._isValid)
@@ -699,6 +778,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// </summary>
     /// <param name="value">The valid value, or default if Invalid.</param>
     /// <param name="isValid">True if the Validation is valid.</param>
+    /// <exception cref="InvalidOperationException">Thrown if the Validation was not properly initialized.</exception>
     /// <example>
     /// <code>
     /// var (value, isValid) = validation;
@@ -709,6 +789,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Deconstruct(out T? value, out bool isValid)
     {
+        ThrowIfDefault();
         value = _value;
         isValid = _isValid;
     }
@@ -719,6 +800,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     /// <param name="value">The valid value, or default if Invalid.</param>
     /// <param name="errors">The errors, or empty array if Valid.</param>
     /// <param name="isValid">True if the Validation is valid.</param>
+    /// <exception cref="InvalidOperationException">Thrown if the Validation was not properly initialized.</exception>
     /// <example>
     /// <code>
     /// var (value, errors, isValid) = validation;
@@ -730,6 +812,7 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Deconstruct(out T? value, out ImmutableArray<TErr> errors, out bool isValid)
     {
+        ThrowIfDefault();
         value = _value;
         errors = _errors.IsDefault ? ImmutableArray<TErr>.Empty : _errors;
         isValid = _isValid;
