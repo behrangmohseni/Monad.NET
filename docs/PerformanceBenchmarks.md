@@ -160,7 +160,7 @@ When half of operations fail:
 // Try<T> approach
 var result = Try<int>.Of(() => int.Parse(input))
     .Map(x => x * 2)
-    .GetOrElse(0);
+    .GetValueOr(0);
 
 // Try-catch approach
 try

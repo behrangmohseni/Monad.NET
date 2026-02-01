@@ -56,7 +56,7 @@ public static class TryExamples
                 : Try<int>.Failure(ex));
         Console.WriteLine($"   RecoverWith: {recoveredWith}");
 
-        // GetOrElse
+        // GetValueOr
         Console.WriteLine("\n7. Default Values:");
         Console.WriteLine($"   Success.GetValueOr(0):    {success.GetValueOr(0)}");
         Console.WriteLine($"   Failure.GetValueOr(0):    {failed.GetValueOr(0)}");
