@@ -28,7 +28,7 @@ The method syntax is familiar to most .NET developers and works great with Intel
 var userEmail = FindUser(id)
     .Select(user => user.Email)                    // Map: Option<User> → Option<string>
     .Where(email => email.Contains("@"))           // Filter: keep only valid emails
-    .SelectMany(email => ValidateEmail(email));    // FlatMap: chain Option-returning functions
+    .SelectMany(email => ValidateEmail(email));    // Bind: chain Option-returning functions
 
 // Result - compose fallible operations
 var order = ValidateCart(input)

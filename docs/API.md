@@ -199,6 +199,8 @@ Represents success (`Ok`) or failure (`Err`).
 
 > **Inspired by:** Rust's `Result<T, E>`, F#'s `Result<'T, 'E>`
 
+> **v2.0 Note:** `default(Result<T,E>)` is now protected. All operations throw `InvalidOperationException` if the struct was not properly initialized via `Ok()` or `Err()`.
+
 ### Constructors
 
 | Method | Description |
@@ -210,8 +212,9 @@ Represents success (`Ok`) or failure (`Err`).
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `IsOk` | `bool` | True if success |
-| `IsErr` | `bool` | True if error |
+| `IsOk` | `bool` | True if success (throws if uninitialized) |
+| `IsError` | `bool` | True if error (throws if uninitialized) |
+| `IsInitialized` | `bool` | True if properly constructed via `Ok()` or `Err()` |
 
 ### Methods
 

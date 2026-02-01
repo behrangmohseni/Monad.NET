@@ -22,8 +22,8 @@ public static class WriterExamples
         Console.WriteLine($"   Value: {mapped.Value}");
         Console.WriteLine($"   Log:   {mapped.Log}");
 
-        // FlatMap combines logs
-        Console.WriteLine("\n3. FlatMap (combines logs):");
+        // Bind combines logs
+        Console.WriteLine("\n3. Bind (combines logs):");
         var chained = Writer<string, int>.Tell(10, "Step 1: Start with 10")
             .Bind(
                 x => Writer<string, int>.Tell(x * 2, $"Step 2: Doubled to {x * 2}"),

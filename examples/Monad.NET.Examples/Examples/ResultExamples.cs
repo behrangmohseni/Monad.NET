@@ -38,8 +38,8 @@ public static class ResultExamples
         Console.WriteLine($"   Ok(5).Map(x => x * 2): {doubled}");
         Console.WriteLine($"   Err.Map(x => x * 2):   {errDoubled}");
 
-        // Chaining with AndThen
-        Console.WriteLine("\n5. Chaining with AndThen:");
+        // Chaining with Bind
+        Console.WriteLine("\n5. Chaining with Bind:");
         var pipeline = Divide(20, 4)
             .Bind(x => Divide((int)x, 2))
             .Bind(x => Divide((int)x + 10, 3));
@@ -52,10 +52,10 @@ public static class ResultExamples
             .Bind(x => Divide(x, 3)); // Never executes
         Console.WriteLine($"   Short-circuit: {shortCircuit}");
 
-        // Error transformation with MapErr
+        // Error transformation with MapError
         Console.WriteLine("\n7. Error Transformation:");
         var withHttpCode = failure.MapError(msg => (Code: 500, Message: msg));
-        Console.WriteLine($"   MapErr to HTTP: {withHttpCode}");
+        Console.WriteLine($"   MapError to HTTP: {withHttpCode}");
 
         // Recovery with OrElse
         Console.WriteLine("\n8. Recovery:");

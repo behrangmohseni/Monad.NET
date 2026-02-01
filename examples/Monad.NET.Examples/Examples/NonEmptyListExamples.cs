@@ -41,8 +41,8 @@ public static class NonEmptyListExamples
         var doubled = multiple.Map(x => x * 2);
         Console.WriteLine($"   Doubled: {doubled}");
 
-        // FlatMap
-        Console.WriteLine("\n6. FlatMap:");
+        // Bind
+        Console.WriteLine("\n6. Bind:");
         var expanded = NonEmptyList<int>.Of(1, 2)
             .Bind(x => NonEmptyList<int>.Of(x, x * 10));
         Console.WriteLine($"   Expanded: {expanded}");

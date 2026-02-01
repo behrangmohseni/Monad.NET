@@ -30,7 +30,14 @@ var result = user.ToOption()
 
 ## Upgrading to v2.0
 
-Version 2.0 significantly reduces the API surface (~285 methods removed) for better discoverability. All core functionality remains - removed methods have straightforward replacements using `Match()`, `GetValueOr()`, and LINQ.
+Version 2.0 is a major release focused on **C#-idiomatic naming** and **API simplification**:
+
+- **~285 methods removed** for better discoverability
+- **Rust-style → C#-style naming**: `Unwrap()` → `GetValue()`, `FlatMap` → `Bind`, `MapErr` → `MapError`
+- **`default(Result<T,E>)` now protected**: Throws `InvalidOperationException` to prevent invalid states
+- **2,042 tests** ensure correctness across all changes
+
+All core functionality remains — removed methods have straightforward replacements using `Match()`, `GetValueOr()`, and LINQ.
 
 **[See the full migration guide →](docs/BREAKING-CHANGES-V2.md)**
 

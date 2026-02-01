@@ -48,8 +48,8 @@ public static class OptionExamples
         Console.WriteLine($"   Some(42).Filter(x => x > 50): {filtered}");
         Console.WriteLine($"   Some(42).Filter(x => x < 50): {kept}");
 
-        // Chaining with AndThen (FlatMap)
-        Console.WriteLine("\n6. Chaining with AndThen:");
+        // Chaining with Bind (monadic composition)
+        Console.WriteLine("\n6. Chaining with Bind:");
         Option<string> GetEmailDomain(string email) =>
             email.Contains('@')
                 ? Option<string>.Some(email.Split('@')[1])
@@ -60,7 +60,7 @@ public static class OptionExamples
         Console.WriteLine($"   Email: {email}");
         Console.WriteLine($"   Domain: {domain}");
 
-        // Default values with UnwrapOr
+        // Default values with GetValueOr
         Console.WriteLine("\n7. Default Values:");
         Console.WriteLine($"   Some(42).GetValueOr(0): {some.GetValueOr(0)}");
         Console.WriteLine($"   None.GetValueOr(0):     {none.GetValueOr(0)}");

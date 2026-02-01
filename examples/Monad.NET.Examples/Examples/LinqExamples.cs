@@ -2,7 +2,7 @@ namespace Monad.NET.Examples.Examples;
 
 /// <summary>
 /// Examples demonstrating LINQ query syntax with Monad.NET types.
-/// All monads support Select (Map) and SelectMany (FlatMap) for LINQ integration.
+/// All monads support Select (Map) and SelectMany (Bind) for LINQ integration.
 /// </summary>
 public static class LinqExamples
 {

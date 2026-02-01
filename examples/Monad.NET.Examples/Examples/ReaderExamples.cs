@@ -50,8 +50,8 @@ public static class ReaderExamples
             .Map(name => name.ToUpper());
         Console.WriteLine($"   Mapped: {mapped.Run(config)}");
 
-        // FlatMap for composing
-        Console.WriteLine("\n6. FlatMap (compose readers):");
+        // Bind for composing
+        Console.WriteLine("\n6. Bind (compose readers):");
         var composed = Reader<AppConfig, string>.Asks(c => c.AppName)
             .Bind(name => Reader<AppConfig, string>.Asks(c =>
                 $"{name} v1.0 (retries: {c.MaxRetries})"));

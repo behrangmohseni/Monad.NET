@@ -146,7 +146,7 @@ var validatedAge = Validation<int, string>.Valid(age)
 ```csharp
 // Safely parse with recovery
 var value = Try<int>.Of(() => int.Parse(userInput))
-    .GetOrElse(0);
+    .GetValueOr(0);
 
 // Chain with recovery
 var result = Try<int>.Of(() => int.Parse(input))
