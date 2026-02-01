@@ -13,6 +13,7 @@ This document records the architectural decisions made for Monad.NET, explaining
 - [ADR-006: Roslyn Analyzers as Separate Package](#adr-006-roslyn-analyzers-as-separate-package)
 - [ADR-007: Source Generator for Async Extensions](#adr-007-source-generator-for-async-extensions)
 - [ADR-008: Multi-Target Framework Strategy](#adr-008-multi-target-framework-strategy)
+- [ADR-009: Property Naming Conventions](#adr-009-property-naming-conventions)
 
 ---
 
@@ -642,6 +643,71 @@ With conditional compilation:
 
 ---
 
+## ADR-009: Property Naming Conventions
+
+### Status
+Accepted
+
+### Context
+
+Monad.NET uses different naming conventions for boolean state properties across types:
+
+| Type | "Has Value" Property | "No Value" Property |
+|------|---------------------|---------------------|
+| `Option<T>` | `IsSome` | `IsNone` |
+| `Result<T,E>` | `IsOk` | `IsError` |
+| `Validation<T,E>` | `IsValid` | `IsInvalid` |
+| `Try<T>` | `IsOk` | `IsError` |
+| `RemoteData<T,E>` | `IsOk` | `IsError` |
+
+This variation is intentional, not inconsistent.
+
+### Decision
+
+**Use domain-appropriate naming that follows established conventions from the functional programming community.**
+
+### Rationale
+
+1. **F# Interoperability**: `Option<T>` uses `IsSome`/`IsNone` which matches F#'s `Option.isSome`/`Option.isNone`, enabling mental model transfer for F# developers.
+
+2. **Rust Interoperability**: `Result<T,E>` uses `IsOk`/`IsError` which aligns with Rust's `Result::is_ok()`/`Result::is_err()`, the most successful modern implementation of the Result pattern.
+
+3. **Domain-Specific Semantics**: `Validation<T,E>` uses `IsValid`/`IsInvalid` because:
+   - Validation is inherently a domain concept (validating data)
+   - "Valid/Invalid" directly communicate intent better than "Ok/Error"
+   - Distinguishes Validation from Result (which short-circuits vs accumulates)
+
+4. **Established Community Precedent**:
+   - Haskell: `Maybe` uses `isJust`/`isNothing`, `Either` uses `isLeft`/`isRight`
+   - Scala: `Option` uses `isDefined`/`isEmpty`, `Either` uses `isLeft`/`isRight`  
+   - Different naming per type is the norm, not the exception
+
+### Alternatives Considered
+
+1. **Unified `HasValue`/`IsEmpty` naming**: Rejected because it loses semantic meaning and doesn't match any established FP convention.
+
+2. **Unified `IsOk`/`IsError` everywhere**: Rejected because "Option is Ok" is grammatically awkward and loses the Option-specific semantics.
+
+3. **Unified `IsSome`/`IsNone` everywhere**: Rejected because "Result is Some" loses the error-handling semantics that Result specifically represents.
+
+### Consequences
+
+**Positive:**
+- Familiar to developers coming from F#, Rust, Scala, or Haskell
+- Each type's naming directly communicates its purpose
+- Easier to search for documentation in other languages
+
+**Negative:**
+- Slight learning curve for developers new to FP
+- Must remember which property goes with which type
+
+**Mitigation:**
+- Documentation clearly shows the properties for each type
+- IDE IntelliSense provides property suggestions
+- Pattern matching with `Match()` is the preferred way to handle all cases anyway
+
+---
+
 ## Changelog
 
 | Date | ADR | Change |
@@ -654,4 +720,5 @@ With conditional compilation:
 | 2025-01-01 | ADR-006 | Initial documentation |
 | 2025-01-01 | ADR-007 | Initial documentation |
 | 2025-01-01 | ADR-008 | Initial documentation |
+| 2026-02-01 | ADR-009 | Naming convention rationale |
 

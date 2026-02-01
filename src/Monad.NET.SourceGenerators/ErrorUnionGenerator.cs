@@ -194,13 +194,21 @@ public class ErrorUnionGenerator : IIncrementalGenerator
 
     private static void GenerateSource(SourceProductionContext context, ErrorUnionInfo info)
     {
-        // Generate the error union type itself
-        GenerateErrorUnionType(context, info);
-
-        // Generate Result extension methods
-        if (info.GenerateResultExtensions)
+        try
         {
-            GenerateResultExtensions(context, info);
+            // Generate the error union type itself
+            GenerateErrorUnionType(context, info);
+
+            // Generate Result extension methods
+            if (info.GenerateResultExtensions)
+            {
+                GenerateResultExtensions(context, info);
+            }
+        }
+        catch (Exception ex)
+        {
+            context.ReportDiagnostic(
+                UnionDiagnostics.CreateSourceGenerationFailed(info.Name, ex.Message));
         }
     }
 

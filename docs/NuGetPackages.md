@@ -57,7 +57,6 @@ The core library containing all monad types:
 - `NonEmptyList<T>` — List guaranteed to have at least one element
 - `RemoteData<T, E>` — Model async data loading states
 - `Reader<R, A>` — Dependency injection without containers
-- `ReaderAsync<R, A>` — Async reader monad
 - `Writer<W, T>` — Accumulate logs alongside results
 - `State<S, A>` — Thread state through computations
 - `IO<T>` — Defer and compose side effects

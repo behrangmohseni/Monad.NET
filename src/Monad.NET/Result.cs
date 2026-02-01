@@ -873,7 +873,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     public List<T> ToList()
     {
         ThrowIfDefault();
-        return _isOk ? new List<T> { _value! } : new List<T>();
+        return _isOk ? [_value!] : [];
     }
 
     /// <summary>

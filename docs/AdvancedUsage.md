@@ -76,7 +76,6 @@ var user = ValidateName(input.Name)
 | `Writer<W,T>` | Map value | Chain with log combine | — |
 | `State<S,A>` | Map value | Chain State | — |
 | `IO<T>` | Map value | Chain IO | — |
-| `ReaderAsync<R,A>` | Map value | Chain ReaderAsync | — |
 
 ---
 
