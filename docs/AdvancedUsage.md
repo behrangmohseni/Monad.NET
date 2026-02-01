@@ -58,10 +58,10 @@ var order = from cart in ValidateCart(input)
             from confirmation in CreateOrder(cart, payment)
             select confirmation;
 
-// Validation - note: query syntax short-circuits; use Apply for error accumulation
-var user = from name in ValidateName(input.Name)
-           from email in ValidateEmail(input.Email)
-           select new User(name, email);
+// ⚠️ Validation with LINQ - WARNING: Does NOT accumulate errors!
+// Use Apply() instead for error accumulation:
+var user = ValidateName(input.Name)
+    .Apply(ValidateEmail(input.Email), (name, email) => new User(name, email));
 ```
 
 ### Available LINQ Methods
@@ -71,7 +71,7 @@ var user = from name in ValidateName(input.Name)
 | `Option<T>` | Map value | Chain Options | Filter by predicate |
 | `Result<T,E>` | Map Ok value | Chain Results | With error value/factory |
 | `Try<T>` | Map success | Chain Trys | Filter with predicate |
-| `Validation<T,E>` | Map valid | Chain (short-circuits) | — |
+| `Validation<T,E>` | Map valid | ⚠️ Short-circuits (use `Apply`) | — |
 | `RemoteData<T,E>` | Map success | Chain RemoteData | — |
 | `Writer<W,T>` | Map value | Chain with log combine | — |
 | `State<S,A>` | Map value | Chain State | — |
