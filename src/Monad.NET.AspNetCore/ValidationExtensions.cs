@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -39,7 +40,7 @@ public static class ValidationExtensions
     public static IActionResult ToActionResult<T, TErr>(
         this Validation<T, TErr> validation,
         Func<T, IActionResult> onValid,
-        Func<IReadOnlyList<TErr>, IActionResult> onInvalid)
+        Func<ImmutableArray<TErr>, IActionResult> onInvalid)
     {
         return validation.Match(onValid, onInvalid);
     }
@@ -130,7 +131,7 @@ public static class ValidationExtensions
     public static async Task<IActionResult> ToActionResultAsync<T, TErr>(
         this Task<Validation<T, TErr>> validationTask,
         Func<T, IActionResult> onValid,
-        Func<IReadOnlyList<TErr>, IActionResult> onInvalid)
+        Func<ImmutableArray<TErr>, IActionResult> onInvalid)
     {
         var validation = await validationTask.ConfigureAwait(false);
         return validation.ToActionResult(onValid, onInvalid);
