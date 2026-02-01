@@ -264,4 +264,57 @@ internal static class ThrowHelper
             "Use Result<T,E>.Ok(value) or Result<T,E>.Err(error) to create a valid instance. " +
             "The default value (e.g., default(Result<T,E>)) is not a valid Result state.");
     }
+
+    /// <summary>
+    /// Throws when attempting to use a default-constructed Option.
+    /// </summary>
+    [DoesNotReturn]
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void ThrowOptionIsDefault()
+    {
+        throw new InvalidOperationException(
+            "Cannot use Option because it was not properly initialized. " +
+            "Use Option<T>.Some(value) or Option<T>.None() to create a valid instance. " +
+            "The default value (e.g., default(Option<T>)) is not a valid Option state.");
+    }
+
+    /// <summary>
+    /// Throws when attempting to use a default-constructed Try.
+    /// </summary>
+    [DoesNotReturn]
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void ThrowTryIsDefault()
+    {
+        throw new InvalidOperationException(
+            "Cannot use Try because it was not properly initialized. " +
+            "Use Try<T>.Success(value), Try<T>.Failure(exception), or Try<T>.Of(func) to create a valid instance. " +
+            "The default value (e.g., default(Try<T>)) is not a valid Try state.");
+    }
+
+    /// <summary>
+    /// Throws when attempting to use a default-constructed Validation.
+    /// </summary>
+    [DoesNotReturn]
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void ThrowValidationIsDefault()
+    {
+        throw new InvalidOperationException(
+            "Cannot use Validation because it was not properly initialized. " +
+            "Use Validation<T,E>.Valid(value) or Validation<T,E>.Invalid(error) to create a valid instance. " +
+            "The default value (e.g., default(Validation<T,E>)) is not a valid Validation state.");
+    }
+
+    /// <summary>
+    /// Throws when attempting to use a default-constructed RemoteData.
+    /// </summary>
+    [DoesNotReturn]
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void ThrowRemoteDataIsDefault()
+    {
+        throw new InvalidOperationException(
+            "Cannot use RemoteData because it was not properly initialized. " +
+            "Use RemoteData<T,E>.NotAsked(), RemoteData<T,E>.Loading(), RemoteData<T,E>.Success(data), " +
+            "or RemoteData<T,E>.Failure(error) to create a valid instance. " +
+            "The default value (e.g., default(RemoteData<T,E>)) is not a valid RemoteData state.");
+    }
 }
