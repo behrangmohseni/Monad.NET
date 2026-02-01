@@ -1,6 +1,117 @@
 <Project>
-  <PropertyGroup>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-  </PropertyGroup>
-</Project>
 
+  <!-- 
+    Centralized build properties for all Monad.NET projects.
+    This file is automatically imported by all projects in the repository.
+    
+    Project Categories:
+    - src/**     = Library projects (NuGet packages)
+    - tests/**   = Test projects
+    - examples/**= Example projects
+    - benchmarks/** = Benchmark projects
+  -->
+
+  <!-- ============================================== -->
+  <!-- Common Properties for ALL Projects            -->
+  <!-- ============================================== -->
+  <PropertyGroup>
+    <!-- Language Settings -->
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    
+    <!-- Build Quality -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <Deterministic>true</Deterministic>
+    
+    <!-- Neutral Language -->
+    <NeutralLanguage>en-US</NeutralLanguage>
+  </PropertyGroup>
+
+  <!-- ============================================== -->
+  <!-- Library Projects (src/**)                     -->
+  <!-- ============================================== -->
+  <PropertyGroup Condition="$(MSBuildProjectDirectory.Contains('src'))">
+    <!-- Centralized Version - Update here for releases -->
+    <Version>2.0.0-beta.1</Version>
+    
+    <!-- Author Information -->
+    <Authors>Behrang Mohseni</Authors>
+    <Company>Behrang Mohseni</Company>
+    <Copyright>Copyright © 2025 Behrang Mohseni</Copyright>
+    
+    <!-- Repository Information -->
+    <RepositoryUrl>https://github.com/behrangmohseni/Monad.NET</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/behrangmohseni/Monad.NET</PackageProjectUrl>
+    
+    <!-- License -->
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    
+    <!-- Package Icon -->
+    <PackageIcon>icon.png</PackageIcon>
+    
+    <!-- Documentation -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    
+    <!-- Source Link for debugging -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <!-- ============================================== -->
+  <!-- Roslyn Analyzers/Generators (netstandard2.0)  -->
+  <!-- ============================================== -->
+  <PropertyGroup Condition="$(MSBuildProjectDirectory.Contains('Analyzers')) Or $(MSBuildProjectDirectory.Contains('SourceGenerators'))">
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <IsRoslynComponent>true</IsRoslynComponent>
+    
+    <!-- Analyzer-specific packaging -->
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    
+    <!-- Common suppressions for Roslyn components -->
+    <NoWarn>$(NoWarn);NU5128;RS2008</NoWarn>
+  </PropertyGroup>
+
+  <!-- ============================================== -->
+  <!-- Test Projects (tests/**)                      -->
+  <!-- ============================================== -->
+  <PropertyGroup Condition="$(MSBuildProjectDirectory.Contains('tests'))">
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <!-- ============================================== -->
+  <!-- Example Projects (examples/**)                -->
+  <!-- ============================================== -->
+  <PropertyGroup Condition="$(MSBuildProjectDirectory.Contains('examples'))">
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <!-- ============================================== -->
+  <!-- Benchmark Projects (benchmarks/**)            -->
+  <!-- ============================================== -->
+  <PropertyGroup Condition="$(MSBuildProjectDirectory.Contains('benchmarks'))">
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <!-- ============================================== -->
+  <!-- Continuous Integration                        -->
+  <!-- ============================================== -->
+  <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <!-- ============================================== -->
+  <!-- Source Link for Library Projects              -->
+  <!-- ============================================== -->
+  <ItemGroup Condition="$(MSBuildProjectDirectory.Contains('src'))">
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+  </ItemGroup>
+
+</Project>

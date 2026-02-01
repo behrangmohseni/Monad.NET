@@ -1,14 +1,11 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <LangVersion>latest</LangVersion>
-    <IsPackable>false</IsPackable>
     
-    <!-- Documentation -->
+    <!-- Assembly Info -->
     <RootNamespace>Monad.NET.Examples</RootNamespace>
     <AssemblyName>Monad.NET.Examples</AssemblyName>
     <Description>Comprehensive examples demonstrating Monad.NET library usage patterns</Description>
