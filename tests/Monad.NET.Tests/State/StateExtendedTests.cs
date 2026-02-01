@@ -376,5 +376,162 @@ public class StateExtendedTests
     }
 
     #endregion
+
+    #region Label and Debugging Tests
+
+    [Fact]
+    public void Label_IsNullByDefault_ForOf()
+    {
+        var state = State<int, int>.Of(s => new StateResult<int, int>(s * 2, s));
+        Assert.Null(state.Label);
+    }
+
+    [Fact]
+    public void Return_HasDefaultLabel()
+    {
+        var state = State<int, string>.Return("test");
+        Assert.Equal("Return(test)", state.Label);
+    }
+
+    [Fact]
+    public void Return_WithCustomLabel()
+    {
+        var state = State<int, string>.Return("test", "Custom return label");
+        Assert.Equal("Custom return label", state.Label);
+    }
+
+    [Fact]
+    public void Get_HasDefaultLabel()
+    {
+        var state = State<int, int>.Get();
+        Assert.Equal("Get", state.Label);
+    }
+
+    [Fact]
+    public void Get_WithCustomLabel()
+    {
+        var state = State<int, int>.Get("Fetch current counter");
+        Assert.Equal("Fetch current counter", state.Label);
+    }
+
+    [Fact]
+    public void Put_HasDefaultLabel()
+    {
+        var state = State<int, Unit>.Put(42);
+        Assert.Equal("Put(42)", state.Label);
+    }
+
+    [Fact]
+    public void Put_WithCustomLabel()
+    {
+        var state = State<int, Unit>.Put(42, "Reset counter to 42");
+        Assert.Equal("Reset counter to 42", state.Label);
+    }
+
+    [Fact]
+    public void Modify_HasDefaultLabel()
+    {
+        var state = State<int, Unit>.Modify(s => s + 1);
+        Assert.Equal("Modify", state.Label);
+    }
+
+    [Fact]
+    public void Modify_WithCustomLabel()
+    {
+        var state = State<int, Unit>.Modify(s => s + 1, "Increment by 1");
+        Assert.Equal("Increment by 1", state.Label);
+    }
+
+    [Fact]
+    public void Gets_HasDefaultLabel()
+    {
+        var state = State<string, int>.Gets(s => s.Length);
+        Assert.Equal("Gets", state.Label);
+    }
+
+    [Fact]
+    public void Gets_WithCustomLabel()
+    {
+        var state = State<string, int>.Gets(s => s.Length, "Extract string length");
+        Assert.Equal("Extract string length", state.Label);
+    }
+
+    [Fact]
+    public void WithLabel_AddsLabel()
+    {
+        var state = State<int, int>.Of(s => new StateResult<int, int>(s * 2, s))
+            .WithLabel("Double the state value");
+
+        Assert.Equal("Double the state value", state.Label);
+    }
+
+    [Fact]
+    public void WithLabel_PreservesBehavior()
+    {
+        var state = State<int, int>.Of(s => new StateResult<int, int>(s * 2, s + 1))
+            .WithLabel("Transform state");
+
+        var result = state.Run(10);
+
+        Assert.Equal(20, result.Value);
+        Assert.Equal(11, result.State);
+    }
+
+    [Fact]
+    public void WithLabel_CanOverrideExistingLabel()
+    {
+        var state = State<int, Unit>.Modify(s => s + 1, "Original label")
+            .WithLabel("New label");
+
+        Assert.Equal("New label", state.Label);
+    }
+
+    [Fact]
+    public void ToString_IncludesLabel_WhenPresent()
+    {
+        var state = State<int, string>.Return("hello", "Test computation");
+
+        var str = state.ToString();
+
+        Assert.Contains("State<Int32, String>", str);
+        Assert.Contains("Test computation", str);
+    }
+
+    [Fact]
+    public void ToString_ShowsComputation_WhenNoLabel()
+    {
+        var state = State<int, int>.Of(s => new StateResult<int, int>(s, s));
+
+        var str = state.ToString();
+
+        Assert.Contains("State<Int32, Int32>", str);
+        Assert.Contains("computation", str);
+    }
+
+    [Fact]
+    public void Of_WithLabel_PreservesLabel()
+    {
+        var state = State<int, int>.Of(
+            s => new StateResult<int, int>(s * 2, s),
+            "Double value from state");
+
+        Assert.Equal("Double value from state", state.Label);
+    }
+
+    [Fact]
+    public void Of_TupleOverload_WithLabel()
+    {
+        var state = State<int, int>.Of(
+            s => (s * 2, s + 1),
+            "Compute and modify");
+
+        Assert.Equal("Compute and modify", state.Label);
+
+        var result = state.Run(10);
+        Assert.Equal(20, result.Value);
+        Assert.Equal(11, result.State);
+    }
+
+    #endregion
 }
 

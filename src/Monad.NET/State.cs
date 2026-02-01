@@ -1,5 +1,7 @@
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Runtime.Serialization;
 
 namespace Monad.NET;
 
@@ -103,6 +105,29 @@ public readonly struct StateResult<TState, T> : IEquatable<StateResult<TState, T
 /// <typeparam name="T">The type of the value produced by the computation.</typeparam>
 /// <remarks>
 /// <para>
+/// <strong>Important:</strong> Unlike other types in this library (Option, Result, Validation, etc.)
+/// which hold <em>data</em>, State holds <em>behavior</em> - a function from state to (value, newState).
+/// This is the fundamental nature of the State monad in functional programming.
+/// </para>
+/// <para>
+/// <strong>Implications of holding behavior:</strong>
+/// <list type="bullet">
+///   <item><description>Cannot be inspected without running (call <see cref="Run"/> to execute)</description></item>
+///   <item><description>Not serializable - serialize the result of <see cref="Run"/> instead</description></item>
+///   <item><description>Two State instances cannot be compared for equality</description></item>
+///   <item><description>Debugging requires running the computation or using <see cref="WithLabel"/> for tracing</description></item>
+/// </list>
+/// </para>
+/// <para>
+/// <strong>When to use State vs alternatives:</strong>
+/// <list type="bullet">
+///   <item><description>Use <see cref="State{TState,T}"/> when you need pure functional state threading</description></item>
+///   <item><description>Use a mutable class if you need inspection, serialization, or simpler debugging</description></item>
+///   <item><description>Use <see cref="Reader{TEnv,T}"/> if state is read-only (configuration/environment)</description></item>
+///   <item><description>Use <see cref="Writer{TLog,T}"/> if you only need to accumulate output (logging)</description></item>
+/// </list>
+/// </para>
+/// <para>
 /// The State monad encapsulates computations that read and modify state. It provides
 /// a functional way to handle stateful computations without using mutable variables.
 /// </para>
@@ -127,16 +152,30 @@ public readonly struct StateResult<TState, T> : IEquatable<StateResult<TState, T
 /// 
 /// var (value, finalState) = computation.Run(0);
 /// // value = 3, finalState = 3
+/// 
+/// // For debugging, use labeled computations:
+/// var labeled = increment.WithLabel("Increment counter");
 /// </code>
 /// </example>
+/// <seealso cref="Reader{TEnv,T}"/>
+/// <seealso cref="Writer{TLog,T}"/>
+[DebuggerDisplay("{DebuggerDisplay,nq}")]
+[DebuggerTypeProxy(typeof(StateDebugView<,>))]
 public readonly struct State<TState, T>
 {
     private readonly Func<TState, StateResult<TState, T>> _run;
+    private readonly string? _label;
 
-    private State(Func<TState, StateResult<TState, T>> run)
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private string DebuggerDisplay => _label is not null
+        ? $"State<{typeof(TState).Name}, {typeof(T).Name}>: {_label}"
+        : $"State<{typeof(TState).Name}, {typeof(T).Name}> (computation - run to inspect)";
+
+    private State(Func<TState, StateResult<TState, T>> run, string? label = null)
     {
         ThrowHelper.ThrowIfNull(run);
         _run = run;
+        _label = label;
     }
 
     /// <summary>
@@ -176,78 +215,85 @@ public readonly struct State<TState, T>
     /// Creates a State that returns the given value without modifying the state.
     /// </summary>
     /// <param name="value">The value to return.</param>
+    /// <param name="label">Optional label for debugging.</param>
     /// <returns>A State computation that returns the value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static State<TState, T> Return(T value)
+    public static State<TState, T> Return(T value, string? label = null)
     {
-        return new State<TState, T>(state => new StateResult<TState, T>(value, state));
+        return new State<TState, T>(state => new StateResult<TState, T>(value, state), label ?? $"Return({value})");
     }
 
     /// <summary>
     /// Gets the current state as the value.
     /// </summary>
+    /// <param name="label">Optional label for debugging.</param>
     /// <returns>A State computation that returns the current state.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static State<TState, TState> Get()
+    public static State<TState, TState> Get(string? label = null)
     {
-        return new State<TState, TState>(state => new StateResult<TState, TState>(state, state));
+        return new State<TState, TState>(state => new StateResult<TState, TState>(state, state), label ?? "Get");
     }
 
     /// <summary>
     /// Replaces the state with a new value.
     /// </summary>
     /// <param name="newState">The new state.</param>
+    /// <param name="label">Optional label for debugging.</param>
     /// <returns>A State computation that sets the state.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static State<TState, Unit> Put(TState newState)
+    public static State<TState, Unit> Put(TState newState, string? label = null)
     {
-        return new State<TState, Unit>(_ => new StateResult<TState, Unit>(Unit.Default, newState));
+        return new State<TState, Unit>(_ => new StateResult<TState, Unit>(Unit.Default, newState), label ?? $"Put({newState})");
     }
 
     /// <summary>
     /// Modifies the state using the given function.
     /// </summary>
     /// <param name="modifier">A function that transforms the state.</param>
+    /// <param name="label">Optional label for debugging.</param>
     /// <returns>A State computation that modifies the state.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static State<TState, Unit> Modify(Func<TState, TState> modifier)
+    public static State<TState, Unit> Modify(Func<TState, TState> modifier, string? label = null)
     {
         ThrowHelper.ThrowIfNull(modifier);
 
-        return new State<TState, Unit>(state => new StateResult<TState, Unit>(Unit.Default, modifier(state)));
+        return new State<TState, Unit>(state => new StateResult<TState, Unit>(Unit.Default, modifier(state)), label ?? "Modify");
     }
 
     /// <summary>
     /// Gets a value derived from the current state.
     /// </summary>
     /// <param name="selector">A function that extracts a value from the state.</param>
+    /// <param name="label">Optional label for debugging.</param>
     /// <returns>A State computation that returns the derived value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static State<TState, U> Gets<U>(Func<TState, U> selector)
+    public static State<TState, U> Gets<U>(Func<TState, U> selector, string? label = null)
     {
         ThrowHelper.ThrowIfNull(selector);
 
-        return new State<TState, U>(state => new StateResult<TState, U>(selector(state), state));
+        return new State<TState, U>(state => new StateResult<TState, U>(selector(state), state), label ?? "Gets");
     }
 
     /// <summary>
     /// Creates a State computation from a function.
     /// </summary>
     /// <param name="run">The function that defines the computation.</param>
+    /// <param name="label">Optional label for debugging.</param>
     /// <returns>A State computation.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static State<TState, T> Of(Func<TState, StateResult<TState, T>> run)
+    public static State<TState, T> Of(Func<TState, StateResult<TState, T>> run, string? label = null)
     {
-        return new State<TState, T>(run);
+        return new State<TState, T>(run, label);
     }
 
     /// <summary>
     /// Creates a State computation from a function that returns a tuple.
     /// </summary>
     /// <param name="run">The function that defines the computation.</param>
+    /// <param name="label">Optional label for debugging.</param>
     /// <returns>A State computation.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static State<TState, T> Of(Func<TState, (T value, TState state)> run)
+    public static State<TState, T> Of(Func<TState, (T value, TState state)> run, string? label = null)
     {
         ThrowHelper.ThrowIfNull(run);
 
@@ -255,7 +301,7 @@ public readonly struct State<TState, T>
         {
             var (value, newState) = run(state);
             return new StateResult<TState, T>(value, newState);
-        });
+        }, label);
     }
 
     /// <summary>
@@ -413,6 +459,87 @@ public readonly struct State<TState, T>
     public State<TState, Unit> Void()
     {
         return As(Unit.Default);
+    }
+
+    /// <summary>
+    /// Gets the optional label describing this computation (for debugging/tracing).
+    /// </summary>
+    /// <remarks>
+    /// Since State holds behavior (not data), it cannot be inspected without running.
+    /// Labels provide a way to describe what a computation does for debugging purposes.
+    /// </remarks>
+    public string? Label => _label;
+
+    /// <summary>
+    /// Creates a copy of this State with a descriptive label for debugging.
+    /// </summary>
+    /// <param name="label">A description of what this computation does.</param>
+    /// <returns>A new State with the same behavior but with a label attached.</returns>
+    /// <remarks>
+    /// <para>
+    /// Since State holds a function (behavior) rather than data, it cannot be meaningfully
+    /// inspected in a debugger without executing it. Labels provide a way to describe
+    /// the computation's purpose for debugging and tracing.
+    /// </para>
+    /// </remarks>
+    /// <example>
+    /// <code>
+    /// var increment = State&lt;int, Unit&gt;.Modify(s => s + 1)
+    ///     .WithLabel("Increment counter by 1");
+    ///     
+    /// // In debugger: "State&lt;Int32, Unit&gt;: Increment counter by 1"
+    /// </code>
+    /// </example>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public State<TState, T> WithLabel(string label)
+    {
+        return new State<TState, T>(_run, label);
+    }
+
+    /// <inheritdoc />
+    public override string ToString()
+    {
+        return _label is not null
+            ? $"State<{typeof(TState).Name}, {typeof(T).Name}>: {_label}"
+            : $"State<{typeof(TState).Name}, {typeof(T).Name}> (computation)";
+    }
+}
+
+/// <summary>
+/// Debug view for State monad that provides meaningful information in the debugger.
+/// </summary>
+internal sealed class StateDebugView<TState, T>
+{
+    private readonly State<TState, T> _state;
+
+    public StateDebugView(State<TState, T> state)
+    {
+        _state = state;
+    }
+
+    [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+    public object[] Items
+    {
+        get
+        {
+            var items = new List<object>
+            {
+                new { Name = "Type", Value = $"State<{typeof(TState).Name}, {typeof(T).Name}>" },
+                new { Name = "StateType", Value = typeof(TState).FullName },
+                new { Name = "ValueType", Value = typeof(T).FullName },
+            };
+
+            if (_state.Label is not null)
+            {
+                items.Insert(0, new { Name = "Label", Value = _state.Label });
+            }
+            else
+            {
+                items.Add(new { Name = "Note", Value = "Call Run(initialState) to execute and inspect result" });
+            }
+
+            return items.ToArray();
+        }
     }
 }
 
