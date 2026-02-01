@@ -294,15 +294,22 @@ Accumulates errors instead of short-circuiting.
 
 ### LINQ Support
 
-Validation supports LINQ query syntax:
+> **⚠️ WARNING: LINQ query syntax does NOT accumulate errors!**
+>
+> LINQ uses `Bind` internally which **short-circuits on first error**.
+> This defeats the main purpose of Validation over Result.
+>
+> **For error accumulation (the whole point of Validation), use `Apply` or `Zip` instead.**
 
 ```csharp
+// ❌ DON'T DO THIS - only shows FIRST error
 var result = from name in ValidateName(input.Name)
              from email in ValidateEmail(input.Email)
              select new User(name, email);
-```
 
-> **Note:** LINQ uses `Bind` which short-circuits on first error. For accumulating errors, use `Validation.Apply` or `Validation.Zip` instead.
+// ✅ DO THIS - accumulates ALL errors
+var result = ValidateName(input.Name)
+    .Apply(ValidateEmail(input.Email), (name, email) => new User(name, email));
 
 ---
 

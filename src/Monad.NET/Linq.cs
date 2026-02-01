@@ -306,44 +306,30 @@ public static class ValidationLinq
     /// </summary>
     /// <remarks>
     /// <para>
-    /// This implementation attempts to accumulate errors by evaluating the selector
-    /// even when the source validation is invalid. It uses <c>default!</c> as a placeholder
-    /// value, which works when the selector doesn't actually depend on the source value.
+    /// <b>WARNING: LINQ query syntax does NOT accumulate errors.</b>
+    /// This method uses short-circuit evaluation (like <see cref="Validation{T,TErr}.Bind"/>)
+    /// and stops at the first error, just like Result.
     /// </para>
     /// <para>
-    /// For guaranteed error accumulation, use <see cref="Validation{T,TErr}.Apply"/> 
-    /// or <see cref="Validation{T,TErr}.Zip"/> instead.
+    /// <b>For error accumulation, use <see cref="Validation{T,TErr}.Apply"/> or 
+    /// <see cref="Validation{T,TErr}.Zip"/> instead.</b>
+    /// </para>
+    /// <para>
+    /// Example of error accumulation with Apply:
+    /// <code>
+    /// var result = ValidateName(name)
+    ///     .Apply(ValidateEmail(email), (n, e) => (n, e))
+    ///     .Apply(ValidateAge(age), (partial, a) => new User(partial.n, partial.e, a));
+    /// </code>
     /// </para>
     /// </remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Validation<U, TErr> SelectMany<T, TErr, U>(
         this Validation<T, TErr> validation,
         Func<T, Validation<U, TErr>> selector)
     {
-        ThrowHelper.ThrowIfNull(selector);
-
-        if (validation.IsOk)
-        {
-            return selector(validation.GetValue());
-        }
-
-        // Try to evaluate the selector to accumulate errors
-        // This works when the selector doesn't depend on the input value
-        try
-        {
-            var second = selector(default!);
-            if (second.IsError)
-            {
-                // Accumulate errors from both
-                return Validation<U, TErr>.Invalid(
-                    validation.GetErrors().Concat(second.GetErrors()));
-            }
-        }
-        catch
-        {
-            // Selector depends on the value and threw - just return first errors
-        }
-
-        return Validation<U, TErr>.Invalid(validation.GetErrors());
+        // Short-circuit: stop at first error (safe, consistent with Bind)
+        return validation.Bind(selector);
     }
 
     /// <summary>
@@ -351,15 +337,15 @@ public static class ValidationLinq
     /// </summary>
     /// <remarks>
     /// <para>
-    /// This implementation attempts to accumulate errors by evaluating subsequent validations
-    /// even when earlier ones fail. It uses <c>default!</c> as a placeholder value,
-    /// which works when validations are independent (don't use values from earlier validations).
+    /// <b>WARNING: LINQ query syntax does NOT accumulate errors.</b>
+    /// This method uses short-circuit evaluation and stops at the first error.
     /// </para>
     /// <para>
-    /// For guaranteed error accumulation, use <see cref="Validation{T,TErr}.Apply"/> 
-    /// or <see cref="Validation{T,TErr}.Zip"/> instead.
+    /// <b>For error accumulation, use <see cref="Validation{T,TErr}.Apply"/> or 
+    /// <see cref="Validation{T,TErr}.Zip"/> instead.</b>
     /// </para>
     /// </remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Validation<V, TErr> SelectMany<T, TErr, U, V>(
         this Validation<T, TErr> validation,
         Func<T, Validation<U, TErr>> collectionSelector,
@@ -368,35 +354,10 @@ public static class ValidationLinq
         ThrowHelper.ThrowIfNull(collectionSelector);
         ThrowHelper.ThrowIfNull(resultSelector);
 
-        if (validation.IsOk)
-        {
-            var second = collectionSelector(validation.GetValue());
-            if (second.IsOk)
-            {
-                return Validation<V, TErr>.Valid(
-                    resultSelector(validation.GetValue(), second.GetValue()));
-            }
-            return Validation<V, TErr>.Invalid(second.GetErrors());
-        }
-
-        // First validation failed - try to evaluate second validation anyway
-        // to accumulate errors (works when validations are independent)
-        try
-        {
-            var second = collectionSelector(default!);
-            if (second.IsError)
-            {
-                // Accumulate errors from both validations
-                return Validation<V, TErr>.Invalid(
-                    validation.GetErrors().Concat(second.GetErrors()));
-            }
-        }
-        catch
-        {
-            // Selector depends on the value and threw - just return first errors
-        }
-
-        return Validation<V, TErr>.Invalid(validation.GetErrors());
+        // Short-circuit: stop at first error (safe, consistent with Result)
+        return validation.Bind(t =>
+            collectionSelector(t).Map(u =>
+                resultSelector(t, u)));
     }
 }
 

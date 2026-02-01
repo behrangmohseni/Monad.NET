@@ -59,25 +59,24 @@ public class ValidationLinqTests
     }
 
     [Fact]
-    public void Validation_SelectMany_FirstInvalid_IndependentSecond_AccumulatesErrors()
+    public void Validation_SelectMany_FirstInvalid_ShortCircuits()
     {
-        // When second validation is independent (doesn't use the first value),
-        // errors should be accumulated
+        // LINQ SelectMany uses short-circuit behavior (like Result) for safety.
+        // It does NOT accumulate errors - use Apply() for error accumulation.
         var result = Validation<int, string>.Invalid("first error")
             .SelectMany(_ => Validation<int, string>.Invalid("second error"));
 
         Assert.True(result.IsError);
         var errors = result.GetErrorsOrThrow();
-        Assert.Equal(2, errors.Length);
-        Assert.Contains("first error", errors);
-        Assert.Contains("second error", errors);
+        // Short-circuits: only first error, second selector not evaluated
+        Assert.Single(errors);
+        Assert.Equal("first error", errors[0]);
     }
 
     [Fact]
-    public void Validation_SelectMany_FirstInvalid_DependentSecond_ReturnsFirstErrors()
+    public void Validation_SelectMany_FirstInvalid_SecondNotEvaluated()
     {
-        // When second validation depends on the first value,
-        // only first errors are returned (can't evaluate second)
+        // When first validation fails, second selector is not evaluated at all
         var result = Validation<int, string>.Invalid("first error")
             .SelectMany(x => Validation<int, string>.Valid(x + 20));
 
@@ -112,9 +111,10 @@ public class ValidationLinqTests
     }
 
     [Fact]
-    public void Validation_SelectMany_WithResultSelector_FirstInvalid_IndependentSecond_AccumulatesErrors()
+    public void Validation_SelectMany_WithResultSelector_FirstInvalid_ShortCircuits()
     {
-        // When second validation is independent, errors should be accumulated
+        // LINQ SelectMany uses short-circuit behavior for safety.
+        // Use Apply() or Zip() for error accumulation.
         var first = Validation<int, string>.Invalid("first error");
         var result = first.SelectMany(
             _ => Validation<string, string>.Invalid("second error"),
@@ -122,15 +122,15 @@ public class ValidationLinqTests
 
         Assert.True(result.IsError);
         var errors = result.GetErrorsOrThrow();
-        Assert.Equal(2, errors.Length);
-        Assert.Contains("first error", errors);
-        Assert.Contains("second error", errors);
+        // Short-circuits: only first error
+        Assert.Single(errors);
+        Assert.Equal("first error", errors[0]);
     }
 
     [Fact]
-    public void Validation_SelectMany_WithResultSelector_FirstInvalid_DependentSecond()
+    public void Validation_SelectMany_WithResultSelector_FirstInvalid_SecondNotEvaluated()
     {
-        // When second validation depends on first value, only first errors
+        // When first validation fails, collection selector is not called
         var first = Validation<int, string>.Invalid("error");
         var result = first.SelectMany(
             x => Validation<string, string>.Valid($"Value: {x}"),
@@ -224,30 +224,30 @@ public class ValidationLinqTests
     }
 
     [Fact]
-    public void Validation_LinqQuery_FirstInvalid_IndependentSecond_AccumulatesErrors()
+    public void Validation_LinqQuery_FirstInvalid_ShortCircuits()
     {
-        // When validations are independent, errors should accumulate
+        // LINQ query syntax short-circuits on first error (like Result).
+        // Use Apply() or Zip() for error accumulation.
         var result = from a in Validation<int, string>.Invalid("first")
                      from b in Validation<int, string>.Invalid("second")
                      select a + b;
 
         Assert.True(result.IsError);
         var errors = result.GetErrorsOrThrow();
-        Assert.Equal(2, errors.Length);
-        Assert.Contains("first", errors);
-        Assert.Contains("second", errors);
+        // Short-circuits: only first error
+        Assert.Single(errors);
+        Assert.Equal("first", errors[0]);
     }
 
     [Fact]
-    public void Validation_LinqQuery_FirstInvalid_DependentSecond()
+    public void Validation_LinqQuery_FirstInvalid_SecondNotEvaluated()
     {
-        // When second depends on first, only first errors
+        // When first fails, second validation is not evaluated
         var result = from a in Validation<int, string>.Invalid("first")
                      from b in Validation<int, string>.Valid(2)
                      select a + b;
 
         Assert.True(result.IsError);
-        // Only first error because second validation depends on 'a' via closure/default behavior
         var errors = result.GetErrorsOrThrow();
         Assert.Single(errors);
         Assert.Equal("first", errors[0]);
@@ -265,9 +265,10 @@ public class ValidationLinqTests
     }
 
     [Fact]
-    public void Validation_LinqQuery_MultipleIndependentInvalid_AccumulatesAll()
+    public void Validation_LinqQuery_MultipleInvalid_ShortCircuitsOnFirst()
     {
-        // Three independent validations - all errors should accumulate
+        // LINQ short-circuits: stops at first error, doesn't accumulate.
+        // Use Apply().Apply().Apply() for accumulating multiple validations.
         var result = from a in Validation<int, string>.Invalid("error1")
                      from b in Validation<int, string>.Invalid("error2")
                      from c in Validation<int, string>.Invalid("error3")
@@ -275,9 +276,29 @@ public class ValidationLinqTests
 
         Assert.True(result.IsError);
         var errors = result.GetErrorsOrThrow();
-        // At least 2 errors accumulated (depends on how many selectors can be evaluated)
-        Assert.True(errors.Length >= 2);
+        // Short-circuits at first error only
+        Assert.Single(errors);
+        Assert.Equal("error1", errors[0]);
+    }
+
+    [Fact]
+    public void Validation_Apply_AccumulatesAllErrors()
+    {
+        // Demonstrate the correct way to accumulate errors
+        var v1 = Validation<int, string>.Invalid("error1");
+        var v2 = Validation<int, string>.Invalid("error2");
+        var v3 = Validation<int, string>.Invalid("error3");
+
+        var result = v1
+            .Apply(v2, (a, b) => a + b)
+            .Apply(v3, (ab, c) => ab + c);
+
+        Assert.True(result.IsError);
+        var errors = result.GetErrorsOrThrow();
+        Assert.Equal(3, errors.Length);
         Assert.Contains("error1", errors);
+        Assert.Contains("error2", errors);
+        Assert.Contains("error3", errors);
     }
 
     #endregion
