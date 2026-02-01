@@ -6,7 +6,7 @@ Practical examples showing how to use Monad.NET in production scenarios.
 
 - [API Response Handling](#api-response-handling)
 - [Form Validation Pipeline](#form-validation-pipeline)
-- [Async Configuration with ReaderAsync](#async-configuration-with-readerasync)
+- [Async Configuration with Reader](#async-configuration-with-reader)
 - [Blazor Component with RemoteData](#blazor-component-with-remotedata)
 - [Data Pipeline with Try](#data-pipeline-with-try)
 - [NonEmptyList for Business Rules](#nonemptylist-for-business-rules)
@@ -19,19 +19,29 @@ Practical examples showing how to use Monad.NET in production scenarios.
 ```csharp
 public async Task<Result<UserDto, ApiError>> GetUserProfileAsync(int userId)
 {
-    // Chain multiple API calls with automatic error propagation
-    return await _httpClient.GetUserAsync(userId)
-        .BindAsync(user => _httpClient.GetUserPreferencesAsync(user.Id))
-        .MapAsync(prefs => new UserDto(user, prefs))
-        .TapAsync(dto => _cache.SetAsync($"user:{userId}", dto))
-        .TapErrAsync(err => _logger.LogError("Failed to get user {Id}: {Error}", userId, err));
+    // Fetch user and handle errors with pattern matching
+    var userResult = await _httpClient.GetUserAsync(userId);
+    
+    return await userResult.Match(
+        ok: async user => 
+        {
+            var prefs = await _httpClient.GetUserPreferencesAsync(user.Id);
+            return prefs.Map(p => new UserDto(user, p));
+        },
+        err: error => 
+        {
+            _logger.LogError("Failed to get user {Id}: {Error}", userId, error);
+            return Task.FromResult(Result<UserDto, ApiError>.Err(error));
+        }
+    );
 }
 
 // Usage in controller
 [HttpGet("{id}")]
 public async Task<IActionResult> GetUser(int id)
 {
-    return await GetUserProfileAsync(id).Match(
+    var result = await GetUserProfileAsync(id);
+    return result.Match(
         ok: user => Ok(user),
         err: error => error.Code switch
         {
@@ -81,19 +91,20 @@ result.Match(
 
 ---
 
-## Async Configuration with ReaderAsync
+## Async Configuration with Reader
 
 ```csharp
 public record AppConfig(string ConnectionString, string ApiKey, int MaxRetries);
 
-// Build composable async configuration-dependent operations
-var getUsers = ReaderAsync<AppConfig, List<User>>.From(async config =>
-{
-    using var conn = new SqlConnection(config.ConnectionString);
-    return await conn.QueryAsync<User>("SELECT * FROM Users").ToListAsync();
-});
+// Build composable configuration-dependent operations
+var getUsers = Reader<AppConfig, Func<Task<List<User>>>>.From(config =>
+    async () =>
+    {
+        using var conn = new SqlConnection(config.ConnectionString);
+        return await conn.QueryAsync<User>("SELECT * FROM Users").ToListAsync();
+    });
 
-var enrichWithApi = ReaderAsync<AppConfig, Func<User, Task<UserWithDetails>>>.From(config =>
+var enrichWithApi = Reader<AppConfig, Func<User, Task<UserWithDetails>>>.From(config =>
     async user =>
     {
         var client = new ApiClient(config.ApiKey);
@@ -101,16 +112,13 @@ var enrichWithApi = ReaderAsync<AppConfig, Func<User, Task<UserWithDetails>>>.Fr
         return new UserWithDetails(user, details);
     });
 
-// Compose and run with parallel execution
-var workflow = 
-    from users in getUsers
-    from enricher in enrichWithApi
-    from enrichedUsers in ReaderAsync<AppConfig, List<UserWithDetails>>.From(async config =>
-        await Task.WhenAll(users.Select(enricher)))
-    select enrichedUsers.ToList();
-
+// Run with environment
 var config = new AppConfig("Server=...", "api-key-123", 3);
-var enrichedUsers = await workflow.RunAsync(config);
+var getUsersFunc = getUsers.Run(config);
+var enricher = enrichWithApi.Run(config);
+
+var users = await getUsersFunc();
+var enrichedUsers = await Task.WhenAll(users.Select(enricher));
 ```
 
 ---

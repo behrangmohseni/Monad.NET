@@ -260,13 +260,6 @@ var result = from x in Option<int>.Some(10)
 // Some(30)
 ```
 
-### Async Operations
-
-```csharp
-var result = await Option<int>.Some(42)
-    .MapAsync(async x => await ProcessAsync(x));
-```
-
 ### Parallel Collection Operations
 
 ```csharp

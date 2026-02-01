@@ -131,12 +131,12 @@ This section provides visual diagrams showing how Monad.NET types relate to each
                               ▼                     ▼
                       ┌─────────────┐       ┌─────────────┐
                       │   Async     │       │   LINQ      │
-                      │ Extensions  │       │ Integration │
+                      │   Support   │       │ Integration │
                       ├─────────────┤       ├─────────────┤
-                      │ MapAsync    │       │ from x in   │
-                      │ BindAsync   │       │ select      │
-                      │ MatchAsync  │       │ where       │
-                      │ FilterAsync │       │ join        │
+                      │ Try.MapAsync│       │ from x in   │
+                      │ IO.ToAsync  │       │ select      │
+                      │ IOAsync     │       │ where       │
+                      │             │       │ join        │
                       └─────────────┘       └─────────────┘
 ```
 
@@ -272,7 +272,7 @@ Monadic types have many small methods (property getters, factory methods, transf
 Apply `[MethodImpl(MethodImplOptions.AggressiveInlining)]` to **all** public methods on monadic types, including:
 - Property getters (`IsSome`, `IsOk`, `IsRight`, etc.)
 - Factory methods (`Some()`, `None()`, `Ok()`, `Err()`, etc.)
-- Value accessors (`GetValueOr()`, `GetValueOrDefault()`, `GetValueOrElse()`)
+- Value accessors (`GetValueOr()`, `TryGet()`)
 - Transform operations (`Map()`, `Filter()`, `Bind()`)
 - Pattern matching (`Match()`)
 
@@ -406,7 +406,7 @@ Enable nullable reference types throughout the library and design APIs that work
 1. `Option<T>.Some(T value)` requires non-null value (analyzer warning if nullable passed)
 2. `Result<T, E>.Ok(T value)` requires non-null value
 3. Provide `ToOption()` extension for `T?` to safely convert nullable values
-4. Use `T?` in places where absence is represented (e.g., `GetValueOrDefault()`)
+4. Use `T?` in `TryGet()` out parameters where absence needs to be represented
 
 ### Implementation
 
@@ -528,45 +528,42 @@ Ship analyzers as a separate NuGet package (`Monad.NET.Analyzers`) that can be o
 
 ---
 
-## ADR-007: Source Generator for Async Extensions
+## ADR-007: Selective Async Extensions
 
 ### Status
-Accepted
+Revised (v2.0)
 
 ### Context
-Async variants of monadic operations (e.g., `MapAsync`, `BindAsync`) follow predictable patterns. Manually maintaining both sync and async versions leads to code duplication and potential inconsistencies.
+Async variants of monadic operations (e.g., `MapAsync`, `BindAsync`) were initially provided for all types. However, this created API bloat and often led users toward anti-patterns like unnecessary async wrapping.
 
-### Decision
-Use a Roslyn Source Generator to automatically generate async extension methods from sync implementations.
-
-### Implementation
-
-The source generator:
-1. Scans for methods marked with `[GenerateAsync]` or matching naming conventions
-2. Generates corresponding `*Async` variants
-3. Properly handles `Task<T>` wrapping and `await` insertion
-4. Maintains XML documentation
-
-### Generated Example
-
-From sync:
-```csharp
-public Option<U> Map<U>(Func<T, U> mapper)
-    => _isSome ? Some(mapper(_value!)) : None<U>();
-```
-
-To async:
-```csharp
-public async Task<Option<U>> MapAsync<U>(Func<T, Task<U>> mapper)
-    => _isSome ? Some(await mapper(_value!)) : None<U>();
-```
+### Decision (v2.0)
+Provide async extensions selectively:
+- **`IO<T>`**: Full async support via `IOAsync<T>` and `ToAsync()`
+- **`Try<T>`**: `MapAsync` and `BindAsync` for exception-prone async operations
+- **`Validation<T,E>`**: `MapAsync` for async validation logic
+- **`RemoteData<T,E>`**: `MapAsync` for UI state transformations
+- **Removed from `Option<T>` and `Result<T,E>`**: Use standard `await` + sync methods
 
 ### Rationale
 
-1. **Consistency**: Generated code is always consistent with source.
-2. **Reduced Maintenance**: Changes to sync methods automatically propagate.
-3. **Complete Coverage**: All sync methods get async variants.
-4. **Type Safety**: Generator ensures correct async patterns.
+1. **Reduced API Surface**: ~150 async methods removed in v2.0.
+2. **Clearer Intent**: Users explicitly handle async boundaries.
+3. **Better Composition**: Standard async/await patterns integrate naturally.
+4. **Focused Support**: Async extensions where they provide the most value.
+
+### Migration
+
+```csharp
+// Before (v1.x)
+var result = await option.MapAsync(async x => await ProcessAsync(x));
+
+// After (v2.0) - explicit and clear
+if (option.IsSome)
+{
+    var processed = await ProcessAsync(option.GetValue());
+    // ...
+}
+```
 
 ### Consequences
 

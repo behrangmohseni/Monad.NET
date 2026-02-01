@@ -6,7 +6,6 @@ This document covers advanced patterns and features in Monad.NET.
 
 - [LINQ Support](#linq-support)
 - [When/Unless Guards](#whenunless-guards)
-- [Async Extensions](#async-extensions)
 - [Collection Operations](#collection-operations)
 - [Parallel Collection Operations](#parallel-collection-operations)
 - [Async Streams (IAsyncEnumerable)](#async-streams-iasyncenumerable)
@@ -96,19 +95,6 @@ var fallback = OptionExtensions.Unless(cache.HasValue, () => LoadFromDatabase())
 
 // Lazy evaluation - factory only called when needed
 var expensive = OptionExtensions.When(shouldCompute, () => ExpensiveOperation());
-```
-
----
-
-## Async Extensions
-
-Seamless async/await integration:
-
-```csharp
-var result = await Option<int>.Some(userId)
-    .MapAsync(async id => await _repo.FindAsync(id))
-    .BindAsync(async user => await ValidateAsync(user))
-    .MapAsync(async user => await EnrichAsync(user));
 ```
 
 ---
