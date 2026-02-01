@@ -317,4 +317,18 @@ internal static class ThrowHelper
             "or RemoteData<T,E>.Failure(error) to create a valid instance. " +
             "The default value (e.g., default(RemoteData<T,E>)) is not a valid RemoteData state.");
     }
+
+    /// <summary>
+    /// Throws when attempting to use a default-constructed Reader.
+    /// </summary>
+    [DoesNotReturn]
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void ThrowReaderIsDefault()
+    {
+        throw new InvalidOperationException(
+            "Cannot use Reader because it was not properly initialized. " +
+            "Use Reader<R,A>.From(func), Reader<R,A>.Return(value), Reader<R,A>.Ask(), " +
+            "or Reader<R,A>.Asks(selector) to create a valid instance. " +
+            "The default value (e.g., default(Reader<R,A>)) is not a valid Reader state.");
+    }
 }

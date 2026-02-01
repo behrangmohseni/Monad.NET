@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace Monad.NET;
@@ -10,15 +11,41 @@ namespace Monad.NET;
 /// </summary>
 /// <typeparam name="R">The type of the environment/dependencies</typeparam>
 /// <typeparam name="A">The type of the result</typeparam>
-public sealed class Reader<R, A>
+[DebuggerDisplay("{DebuggerDisplay,nq}")]
+[DebuggerTypeProxy(typeof(Reader<,>.ReaderDebuggerProxy))]
+public readonly struct Reader<R, A> : IEquatable<Reader<R, A>>
 {
-    private readonly Func<R, A> _run;
+    private readonly Func<R, A>? _run;
+    private readonly bool _isInitialized;
+
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private string DebuggerDisplay => _isInitialized
+        ? "Reader<" + typeof(R).Name + ", " + typeof(A).Name + ">"
+        : "Uninitialized";
+
+    /// <summary>
+    /// Gets a value indicating whether this Reader was properly initialized.
+    /// Returns false for default-constructed instances.
+    /// </summary>
+    public bool IsInitialized
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _isInitialized;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void ThrowIfDefault()
+    {
+        if (!_isInitialized)
+            ThrowHelper.ThrowReaderIsDefault();
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Reader(Func<R, A> run)
     {
         ThrowHelper.ThrowIfNull(run);
         _run = run;
+        _isInitialized = true;
     }
 
     /// <summary>
@@ -67,9 +94,10 @@ public sealed class Reader<R, A>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public A Run(R environment)
     {
+        ThrowIfDefault();
         ThrowHelper.ThrowIfNull(environment);
 
-        return _run(environment);
+        return _run!(environment);
     }
 
     /// <summary>
@@ -78,9 +106,10 @@ public sealed class Reader<R, A>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Reader<R, B> Map<B>(Func<A, B> mapper)
     {
+        ThrowIfDefault();
         ThrowHelper.ThrowIfNull(mapper);
 
-        var run = _run;
+        var run = _run!;
         return new Reader<R, B>(env => mapper(run(env)));
     }
 
@@ -98,9 +127,10 @@ public sealed class Reader<R, A>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Reader<R, A> Tap(Action<A> action)
     {
+        ThrowIfDefault();
         ThrowHelper.ThrowIfNull(action);
 
-        var run = _run;
+        var run = _run!;
         return new Reader<R, A>(env =>
         {
             var result = run(env);
@@ -123,9 +153,10 @@ public sealed class Reader<R, A>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Reader<R, A> TapEnv(Action<R> action)
     {
+        ThrowIfDefault();
         ThrowHelper.ThrowIfNull(action);
 
-        var run = _run;
+        var run = _run!;
         return new Reader<R, A>(env =>
         {
             action(env);
@@ -140,9 +171,10 @@ public sealed class Reader<R, A>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Reader<R, B> Bind<B>(Func<A, Reader<R, B>> binder)
     {
+        ThrowIfDefault();
         ThrowHelper.ThrowIfNull(binder);
 
-        var run = _run;
+        var run = _run!;
         return new Reader<R, B>(env =>
         {
             var a = run(env);
@@ -157,9 +189,10 @@ public sealed class Reader<R, A>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Reader<R2, A> WithEnvironment<R2>(Func<R2, R> transform)
     {
+        ThrowIfDefault();
         ThrowHelper.ThrowIfNull(transform);
 
-        var run = _run;
+        var run = _run!;
         return Reader<R2, A>.From(env2 => run(transform(env2)));
     }
 
@@ -169,15 +202,87 @@ public sealed class Reader<R, A>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Reader<R, C> Zip<B, C>(Reader<R, B> other, Func<A, B, C> combiner)
     {
+        ThrowIfDefault();
+        other.ThrowIfDefault();
         ThrowHelper.ThrowIfNull(combiner);
 
-        var run = _run;
+        var run = _run!;
         return Reader<R, C>.From(env =>
         {
             var a = run(env);
             var b = other.Run(env);
             return combiner(a, b);
         });
+    }
+
+    #region Equality
+
+    /// <summary>
+    /// Determines whether the specified Reader is equal to this instance.
+    /// Two Readers are equal if they reference the same underlying function.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool Equals(Reader<R, A> other)
+    {
+        if (!_isInitialized && !other._isInitialized)
+            return true;
+
+        if (!_isInitialized || !other._isInitialized)
+            return false;
+
+        return ReferenceEquals(_run, other._run);
+    }
+
+    /// <inheritdoc />
+    public override bool Equals(object? obj)
+    {
+        return obj is Reader<R, A> other && Equals(other);
+    }
+
+    /// <inheritdoc />
+    public override int GetHashCode()
+    {
+        return _isInitialized ? (_run?.GetHashCode() ?? 0) : 0;
+    }
+
+    /// <summary>
+    /// Determines whether two Reader instances are equal.
+    /// </summary>
+    public static bool operator ==(Reader<R, A> left, Reader<R, A> right)
+    {
+        return left.Equals(right);
+    }
+
+    /// <summary>
+    /// Determines whether two Reader instances are not equal.
+    /// </summary>
+    public static bool operator !=(Reader<R, A> left, Reader<R, A> right)
+    {
+        return !left.Equals(right);
+    }
+
+    #endregion
+
+    /// <inheritdoc />
+    public override string ToString()
+    {
+        return _isInitialized
+            ? $"Reader<{typeof(R).Name}, {typeof(A).Name}>"
+            : "Reader (Uninitialized)";
+    }
+
+    private sealed class ReaderDebuggerProxy
+    {
+        private readonly Reader<R, A> _reader;
+
+        public ReaderDebuggerProxy(Reader<R, A> reader)
+        {
+            _reader = reader;
+        }
+
+        public bool IsInitialized => _reader._isInitialized;
+        public string EnvironmentType => typeof(R).Name;
+        public string ResultType => typeof(A).Name;
     }
 }
 
