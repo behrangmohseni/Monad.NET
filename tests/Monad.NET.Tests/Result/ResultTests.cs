@@ -53,24 +53,19 @@ public class ResultTests
     }
 
     [Fact]
-    public void Expect_OnErr_ThrowsWithMessage()
+    public void Expect_OnErr_Throws()
     {
         var result = Result<int, string>.Err("error");
 
-        var exception = Assert.Throws<InvalidOperationException>(
-            () => result.GetOrThrow("Expected a value"));
-        Assert.Contains("Expected a value", exception.Message);
-        Assert.Contains("error", exception.Message);
+        Assert.Throws<InvalidOperationException>(() => result.GetOrThrow());
     }
 
     [Fact]
-    public void ExpectErr_OnOk_ThrowsWithMessage()
+    public void ExpectErr_OnOk_Throws()
     {
         var result = Result<int, string>.Ok(42);
 
-        var exception = Assert.Throws<InvalidOperationException>(
-            () => result.GetErrorOrThrow("Expected an error"));
-        Assert.Contains("Expected an error", exception.Message);
+        Assert.Throws<InvalidOperationException>(() => result.GetErrorOrThrow());
     }
 
     [Fact]
@@ -94,7 +89,7 @@ public class ResultTests
     {
         var result = Result<int, string>.Ok(42);
 
-        Assert.Equal(42, result.GetValueOrElse(err => 0));
+        Assert.Equal(42, result.Match(ok => ok, _ => 0));
     }
 
     [Fact]
@@ -102,7 +97,7 @@ public class ResultTests
     {
         var result = Result<int, string>.Err("error");
 
-        Assert.Equal(100, result.GetValueOrElse(err => 100));
+        Assert.Equal(100, result.Match(ok => ok, _ => 100));
     }
 
     [Fact]

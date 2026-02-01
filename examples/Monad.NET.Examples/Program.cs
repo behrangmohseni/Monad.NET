@@ -27,8 +27,6 @@ internal class ExampleRunner
         ("Reader<R, A>", ReaderExamples.Run),
         ("IO<T>", IOExamples.Run),
         ("LINQ Integration", LinqExamples.Run),
-        ("Async Operations", () => AsyncExamples.RunAsync().GetAwaiter().GetResult()),
-        ("Collection Extensions", CollectionExamples.Run),
         ("ErrorUnion (Source Gen)", ErrorUnionExamples.Run),
         ("Real-World Patterns", RealWorldExamples.Run),
     ];

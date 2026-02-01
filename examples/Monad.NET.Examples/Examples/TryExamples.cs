@@ -60,7 +60,7 @@ public static class TryExamples
         Console.WriteLine("\n7. Default Values:");
         Console.WriteLine($"   Success.GetValueOr(0):    {success.GetValueOr(0)}");
         Console.WriteLine($"   Failure.GetValueOr(0):    {failed.GetValueOr(0)}");
-        Console.WriteLine($"   Failure.GetValueOr(fn):   {failed.GetValueOrElse(() => DateTime.Now.Second)}");
+        Console.WriteLine($"   Failure.Match(ok, fn):    {failed.Match(ok => ok, _ => DateTime.Now.Second)}");
 
         // Filter
         Console.WriteLine("\n8. Filtering:");

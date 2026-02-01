@@ -42,9 +42,7 @@ public class OptionTests
     {
         var option = Option<int>.None();
 
-        var exception = Assert.Throws<InvalidOperationException>(
-            () => option.GetOrThrow("Expected a value"));
-        Assert.Contains("Expected a value", exception.Message);
+        Assert.Throws<InvalidOperationException>(() => option.GetOrThrow());
     }
 
     [Fact]
@@ -68,7 +66,7 @@ public class OptionTests
     {
         var option = Option<int>.Some(42);
 
-        Assert.Equal(42, option.GetValueOrElse(() => 0));
+        Assert.Equal(42, option.Match(x => x, () => 0));
     }
 
     [Fact]
@@ -76,7 +74,7 @@ public class OptionTests
     {
         var option = Option<int>.None();
 
-        Assert.Equal(100, option.GetValueOrElse(() => 100));
+        Assert.Equal(100, option.Match(x => x, () => 100));
     }
 
     [Fact]

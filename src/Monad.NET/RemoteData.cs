@@ -134,6 +134,7 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>, IC
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if not in Success state</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    [EditorBrowsable(EditorBrowsableState.Never)]
     public T GetValue()
     {
         if (_state == RemoteDataState.Success)
@@ -170,17 +171,6 @@ public readonly struct RemoteData<T, TErr> : IEquatable<RemoteData<T, TErr>>, IC
     public T GetValueOr(T defaultValue)
     {
         return _state == RemoteDataState.Success ? _data! : defaultValue;
-    }
-
-    /// <summary>
-    /// Returns the data if successful, otherwise computes a default value.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T GetValueOrElse(Func<T> defaultFunc)
-    {
-        ThrowHelper.ThrowIfNull(defaultFunc);
-
-        return _state == RemoteDataState.Success ? _data! : defaultFunc();
     }
 
     /// <summary>

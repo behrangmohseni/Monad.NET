@@ -27,7 +27,6 @@ public class ApiContractTests
     [InlineData(typeof(NonEmptyList<>))]
     [InlineData(typeof(Writer<,>))]
     [InlineData(typeof(Reader<,>))]
-    [InlineData(typeof(ReaderAsync<,>))]
     [InlineData(typeof(State<,>))]
     [InlineData(typeof(IO<>))]
     [InlineData(typeof(Unit))]
@@ -106,8 +105,6 @@ public class ApiContractTests
     [Theory]
     [InlineData("GetValue")]
     [InlineData("GetValueOr")]
-    [InlineData("GetValueOrElse")]
-    [InlineData("GetValueOrDefault")]
     [InlineData("GetOrThrow")]
     [InlineData("TryGet")]
     [InlineData("Map")]
@@ -179,8 +176,6 @@ public class ApiContractTests
     [InlineData("GetValue")]
     [InlineData("GetError")]
     [InlineData("GetValueOr")]
-    [InlineData("GetValueOrElse")]
-    [InlineData("GetValueOrDefault")]
     [InlineData("GetOrThrow")]
     [InlineData("GetErrorOrThrow")]
     [InlineData("TryGet")]
@@ -316,8 +311,6 @@ public class ApiContractTests
     [InlineData("GetException")]
     [InlineData("GetExceptionOrThrow")]
     [InlineData("GetValueOr")]
-    [InlineData("GetValueOrElse")]
-    [InlineData("GetValueOrRecover")]
     [InlineData("TryGet")]
     [InlineData("TryGetException")]
     [InlineData("Map")]
@@ -351,8 +344,6 @@ public class ApiContractTests
     [InlineData("ResultExtensions")]
     [InlineData("ValidationExtensions")]
     [InlineData("TryExtensions")]
-    [InlineData("OptionAsyncExtensions")]
-    [InlineData("ResultAsyncExtensions")]
     public void ExtensionClasses_ShouldExist(string className)
     {
         var type = MonadAssembly.GetTypes()
@@ -501,169 +492,6 @@ public class ApiContractTests
     {
         var type = typeof(Try<int>);
         Assert.True(type.GetCustomAttributes(typeof(SerializableAttribute), false).Length > 0);
-    }
-
-    #endregion
-
-    #region Collection Extension Methods
-
-    [Fact]
-    public void MonadCollectionExtensions_Choose_ShouldExist()
-    {
-        var type = typeof(MonadCollectionExtensions);
-        Assert.NotNull(type);
-        Assert.True(type.IsPublic);
-
-        var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static)
-            .Where(m => m.Name == "Choose")
-            .ToList();
-
-        Assert.NotEmpty(methods);
-    }
-
-    [Fact]
-    public void MonadCollectionExtensions_Sequence_ShouldExist()
-    {
-        var type = typeof(MonadCollectionExtensions);
-
-        var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static)
-            .Where(m => m.Name == "Sequence")
-            .ToList();
-
-        Assert.NotEmpty(methods);
-    }
-
-    [Fact]
-    public void MonadCollectionExtensions_Traverse_ShouldExist()
-    {
-        var type = typeof(MonadCollectionExtensions);
-
-        var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static)
-            .Where(m => m.Name == "Traverse")
-            .ToList();
-
-        Assert.NotEmpty(methods);
-    }
-
-    [Fact]
-    public void MonadCollectionExtensions_Partition_ShouldExist()
-    {
-        var type = typeof(MonadCollectionExtensions);
-
-        var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static)
-            .Where(m => m.Name == "Partition")
-            .ToList();
-
-        Assert.NotEmpty(methods);
-    }
-
-    [Fact]
-    public void MonadCollectionExtensions_FirstSome_ShouldExist()
-    {
-        var type = typeof(MonadCollectionExtensions);
-
-        var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static)
-            .Where(m => m.Name == "FirstSome")
-            .ToList();
-
-        Assert.NotEmpty(methods);
-    }
-
-    [Fact]
-    public void MonadCollectionExtensions_FirstOk_ShouldExist()
-    {
-        var type = typeof(MonadCollectionExtensions);
-
-        var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static)
-            .Where(m => m.Name == "FirstOk")
-            .ToList();
-
-        Assert.NotEmpty(methods);
-    }
-
-    [Fact]
-    public void MonadCollectionExtensions_CollectOk_ShouldExist()
-    {
-        var type = typeof(MonadCollectionExtensions);
-
-        var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static)
-            .Where(m => m.Name == "CollectOk")
-            .ToList();
-
-        Assert.NotEmpty(methods);
-    }
-
-    [Fact]
-    public void MonadCollectionExtensions_CollectErr_ShouldExist()
-    {
-        var type = typeof(MonadCollectionExtensions);
-
-        var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static)
-            .Where(m => m.Name == "CollectErr")
-            .ToList();
-
-        Assert.NotEmpty(methods);
-    }
-
-    [Fact]
-    public void MonadCollectionExtensions_Do_ShouldExist()
-    {
-        var type = typeof(MonadCollectionExtensions);
-
-        var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static)
-            .Where(m => m.Name == "Do")
-            .ToList();
-
-        Assert.NotEmpty(methods);
-    }
-
-    [Fact]
-    public void MonadCollectionExtensions_ForEach_ShouldExist()
-    {
-        var type = typeof(MonadCollectionExtensions);
-
-        var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static)
-            .Where(m => m.Name == "ForEach")
-            .ToList();
-
-        Assert.NotEmpty(methods);
-    }
-
-    #endregion
-
-    #region Async Extension Methods
-
-    [Theory]
-    [InlineData("MapAsync")]
-    [InlineData("BindAsync")]
-    [InlineData("FilterAsync")]
-    [InlineData("MatchAsync")]
-    [InlineData("TapAsync")]
-    public void OptionAsyncExtensions_ShouldHaveMethods(string methodName)
-    {
-        var type = MonadAssembly.GetTypes().First(t => t.Name == "OptionAsyncExtensions");
-        var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static)
-            .Where(m => m.Name == methodName)
-            .ToList();
-
-        Assert.NotEmpty(methods);
-    }
-
-    [Theory]
-    [InlineData("MapAsync")]
-    [InlineData("MapErrorAsync")]
-    [InlineData("BindAsync")]
-    [InlineData("MatchAsync")]
-    [InlineData("TapAsync")]
-    [InlineData("TapErrAsync")]
-    public void ResultAsyncExtensions_ShouldHaveMethods(string methodName)
-    {
-        var type = MonadAssembly.GetTypes().First(t => t.Name == "ResultAsyncExtensions");
-        var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static)
-            .Where(m => m.Name == methodName)
-            .ToList();
-
-        Assert.NotEmpty(methods);
     }
 
     #endregion
