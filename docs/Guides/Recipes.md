@@ -84,12 +84,11 @@ public async Task<Result<User, ApiError>> GetUserWithFallback(int userId)
     {
         // Fallback 1: Try cache
         var cacheResult = await TryGetFromCache(userId);
-        return await cacheResult.OrElseAsync(async _ =>
-        {
-            // Fallback 2: Return stale data with warning
-            return await TryGetStaleData(userId)
-                .MapAsync(user => user with { IsStale = true });
-        });
+        if (cacheResult.IsOk) return cacheResult;
+        
+        // Fallback 2: Return stale data with warning
+        var staleResult = await TryGetStaleData(userId);
+        return staleResult.Map(user => user with { IsStale = true });
     });
 }
 
@@ -129,9 +128,11 @@ public async Task<Option<User>> FindUserByEmail(string email)
 // Chaining optional queries
 public async Task<Option<OrderSummary>> GetUserOrderSummary(int userId)
 {
-    return await FindUser(userId)
-        .BindAsync(async user => await GetLatestOrder(user.Id))
-        .MapAsync(order => new OrderSummary(order.Id, order.Total));
+    var user = await FindUser(userId);
+    if (user.IsNone) return Option<OrderSummary>.None();
+    
+    var order = await GetLatestOrder(user.GetValue().Id);
+    return order.Map(o => new OrderSummary(o.Id, o.Total));
 }
 
 // Handling missing related data
@@ -145,10 +146,10 @@ public async Task<UserProfile> GetUserProfile(int userId)
         Email = user.Email,
         // Optional fields handled gracefully
         PhoneNumber = user.PhoneNumber.GetValueOr("Not provided"),
-        ProfileImage = await GetProfileImage(userId).GetValueOrAsync(defaultImage),
-        LastOrder = await GetLatestOrder(userId)
-            .MapAsync(o => o.Summary)
-            .GetValueOrAsync("No orders yet")
+        ProfileImage = (await GetProfileImage(userId)).GetValueOr(defaultImage),
+        LastOrder = (await GetLatestOrder(userId))
+            .Map(o => o.Summary)
+            .GetValueOr("No orders yet")
     };
 }
 ```
@@ -204,7 +205,7 @@ Option<User> user = FindUser(id);
 Result<User, string> result = user.OkOr("User not found");
 
 // Result → Option
-Result<int, Error> parsed = ParseInt(input);
+Result<int, Error> parsed = ValidatePositive(input);
 Option<int> value = parsed.Ok(); // Discards error
 
 // Result → Validation
@@ -229,10 +230,15 @@ Try<User> tried = user.Match(
     none: () => Try<User>.Failure(new InvalidOperationException("User not found")));
 
 // Chaining different types
-var result = await GetUserOption(id)           // Option<User>
-    .OkOrElse(() => "User not found")          // Result<User, string>
-    .BindAsync(ValidateUserAsync)              // Task<Result<ValidUser, string>>
-    .MapAsync(user => user.ToDto());           // Task<Result<UserDto, string>>
+var userOption = await GetUserOption(id);      // Option<User>
+var userResult = userOption
+    .OkOrElse(() => "User not found");         // Result<User, string>
+    
+if (userResult.IsError) 
+    return Result<UserDto, string>.Err(userResult.GetError());
+
+var validResult = await ValidateUserAsync(userResult.GetValue());
+var dtoResult = validResult.Map(user => user.ToDto());
 ```
 
 ---
@@ -320,18 +326,31 @@ public record Order(string Id, string CustomerId, Product Product, int Quantity,
 
 public async Task<Result<Order, OrderError>> ProcessOrder(OrderRequest request)
 {
-    return await ValidateRequest(request)
-        .BindAsync(req => FindCustomer(req.CustomerId))
-        .BindAsync(customer => FindProduct(request.ProductId)
-            .MapAsync(product => (customer, product)))
-        .BindAsync(pair => CheckInventory(pair.product, request.Quantity)
-            .MapAsync(available => (pair.customer, pair.product, available)))
-        .BindAsync(data => CalculatePrice(data.product, request.Quantity)
-            .MapAsync(total => (data.customer, data.product, total)))
-        .BindAsync(data => ChargePayment(data.customer, data.total)
-            .MapAsync(paymentId => CreateOrder(data.customer.Id, data.product, request.Quantity, data.total)))
-        .TapAsync(order => SendConfirmationEmail(order))
-        .TapErrAsync(error => LogOrderFailure(request, error));
+    var validated = ValidateRequest(request);
+    if (validated.IsError) return validated.MapError(e => e);
+    
+    var customer = await FindCustomer(validated.GetValue().CustomerId);
+    if (customer.IsError) return customer.MapError(e => e);
+    
+    var product = await FindProduct(request.ProductId);
+    if (product.IsError) return product.MapError(e => e);
+    
+    var inventory = await CheckInventory(product.GetValue(), request.Quantity);
+    if (inventory.IsError) return inventory.MapError(e => e);
+    
+    var price = await CalculatePrice(product.GetValue(), request.Quantity);
+    if (price.IsError) return price.MapError(e => e);
+    
+    var payment = await ChargePayment(customer.GetValue(), price.GetValue());
+    if (payment.IsError)
+    {
+        LogOrderFailure(request, payment.GetError());
+        return payment.MapError(e => e);
+    }
+    
+    var order = CreateOrder(customer.GetValue().Id, product.GetValue(), request.Quantity, price.GetValue());
+    await SendConfirmationEmail(order);
+    return Result<Order, OrderError>.Ok(order);
 }
 
 // Each step returns Result<T, OrderError>
@@ -366,19 +385,22 @@ var sendWelcome = Reader<AppServices, Task<Unit>>.From(
         return Unit.Default;
     });
 
-// Compose with LINQ
-var welcomeNewUser = 
-    from user in getUser.ToAsync()
-    from _ in ReaderAsync<AppServices, Unit>.From(async svc => {
-        await svc.Email.SendWelcomeAsync(user.Email);
-        svc.Logger.LogInformation("Welcome email sent to {Email}", user.Email);
-        return Unit.Default;
-    })
-    select user;
+// Compose readers
+var welcomeNewUser = getUser.Bind(user =>
+    Reader<AppServices, User>.From(svc => {
+        // Note: For async operations, run the reader first, then await
+        svc.Logger.LogInformation("Processing user {Email}", user.Result.Email);
+        return user;
+    }));
 
 // Run with environment
 var services = new AppServices(userRepo, emailService, logger);
-var user = await welcomeNewUser.RunAsync(services);
+var userTask = getUser.Run(services);
+var user = await userTask;
+
+// Then send welcome email
+await services.Email.SendWelcomeAsync(user.Email);
+services.Logger.LogInformation("Welcome email sent to {Email}", user.Email);
 ```
 
 ---
@@ -508,13 +530,15 @@ var missing = config.GetOption("not_exists");        // None
 
 // Chain with parsing
 var timeout = config.GetOption("timeout")
-    .Bind(s => s.ParseInt())
+    .Bind(s => int.TryParse(s, out var t) ? Option<int>.Some(t) : Option<int>.None())
     .Map(t => TimeSpan.FromSeconds(t))
     .GetValueOr(TimeSpan.FromSeconds(10));
 
 // Multiple optional config values
+var portOption = config.GetOption("port")
+    .Bind(s => int.TryParse(s, out var p) ? Option<int>.Some(p) : Option<int>.None());
 var serverConfig = config.GetOption("host")
-    .Zip(config.GetOption("port").Bind(s => s.ParseInt()))
+    .Zip(portOption)
     .Map(pair => new ServerConfig(pair.Item1, pair.Item2));
 
 ```
@@ -538,11 +562,15 @@ Option<int> ageOption = nullableAge.ToOption();
 Option<string> validName = input.ToOptionNotWhiteSpace();
 Option<string> trimmedName = input.ToOptionTrimmed();
 
-// Parsing with Option
-Option<int> parsedInt = "42".ParseInt();
-Option<Guid> parsedGuid = "550e8400-e29b-41d4-a716-446655440000".ParseGuid();
-Option<DateTime> parsedDate = "2024-01-15".ParseDateTime();
-Option<DayOfWeek> parsedEnum = "Monday".ParseEnum<DayOfWeek>();
+// Parsing with standard C# patterns  
+Option<int> parsedInt = int.TryParse("42", out var i) 
+    ? Option<int>.Some(i) : Option<int>.None();
+Option<Guid> parsedGuid = Guid.TryParse("550e8400-e29b-41d4-a716-446655440000", out var g) 
+    ? Option<Guid>.Some(g) : Option<Guid>.None();
+Option<DateTime> parsedDate = DateTime.TryParse("2024-01-15", out var d) 
+    ? Option<DateTime>.Some(d) : Option<DateTime>.None();
+Option<DayOfWeek> parsedEnum = Enum.TryParse<DayOfWeek>("Monday", out var e) 
+    ? Option<DayOfWeek>.Some(e) : Option<DayOfWeek>.None();
 
 // From object graph
 User? user = GetUser();

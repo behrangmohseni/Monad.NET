@@ -1,6 +1,6 @@
-# Monad.NET API Comparison for V2.0 Planning
+# Monad.NET API Comparison - V2.0 Changes
 
-This document provides a comprehensive comparison of all APIs across all monad types in Monad.NET to identify inconsistencies and plan for V2.0 API simplification.
+This document provides a comprehensive comparison of APIs showing what changed in Monad.NET V2.0. Methods marked with ~~strikethrough~~ were removed in V2.0.
 
 ---
 
@@ -60,27 +60,31 @@ This document provides a comprehensive comparison of all APIs across all monad t
 
 ### With Default Value (V2.0)
 
-| Type | GetValueOr | GetValueOrElse | GetValueOrDefault |
+| Type | GetValueOr | ~~GetValueOrElse~~ | ~~GetValueOrDefault~~ |
 |------|------------|----------------|-------------------|
-| **Option\<T\>** | `GetValueOr(T)` | `GetValueOrElse(Func<T>)` | `GetValueOrDefault()` |
-| **Result\<T,E\>** | `GetValueOr(T)` | `GetValueOrElse(Func<E,T>)` | `GetValueOrDefault()` |
+| **Option\<T\>** | `GetValueOr(T)` | ~~Removed~~ - use `Match()` | ~~Removed~~ |
+| **Result\<T,E\>** | `GetValueOr(T)` | ~~Removed~~ - use `Match()` | ~~Removed~~ |
 | **Validation\<T,E\>** | `GetValueOr(T)` | - | - |
-| **Try\<T\>** | `GetValueOr(T)` | `GetValueOrElse(Func<T>)`, `GetValueOrRecover(Func<Ex,T>)` | - |
-| **RemoteData\<T,E\>** | `GetValueOr(T)` | `GetValueOrElse(Func<T>)` | - |
+| **Try\<T\>** | `GetValueOr(T)` | ~~Removed~~ - use `Match()` | - |
+| **RemoteData\<T,E\>** | `GetValueOr(T)` | ~~Removed~~ - use `Match()` | - |
 
-### With Custom Message (V2.0 - GetOrThrow pattern)
+> **V2.0 Migration:** Replace `GetValueOrElse(func)` with `Match(x => x, func)` for lazy evaluation.
 
-| Type | GetOrThrow Value | GetOrThrow Error |
-|------|------------------|------------------|
-| **Option\<T\>** | `GetOrThrow(string)` | - |
-| **Result\<T,E\>** | `GetOrThrow(string)` | `GetErrorOrThrow(string)` |
-| **Validation\<T,E\>** | `GetOrThrow(string)` | `GetErrorsOrThrow(string)` |
-| **Try\<T\>** | `GetOrThrow(string)` | `GetExceptionOrThrow(string)` |
+### GetOrThrow Pattern (V2.0)
+
+| Type | GetOrThrow() | ~~GetOrThrow(msg)~~ |
+|------|--------------|-----------------|
+| **Option\<T\>** | `GetOrThrow()` | ~~Removed~~ |
+| **Result\<T,E\>** | `GetOrThrow()` | ~~Removed~~ |
+| **Validation\<T,E\>** | `GetOrThrow()` | ~~Removed~~ |
+| **Try\<T\>** | `GetOrThrow()` | ~~Removed~~ |
 | **RemoteData\<T,E\>** | - | - |
 
-### C# Idiomatic (GetOrThrow pattern)
+> **V2.0 Migration:** Use `GetOrThrow()` which provides a descriptive message automatically.
 
-| Type | GetOrThrow() | GetOrThrow(msg) | GetErrorOrThrow() | GetErrorOrThrow(msg) |
+### C# Idiomatic TryGet Pattern (V2.0)
+
+| Type | TryGet() | TryGetError() |
 |------|--------------|-----------------|-------------------|----------------------|
 | **Option\<T\>** | ✅ | ✅ | - | - |
 | **Result\<T,E\>** | ✅ | ✅ | ✅ | ✅ |
@@ -312,22 +316,23 @@ All types consistently have Match, but parameter naming varies with the type sem
 
 ---
 
-## 14. Async Extensions
+## 14. Async Extensions (V2.0)
 
-| Type | MapAsync | AndThenAsync / FlatMapAsync | Other Async |
-|------|----------|----------------------------|-------------|
-| **Option\<T\>** | ❌ | ❌ | ❌ |
-| **Result\<T,E\>** | ✅ | ✅ | `OrElseAsync`, `MatchAsync` |
-| **Validation\<T,E\>** | ✅ | ❌ | `ApplyAsync`, `ZipAsync`, `CombineAsync` |
-| **Try\<T\>** | ✅ | ✅ | ❌ |
-| **RemoteData\<T,E\>** | ✅ | ❌ | `FromTaskAsync` |
+| Type | MapAsync | BindAsync | Notes |
+|------|----------|-----------|-------|
+| **Option\<T\>** | ~~Removed~~ | ~~Removed~~ | Use standard async/await |
+| **Result\<T,E\>** | ~~Removed~~ | ~~Removed~~ | Use standard async/await |
+| **Validation\<T,E\>** | ✅ | - | For async validation logic |
+| **Try\<T\>** | ✅ | ✅ | For exception-prone async ops |
+| **RemoteData\<T,E\>** | ✅ | - | For UI state transformations |
 | **IO\<T\>** | - | - | `RunAsync`, `ToAsync` |
 | **IOAsync\<T\>** | ✅ | ✅ | Full async support |
-| **Reader\<R,A\>** | - | - | `ToAsync()` → `ReaderAsync` |
+| **Reader\<R,A\>** | - | - | ~~ReaderAsync removed~~ |
 
-### Inconsistency
-- `Option` completely missing async support
-- Inconsistent async method availability
+### V2.0 Changes
+- Removed ~150 async extension methods for cleaner API
+- `Option<T>` and `Result<T,E>` async extensions removed - use explicit async/await
+- `ReaderAsync<R,A>` type removed entirely
 
 ---
 
@@ -418,7 +423,7 @@ Multiple names for creating a "successful" value:
 
 **Issue**: `Try` uses `GetOrElse` while all other types use `UnwrapOr/UnwrapOrElse`.
 
-**Recommendation**: Standardize on `GetValueOr` / `GetValueOrElse` for all types (C#-idiomatic, similar to `GetValueOrDefault`).
+**V2.0 Resolution**: Standardized on `GetValueOr(T)` only. `GetValueOrElse` and `GetValueOrDefault` were removed - use `Match()` for lazy evaluation.
 
 ### 15.5 Expect vs GetOrThrow
 
@@ -469,7 +474,7 @@ Same operation, different names for Option → Result conversion:
 | State, IO | `Pure` | `Return` | C# convention |
 | IO | `Delay` | `Of` | Redundant alias |
 | All types | `Unwrap()` | `GetValue()` | C#-idiomatic naming |
-| All types | `UnwrapOr/UnwrapOrElse` | `GetValueOr/GetValueOrElse` | Matches `GetValueOrDefault` pattern |
+| All types | `UnwrapOr/UnwrapOrElse` | `GetValueOr` | ~~GetValueOrElse removed~~ - use `Match()` |
 | All types | `Expect(msg)` | `GetOrThrow(msg)` | C#-idiomatic, explicit |
 | All types | `UnwrapErr`, `UnwrapError` | `GetError()` | C#-idiomatic naming |
 | All types | `MapErr` | `MapError` | Full word, C# style |
@@ -511,13 +516,13 @@ If removing methods is too breaking, consider:
 | `Unwrap()` | `GetValue()` | Option, Result, Validation, Try, RemoteData |
 | `Get()` | `GetValue()` | Try (was duplicate) |
 | `UnwrapOr(T)` | `GetValueOr(T)` | Option, Result, Validation, Try, RemoteData |
-| `UnwrapOrElse(Func)` | `GetValueOrElse(Func)` | Option, Result, Try, RemoteData |
+| `UnwrapOrElse(Func)` | ~~Removed~~ | Use `Match()` for lazy evaluation |
 | `GetOrElse(T)` | `GetValueOr(T)` | Try (naming alignment) |
-| `GetOrElse(Func<T>)` | `GetValueOrElse(Func<T>)` | Try (naming alignment) |
-| `GetOrElse(Func<Ex,T>)` | `GetValueOrRecover(Func<Ex,T>)` | Try (distinct from `Recover`) |
-| `UnwrapOrDefault()` | `GetValueOrDefault()` | Option, Result |
-| `Expect(msg)` | `GetOrThrow(msg)` | Option, Result, Validation, Try |
-| `UnwrapOrElseAsync` | `GetValueOrElseAsync` | OptionAsync, ResultAsync |
+| `GetOrElse(Func<T>)` | ~~Removed~~ | Use `Match()` for lazy evaluation |
+| `GetOrElse(Func<Ex,T>)` | ~~Removed~~ | Use `Match()` for recovery |
+| `UnwrapOrDefault()` | ~~Removed~~ | Use `GetValueOr(default)` |
+| `Expect(msg)` | ~~Removed~~ | Use `GetOrThrow()` (provides good default message) |
+| `UnwrapOrElseAsync` | ~~Removed~~ | Async extensions simplified in v2.0 |
 
 ### 3. Error Extraction Renamed
 
@@ -536,11 +541,10 @@ If removing methods is too breaking, consider:
 | IO | `Pure`, `Delay` | `Return`, `Of` |
 | IOAsync | `Pure` | `Return` |
 | Reader | `Pure` | `Return` |
-| ReaderAsync | `Pure` | `Return` |
+| ~~ReaderAsync~~ | ~~Removed~~ | Type removed in v2.0 |
 | StringWriter | `Pure` | `Return` |
 | ListWriter | `Pure` | `Return` |
 | ReaderExtensions | `Pure` | `Return` |
-| ReaderAsyncExtensions | `Pure` | `Return` |
 
 ### 6. Error Mapping Renamed
 
@@ -582,9 +586,9 @@ If removing methods is too breaking, consider:
 | Monadic bind | `FlatMap`, `AndThen` | `Bind` | Aligns with LINQ's `SelectMany` |
 | Value lifting | `Pure` | `Return` | C# convention |
 | Get value (throws) | `Unwrap()` | `GetValue()` | Explicit, discoverable |
-| Get value or default | `UnwrapOr(T)` | `GetValueOr(T)` | Matches `GetValueOrDefault` |
-| Get value or compute | `UnwrapOrElse(Func)` | `GetValueOrElse(Func)` | Consistent with above |
-| Get with message | `Expect(msg)` | `GetOrThrow(msg)` | Explicit about throwing |
+| Get value or default | `UnwrapOr(T)` | `GetValueOr(T)` | Direct value fallback |
+| Get value or compute | `UnwrapOrElse(Func)` | `Match()` | Lazy evaluation via pattern matching |
+| Get with message | `Expect(msg)` | `GetOrThrow()` | Auto-generates descriptive message |
 | Get error | `UnwrapErr()`, `UnwrapError()` | `GetError()` | Clean, consistent |
 | Map error | `MapErr` | `MapError` | Full word, readable |
 
@@ -592,7 +596,7 @@ If removing methods is too breaking, consider:
 
 1. **Use full words** - `GetError` not `GetErr`, `MapError` not `MapErr`
 2. **Explicit behavior in name** - `GetOrThrow` makes it clear an exception is thrown
-3. **Match BCL patterns** - `GetValueOrDefault`, `TryGet`, `OrDefault` patterns
+3. **Match BCL patterns** - `TryGet`, `GetValueOr` patterns
 4. **Verb-Noun structure** - `GetValue`, `GetError`, `MapError`
 5. **Consistent prefixes** - All value extraction starts with `Get`
 
@@ -602,9 +606,9 @@ If removing methods is too breaking, consider:
 // Value extraction
 GetValue()                          // throws if not success
 GetValueOr(T default)               // returns default if not success  
-GetValueOrElse(Func<T>)             // computes default if not success
-GetValueOrDefault()                 // returns default(T) if not success
-GetOrThrow(string msg)              // throws with custom message
+Match(ok, err)                      // lazy evaluation via pattern matching
+GetOrThrow()                        // throws with descriptive message
+TryGet(out T value)                 // C# idiomatic pattern
 
 // Error extraction (for types with errors)
 GetError()                          // throws if success

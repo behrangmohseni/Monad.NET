@@ -18,7 +18,6 @@ Complete API documentation for Monad.NET.
 - [NonEmptyList\<T\>](#nonemptylistt)
 - [Writer\<W, T\>](#writerw-t)
 - [Reader\<R, A\>](#readerr-a)
-- [ReaderAsync\<R, A\>](#readerasyncr-a)
 - [State\<S, A\>](#states-a)
 - [IO\<T\>](#iot)
 - [Collection Extensions](#collection-extensions)
@@ -43,7 +42,6 @@ These types are proven patterns from functional programming. Here's the lineage:
 | `NonEmptyList<T>` | — | — | `NonEmpty a` |
 | `Writer<W, T>` | — | — | `Writer w a` |
 | `Reader<R, A>` | — | — | `Reader r a` |
-| `ReaderAsync<R, A>` | — | — | `ReaderT IO r a` |
 | `State<S, A>` | — | — | `State s a` |
 | `IO<T>` | — | — | `IO a` |
 | `IO<T>` | `Async<'T>` | `Future<T>` | `IO a` |
@@ -76,10 +74,7 @@ Represents an optional value - either `Some(value)` or `None`.
 |--------|-------------|-------------|
 | `GetValue()` | `T` | Gets value or throws |
 | `GetOrThrow()` | `T` | Gets value or throws (alias) |
-| `GetOrThrow(string message)` | `T` | Gets value or throws with message |
 | `GetValueOr(T default)` | `T` | Gets value or returns default |
-| `GetValueOrElse(Func<T>)` | `T` | Gets value or computes default |
-| `GetValueOrDefault()` | `T?` | Gets value or default(T) |
 | `TryGet(out T? value)` | `bool` | C#-style TryGet pattern |
 | `Contains(T value)` | `bool` | True if Some and contains value |
 | `Exists(Func<T, bool>)` | `bool` | True if Some and predicate passes |
@@ -148,21 +143,6 @@ Represents an optional value - either `Some(value)` or `None`.
 | `ToOptionNotWhiteSpace(this string?)` | None if null, empty, or whitespace |
 | `ToOptionTrimmed(this string?)` | Trimmed value or None if empty |
 
-#### Parse Conversions
-
-| Method | Description |
-|--------|-------------|
-| `ParseInt(this string?)` | Parse as int |
-| `ParseLong(this string?)` | Parse as long |
-| `ParseDouble(this string?)` | Parse as double |
-| `ParseDecimal(this string?)` | Parse as decimal |
-| `ParseBool(this string?)` | Parse as bool |
-| `ParseGuid(this string?)` | Parse as Guid |
-| `ParseDateTime(this string?)` | Parse as DateTime |
-| `ParseDateTimeOffset(this string?)` | Parse as DateTimeOffset |
-| `ParseTimeSpan(this string?)` | Parse as TimeSpan |
-| `ParseEnum<TEnum>(this string?, bool ignoreCase)` | Parse as enum |
-
 #### Collection Lookups
 
 | Method | Description |
@@ -173,17 +153,6 @@ Represents an optional value - either `Some(value)` or `None`.
 | `LastOption<T>(this IEnumerable<T>)` | Last element or None |
 | `SingleOption<T>(this IEnumerable<T>)` | Single element or None |
 | `ElementAtOption<T>(this IEnumerable<T>, int)` | Element at index or None |
-
-### Async Extensions
-
-| Method | Description |
-|--------|-------------|
-| `MapAsync<U>(Func<T, Task<U>>)` | Async map |
-| `BindAsync<U>(Func<T, Task<Option<U>>>)` | Async chain |
-| `FilterAsync(Func<T, Task<bool>>)` | Async filter |
-| `MatchAsync<U>(someFunc, noneFunc)` | Async pattern match |
-| `OrElseAsync(Func<Task<Option<T>>>)` | Returns Some if present, otherwise computes async alternative |
-| `OrAsync(Option<T>)` | Returns Some if present, otherwise returns alternative (on Task<Option<T>>) |
 
 ### Operators
 
@@ -223,9 +192,7 @@ Represents success (`Ok`) or failure (`Err`).
 | `GetValue()` | `T` | Gets value or throws |
 | `GetError()` | `E` | Gets error or throws |
 | `GetOrThrow()` | `T` | Gets value or throws (alias) |
-| `GetOrThrow(string)` | `T` | Gets value or throws with message |
 | `GetValueOr(T)` | `T` | Gets value or returns default |
-| `GetValueOrElse(Func<E, T>)` | `T` | Gets value or computes from error |
 | `TryGet(out T? value)` | `bool` | C#-style TryGet pattern |
 | `TryGetError(out E? error)` | `bool` | C#-style TryGet for error |
 | `Map<U>(Func<T, U>)` | `Result<U, E>` | Transforms the Ok value |
@@ -262,15 +229,6 @@ Represents success (`Ok`) or failure (`Err`).
 |--------|-------------|
 | `ThrowIfErr<T, E>(this Result<T, E>, Exception)` | Returns value if Ok, throws exception if Err |
 | `ThrowIfErr<T, E>(this Result<T, E>, Func<E, Exception>)` | Returns value if Ok, throws factory(err) if Err |
-
-### Async Extensions
-
-| Method | Description |
-|--------|-------------|
-| `MapAsync<U>(Func<T, Task<U>>)` | Async map |
-| `MapErrorAsync<F>(Func<E, Task<F>>)` | Async error map |
-| `BindAsync<U>(Func<T, Task<Result<U, E>>>)` | Async chain |
-| `TapAsync(Func<T, Task>)` | Async side effect |
 
 ### Operators
 
@@ -377,8 +335,6 @@ Captures exceptions as values.
 | `GetValue()` | `T` | Gets value or throws |
 | `GetException()` | `Exception` | Gets exception or throws |
 | `GetValueOr(T)` | `T` | Gets value or default |
-| `GetValueOrElse(Func<T>)` | `T` | Gets value or computes |
-| `GetValueOrRecover(Func<Exception, T>)` | `T` | Gets value or computes from exception |
 | `TryGet(out T? value)` | `bool` | C#-style TryGet pattern |
 | `TryGetException(out Exception? ex)` | `bool` | C#-style TryGet for exception |
 | `Map<U>(Func<T, U>)` | `Try<U>` | Transforms value |
@@ -405,8 +361,8 @@ Captures exceptions as values.
 Try supports LINQ query syntax:
 
 ```csharp
-var result = from x in Try<int>.Of(() => ParseInt("42"))
-             from y in Try<int>.Of(() => ParseInt("10"))
+var result = from x in Try<int>.Of(() => int.Parse("42"))
+             from y in Try<int>.Of(() => int.Parse("10"))
              where x > 0
              select x + y;
 ```
@@ -586,77 +542,7 @@ Computations depending on environment.
 | `WithEnvironment<R2>(Func<R2, R>)` | `Reader<R2, A>` | Transforms environment |
 | `Tap(Action<A>)` | `Reader<R, A>` | Executes action with result |
 | `TapEnv(Action<R>)` | `Reader<R, A>` | Executes action with environment |
-| `ToAsync()` | `ReaderAsync<R, A>` | Converts to async Reader |
-
----
-
-## ReaderAsync\<R, A\>
-
-Asynchronous computations depending on environment.
-
-> **Inspired by:** Haskell's `Reader r a` combined with async/effect handling, F#'s FSharpPlus
-
-### Constructors
-
-| Method | Description |
-|--------|-------------|
-| `From(Func<R, Task<A>>)` | Creates from async function |
-| `FromReader(Reader<R, A>)` | Creates from sync Reader |
-| `Pure(A value)` | Creates constant value |
-| `Ask()` | Returns environment itself |
-| `Asks(Func<R, A>)` | Extracts from environment (sync) |
-| `AsksAsync(Func<R, Task<A>>)` | Extracts from environment (async) |
-
-### Methods
-
-| Method | Return Type | Description |
-|--------|-------------|-------------|
-| `RunAsync(R environment, CancellationToken)` | `Task<A>` | Executes with environment |
-| `Map<B>(Func<A, B>)` | `ReaderAsync<R, B>` | Transforms result |
-| `MapAsync<B>(Func<A, Task<B>>)` | `ReaderAsync<R, B>` | Transforms result async |
-| `Bind<B>(Func<A, ReaderAsync<R, B>>)` | `ReaderAsync<R, B>` | Chains operations |
-| `BindAsync<B>(Func<A, Task<ReaderAsync<R, B>>>)` | `ReaderAsync<R, B>` | Chains with async binder |
-| `Tap(Action<A>)` | `ReaderAsync<R, A>` | Executes action with result |
-| `TapAsync(Func<A, Task>)` | `ReaderAsync<R, A>` | Executes async action with result |
-| `TapEnv(Action<R>)` | `ReaderAsync<R, A>` | Executes action with environment |
-| `TapEnvAsync(Func<R, Task>)` | `ReaderAsync<R, A>` | Executes async action with environment |
-| `WithEnvironment<R2>(Func<R2, R>)` | `ReaderAsync<R2, A>` | Transforms environment |
-| `WithEnvironmentAsync<R2>(Func<R2, Task<R>>)` | `ReaderAsync<R2, A>` | Transforms environment async |
-| `Zip<B, C>(ReaderAsync<R, B>, Func<A, B, C>)` | `ReaderAsync<R, C>` | Combines with function |
-| `Zip<B>(ReaderAsync<R, B>)` | `ReaderAsync<R, (A, B)>` | Combines into tuple |
-| `Attempt()` | `ReaderAsync<R, Try<A>>` | Wraps result in Try |
-| `OrElse(ReaderAsync<R, A>)` | `ReaderAsync<R, A>` | Fallback reader on exception |
-| `OrElse(A fallbackValue)` | `ReaderAsync<R, A>` | Fallback value on exception |
-| `Retry(int retries)` | `ReaderAsync<R, A>` | Retries on failure |
-| `RetryWithDelay(int retries, TimeSpan delay)` | `ReaderAsync<R, A>` | Retries with delay |
-| `Void()` | `ReaderAsync<R, Unit>` | Ignores result |
-
-### Static Helper Methods (ReaderAsync class)
-
-| Method | Description |
-|--------|-------------|
-| `ReaderAsync.From<R, A>(func)` | Create from async function |
-| `ReaderAsync.FromReader<R, A>(reader)` | Create from sync Reader |
-| `ReaderAsync.Pure<R, A>(value)` | Create pure value |
-| `ReaderAsync.Ask<R>()` | Get environment |
-| `ReaderAsync.Asks<R, A>(selector)` | Extract from environment (sync) |
-| `ReaderAsync.AsksAsync<R, A>(selector)` | Extract from environment (async) |
-| `ReaderAsync.Parallel(r1, r2)` | Run two readers in parallel |
-| `ReaderAsync.Parallel(r1, r2, r3)` | Run three readers in parallel |
-| `ReaderAsync.Parallel(readers)` | Run collection in parallel |
-
-### Extension Methods (ReaderAsyncExtensions)
-
-| Method | Description |
-|--------|-------------|
-| `Select(f)` | LINQ map |
-| `SelectMany(f)` | LINQ flatMap |
-| `SelectMany(f, resultSelector)` | LINQ flatMap with result selector |
-| `Sequence(this IEnumerable<ReaderAsync<R, A>>)` | Sequential execution |
-| `SequenceParallel(this IEnumerable<ReaderAsync<R, A>>)` | Parallel execution |
-| `Traverse(items, selector)` | Map and sequence |
-| `TraverseParallel(items, selector)` | Map and parallel sequence |
-| `Flatten(this ReaderAsync<R, ReaderAsync<R, A>>)` | Flatten nested |
+| `Zip<B, C>(Reader<R, B>, Func<A, B, C>)` | `Reader<R, C>` | Combines with function |
 
 ---
 
@@ -958,7 +844,6 @@ var result = FindUser(id)
 | `Writer<W,T>` | Yes | Yes (string, List<T>) | — |
 | `State<S,A>` | Yes | Yes | — |
 | `IO<T>` | Yes | Yes | — |
-| `ReaderAsync<R,A>` | Yes | Yes | — |
 
 ---
 

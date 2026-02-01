@@ -29,7 +29,7 @@ Monad.NET is designed with performance in mind:
 | `[MethodImpl(AggressiveInlining)]` | Eliminates call overhead on hot paths |
 | No boxing of value types | Avoids GC pressure |
 | `ConfigureAwait(false)` | Optimal async performance |
-| Lazy evaluation (`GetValueOrElse`) | Avoids unnecessary computations |
+| Lazy evaluation via `Match()` | Avoids unnecessary computations |
 
 ---
 
@@ -216,20 +216,25 @@ return Result<T, Error>.Err(new Error("Invalid input"));
 
 ## Async Operations
 
-### Benchmark: Async Result Pipeline
+### Benchmark: Async Try Pipeline
 
 ```csharp
-// Async Result pipeline
-var result = await GetUserAsync(id)
+// Async Try pipeline (MapAsync available on Try<T>)
+var result = await Try<User>.OfAsync(() => GetUserAsync(id))
     .MapAsync(user => GetProfileAsync(user.Id))
-    .MapAsync(profile => profile.Email);
+    .Map(profile => profile.Email);
 
-// Traditional async with null checks
-var user = await GetUserAsync(id);
-if (user == null) return null;
-var profile = await GetProfileAsync(user.Id);
-if (profile == null) return null;
-return profile.Email;
+// Traditional async with try/catch
+try
+{
+    var user = await GetUserAsync(id);
+    var profile = await GetProfileAsync(user.Id);
+    return profile.Email;
+}
+catch (Exception ex)
+{
+    return null;
+}
 ```
 
 ### Results
@@ -550,8 +555,7 @@ We compared direct method calls (with AggressiveInlining) against wrapper method
 | **Factory** | Option.None | 2.1 μs | 6.4 μs | **3.1x** |
 | **Factory** | Result.Ok | 2.1 μs | 9.1 μs | **4.2x** |
 | **Value Access** | GetValueOr | 6.8 μs | 12.2 μs | **1.8x** |
-| **Value Access** | GetValueOrDefault | 6.3 μs | 15.2 μs | **2.5x** |
-| **Conditional** | GetValueOrElse | 6.7 μs | 16.1 μs | **2.4x** |
+| **Value Access** | TryGet | 6.3 μs | 15.2 μs | **2.5x** |
 | **Transform** | Map | 4.4 μs | 12.8 μs | **2.9x** |
 | **Transform** | Filter | 5.3 μs | 13.5 μs | **2.6x** |
 | **Chaining** | Bind | 7.2 μs | 14.5 μs | **2.0x** |

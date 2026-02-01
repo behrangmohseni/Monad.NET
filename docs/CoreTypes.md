@@ -12,7 +12,6 @@ This document provides detailed documentation for all monad types in Monad.NET.
 - [NonEmptyList\<T\>](#nonemptylistt)
 - [Writer\<W, T\>](#writerw-t)
 - [Reader\<R, A\>](#readerr-a)
-- [ReaderAsync\<R, A\>](#readerasyncr-a)
 - [State\<S, A\>](#states-a)
 - [IO\<T\>](#iot)
 
@@ -44,7 +43,7 @@ var chained = some.Bind(x => LookupValue(x));       // Chains Option-returning f
 
 // Extraction
 var value = some.GetValueOr(0);                          // 42
-var computed = none.GetValueOrElse(() => ComputeDefault()); // Lazy evaluation
+var computed = none.Match(x => x, () => ComputeDefault()); // Lazy evaluation
 
 // TryGet pattern (familiar C# idiom)
 if (some.TryGet(out var result))
@@ -361,108 +360,11 @@ var result = workflow.Run(services);
 var debugReader = Reader<AppServices, string>.Asks(s => s.Users.GetName())
     .Tap(name => Console.WriteLine($"Got user: {name}"))
     .TapEnv(env => Console.WriteLine($"Using logger: {env.Logger}"));
-
-// Convert to async
-var asyncReader = reader.ToAsync();
 ```
 
-**Methods:** `Map`, `Bind`, `Tap`, `TapEnv`, `WithEnvironment`, `ToAsync`
+**Methods:** `Map`, `Bind`, `Tap`, `TapEnv`, `WithEnvironment`, `Zip`
 
 **When to use:** Passing configuration/services through call chains without parameter drilling.
-
----
-
-## ReaderAsync\<R, A\>
-
-Asynchronous computations that depend on a shared environment. The async variant of `Reader<R, A>`.
-
-**Inspired by:** Haskell `ReaderT r IO a`, Scala Cats Effect `Kleisli[IO, R, A]`
-
-```csharp
-// Define your environment
-public record AppServices(
-    IUserRepository Users,
-    IEmailService Email,
-    ILogger Logger
-);
-
-// Build async computations that depend on services
-var getUser = ReaderAsync<AppServices, User>.From(async services =>
-    await services.Users.FindAsync(userId));
-
-// Compose async readers using LINQ
-var program = 
-    from user in getUser
-    from orders in ReaderAsync<AppServices, List<Order>>.From(async s =>
-        await s.Users.GetOrdersAsync(user.Id))
-    select new UserWithOrders(user, orders);
-
-// Execute with environment
-var services = new AppServices(userRepo, emailService, logger);
-var result = await program.RunAsync(services);
-
-// Extract values from environment asynchronously
-var userCount = ReaderAsync<AppServices, int>.AsksAsync(async s => 
-    await s.Users.CountAsync());
-
-// Error handling with Attempt
-var safe = getUser.Attempt();  // ReaderAsync<AppServices, Try<User>>
-
-// Retry with delay
-var resilient = getUser.RetryWithDelay(retries: 3, delay: TimeSpan.FromSeconds(1));
-
-// Parallel execution
-var parallel = ReaderAsync.Parallel(getUser, getOrders);
-// → ReaderAsync<AppServices, (User, List<Order>)>
-
-// Side effects
-var logged = getUser
-    .Tap(user => Console.WriteLine($"Found: {user.Name}"))
-    .TapAsync(async user => await LogAsync(user))
-    .TapEnv(env => Console.WriteLine($"Using: {env.Logger}"));
-
-// Transform environment
-var narrowed = getUser.WithEnvironment<LargerServices>(larger => larger.App);
-```
-
-**Factory Methods:**
-- `From(Func<R, Task<A>>)` — Create from async function
-- `FromReader(Reader<R, A>)` — Convert from sync Reader
-- `Pure(value)` — Constant value, ignores environment
-- `Ask()` — Returns the environment itself
-- `Asks(selector)` — Extract value from environment (sync)
-- `AsksAsync(selector)` — Extract value from environment (async)
-
-**Composition:**
-- `Map(f)` / `MapAsync(f)` — Transform the result
-- `Bind(f)` / `BindAsync(f)` — Chain computations
-- `Zip(other)` / `Zip(other, combiner)` — Combine two readers
-- `Tap(action)` / `TapAsync(action)` — Side effects with result
-- `TapEnv(action)` / `TapEnvAsync(action)` — Side effects with environment
-
-**Error Handling:**
-- `Attempt()` — Returns `ReaderAsync<R, Try<A>>`
-- `OrElse(fallback)` — Use fallback reader on exception
-- `OrElse(value)` — Use fallback value on exception
-- `Retry(n)` — Retry n times on failure
-- `RetryWithDelay(n, delay)` — Retry with delay between attempts
-
-**Environment Transformation:**
-- `WithEnvironment<R2>(transform)` — Transform environment type
-- `WithEnvironmentAsync<R2>(transform)` — Async environment transformation
-
-**Parallel Execution:**
-- `ReaderAsync.Parallel(r1, r2)` — Run two readers in parallel
-- `ReaderAsync.Parallel(r1, r2, r3)` — Run three readers in parallel
-- `ReaderAsync.Parallel(readers)` — Run collection in parallel
-
-**Collection Operations:**
-- `readers.Sequence()` — Sequential execution
-- `readers.SequenceParallel()` — Parallel execution
-- `items.Traverse(selector)` — Map and sequence
-- `items.TraverseParallel(selector)` — Map and parallel sequence
-
-**When to use:** Async dependency injection, database access, HTTP clients, any async computation that depends on shared services.
 
 ---
 
@@ -630,7 +532,7 @@ var fastest = IO.Race(
 
 **Utility:**
 - `Replicate(n)` — Repeat effect n times, collect results
-- `ToAsync()` — Convert to `IOAsync<T>`
+- `ToAsync()` — Convert to `IOAsync<T>` for native async operations
 
 **When to use:** Deferring side effects, functional core/imperative shell pattern, testable IO operations, building DSLs, composing effectful computations.
 

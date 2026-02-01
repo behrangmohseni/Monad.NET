@@ -71,7 +71,7 @@ var mapped = opt.Map(x => x * 2);
 var bound = opt.Bind(x => Option<int>.Some(x + 1));
 var filtered = opt.Filter(x => x > 0);
 var value = opt.GetValueOr(0);
-var value2 = opt.GetValueOrElse(() => ComputeDefault());
+var value2 = opt.Match(x => x, () => ComputeDefault()); // Lazy evaluation
 ```
 
 #### Either → Result
@@ -158,7 +158,7 @@ var result = from user in GetUser(id)
 
 2. **Naming conventions**:
    - `Bind` → `Bind` (same in Monad.NET v2.0)
-   - `IfNone` → `GetValueOr` / `GetValueOrElse`
+   - `IfNone` → `GetValueOr` or `Match()` for lazy evaluation
    - `Match(Some:, None:)` → `Match(some:, none:)`
 
 3. **No Prelude class**: Monad.NET doesn't use static imports like `Some(42)`. Instead use `Option<int>.Some(42)` or extension methods like `42.ToOption()`.
@@ -370,7 +370,7 @@ Begin by migrating `Option` and `Result` usages first. These are the most common
 Some common replacements:
 ```
 Bind(          →  Bind(
-IfNone(        →  GetValueOr( or GetValueOrElse(
+IfNone(        →  GetValueOr( or Match(x => x, () =>
 Match(Some:    →  Match(some:
 Match(None:    →  Match(none:
 Match(Succ:    →  Match(success:
