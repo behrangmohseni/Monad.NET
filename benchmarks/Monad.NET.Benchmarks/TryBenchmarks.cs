@@ -57,13 +57,13 @@ public class TryBenchmarks
     }
 
     [Benchmark]
-    public Try<int> FlatMap_Success()
+    public Try<int> Bind_Success()
     {
         return _success.Bind(x => Try<int>.Success(x * 2));
     }
 
     [Benchmark]
-    public Try<int> FlatMap_Failure()
+    public Try<int> Bind_Failure()
     {
         return _failure.Bind(x => Try<int>.Success(x * 2));
     }
@@ -81,13 +81,13 @@ public class TryBenchmarks
     }
 
     [Benchmark]
-    public int GetOrElse_Success()
+    public int GetValueOr_Success()
     {
         return _success.GetValueOr(0);
     }
 
     [Benchmark]
-    public int GetOrElse_Failure()
+    public int GetValueOr_Failure()
     {
         return _failure.GetValueOr(0);
     }

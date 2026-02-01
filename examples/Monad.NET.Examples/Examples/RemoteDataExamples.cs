@@ -43,8 +43,8 @@ public static class RemoteDataExamples
         Console.WriteLine($"   Success.Map(ToUpper): {mappedSuccess}");
         Console.WriteLine($"   Loading.Map(ToUpper): {mappedLoading}");
 
-        // Default values with UnwrapOr
-        Console.WriteLine("\n5. UnwrapOr:");
+        // Default values with GetValueOr
+        Console.WriteLine("\n5. GetValueOr:");
         Console.WriteLine($"   Success.GetValueOr(\"default\"): {success.GetValueOr("default")}");
         Console.WriteLine($"   Loading.GetValueOr(\"default\"): {loading.GetValueOr("default")}");
         Console.WriteLine($"   NotAsked.GetValueOr(\"default\"): {notAsked.GetValueOr("default")}");
@@ -54,7 +54,7 @@ public static class RemoteDataExamples
         SimulateApiFlow();
 
         // Chaining
-        Console.WriteLine("\n7. Chaining with AndThen:");
+        Console.WriteLine("\n7. Chaining with Bind:");
         var chained = success
             .Bind(s => RemoteData<int, string>.Success(s.Length))
             .Map(len => $"Length: {len}");
