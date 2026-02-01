@@ -251,4 +251,17 @@ internal static class ThrowHelper
             "Use NonEmptyList<T>.Of() or NonEmptyList<T>.FromEnumerable() to create a valid instance. " +
             "The default value of NonEmptyList<T> is not usable.");
     }
+
+    /// <summary>
+    /// Throws when attempting to use a default-constructed Result.
+    /// </summary>
+    [DoesNotReturn]
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void ThrowResultIsDefault()
+    {
+        throw new InvalidOperationException(
+            "Cannot use Result because it was not properly initialized. " +
+            "Use Result<T,E>.Ok(value) or Result<T,E>.Err(error) to create a valid instance. " +
+            "The default value (e.g., default(Result<T,E>)) is not a valid Result state.");
+    }
 }
