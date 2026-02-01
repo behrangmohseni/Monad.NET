@@ -283,7 +283,7 @@ All features from the alpha releases (1.0.0-alpha.1 through 1.0.0-alpha.13) are 
 
 - **Result.BiMap** - Transform both success and error types
   - `BiMap<U, F>(Func<T, U> okMapper, Func<TErr, F> errMapper)` - Maps both sides
-  - Equivalent to `Map().MapErr()` but in one operation
+  - Equivalent to `Map().MapError()` but in one operation
   - Useful for adapting Result types between layers
 
 - **Validation.Flatten** - Flatten nested validations
