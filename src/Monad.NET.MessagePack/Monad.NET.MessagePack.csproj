@@ -8,7 +8,7 @@
     
     <!-- Package Info -->
     <PackageId>Monad.NET.MessagePack</PackageId>
-    <Version>1.1.2</Version>
+    <Version>2.0.0-beta.1</Version>
     <Authors>Behrang Mohseni</Authors>
     <Company>Behrang Mohseni</Company>
     <Product>Monad.NET.MessagePack</Product>

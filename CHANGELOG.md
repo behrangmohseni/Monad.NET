@@ -9,11 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [2.0.0] - 2026-02-01
+## [2.0.0-beta.1] - 2026-02-01
 
 ### Summary
 
-Version 2.0 is a major release focused on **API simplification**, **C#-idiomatic naming**, and **improved discoverability**. The API surface has been reduced from ~722 to ~437 public methods while maintaining all core functionality.
+Version 2.0 beta 1 is a **pre-release** for testing and feedback. This major release focuses on **API simplification**, **C#-idiomatic naming**, and **improved discoverability**. The API surface has been reduced from ~722 to ~437 public methods while maintaining all core functionality.
+
+> **Note:** This is a beta release. Please report any issues or feedback on [GitHub Issues](https://github.com/behrangmohseni/Monad.NET/issues).
 
 ### Breaking Changes
 
