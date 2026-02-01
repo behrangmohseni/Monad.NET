@@ -167,7 +167,7 @@ This is the first stable release of Monad.NET! The library is now production-rea
 - **11 Monad Types**: Option, Result, Validation, Try, RemoteData, NonEmptyList, Writer, Reader, ReaderAsync, State, IO
 - **Full Async Support**: Async variants for all operations with `ConfigureAwait(false)`
 - **LINQ Integration**: Query syntax and method syntax support
-- **Zero Dependencies**: Core library has no external dependencies
+- **Minimal Dependencies**: Zero dependencies on .NET 6+; only Microsoft polyfills on netstandard2.x
 - **Multi-Target**: Supports .NET Standard 2.0/2.1, .NET 8.0, and .NET 10.0
 - **Integration Packages**: ASP.NET Core, Entity Framework Core, MessagePack
 - **Source Generators**: Discriminated unions with `[Union]` attribute

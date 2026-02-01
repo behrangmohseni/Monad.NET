@@ -21,7 +21,7 @@ This guide helps you migrate from other functional programming libraries to Mona
 | Aspect | language-ext | Monad.NET |
 |--------|--------------|-----------|
 | **Learning curve** | Steep — many concepts and overloads | Gentle — focused API surface |
-| **Dependencies** | External dependencies | Zero dependencies |
+| **Dependencies** | External dependencies | Zero on .NET 6+; polyfills on netstandard2.x |
 | **API complexity** | Comprehensive but complex | Focused and pragmatic |
 | **Naming** | Haskell-inspired (`Seq`, `Lst`, `Arr`) | C#-friendly (`IReadOnlyList`, etc.) |
 | **Performance** | Good with custom collections | Struct-based, zero allocations |
