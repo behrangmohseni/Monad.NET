@@ -39,8 +39,8 @@ public readonly struct Validation<T, TErr> : IEquatable<Validation<T, TErr>>, IC
     private readonly bool _isInitialized;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private string DebuggerDisplay => _isInitialized 
-        ? (_isValid ? $"Valid({_value})" : $"Invalid({_errors.Length} errors)") 
+    private string DebuggerDisplay => _isInitialized
+        ? (_isValid ? $"Valid({_value})" : $"Invalid({_errors.Length} errors)")
         : "Uninitialized";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

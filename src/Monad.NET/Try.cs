@@ -34,8 +34,8 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
     private readonly bool _isInitialized;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private string DebuggerDisplay => _isInitialized 
-        ? (_isSuccess ? $"Success({_value})" : $"Failure({_exception?.GetType().Name}: {_exception?.Message})") 
+    private string DebuggerDisplay => _isInitialized
+        ? (_isSuccess ? $"Success({_value})" : $"Failure({_exception?.GetType().Name}: {_exception?.Message})")
         : "Uninitialized";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

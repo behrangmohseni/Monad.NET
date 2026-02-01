@@ -35,8 +35,8 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     private readonly bool _isInitialized;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private string DebuggerDisplay => _isInitialized 
-        ? (_isSome ? $"Some({_value})" : "None") 
+    private string DebuggerDisplay => _isInitialized
+        ? (_isSome ? $"Some({_value})" : "None")
         : "Uninitialized";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
