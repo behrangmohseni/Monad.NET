@@ -64,7 +64,7 @@ public static class OptionExamples
         Console.WriteLine("\n7. Default Values:");
         Console.WriteLine($"   Some(42).GetValueOr(0): {some.GetValueOr(0)}");
         Console.WriteLine($"   None.GetValueOr(0):     {none.GetValueOr(0)}");
-        Console.WriteLine($"   None.GetValueOrElse(() => GetDefault()): {none.GetValueOrElse(() => 100)}");
+        Console.WriteLine($"   None.Match(x => x, () => 100): {none.Match(x => x, () => 100)}");
 
         // Method chaining
         Console.WriteLine("\n8. Method Chaining:");

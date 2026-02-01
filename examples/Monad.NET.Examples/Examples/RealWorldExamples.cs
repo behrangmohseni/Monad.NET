@@ -211,8 +211,11 @@ public static class RealWorldExamples
         var results = items.Select(item =>
             int.TryParse(item, out var n)
                 ? Result<int, string>.Ok(n)
-                : Result<int, string>.Err(item));
-        return results.Partition();
+                : Result<int, string>.Err(item)).ToList();
+
+        var successes = results.Where(r => r.IsOk).Select(r => r.GetValue()).ToList();
+        var failures = results.Where(r => r.IsError).Select(r => r.GetError()).ToList();
+        return (successes, failures);
     }
 
     // State machine
