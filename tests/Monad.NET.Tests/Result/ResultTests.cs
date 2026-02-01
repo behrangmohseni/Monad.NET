@@ -513,5 +513,136 @@ public class ResultTests
 
         Assert.Equal("Err(error)", result.ToString());
     }
+
+    #region Default Struct Tests
+
+    [Fact]
+    public void DefaultStruct_IsNotInitialized()
+    {
+        var result = default(Result<int, string>);
+
+        Assert.False(result.IsInitialized);
+    }
+
+    [Fact]
+    public void DefaultStruct_ToString_ReturnsUninitializedMessage()
+    {
+        var result = default(Result<int, string>);
+
+        Assert.Equal("Uninitialized (default struct)", result.ToString());
+    }
+
+    [Fact]
+    public void DefaultStruct_IsOk_ThrowsInvalidOperationException()
+    {
+        var result = default(Result<int, string>);
+
+        var ex = Assert.Throws<InvalidOperationException>(() => _ = result.IsOk);
+        Assert.Contains("not properly initialized", ex.Message);
+    }
+
+    [Fact]
+    public void DefaultStruct_IsError_ThrowsInvalidOperationException()
+    {
+        var result = default(Result<int, string>);
+
+        var ex = Assert.Throws<InvalidOperationException>(() => _ = result.IsError);
+        Assert.Contains("not properly initialized", ex.Message);
+    }
+
+    [Fact]
+    public void DefaultStruct_GetValue_ThrowsInvalidOperationException()
+    {
+        var result = default(Result<int, string>);
+
+        var ex = Assert.Throws<InvalidOperationException>(() => result.GetValue());
+        Assert.Contains("not properly initialized", ex.Message);
+    }
+
+    [Fact]
+    public void DefaultStruct_GetError_ThrowsInvalidOperationException()
+    {
+        var result = default(Result<int, string>);
+
+        var ex = Assert.Throws<InvalidOperationException>(() => result.GetError());
+        Assert.Contains("not properly initialized", ex.Message);
+    }
+
+    [Fact]
+    public void DefaultStruct_Map_ThrowsInvalidOperationException()
+    {
+        var result = default(Result<int, string>);
+
+        var ex = Assert.Throws<InvalidOperationException>(() => result.Map(x => x * 2));
+        Assert.Contains("not properly initialized", ex.Message);
+    }
+
+    [Fact]
+    public void DefaultStruct_Match_ThrowsInvalidOperationException()
+    {
+        var result = default(Result<int, string>);
+
+        var ex = Assert.Throws<InvalidOperationException>(() => result.Match(ok => ok, err => 0));
+        Assert.Contains("not properly initialized", ex.Message);
+    }
+
+    [Fact]
+    public void DefaultStruct_Bind_ThrowsInvalidOperationException()
+    {
+        var result = default(Result<int, string>);
+
+        var ex = Assert.Throws<InvalidOperationException>(() => result.Bind(x => Result<int, string>.Ok(x * 2)));
+        Assert.Contains("not properly initialized", ex.Message);
+    }
+
+    [Fact]
+    public void DefaultStruct_Equals_TwoDefaults_ReturnsTrue()
+    {
+        var result1 = default(Result<int, string>);
+        var result2 = default(Result<int, string>);
+
+        Assert.True(result1.Equals(result2));
+        Assert.True(result1 == result2);
+    }
+
+    [Fact]
+    public void DefaultStruct_Equals_DefaultAndInitialized_ReturnsFalse()
+    {
+        var defaultResult = default(Result<int, string>);
+        var initializedResult = Result<int, string>.Err("error");
+
+        Assert.False(defaultResult.Equals(initializedResult));
+        Assert.False(defaultResult == initializedResult);
+    }
+
+    [Fact]
+    public void DefaultStruct_GetHashCode_ReturnsZero()
+    {
+        var result = default(Result<int, string>);
+
+        Assert.Equal(0, result.GetHashCode());
+    }
+
+    [Fact]
+    public void DefaultStruct_CompareTo_ThrowsInvalidOperationException()
+    {
+        var result1 = default(Result<int, string>);
+        var result2 = Result<int, string>.Ok(42);
+
+        var ex = Assert.Throws<InvalidOperationException>(() => result1.CompareTo(result2));
+        Assert.Contains("not properly initialized", ex.Message);
+    }
+
+    [Fact]
+    public void InitializedResult_IsInitialized_ReturnsTrue()
+    {
+        var okResult = Result<int, string>.Ok(42);
+        var errResult = Result<int, string>.Err("error");
+
+        Assert.True(okResult.IsInitialized);
+        Assert.True(errResult.IsInitialized);
+    }
+
+    #endregion
 }
 

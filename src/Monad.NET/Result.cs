@@ -33,9 +33,10 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     private readonly T? _value;
     private readonly TErr? _error;
     private readonly bool _isOk;
+    private readonly bool _isInitialized;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private string DebuggerDisplay => _isOk ? $"Ok({_value})" : $"Err({_error})";
+    private string DebuggerDisplay => !_isInitialized ? "Uninitialized (default struct)" : _isOk ? $"Ok({_value})" : $"Err({_error})";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Result(T value, TErr error, bool isOk)
@@ -43,15 +44,35 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
         _value = value;
         _error = error;
         _isOk = isOk;
+        _isInitialized = true;
+    }
+
+    /// <summary>
+    /// Returns true if the Result was properly initialized via <see cref="Ok(T)"/> or <see cref="Err(TErr)"/>.
+    /// A default-constructed struct (e.g., <c>default(Result&lt;T,E&gt;)</c>) returns false.
+    /// </summary>
+    /// <remarks>
+    /// Using a default-constructed Result in any operation will throw <see cref="InvalidOperationException"/>.
+    /// Always create Results via <see cref="Ok(T)"/> or <see cref="Err(TErr)"/> factory methods.
+    /// </remarks>
+    public bool IsInitialized
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _isInitialized;
     }
 
     /// <summary>
     /// Returns true if the result is Ok.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     public bool IsOk
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => _isOk;
+        get
+        {
+            ThrowIfDefault();
+            return _isOk;
+        }
     }
 
     /// <summary>
@@ -60,10 +81,22 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// <remarks>
     /// This follows F# naming conventions for consistency across monadic types.
     /// </remarks>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     public bool IsError
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => !_isOk;
+        get
+        {
+            ThrowIfDefault();
+            return !_isOk;
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void ThrowIfDefault()
+    {
+        if (!_isInitialized)
+            ThrowHelper.ThrowResultIsDefault();
     }
 
     /// <summary>
@@ -123,11 +156,12 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// <summary>
     /// Returns the contained Ok value.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the value is Err</exception>
+    /// <exception cref="InvalidOperationException">Thrown if the value is Err or if the Result is a default-constructed struct.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     [EditorBrowsable(EditorBrowsableState.Never)]
     public T GetValue()
     {
+        ThrowIfDefault();
         if (!_isOk)
             ThrowHelper.ThrowResultIsErr(_error!);
 
@@ -137,10 +171,11 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// <summary>
     /// Returns the contained Err value.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the value is Ok</exception>
+    /// <exception cref="InvalidOperationException">Thrown if the value is Ok or if the Result is a default-constructed struct.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public TErr GetError()
     {
+        ThrowIfDefault();
         if (_isOk)
             ThrowHelper.ThrowResultIsOk(_value!);
 
@@ -150,16 +185,18 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// <summary>
     /// Returns the contained Ok value or a default value.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T GetValueOr(T defaultValue)
     {
+        ThrowIfDefault();
         return _isOk ? _value! : defaultValue;
     }
 
     /// <summary>
     /// Returns the contained Ok value, or throws an <see cref="InvalidOperationException"/> if Err.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the Result is Err</exception>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is Err or if the Result is a default-constructed struct.</exception>
     /// <example>
     /// <code>
     /// var result = Result&lt;int, string&gt;.Ok(42);
@@ -172,6 +209,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T GetOrThrow()
     {
+        ThrowIfDefault();
         if (!_isOk)
             ThrowHelper.ThrowResultIsErr(_error!);
 
@@ -181,7 +219,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// <summary>
     /// Returns the contained Err value, or throws an <see cref="InvalidOperationException"/> if Ok.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the Result is Ok</exception>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is Ok or if the Result is a default-constructed struct.</exception>
     /// <example>
     /// <code>
     /// var error = Result&lt;int, string&gt;.Err("failed");
@@ -194,6 +232,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public TErr GetErrorOrThrow()
     {
+        ThrowIfDefault();
         if (_isOk)
             ThrowHelper.ThrowResultIsOk(_value!);
 
@@ -205,7 +244,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// with the specified message if Ok.
     /// </summary>
     /// <param name="message">The exception message if Ok</param>
-    /// <exception cref="InvalidOperationException">Thrown if the Result is Ok</exception>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is Ok or if the Result is a default-constructed struct.</exception>
     /// <example>
     /// <code>
     /// var error = Result&lt;int, string&gt;.Err("failed");
@@ -218,6 +257,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public TErr GetErrorOrThrow(string message)
     {
+        ThrowIfDefault();
         if (_isOk)
             ThrowHelper.ThrowInvalidOperation($"{message}: {_value}");
 
@@ -229,6 +269,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// </summary>
     /// <param name="value">When this method returns, contains the Ok value if successful; otherwise, the default value.</param>
     /// <returns>True if the Result is Ok; otherwise, false.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     /// <example>
     /// <code>
     /// if (result.TryGet(out var value))
@@ -240,6 +281,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryGet(out T? value)
     {
+        ThrowIfDefault();
         value = _value;
         return _isOk;
     }
@@ -249,6 +291,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// </summary>
     /// <param name="error">When this method returns, contains the Err value if failed; otherwise, the default value.</param>
     /// <returns>True if the Result is Err; otherwise, false.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     /// <example>
     /// <code>
     /// if (result.TryGetError(out var error))
@@ -260,6 +303,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryGetError(out TErr? error)
     {
+        ThrowIfDefault();
         error = _error;
         return !_isOk;
     }
@@ -270,6 +314,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// </summary>
     /// <param name="value">The value to check for.</param>
     /// <returns>True if the Result is Ok and contains the specified value; otherwise, false.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     /// <example>
     /// <code>
     /// var result = Result&lt;int, string&gt;.Ok(42);
@@ -281,6 +326,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Contains(T value)
     {
+        ThrowIfDefault();
         return _isOk && EqualityComparer<T>.Default.Equals(_value, value);
     }
 
@@ -290,6 +336,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// </summary>
     /// <param name="error">The error to check for.</param>
     /// <returns>True if the Result is Err and contains the specified error; otherwise, false.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     /// <example>
     /// <code>
     /// var result = Result&lt;int, string&gt;.Err("not found");
@@ -301,6 +348,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool ContainsError(TErr error)
     {
+        ThrowIfDefault();
         return !_isOk && EqualityComparer<TErr>.Default.Equals(_error, error);
     }
 
@@ -309,6 +357,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// </summary>
     /// <param name="predicate">The predicate to test the value against.</param>
     /// <returns>True if the Result is Ok and the predicate returns true; otherwise, false.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     /// <example>
     /// <code>
     /// var result = Result&lt;int, string&gt;.Ok(42);
@@ -321,6 +370,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     public bool Exists(Func<T, bool> predicate)
     {
         ThrowHelper.ThrowIfNull(predicate);
+        ThrowIfDefault();
         return _isOk && predicate(_value!);
     }
 
@@ -329,6 +379,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// </summary>
     /// <param name="predicate">The predicate to test the error against.</param>
     /// <returns>True if the Result is Err and the predicate returns true; otherwise, false.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     /// <example>
     /// <code>
     /// var result = Result&lt;int, string&gt;.Err("not found");
@@ -340,24 +391,29 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     public bool ExistsError(Func<TErr, bool> predicate)
     {
         ThrowHelper.ThrowIfNull(predicate);
+        ThrowIfDefault();
         return !_isOk && predicate(_error!);
     }
 
     /// <summary>
     /// Maps a Result&lt;T, TErr&gt; to Result&lt;U, TErr&gt; by applying a function to a contained Ok value.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Result<U, TErr> Map<U>(Func<T, U> mapper)
     {
+        ThrowIfDefault();
         return _isOk ? Result<U, TErr>.Ok(mapper(_value!)) : Result<U, TErr>.Err(_error!);
     }
 
     /// <summary>
     /// Maps a Result&lt;T, TErr&gt; to Result&lt;T, F&gt; by applying a function to a contained Err value.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Result<T, F> MapError<F>(Func<TErr, F> mapper)
     {
+        ThrowIfDefault();
         return _isOk ? Result<T, F>.Ok(_value!) : Result<T, F>.Err(mapper(_error!));
     }
 
@@ -370,6 +426,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// <param name="okMapper">The function to apply to the Ok value.</param>
     /// <param name="errMapper">The function to apply to the Err value.</param>
     /// <returns>A new Result with both types transformed.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     /// <example>
     /// <code>
     /// var result = Result&lt;int, string&gt;.Ok(42);
@@ -390,6 +447,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     {
         ThrowHelper.ThrowIfNull(okMapper);
         ThrowHelper.ThrowIfNull(errMapper);
+        ThrowIfDefault();
 
         return _isOk
             ? Result<U, F>.Ok(okMapper(_value!))
@@ -399,18 +457,22 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// <summary>
     /// Returns the provided default (if Err), or applies a function to the contained value (if Ok).
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public U MapOr<U>(U defaultValue, Func<T, U> mapper)
     {
+        ThrowIfDefault();
         return _isOk ? mapper(_value!) : defaultValue;
     }
 
     /// <summary>
     /// Maps a Result&lt;T, TErr&gt; to U by applying a function to a contained Ok value, or a fallback function to a contained Err value.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public U MapOrElse<U>(Func<TErr, U> defaultFunc, Func<T, U> mapper)
     {
+        ThrowIfDefault();
         return _isOk ? mapper(_value!) : defaultFunc(_error!);
     }
 
@@ -420,6 +482,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// </summary>
     /// <param name="predicate">The predicate to test the Ok value against.</param>
     /// <returns>Some(value) if Ok and predicate is true; otherwise None.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     /// <example>
     /// <code>
     /// var result = Result&lt;int, string&gt;.Ok(42);
@@ -439,6 +502,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     public Option<T> Filter(Func<T, bool> predicate)
     {
         ThrowHelper.ThrowIfNull(predicate);
+        ThrowIfDefault();
         return _isOk && predicate(_value!) ? Option<T>.Some(_value!) : Option<T>.None();
     }
 
@@ -449,6 +513,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// <param name="predicate">The predicate to test the Ok value against.</param>
     /// <param name="error">The error to return if Ok and the predicate returns false.</param>
     /// <returns>The original Result if Ok and predicate is true; the original Err if already Err; otherwise Err with the provided error.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     /// <example>
     /// <code>
     /// var ok = Result&lt;int, string&gt;.Ok(42);
@@ -463,6 +528,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     public Result<T, TErr> FilterOrElse(Func<T, bool> predicate, TErr error)
     {
         ThrowHelper.ThrowIfNull(predicate);
+        ThrowIfDefault();
         if (!_isOk)
             return this;
         return predicate(_value!) ? this : Err(error);
@@ -490,6 +556,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     {
         ThrowHelper.ThrowIfNull(predicate);
         ThrowHelper.ThrowIfNull(errorFactory);
+        ThrowIfDefault();
         if (!_isOk)
             return this;
         return predicate(_value!) ? this : Err(errorFactory());
@@ -502,6 +569,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// <param name="predicate">The predicate to test the Ok value against.</param>
     /// <param name="errorFactory">A function that creates the error from the value if Ok and the predicate returns false.</param>
     /// <returns>The original Result if Ok and predicate is true; the original Err if already Err; otherwise Err with the factory-created error.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     /// <example>
     /// <code>
     /// var ok = Result&lt;int, string&gt;.Ok(42);
@@ -516,6 +584,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     {
         ThrowHelper.ThrowIfNull(predicate);
         ThrowHelper.ThrowIfNull(errorFactory);
+        ThrowIfDefault();
         if (!_isOk)
             return this;
         return predicate(_value!) ? this : Err(errorFactory(_value!));
@@ -525,9 +594,11 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// Calls the function if the result is Ok, otherwise returns the Err value.
     /// This is the monadic bind operation for control flow based on Result values.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Result<U, TErr> Bind<U>(Func<T, Result<U, TErr>> binder)
     {
+        ThrowIfDefault();
         return _isOk ? binder(_value!) : Result<U, TErr>.Err(_error!);
     }
 
@@ -538,6 +609,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// <typeparam name="U">The type of the other value.</typeparam>
     /// <param name="other">The other Result to combine with.</param>
     /// <returns>A Result containing a tuple of both values, or the first error.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     /// <example>
     /// <code>
     /// var user = GetUser(id);     // Result&lt;User, Error&gt;
@@ -548,6 +620,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Result<(T, U), TErr> Zip<U>(Result<U, TErr> other)
     {
+        ThrowIfDefault();
         if (!_isOk)
             return Result<(T, U), TErr>.Err(_error!);
         if (!other.IsOk)
@@ -564,6 +637,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// <param name="other">The other Result to combine with.</param>
     /// <param name="combiner">A function to combine the values.</param>
     /// <returns>A Result containing the combined result, or the first error.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     /// <example>
     /// <code>
     /// var user = GetUser(id);
@@ -574,6 +648,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Result<V, TErr> ZipWith<U, V>(Result<U, TErr> other, Func<T, U, V> combiner)
     {
+        ThrowIfDefault();
         if (!_isOk)
             return Result<V, TErr>.Err(_error!);
         if (!other.IsOk)
@@ -584,27 +659,33 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// <summary>
     /// Returns resultB if the result is Ok, otherwise returns the Err value.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Result<U, TErr> And<U>(Result<U, TErr> resultB)
     {
+        ThrowIfDefault();
         return _isOk ? resultB : Result<U, TErr>.Err(_error!);
     }
 
     /// <summary>
     /// Calls the function if the result is Err, otherwise returns the Ok value.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Result<T, F> OrElse<F>(Func<TErr, Result<T, F>> op)
     {
+        ThrowIfDefault();
         return _isOk ? Result<T, F>.Ok(_value!) : op(_error!);
     }
 
     /// <summary>
     /// Returns the result if it contains an Ok value, otherwise returns resultB.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Result<T, TErr> Or(Result<T, TErr> resultB)
     {
+        ThrowIfDefault();
         return _isOk ? this : resultB;
     }
 
@@ -612,9 +693,11 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// Converts from Result&lt;T, TErr&gt; to Option&lt;T&gt;.
     /// Converts self into an Option&lt;T&gt;, consuming self, and discarding the error, if any.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Option<T> Ok()
     {
+        ThrowIfDefault();
         return _isOk ? Option<T>.Some(_value!) : Option<T>.None();
     }
 
@@ -622,9 +705,11 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// Converts from Result&lt;T, TErr&gt; to Option&lt;TErr&gt;.
     /// Converts self into an Option&lt;TErr&gt;, consuming self, and discarding the success value, if any.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Option<TErr> Err()
     {
+        ThrowIfDefault();
         return _isOk ? Option<TErr>.None() : Option<TErr>.Some(_error!);
     }
 
@@ -633,6 +718,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// Returns Some(value) if Ok; otherwise None.
     /// </summary>
     /// <returns>Some(value) if Ok; None if Err.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     /// <example>
     /// <code>
     /// Result&lt;int, string&gt;.Ok(42).ToOption();     // Some(42)
@@ -646,15 +732,18 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Option<T> ToOption()
     {
+        ThrowIfDefault();
         return _isOk ? Option<T>.Some(_value!) : Option<T>.None();
     }
 
     /// <summary>
     /// Pattern matches on the result and executes the appropriate action.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Match(Action<T> okAction, Action<TErr> errAction)
     {
+        ThrowIfDefault();
         if (_isOk)
             okAction(_value!);
         else
@@ -664,9 +753,11 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// <summary>
     /// Pattern matches on the result and returns a result.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public U Match<U>(Func<T, U> okFunc, Func<TErr, U> errFunc)
     {
+        ThrowIfDefault();
         return _isOk ? okFunc(_value!) : errFunc(_error!);
     }
 
@@ -674,6 +765,14 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Equals(Result<T, TErr> other)
     {
+        // Two uninitialized Results are considered equal
+        if (!_isInitialized && !other._isInitialized)
+            return true;
+
+        // An uninitialized Result is not equal to an initialized one
+        if (_isInitialized != other._isInitialized)
+            return false;
+
         if (_isOk != other._isOk)
             return false;
 
@@ -694,6 +793,8 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override int GetHashCode()
     {
+        if (!_isInitialized)
+            return 0;
         return _isOk ? _value?.GetHashCode() ?? 0 : _error?.GetHashCode() ?? 0;
     }
 
@@ -704,9 +805,12 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// </summary>
     /// <param name="other">The other Result to compare to.</param>
     /// <returns>A negative value if this is less than other, zero if equal, positive if greater.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if either Result is a default-constructed struct.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int CompareTo(Result<T, TErr> other)
     {
+        ThrowIfDefault();
+        other.ThrowIfDefault();
         if (_isOk && other._isOk)
             return Comparer<T>.Default.Compare(_value, other._value);
         if (!_isOk && !other._isOk)
@@ -717,6 +821,8 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// <inheritdoc />
     public override string ToString()
     {
+        if (!_isInitialized)
+            return "Uninitialized (default struct)";
         return _isOk ? $"Ok({_value})" : $"Err({_error})";
     }
 
@@ -725,6 +831,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// Returns a sequence containing the value if Ok, or an empty sequence if Err.
     /// </summary>
     /// <returns>An enumerable containing zero or one element.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     /// <example>
     /// <code>
     /// var result = Result&lt;int, string&gt;.Ok(42);
@@ -736,9 +843,9 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// var values = results.SelectMany(r => r.AsEnumerable()); // [1, 3]
     /// </code>
     /// </example>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public IEnumerable<T> AsEnumerable()
     {
+        ThrowIfDefault();
         if (_isOk)
             yield return _value!;
     }
@@ -748,9 +855,11 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// Returns an array containing the value if Ok, or an empty array if Err.
     /// </summary>
     /// <returns>An array containing zero or one element.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T[] ToArray()
     {
+        ThrowIfDefault();
         return _isOk ? new[] { _value! } : Array.Empty<T>();
     }
 
@@ -759,9 +868,11 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// Returns a list containing the value if Ok, or an empty list if Err.
     /// </summary>
     /// <returns>A list containing zero or one element.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public List<T> ToList()
     {
+        ThrowIfDefault();
         return _isOk ? new List<T> { _value! } : new List<T>();
     }
 
@@ -788,6 +899,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// </summary>
     /// <param name="value">The success value, or default if Err.</param>
     /// <param name="isOk">True if the Result is Ok.</param>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     /// <example>
     /// <code>
     /// var (value, isOk) = result;
@@ -798,6 +910,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Deconstruct(out T? value, out bool isOk)
     {
+        ThrowIfDefault();
         value = _value;
         isOk = _isOk;
     }
@@ -808,6 +921,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// <param name="value">The success value, or default if Err.</param>
     /// <param name="error">The error value, or default if Ok.</param>
     /// <param name="isOk">True if the Result is Ok.</param>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     /// <example>
     /// <code>
     /// var (value, error, isOk) = result;
@@ -817,6 +931,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Deconstruct(out T? value, out TErr? error, out bool isOk)
     {
+        ThrowIfDefault();
         value = _value;
         error = _error;
         isOk = _isOk;
