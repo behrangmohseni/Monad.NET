@@ -308,10 +308,12 @@ public async Task<Try<T>> RetryWithBackoff<T>(
     return Try<T>.Failure(lastException!);
 }
 
-// Using ReaderAsync with built-in retry
-var resilientOperation = ReaderAsync<HttpClient, User>
-    .From(async client => await client.GetFromJsonAsync<User>("/api/user"))
-    .RetryWithDelay(retries: 3, delay: TimeSpan.FromSeconds(2));
+// Using Reader with async operation
+var userReader = Reader<HttpClient, Task<User?>>.From(
+    client => client.GetFromJsonAsync<User>("/api/user"));
+
+// Execute with retry logic using Try
+var result = await RetryAsync(() => userReader.Run(httpClient), retries: 3);
 ```
 
 ---

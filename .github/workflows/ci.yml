@@ -13,11 +13,18 @@ env:
 
 jobs:
   build:
-    name: Build and Test
+    name: Build and Test (.NET ${{ matrix.dotnet-version }} on ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
+        dotnet-version: ['6.0.x', '8.0.x']
+        include:
+          # Also test on .NET 10 preview (latest runtime)
+          - os: ubuntu-latest
+            dotnet-version: '10.0.x'
+            include-prerelease: true
 
     steps:
     - name: Checkout
@@ -28,8 +35,11 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '10.0.x'
-        include-prerelease: true
+        dotnet-version: |
+          6.0.x
+          8.0.x
+          ${{ matrix.dotnet-version }}
+        include-prerelease: ${{ matrix.include-prerelease || false }}
 
     - name: Restore dependencies
       run: dotnet restore
@@ -37,14 +47,14 @@ jobs:
     - name: Build
       run: dotnet build --configuration Release --no-restore
 
-    - name: Test
+    - name: Test on .NET ${{ matrix.dotnet-version }}
       run: dotnet test --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx"
 
     - name: Upload test results
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: test-results-${{ matrix.os }}
+        name: test-results-${{ matrix.os }}-net${{ matrix.dotnet-version }}
         path: '**/test-results.trx'
 
   coverage:

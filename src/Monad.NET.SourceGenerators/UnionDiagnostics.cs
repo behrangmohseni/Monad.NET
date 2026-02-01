@@ -114,6 +114,19 @@ internal static class UnionDiagnostics
         helpLinkUri: "https://github.com/behrangmohseni/Monad.NET/blob/main/docs/Guides/UnionAttribute.md#MNG008");
 
     /// <summary>
+    /// MNG009: Source generation failed.
+    /// </summary>
+    public static readonly DiagnosticDescriptor SourceGenerationFailed = new(
+        id: "MNG009",
+        title: "Source generation failed",
+        messageFormat: "Failed to generate source for '{0}': {1}",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true,
+        description: "An unexpected error occurred during source generation. Please report this issue at https://github.com/behrangmohseni/Monad.NET/issues with the error details.",
+        helpLinkUri: "https://github.com/behrangmohseni/Monad.NET/issues");
+
+    /// <summary>
     /// Creates a diagnostic for a type that must be abstract.
     /// </summary>
     public static Diagnostic CreateTypeMustBeAbstract(Location location, string typeName)
@@ -154,5 +167,11 @@ internal static class UnionDiagnostics
     /// </summary>
     public static Diagnostic CreatePreferRecord(Location location, string typeName)
         => Diagnostic.Create(PreferRecord, location, typeName);
+
+    /// <summary>
+    /// Creates a diagnostic for source generation failure.
+    /// </summary>
+    public static Diagnostic CreateSourceGenerationFailed(string typeName, string errorMessage)
+        => Diagnostic.Create(SourceGenerationFailed, Location.None, typeName, errorMessage);
 }
 

@@ -186,29 +186,27 @@ var (value, finalState) = computation.Run(0);
 // value = 2, finalState = 2
 ```
 
-### ReaderAsync - Async Dependency Injection
+### Reader with Async Operations
 
 ```csharp
 // Define your environment
 public record AppServices(IUserRepository Users, IEmailService Email);
 
-// Build async computations that depend on services
-var getUser = ReaderAsync<AppServices, User>.From(async services =>
-    await services.Users.FindAsync(userId));
+// Build computations that depend on services
+var getUser = Reader<AppServices, Task<User>>.From(services =>
+    services.Users.FindAsync(userId));
 
-// Compose using LINQ
-var program = 
-    from user in getUser
-    from orders in ReaderAsync<AppServices, List<Order>>.From(async s =>
-        await s.Users.GetOrdersAsync(user.Id))
-    select new UserWithOrders(user, orders);
+// Compose using Reader and async/await
+var program = Reader<AppServices, Task<UserWithOrders>>.From(async services =>
+{
+    var user = await services.Users.FindAsync(userId);
+    var orders = await services.Users.GetOrdersAsync(user.Id);
+    return new UserWithOrders(user, orders);
+});
 
 // Execute with environment
 var services = new AppServices(userRepo, emailService);
-var result = await program.RunAsync(services);
-
-// Error handling with retry
-var resilient = getUser.RetryWithDelay(retries: 3, delay: TimeSpan.FromSeconds(1));
+var result = await program.Run(services);
 ```
 
 ## Common Patterns

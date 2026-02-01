@@ -540,7 +540,7 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     public List<T> ToList()
     {
         ThrowIfDefault();
-        return _isSome ? new List<T> { _value! } : new List<T>();
+        return _isSome ? [_value!] : [];
     }
 
     /// <inheritdoc />
