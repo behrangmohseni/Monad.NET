@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -85,6 +86,11 @@ public class TryJsonConverter<T> : JsonConverter<Try<T>>
 /// <summary>
 /// Factory for creating <see cref="TryJsonConverter{T}"/> instances.
 /// </summary>
+/// <remarks>
+/// This factory uses reflection to create generic converter instances.
+/// For full Native AOT support, register specific <see cref="TryJsonConverter{T}"/> 
+/// instances directly in your JsonSerializerOptions.
+/// </remarks>
 public class TryJsonConverterFactory : JsonConverterFactory
 {
     /// <inheritdoc />
@@ -95,7 +101,13 @@ public class TryJsonConverterFactory : JsonConverterFactory
     }
 
     /// <inheritdoc />
-    public override JsonConverter? CreateConverter(Type typeToConvert, JsonSerializerOptions options)
+#if NET7_0_OR_GREATER
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the TryJsonConverter<T> directly for AOT scenarios.")]
+    [RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed.")]
+#endif
+    public override JsonConverter? CreateConverter(
+        Type typeToConvert,
+        JsonSerializerOptions options)
     {
         var valueType = typeToConvert.GetGenericArguments()[0];
         var converterType = typeof(TryJsonConverter<>).MakeGenericType(valueType);

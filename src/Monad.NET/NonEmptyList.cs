@@ -146,6 +146,59 @@ public readonly struct NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList
         return new NonEmptyList<T>(head, tail is null ? ImmutableArray<T>.Empty : ImmutableArray.Create(tail));
     }
 
+#if NET6_0_OR_GREATER
+    /// <summary>
+    /// Creates a NonEmptyList from a ReadOnlySpan.
+    /// </summary>
+    /// <exception cref="ArgumentException">Thrown if the span is empty.</exception>
+    /// <remarks>
+    /// This overload is optimized for stack-allocated or array-based data,
+    /// avoiding the overhead of IEnumerable enumeration.
+    /// </remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static NonEmptyList<T> FromSpan(ReadOnlySpan<T> items)
+    {
+        if (items.IsEmpty)
+            ThrowHelper.ThrowArgument(nameof(items), "Cannot create NonEmptyList from empty span.");
+
+        if (items.Length == 1)
+            return new NonEmptyList<T>(items[0], ImmutableArray<T>.Empty);
+
+        var builder = ImmutableArray.CreateBuilder<T>(items.Length - 1);
+        for (var i = 1; i < items.Length; i++)
+            builder.Add(items[i]);
+
+        return new NonEmptyList<T>(items[0], builder.MoveToImmutable());
+    }
+
+    /// <summary>
+    /// Tries to create a NonEmptyList from a ReadOnlySpan.
+    /// Returns None if the span is empty.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Option<NonEmptyList<T>> TryFromSpan(ReadOnlySpan<T> items)
+    {
+        if (items.IsEmpty)
+            return Option<NonEmptyList<T>>.None();
+
+        return Option<NonEmptyList<T>>.Some(FromSpan(items));
+    }
+
+    /// <summary>
+    /// Creates a NonEmptyList from a Span.
+    /// </summary>
+    /// <exception cref="ArgumentException">Thrown if the span is empty.</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static NonEmptyList<T> FromSpan(Span<T> items) => FromSpan((ReadOnlySpan<T>)items);
+
+    /// <summary>
+    /// Tries to create a NonEmptyList from a Span.
+    /// Returns None if the span is empty.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Option<NonEmptyList<T>> TryFromSpan(Span<T> items) => TryFromSpan((ReadOnlySpan<T>)items);
+#endif
+
     /// <summary>
     /// Creates a NonEmptyList from an enumerable.
     /// Returns None if the enumerable is empty.

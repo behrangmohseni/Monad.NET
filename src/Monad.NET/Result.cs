@@ -1618,6 +1618,523 @@ public static class ResultExtensions
     }
 
     #endregion
+
+    #region Async Operations
+
+    /// <summary>
+    /// Maps the value with an async function.
+    /// </summary>
+    /// <typeparam name="T">The source type.</typeparam>
+    /// <typeparam name="U">The target type.</typeparam>
+    /// <typeparam name="TError">The error type.</typeparam>
+    /// <param name="result">The result to map.</param>
+    /// <param name="mapper">An async function to apply to the value if Ok.</param>
+    /// <param name="cancellationToken">A cancellation token to observe.</param>
+    /// <returns>A task containing Ok with the mapped value, or the original Error.</returns>
+    public static async Task<Result<U, TError>> MapAsync<T, U, TError>(
+        this Result<T, TError> result,
+        Func<T, Task<U>> mapper,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(mapper);
+
+        if (!result.IsOk)
+            return Result<U, TError>.Error(result.GetError());
+
+        cancellationToken.ThrowIfCancellationRequested();
+        var value = await mapper(result.GetValue()).ConfigureAwait(false);
+        return Result<U, TError>.Ok(value);
+    }
+
+    /// <summary>
+    /// Maps the value with an async function that takes a cancellation token.
+    /// </summary>
+    public static async Task<Result<U, TError>> MapAsync<T, U, TError>(
+        this Result<T, TError> result,
+        Func<T, CancellationToken, Task<U>> mapper,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(mapper);
+
+        if (!result.IsOk)
+            return Result<U, TError>.Error(result.GetError());
+
+        cancellationToken.ThrowIfCancellationRequested();
+        var value = await mapper(result.GetValue(), cancellationToken).ConfigureAwait(false);
+        return Result<U, TError>.Ok(value);
+    }
+
+    /// <summary>
+    /// Chains an async operation.
+    /// </summary>
+    /// <typeparam name="T">The source type.</typeparam>
+    /// <typeparam name="U">The target type.</typeparam>
+    /// <typeparam name="TError">The error type.</typeparam>
+    /// <param name="result">The result to chain.</param>
+    /// <param name="binder">An async function that returns a new Result based on the value.</param>
+    /// <param name="cancellationToken">A cancellation token to observe.</param>
+    /// <returns>A task containing the result of the binder if Ok, otherwise the original Error.</returns>
+    public static async Task<Result<U, TError>> BindAsync<T, U, TError>(
+        this Result<T, TError> result,
+        Func<T, Task<Result<U, TError>>> binder,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(binder);
+
+        if (!result.IsOk)
+            return Result<U, TError>.Error(result.GetError());
+
+        cancellationToken.ThrowIfCancellationRequested();
+        return await binder(result.GetValue()).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Chains an async operation that takes a cancellation token.
+    /// </summary>
+    public static async Task<Result<U, TError>> BindAsync<T, U, TError>(
+        this Result<T, TError> result,
+        Func<T, CancellationToken, Task<Result<U, TError>>> binder,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(binder);
+
+        if (!result.IsOk)
+            return Result<U, TError>.Error(result.GetError());
+
+        cancellationToken.ThrowIfCancellationRequested();
+        return await binder(result.GetValue(), cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Maps the error with an async function.
+    /// </summary>
+    public static async Task<Result<T, UError>> MapErrorAsync<T, TError, UError>(
+        this Result<T, TError> result,
+        Func<TError, Task<UError>> mapper,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(mapper);
+
+        if (result.IsOk)
+            return Result<T, UError>.Ok(result.GetValue());
+
+        cancellationToken.ThrowIfCancellationRequested();
+        var error = await mapper(result.GetError()).ConfigureAwait(false);
+        return Result<T, UError>.Error(error);
+    }
+
+    /// <summary>
+    /// Executes an async action if the result is Ok.
+    /// </summary>
+    public static async Task<Result<T, TError>> TapAsync<T, TError>(
+        this Result<T, TError> result,
+        Func<T, Task> action,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(action);
+
+        if (result.IsOk)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            await action(result.GetValue()).ConfigureAwait(false);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Executes an async action if the result is Ok, with cancellation support.
+    /// </summary>
+    public static async Task<Result<T, TError>> TapAsync<T, TError>(
+        this Result<T, TError> result,
+        Func<T, CancellationToken, Task> action,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(action);
+
+        if (result.IsOk)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            await action(result.GetValue(), cancellationToken).ConfigureAwait(false);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Executes an async action if the result is Error.
+    /// </summary>
+    public static async Task<Result<T, TError>> TapErrorAsync<T, TError>(
+        this Result<T, TError> result,
+        Func<TError, Task> action,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(action);
+
+        if (result.IsError)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            await action(result.GetError()).ConfigureAwait(false);
+        }
+
+        return result;
+    }
+
+    // ============================================================================
+    // Task<Result<T, TError>> Extensions - for chaining async operations
+    // ============================================================================
+
+    /// <summary>
+    /// Maps the value of a Task&lt;Result&lt;T, TError&gt;&gt; with a synchronous function.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async Task<Result<U, TError>> MapAsync<T, U, TError>(
+        this Task<Result<T, TError>> resultTask,
+        Func<T, U> mapper,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(mapper);
+        cancellationToken.ThrowIfCancellationRequested();
+        var result = await resultTask.ConfigureAwait(false);
+        return result.Map(mapper);
+    }
+
+    /// <summary>
+    /// Maps the value of a Task&lt;Result&lt;T, TError&gt;&gt; with an async function.
+    /// </summary>
+    public static async Task<Result<U, TError>> MapAsync<T, U, TError>(
+        this Task<Result<T, TError>> resultTask,
+        Func<T, Task<U>> mapper,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(mapper);
+        cancellationToken.ThrowIfCancellationRequested();
+        var result = await resultTask.ConfigureAwait(false);
+        return await result.MapAsync(mapper, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Chains a synchronous binder on a Task&lt;Result&lt;T, TError&gt;&gt;.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async Task<Result<U, TError>> BindAsync<T, U, TError>(
+        this Task<Result<T, TError>> resultTask,
+        Func<T, Result<U, TError>> binder,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(binder);
+        cancellationToken.ThrowIfCancellationRequested();
+        var result = await resultTask.ConfigureAwait(false);
+        return result.Bind(binder);
+    }
+
+    /// <summary>
+    /// Chains an async binder on a Task&lt;Result&lt;T, TError&gt;&gt;.
+    /// </summary>
+    public static async Task<Result<U, TError>> BindAsync<T, U, TError>(
+        this Task<Result<T, TError>> resultTask,
+        Func<T, Task<Result<U, TError>>> binder,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(binder);
+        cancellationToken.ThrowIfCancellationRequested();
+        var result = await resultTask.ConfigureAwait(false);
+        return await result.BindAsync(binder, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Taps a Task&lt;Result&lt;T, TError&gt;&gt; with a synchronous action.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async Task<Result<T, TError>> TapAsync<T, TError>(
+        this Task<Result<T, TError>> resultTask,
+        Action<T> action,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(action);
+        cancellationToken.ThrowIfCancellationRequested();
+        var result = await resultTask.ConfigureAwait(false);
+        return result.Tap(action);
+    }
+
+    /// <summary>
+    /// Taps a Task&lt;Result&lt;T, TError&gt;&gt; with an async action.
+    /// </summary>
+    public static async Task<Result<T, TError>> TapAsync<T, TError>(
+        this Task<Result<T, TError>> resultTask,
+        Func<T, Task> action,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(action);
+        cancellationToken.ThrowIfCancellationRequested();
+        var result = await resultTask.ConfigureAwait(false);
+        return await result.TapAsync(action, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Taps a Task&lt;Result&lt;T, TError&gt;&gt; error with a synchronous action.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async Task<Result<T, TError>> TapErrorAsync<T, TError>(
+        this Task<Result<T, TError>> resultTask,
+        Action<TError> action,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(action);
+        cancellationToken.ThrowIfCancellationRequested();
+        var result = await resultTask.ConfigureAwait(false);
+        return result.TapError(action);
+    }
+
+    /// <summary>
+    /// Taps a Task&lt;Result&lt;T, TError&gt;&gt; error with an async action.
+    /// </summary>
+    public static async Task<Result<T, TError>> TapErrorAsync<T, TError>(
+        this Task<Result<T, TError>> resultTask,
+        Func<TError, Task> action,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(action);
+        cancellationToken.ThrowIfCancellationRequested();
+        var result = await resultTask.ConfigureAwait(false);
+        return await result.TapErrorAsync(action, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Gets the value or a default from a Task&lt;Result&lt;T, TError&gt;&gt;.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async Task<T> GetValueOrAsync<T, TError>(
+        this Task<Result<T, TError>> resultTask,
+        T defaultValue,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var result = await resultTask.ConfigureAwait(false);
+        return result.GetValueOr(defaultValue);
+    }
+
+    /// <summary>
+    /// Gets the value or evaluates a default factory from a Task&lt;Result&lt;T, TError&gt;&gt;.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static async Task<T> GetValueOrAsync<T, TError>(
+        this Task<Result<T, TError>> resultTask,
+        Func<T> defaultFactory,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(defaultFactory);
+        cancellationToken.ThrowIfCancellationRequested();
+        var result = await resultTask.ConfigureAwait(false);
+        return result.IsOk ? result.GetValue() : defaultFactory();
+    }
+
+    /// <summary>
+    /// Pattern matches on a Task&lt;Result&lt;T, TError&gt;&gt;.
+    /// </summary>
+    public static async Task<U> MatchAsync<T, TError, U>(
+        this Task<Result<T, TError>> resultTask,
+        Func<T, U> ok,
+        Func<TError, U> error,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(ok);
+        ThrowHelper.ThrowIfNull(error);
+        cancellationToken.ThrowIfCancellationRequested();
+        var result = await resultTask.ConfigureAwait(false);
+        return result.Match(ok, error);
+    }
+
+    /// <summary>
+    /// Pattern matches on a Task&lt;Result&lt;T, TError&gt;&gt; with async handlers.
+    /// </summary>
+    public static async Task<U> MatchAsync<T, TError, U>(
+        this Task<Result<T, TError>> resultTask,
+        Func<T, Task<U>> ok,
+        Func<TError, Task<U>> error,
+        CancellationToken cancellationToken = default)
+    {
+        ThrowHelper.ThrowIfNull(ok);
+        ThrowHelper.ThrowIfNull(error);
+        cancellationToken.ThrowIfCancellationRequested();
+        var result = await resultTask.ConfigureAwait(false);
+        return result.IsOk
+            ? await ok(result.GetValue()).ConfigureAwait(false)
+            : await error(result.GetError()).ConfigureAwait(false);
+    }
+
+    #endregion
+
+#if NET6_0_OR_GREATER
+    #region Span Operations
+
+    /// <summary>
+    /// Filters a span of results, keeping only Ok values and unwrapping them.
+    /// </summary>
+    /// <typeparam name="T">The type of the Ok values.</typeparam>
+    /// <typeparam name="TError">The type of the Error values.</typeparam>
+    /// <param name="results">The span of results to filter.</param>
+    /// <returns>An array containing only the Ok values.</returns>
+    public static T[] CollectOkFromSpan<T, TError>(ReadOnlySpan<Result<T, TError>> results)
+    {
+        var count = 0;
+        foreach (var res in results)
+            if (res.IsOk) count++;
+
+        if (count == 0)
+            return Array.Empty<T>();
+
+        var result = new T[count];
+        var index = 0;
+        foreach (var res in results)
+        {
+            if (res.IsOk)
+                result[index++] = res.GetValue();
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Filters a span of results, keeping only Error values and unwrapping them.
+    /// </summary>
+    /// <typeparam name="T">The type of the Ok values.</typeparam>
+    /// <typeparam name="TError">The type of the Error values.</typeparam>
+    /// <param name="results">The span of results to filter.</param>
+    /// <returns>An array containing only the Error values.</returns>
+    public static TError[] CollectErrorsFromSpan<T, TError>(ReadOnlySpan<Result<T, TError>> results)
+    {
+        var count = 0;
+        foreach (var res in results)
+            if (res.IsError) count++;
+
+        if (count == 0)
+            return Array.Empty<TError>();
+
+        var result = new TError[count];
+        var index = 0;
+        foreach (var res in results)
+        {
+            if (res.IsError)
+                result[index++] = res.GetError();
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Partitions a span of results into Ok and Error arrays.
+    /// </summary>
+    /// <typeparam name="T">The type of the Ok values.</typeparam>
+    /// <typeparam name="TError">The type of the Error values.</typeparam>
+    /// <param name="results">The span of results to partition.</param>
+    /// <returns>A tuple of (Ok values, Error values).</returns>
+    public static (T[] Oks, TError[] Errors) PartitionFromSpan<T, TError>(ReadOnlySpan<Result<T, TError>> results)
+    {
+        var okCount = 0;
+        var errCount = 0;
+        foreach (var res in results)
+        {
+            if (res.IsOk) okCount++;
+            else errCount++;
+        }
+
+        var oks = okCount > 0 ? new T[okCount] : Array.Empty<T>();
+        var errs = errCount > 0 ? new TError[errCount] : Array.Empty<TError>();
+
+        var okIndex = 0;
+        var errIndex = 0;
+        foreach (var res in results)
+        {
+            if (res.IsOk)
+                oks[okIndex++] = res.GetValue();
+            else
+                errs[errIndex++] = res.GetError();
+        }
+
+        return (oks, errs);
+    }
+
+    /// <summary>
+    /// Returns the first Ok value from a span of results, or the last Error if all are errors.
+    /// </summary>
+    /// <typeparam name="T">The type of the Ok values.</typeparam>
+    /// <typeparam name="TError">The type of the Error values.</typeparam>
+    /// <param name="results">The span of results to search.</param>
+    /// <returns>The first Ok result, or the last Error.</returns>
+    /// <exception cref="InvalidOperationException">Thrown if the span is empty.</exception>
+    public static Result<T, TError> FirstOkFromSpan<T, TError>(ReadOnlySpan<Result<T, TError>> results)
+    {
+        if (results.IsEmpty)
+            ThrowHelper.ThrowInvalidOperation("Span is empty.");
+
+        Result<T, TError> lastError = default;
+        var hasError = false;
+
+        foreach (var res in results)
+        {
+            if (res.IsOk)
+                return res;
+            lastError = res;
+            hasError = true;
+        }
+
+        return hasError ? lastError : throw new InvalidOperationException("Span is empty.");
+    }
+
+    /// <summary>
+    /// Sequences a span of results into a result of array.
+    /// Returns Error with the first error if any result is Error.
+    /// </summary>
+    /// <typeparam name="T">The type of the Ok values.</typeparam>
+    /// <typeparam name="TError">The type of the Error values.</typeparam>
+    /// <param name="results">The span of results to sequence.</param>
+    /// <returns>Ok containing an array of all values if all are Ok, otherwise the first Error.</returns>
+    public static Result<T[], TError> SequenceFromSpan<T, TError>(ReadOnlySpan<Result<T, TError>> results)
+    {
+        var result = new T[results.Length];
+        for (var i = 0; i < results.Length; i++)
+        {
+            if (results[i].IsError)
+                return Result<T[], TError>.Error(results[i].GetError());
+            result[i] = results[i].GetValue();
+        }
+
+        return Result<T[], TError>.Ok(result);
+    }
+
+    /// <summary>
+    /// Checks if all results in a span are Ok.
+    /// </summary>
+    /// <typeparam name="T">The type of the Ok values.</typeparam>
+    /// <typeparam name="TError">The type of the Error values.</typeparam>
+    /// <param name="results">The span of results to check.</param>
+    /// <returns>True if all results are Ok, false otherwise.</returns>
+    public static bool AllOkFromSpan<T, TError>(ReadOnlySpan<Result<T, TError>> results)
+    {
+        foreach (var res in results)
+            if (res.IsError) return false;
+
+        return true;
+    }
+
+    /// <summary>
+    /// Checks if any result in a span is Ok.
+    /// </summary>
+    /// <typeparam name="T">The type of the Ok values.</typeparam>
+    /// <typeparam name="TError">The type of the Error values.</typeparam>
+    /// <param name="results">The span of results to check.</param>
+    /// <returns>True if any result is Ok, false otherwise.</returns>
+    public static bool AnyOkFromSpan<T, TError>(ReadOnlySpan<Result<T, TError>> results)
+    {
+        foreach (var res in results)
+            if (res.IsOk) return true;
+
+        return false;
+    }
+
+    #endregion
+#endif
 }
 
 /// <summary>
