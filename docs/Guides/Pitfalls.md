@@ -1,7 +1,7 @@
 # Pitfalls & Gotchas
 
 - **default(Result<T,E>)** (v2.0): Never use `default(Result<T,E>)` — it throws `InvalidOperationException` on any operation. Always use `Result<T,E>.Ok(value)` or `Result<T,E>.Error(error)` factory methods.
-- **Validation vs Result**: LINQ query syntax (`from ... select`) uses `Bind` under the hood, which **short-circuits on first error**. To accumulate all errors, use `Apply`, `Zip`, or `Combine` instead.
+- **Validation vs Result**: `Bind` **short-circuits on first error**. To accumulate all errors, use `Apply`, `Zip`, or `Combine` instead. If you only need the first error, use `Result<T,E>` instead of `Validation<T,E>`.
 - **RemoteData guards**: `GetValue()` throws for `NotAsked`/`Loading` states. Prefer `Match()` for exhaustive handling or `ToResult(notAskedError, loadingError)` to convert safely.
 - **Try wrapping**: `Try.Of()` captures exceptions as values. If you need to propagate/rethrow, call `GetOrThrow()` explicitly.
 - **Option.Some(null)**: Passing `null` to `Option.Some()` throws `ArgumentNullException`. Use `Option.None()` or the implicit conversion (which handles null safely).

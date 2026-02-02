@@ -292,24 +292,16 @@ Accumulates errors instead of short-circuiting.
 |----------|-------------|
 | `implicit operator Validation<T, E>(T value)` | Converts value to `Valid` |
 
-### LINQ Support
+### Error Accumulation
 
-> **⚠️ WARNING: LINQ query syntax does NOT accumulate errors!**
->
-> LINQ uses `Bind` internally which **short-circuits on first error**.
-> This defeats the main purpose of Validation over Result.
->
-> **For error accumulation (the whole point of Validation), use `Apply` or `Zip` instead.**
+> **Important:** Use `Apply` or `Zip` for error accumulation (the main purpose of Validation).
+> `Bind` short-circuits on first error — use `Result<T,E>` if you only need the first error.
 
 ```csharp
-// ❌ DON'T DO THIS - only shows FIRST error
-var result = from name in ValidateName(input.Name)
-             from email in ValidateEmail(input.Email)
-             select new User(name, email);
-
-// ✅ DO THIS - accumulates ALL errors
+// ✅ Accumulates ALL errors
 var result = ValidateName(input.Name)
     .Apply(ValidateEmail(input.Email), (name, email) => new User(name, email));
+```
 
 ---
 
@@ -362,17 +354,6 @@ Captures exceptions as values.
 |----------|-------------|
 | `implicit operator Try<T>(T value)` | Converts value to `Success` |
 | `implicit operator Try<T>(Exception ex)` | Converts exception to `Failure` |
-
-### LINQ Support
-
-Try supports LINQ query syntax:
-
-```csharp
-var result = from x in Try<int>.Of(() => int.Parse("42"))
-             from y in Try<int>.Of(() => int.Parse("10"))
-             where x > 0
-             select x + y;
-```
 
 ---
 
@@ -511,17 +492,6 @@ Computations with accumulated output.
 | `TapLog(Action<W>)` | `Writer<W, T>` | Executes action with log |
 | `Deconstruct(out T, out W)` | `void` | Deconstructs for pattern matching `var (value, log) = writer;` |
 
-### LINQ Support
-
-Writer supports LINQ query syntax for `Writer<string, T>` and `Writer<List<TLog>, T>`:
-
-```csharp
-var result = from x in Writer<string, int>.Tell(10, "Started\n")
-             from y in Writer<string, int>.Tell(20, "Added 20\n")
-             select x + y;
-// result.Value = 30, result.Log = "Started\nAdded 20\n"
-```
-
 ---
 
 ## Reader\<R, A\>
@@ -607,13 +577,6 @@ Stateful computations that thread state through operations.
 | `Traverse<S, T, U>(this IEnumerable<T>, Func<T, State<S, U>>)` | Map and sequence |
 | `Replicate<S, A>(this State<S, A>, int count)` | Repeats computation n times |
 | `WhileM<S, A>(this State<S, A>, Func<S, bool>)` | Repeats while condition holds |
-
-### LINQ Support
-
-| Method | Description |
-|--------|-------------|
-| `Select` | Map operation |
-| `SelectMany` | Bind operation |
 
 ---
 
@@ -714,20 +677,6 @@ Async version of IO for native async operations.
 | `Flatten()` | Flatten nested `IO<IO<T>>` or `IOAsync<IOAsync<T>>` |
 | `Sequence()` | `IEnumerable<IO<T>>` → `IO<IReadOnlyList<T>>` |
 | `Traverse(f)` | Map and sequence in one operation |
-| `Select(f)` | LINQ query support |
-| `SelectMany(f)` | LINQ query support |
-
-### LINQ Support
-
-```csharp
-var program = 
-    from _1 in IO.WriteLine("Enter your name:")
-    from name in IO.ReadLine()
-    from _2 in IO.WriteLine($"Hello, {name}!")
-    select Unit.Default;
-
-program.Run();
-```
 
 ---
 
@@ -789,68 +738,6 @@ program.Run();
 | `ForEach(action with index)` | Execute action with index (eager) |
 | `ForEachAsync(asyncAction, ct)` | Execute async action sequentially |
 | `ForEachAsync(asyncAction with index, ct)` | Execute async action with index |
-
----
-
-## LINQ Support
-
-All monads support LINQ extension methods for fluent composition.
-
-### Method Syntax (Recommended)
-
-Most developers prefer method syntax for its IntelliSense support and familiar chaining style:
-
-```csharp
-// Select = Map - transform the value
-var doubled = option.Select(x => x * 2);
-var userDto = result.Select(user => new UserDto(user));
-
-// SelectMany = Bind - chain operations that return monads
-var email = FindUser(id)
-    .SelectMany(user => GetEmail(user.Id))
-    .SelectMany(email => ValidateEmail(email));
-
-// Where = Filter - keep values matching predicate
-var positive = option.Where(x => x > 0);
-var validOrder = result.Where(order => order.IsOk, OrderError.Invalid);
-
-// Combine them fluently
-var result = GetUserId(request)
-    .SelectMany(id => FindUser(id))
-    .Select(user => user.Profile)
-    .Where(profile => profile.IsComplete);
-```
-
-### Query Syntax
-
-For complex compositions with multiple bindings, query syntax improves readability:
-
-```csharp
-// Multiple from clauses bind sequential operations
-var result = from user in FindUser(id)
-             from profile in LoadProfile(user.Id)
-             where profile.IsComplete
-             select new UserView(user, profile);
-
-// Equivalent to method syntax:
-var result = FindUser(id)
-    .SelectMany(user => LoadProfile(user.Id), (user, profile) => (user, profile))
-    .Where(x => x.profile.IsComplete)
-    .Select(x => new UserView(x.user, x.profile));
-```
-
-### Available LINQ Methods by Monad
-
-| Monad | Select | SelectMany | Where |
-|-------|--------|------------|-------|
-| `Option<T>` | Yes | Yes | `Where(predicate)` |
-| `Result<T,E>` | Yes | Yes | `Where(predicate, error)` |
-| `Try<T>` | Yes | Yes | `Where(predicate)` |
-| `Validation<T,E>` | Yes | Yes (short-circuits) | — |
-| `RemoteData<T,E>` | Yes | Yes | — |
-| `Writer<W,T>` | Yes | Yes (string, List<T>) | — |
-| `State<S,A>` | Yes | Yes | — |
-| `IO<T>` | Yes | Yes | — |
 
 ---
 

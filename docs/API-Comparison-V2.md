@@ -142,8 +142,9 @@ This document provides a comprehensive comparison of APIs showing what changed i
 | **NonEmptyList\<T\>** | ✅ | `FlatMap` |
 
 ### V2.0 Status
-- All types now use `Bind` consistently (aligns with LINQ's `SelectMany`)
+- All types now use `Bind` consistently
 - `FlatMap` and `AndThen` removed from all types
+- LINQ support (`Select`/`SelectMany`) removed in favor of `Map`/`Bind`
 
 ---
 
@@ -344,7 +345,7 @@ All types consistently have Match, but parameter naming varies with the type sem
 | Get value | `Unwrap`, `Get` | `GetValue` (C# style) |
 | Get with default | `UnwrapOr`, `GetOrElse` | `GetValueOr` (matches BCL) |
 | Get or throw | `Expect`, `GetOrThrow` | `GetOrThrow` (explicit) |
-| Monadic bind | `FlatMap`, `Bind`, `AndThen` | `Bind` (LINQ convention) |
+| Monadic bind | `FlatMap`, `Bind`, `AndThen` | `Bind` (FP convention) |
 
 ### 2. Missing APIs
 - `Option`: Missing `FlatMap`, `Bind`, `BiMap`, async support
@@ -383,7 +384,7 @@ All three names refer to the same monadic bind operation:
 | **State\<S,T\>** | ✅ | ✅ | ✅ | **HIGH - 3 aliases** |
 | **IO\<T\>** | ✅ | ✅ | ✅ | **HIGH - 3 aliases** |
 
-**Recommendation**: Keep `Bind` (C#/LINQ convention, aligns with `SelectMany`).
+**Recommendation**: Keep `Bind` (standard FP convention for monadic bind).
 
 ### 15.2 Factory Methods (Pure/Return/Of)
 
@@ -465,7 +466,7 @@ Same operation, different names for Option → Result conversion:
 
 | Type | Remove | Keep | Reason |
 |------|--------|------|--------|
-| All types | `FlatMap`, `AndThen` | `Bind` | C#/LINQ convention (SelectMany) |
+| All types | `FlatMap`, `AndThen` | `Bind` | Standard FP convention |
 | State, IO | `Pure` | `Return` | C# convention |
 | IO | `Delay` | `Of` | Redundant alias |
 | All types | `Unwrap()` | `GetValue()` | C#-idiomatic naming |
@@ -579,7 +580,7 @@ If removing methods is too breaking, consider:
 
 | Concept | Rust/FP Style (Remove) | C# Style (Keep) | Rationale |
 |---------|------------------------|-----------------|-----------|
-| Monadic bind | `FlatMap`, `AndThen` | `Bind` | Aligns with LINQ's `SelectMany` |
+| Monadic bind | `FlatMap`, `AndThen` | `Bind` | Standard FP convention |
 | Value lifting | `Pure` | `Return` | C# convention |
 | Get value (throws) | `Unwrap()` | `GetValue()` | Explicit, discoverable |
 | Get value or default | `UnwrapOr(T)` | `GetValueOr(T)` | Direct value fallback |

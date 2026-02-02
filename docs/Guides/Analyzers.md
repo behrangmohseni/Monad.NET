@@ -123,34 +123,6 @@ result.Match(
 
 ---
 
-### MNT006: Validation LINQ loses error accumulation
-
-**Severity:** Warning  
-**Default:** Enabled
-
-Using LINQ query syntax with `Validation` short-circuits on the first error, losing the main benefit over `Result`.
-
-**Bad:**
-```csharp
-// Only shows FIRST error, not all!
-var user = from name in ValidateName(input.Name)
-           from email in ValidateEmail(input.Email)
-           select new User(name, email);
-```
-
-**Good:**
-```csharp
-// Shows ALL errors
-var user = ValidateName(input.Name)
-    .Apply(ValidateEmail(input.Email), (name, email) => new User(name, email));
-
-// Or use Zip
-var user = ValidateName(input.Name)
-    .ZipWith(ValidateEmail(input.Email), (name, email) => new User(name, email));
-```
-
----
-
 ### MNT007: Prefer Match over manual state checks
 
 **Severity:** Info  

@@ -131,13 +131,13 @@ This section provides visual diagrams showing how Monad.NET types relate to each
                               │                     │
                               ▼                     ▼
                       ┌─────────────┐       ┌─────────────┐
-                      │   Async     │       │   LINQ      │
-                      │   Support   │       │ Integration │
+                      │   Async     │       │ Collection  │
+                      │   Support   │       │ Extensions  │
                       ├─────────────┤       ├─────────────┤
-                      │ Try.MapAsync│       │ from x in   │
-                      │ IO.ToAsync  │       │ select      │
-                      │ IOAsync     │       │ where       │
-                      │             │       │ join        │
+                      │ Try.MapAsync│       │ Sequence    │
+                      │ IO.ToAsync  │       │ Traverse    │
+                      │ IOAsync     │       │ Choose      │
+                      │             │       │ Partition   │
                       └─────────────┘       └─────────────┘
 ```
 
