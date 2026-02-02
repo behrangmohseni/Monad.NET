@@ -535,49 +535,66 @@ Ship analyzers as a separate NuGet package (`Monad.NET.Analyzers`) that can be o
 Revised (v2.0)
 
 ### Context
-Async variants of monadic operations (e.g., `MapAsync`, `BindAsync`) were initially provided for all types. However, this created API bloat and often led users toward anti-patterns like unnecessary async wrapping.
+Async variants of monadic operations (e.g., `MapAsync`, `BindAsync`) were initially provided for all types in v1.x. However, this created several problems:
+
+1. **API bloat**: ~150 async extension methods cluttered IntelliSense
+2. **Anti-patterns**: Users wrapped synchronous operations in unnecessary async
+3. **Confusion**: Multiple ways to do the same thing (`await option.MapAsync(...)` vs `option.Map(await ...)`)
+4. **Maintenance burden**: Every sync method needed an async counterpart
 
 ### Decision (v2.0)
-Provide async extensions selectively:
-- **`IO<T>`**: Full async support via `IOAsync<T>` and `ToAsync()`
-- **`Try<T>`**: `MapAsync` and `BindAsync` for exception-prone async operations
-- **`Validation<T,E>`**: `MapAsync` for async validation logic
-- **`RemoteData<T,E>`**: `MapAsync` for UI state transformations
-- **Removed from `Option<T>` and `Result<T,E>`**: Use standard `await` + sync methods
+Provide async extensions **selectively** based on where they provide genuine value:
+
+| Type | Async Support | Rationale |
+|------|--------------|-----------|
+| `IO<T>` | Full (`IOAsync<T>`, `ToAsync()`) | IO is about deferred effects — async is essential |
+| `Try<T>` | `MapAsync`, `BindAsync` | Exception-prone async operations (HTTP, file I/O) |
+| `Validation<T,E>` | `MapAsync` | Async validation (database lookups, API checks) |
+| `RemoteData<T,E>` | `MapAsync` | UI state transformations often async |
+| `Option<T>` | **Removed** | Use `await` + sync methods |
+| `Result<T,E>` | **Removed** | Use `await` + sync methods |
 
 ### Rationale
 
-1. **Reduced API Surface**: ~150 async methods removed in v2.0.
-2. **Clearer Intent**: Users explicitly handle async boundaries.
-3. **Better Composition**: Standard async/await patterns integrate naturally.
-4. **Focused Support**: Async extensions where they provide the most value.
+1. **Reduced API Surface**: ~150 async methods removed — better discoverability
+2. **Clearer Intent**: Async boundaries are explicit, not hidden in extension methods
+3. **Standard Patterns**: `await` + sync methods is idiomatic C#
+4. **Focused Support**: Async only where it genuinely helps
 
 ### Migration
 
 ```csharp
-// Before (v1.x)
+// Before (v1.x) - async extensions everywhere
 var result = await option.MapAsync(async x => await ProcessAsync(x));
 
-// After (v2.0) - explicit and clear
-if (option.IsSome)
-{
-    var processed = await ProcessAsync(option.GetValue());
-    // ...
-}
+// After (v2.0) - explicit async handling
+var result = option.IsSome 
+    ? Option<Result>.Some(await ProcessAsync(option.GetValue()))
+    : Option<Result>.None();
+
+// Or with Match for cleaner code
+var result = await option.Match(
+    some: async x => await ProcessAsync(x),
+    none: () => Task.FromResult(default(Result))
+);
 ```
 
 ### Consequences
 
 **Positive:**
-- No code duplication
-- Automatic consistency
-- Complete async API coverage
-- Easier maintenance
+- Smaller, more discoverable API surface
+- No confusion about sync vs async variants
+- Standard C# async/await patterns
+- Easier to maintain (fewer methods)
+- Clearer code — async boundaries are visible
 
 **Negative:**
-- Build-time dependency on generator
-- Debugging generated code can be tricky
-- Additional build complexity
+- Breaking change from v1.x (migration required)
+- Slightly more verbose for some async scenarios
+- Users must understand when to use `await` inside `Map`/`Bind`
+
+### See Also
+- [Async Patterns Guide](Guides/AsyncPatterns.md) — Recommended patterns for async operations
 
 ---
 

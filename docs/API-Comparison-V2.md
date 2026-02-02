@@ -14,12 +14,17 @@ This document provides a comprehensive comparison of APIs showing what changed i
 | **Try\<T\>** | `IsSuccess` | `IsFailure` | - | - |
 | **RemoteData\<T,E\>** | `IsSuccess` | `IsFailure` | `IsNotAsked` | `IsLoading` |
 
-### Inconsistencies
-- `Option`: `IsSome/IsNone` (Rust-inspired)
-- `Result`: `IsOk/IsErr` (Rust-inspired)
-- `Validation`: `IsValid/IsInvalid` (domain-specific)
-- `Try`: `IsSuccess/IsFailure` (Scala-inspired)
-- `RemoteData`: `IsSuccess/IsFailure` (matches Try)
+### Naming Variations (Intentional)
+
+These naming variations are **intentional**, not inconsistent. Each follows established conventions from functional programming:
+
+- `Option`: `IsSome/IsNone` — Matches F#'s `Option.isSome`/`Option.isNone` and Rust's `is_some()`/`is_none()`
+- `Result`: `IsOk/IsErr` — Matches Rust's `Result::is_ok()`/`Result::is_err()`
+- `Validation`: `IsValid/IsInvalid` — Domain-specific; clearly communicates validation semantics
+- `Try`: `IsSuccess/IsFailure` — Matches Scala's `Try` naming convention
+- `RemoteData`: `IsSuccess/IsFailure` — Consistent with Try; represents operation outcome
+
+**See [ADR-009: Property Naming Conventions](ArchitecturalDecisions.md#adr-009-property-naming-conventions) for full rationale.**
 
 ---
 
@@ -332,36 +337,53 @@ All types consistently have Match, but parameter naming varies with the type sem
 
 ---
 
-## Summary of Key Inconsistencies for V2.0
+## Summary of V2.0 Design Decisions
 
 ### 1. Naming Conventions
-| Concept | Current Variations | Suggested V2.0 (C#-Idiomatic) |
-|---------|-------------------|-------------------------------|
-| Success state | `IsSome`, `IsOk`, `IsRight`, `IsValid`, `IsSuccess` | Keep type-specific (semantic) |
-| Failure state | `IsNone`, `IsErr`, `IsLeft`, `IsInvalid`, `IsFailure` | Keep type-specific (semantic) |
-| Map error | `MapErr`, `MapErrors`, `MapError`, `MapLeft` | `MapError` (full word) |
-| Tap failure | `TapNone`, `TapErr`, `TapLeft`, `TapErrors`, `TapFailure` | `TapError` (consistent) |
-| Filter with error | `Filter`, `Ensure` | `Filter` (standard name) |
-| Get value | `Unwrap`, `Get` | `GetValue` (C# style) |
-| Get with default | `UnwrapOr`, `GetOrElse` | `GetValueOr` (matches BCL) |
-| Get or throw | `Expect`, `GetOrThrow` | `GetOrThrow` (explicit) |
-| Monadic bind | `FlatMap`, `Bind`, `AndThen` | `Bind` (FP convention) |
 
-### 2. Missing APIs
-- `Option`: Missing `FlatMap`, `Bind`, `BiMap`, async support
-- `RemoteData`: Missing `GetOrThrow`, `Contains`, `Exists`
-- `IO`: Missing `TapError`
+V2.0 establishes clear naming conventions. See [ADR-009](ArchitecturalDecisions.md#adr-009-property-naming-conventions) for full rationale.
+
+| Concept | V2.0 Naming | Rationale |
+|---------|-------------|-----------|
+| Success state | `IsSome`, `IsOk`, `IsValid`, `IsSuccess` | Type-specific, matches FP origins |
+| Failure state | `IsNone`, `IsErr`, `IsInvalid`, `IsFailure` | Type-specific, matches FP origins |
+| Map error | `MapError` | Full word, C# convention |
+| Tap failure | `TapError` (singular), `TapErrors` (Validation) | Consistent except Validation (plural errors) |
+| Filter with error | `Filter` (most types), `Ensure` (Validation) | Validation uses `Ensure` for chained checks |
+| Get value | `GetValue()` | C#-idiomatic, explicit |
+| Get with default | `GetValueOr(T)` | Matches BCL patterns |
+| Get or throw | `GetOrThrow()` | Explicit about behavior |
+| Monadic bind | `Bind` | Standard FP convention |
+
+### 2. Intentional API Gaps
+
+Some "missing" APIs are intentional design decisions:
+
+| Gap | Rationale |
+|-----|-----------|
+| `Option` has no `BiMap` | Option has no error channel to map |
+| `Option`/`Result` no async extensions | Use standard `await` + sync methods (see [ADR-007](ArchitecturalDecisions.md#adr-007-selective-async-extensions)) |
+| `RemoteData` no `GetOrThrow` | Four states make "throw" semantics ambiguous; use `Match` |
+| `IO` no `TapError` | IO doesn't have built-in error handling; use `Attempt()` for Try wrapping |
 
 ### 3. Instance vs Extension Methods
-- `Tap` is instance on some types, extension on others
-- Should be consistent
 
-### 4. Error Extraction Naming
-- `UnwrapErr` vs `UnwrapErrors` vs `UnwrapError` vs `GetException` vs `UnwrapLeft`
+`Tap` location varies by type for practical reasons:
+- **Instance methods**: Types where tapping is common (Option, Writer, Reader)
+- **Extension methods**: Types where it's less common or added later (Result, Validation)
 
-### 5. Async Gaps
-- `Option` has no async support at all
-- Inconsistent async method availability across types
+This is a minor inconsistency retained for backward compatibility.
+
+### 4. Error Extraction
+
+V2.0 standardized error extraction:
+- `GetError()` — Result, RemoteData
+- `GetErrors()` — Validation (plural, returns list)
+- `GetException()` — Try (specific to exception type)
+
+### 5. Async Strategy
+
+V2.0 deliberately removed ~150 async methods. See [ADR-007](ArchitecturalDecisions.md#adr-007-selective-async-extensions) and [Async Patterns Guide](Guides/AsyncPatterns.md) for the rationale and migration patterns.
 
 ---
 
