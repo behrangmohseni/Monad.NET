@@ -9,6 +9,109 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.0-beta.2] - 2026-02-02
+
+### Summary
+
+Version 2.0 beta 2 focuses on **architectural consistency**, **improved tooling**, and **quality improvements**. All core monadic types now behave consistently, and the analyzer package now provides 8 code fix providers (up from 2).
+
+> **Note:** This is a beta release. Please report any issues or feedback on [GitHub Issues](https://github.com/behrangmohseni/Monad.NET/issues).
+
+### Breaking Changes
+
+#### Reader<R,A> Converted to Readonly Struct
+
+`Reader<R,A>` is now a `readonly struct` instead of a `sealed class`:
+
+```csharp
+// Before (beta.1): class with reference semantics
+public sealed class Reader<R, A> { ... }
+
+// After (beta.2): struct with value semantics  
+public readonly struct Reader<R, A> : IEquatable<Reader<R, A>> { ... }
+```
+
+**Migration:** No code changes needed for typical usage. Edge cases involving reference equality or null checks may need adjustment.
+
+#### Validation.SelectMany Now Short-Circuits
+
+LINQ query syntax on `Validation<T,TErr>` now short-circuits on first error (like `Result`):
+
+```csharp
+// This now short-circuits on first error - use Apply() for accumulation
+var result = from a in validation1
+             from b in validation2
+             select a + b;
+
+// For error accumulation, use Apply() or Zip() instead
+var result = (validation1, validation2).Apply((a, b) => a + b);
+```
+
+The previous implementation used `default!` which was unsafe.
+
+### Added
+
+#### Consistent Default Struct Detection for All Types
+
+All core struct types now detect `default()` usage and throw `InvalidOperationException`:
+
+| Type | IsInitialized | ThrowIfDefault |
+|------|---------------|----------------|
+| `Option<T>` | ✅ Added | ✅ Added |
+| `Result<T,E>` | ✅ (beta.1) | ✅ (beta.1) |
+| `Try<T>` | ✅ Added | ✅ Added |
+| `Validation<T,E>` | ✅ Added | ✅ Added |
+| `RemoteData<T,E>` | ✅ Added | ✅ Added |
+| `Reader<R,A>` | ✅ Added | ✅ Added |
+| `NonEmptyList<T>` | ✅ (existing) | ✅ (existing) |
+
+#### 6 New Code Fix Providers for Analyzers
+
+Coverage improved from 2/17 (12%) to 8/17 (47%) diagnostics with auto-fixes:
+
+| Diagnostic | Code Fix | Transformation |
+|------------|----------|----------------|
+| **MNT003** | MapGetOrElseToMatch | `.Map(f).GetOrElse(d)` → `.Match(f, () => d)` |
+| **MNT004** | BindToMap | `.Bind(x => Some(f(x)))` → `.Map(f)` |
+| **MNT007/016** | UseToOption | `Option.Some(x)` → `x.ToOption()` |
+| **MNT009** | RemoveMapIdentity | `.Map(x => x)` → removed |
+| **MNT010** | OptionNullComparison | `option == null` → `option.IsNone` |
+| **MNT012** | DoubleNegation | `!option.IsNone` → `option.IsSome` |
+
+#### Thread-Safety Tests
+
+Added comprehensive concurrency tests for all core types to verify thread-safe behavior under concurrent access.
+
+#### ADR-009: Property Naming Conventions
+
+Documented the rationale for `IsSome`/`IsNone`, `IsOk`/`IsError`, `IsValid`/`IsInvalid` naming conventions as an architectural decision.
+
+### Changed
+
+#### Build System Improvements
+
+- Centralized all common build properties in `Directory.Build.props`
+- CI now tests on .NET 6.0, 8.0, and 10.0 (preview)
+- Improved source generator error handling with MNG009 diagnostic
+
+#### Allocation Optimizations
+
+`ToList()` methods on `Option` and `Result` now use collection expressions which optimize to `Array.Empty<T>()` for empty cases.
+
+### Fixed
+
+- Documentation now accurately reflects v2.0 API (removed ~285 deleted method references)
+- Removed unused MNG006 diagnostic code (dead code cleanup)
+- Fixed `dotnet format` compatibility with source-generator-dependent projects
+
+### Test Coverage
+
+- Total: 2,056 tests
+- Added 13 thread-safety tests
+- All existing tests updated for API changes
+
+---
+
 ## [2.0.0-beta.1] - 2026-02-01
 
 ### Summary
