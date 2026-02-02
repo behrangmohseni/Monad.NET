@@ -21,11 +21,15 @@
     
     <!-- Build Quality -->
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <Deterministic>true</Deterministic>
     
     <!-- Neutral Language -->
     <NeutralLanguage>en-US</NeutralLanguage>
+  </PropertyGroup>
+
+  <!-- EnforceCodeStyleInBuild only for library projects (not for projects using source generators) -->
+  <PropertyGroup Condition="$(MSBuildProjectDirectory.Contains('src'))">
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
   </PropertyGroup>
 
   <!-- ============================================== -->
