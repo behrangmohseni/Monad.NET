@@ -37,7 +37,7 @@
   <!-- ============================================== -->
   <PropertyGroup Condition="$(MSBuildProjectDirectory.Contains('src'))">
     <!-- Centralized Version - Update here for releases -->
-    <Version>2.0.0-beta.1</Version>
+    <Version>2.0.0-beta.2</Version>
     
     <!-- Author Information -->
     <Authors>Behrang Mohseni</Authors>
