@@ -78,6 +78,9 @@
     <DevelopmentDependency>true</DevelopmentDependency>
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     
+    <!-- Disable symbols package - not useful for analyzers/generators -->
+    <IncludeSymbols>false</IncludeSymbols>
+    
     <!-- Common suppressions for Roslyn components -->
     <NoWarn>$(NoWarn);NU5128;RS2008</NoWarn>
   </PropertyGroup>
