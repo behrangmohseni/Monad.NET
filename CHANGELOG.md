@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Breaking Changes
+
+#### LINQ Support Removed
+
+LINQ query syntax support has been completely removed from all monad types:
+
+```csharp
+// No longer supported:
+var result = from x in option
+             from y in other
+             select x + y;
+
+// Use Map/Bind instead:
+var result = option.Bind(x => other.Map(y => x + y));
+```
+
+**Removed classes:**
+- `OptionLinq`, `ResultLinq`, `TryLinq`, `ValidationLinq`, `RemoteDataLinq`
+- `Select`/`SelectMany` extension methods from `IO`, `Reader`, `State`
+
+**Removed analyzer:**
+- `MNT013: ValidationLinqShortCircuits` - No longer needed
+
+**Rationale:** LINQ support caused semantic confusion, especially with `Validation` where `SelectMany` short-circuits on the first error (defeating the purpose of error accumulation). The library now has a cleaner, more consistent API with only `Map`/`Bind`/`Filter` methods.
+
 ---
 
 ## [2.0.0-beta.2] - 2026-02-02
@@ -33,21 +58,9 @@ public readonly struct Reader<R, A> : IEquatable<Reader<R, A>> { ... }
 
 **Migration:** No code changes needed for typical usage. Edge cases involving reference equality or null checks may need adjustment.
 
-#### Validation.SelectMany Now Short-Circuits
+#### LINQ Support Removed (Superseded)
 
-LINQ query syntax on `Validation<T,TError>` now short-circuits on first error (like `Result`):
-
-```csharp
-// This now short-circuits on first error - use Apply() for accumulation
-var result = from a in validation1
-             from b in validation2
-             select a + b;
-
-// For error accumulation, use Apply() or Zip() instead
-var result = (validation1, validation2).Apply((a, b) => a + b);
-```
-
-The previous implementation used `default!` which was unsafe.
+> **Note:** This breaking change from beta.2 has been superseded. LINQ support has been completely removed in a later release. See [Unreleased] section above.
 
 ### Added
 

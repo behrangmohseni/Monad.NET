@@ -136,21 +136,23 @@ var result = ValidateName(n)
     .Apply(ValidateAge(a), (partial, age) => new User(partial.name, partial.email, age));
 ```
 
-### LINQ Syntax Comparison
+### Method Chain Comparison
 
 ```csharp
-// language-ext uses LINQ with special SelectMany overloads
+// language-ext uses LINQ query syntax
 var result = from user in GetUser(id)
              from profile in GetProfile(user.Id)
              from address in GetAddress(profile.AddressId)
              select new UserDetails(user, profile, address);
 
-// Monad.NET - identical LINQ support
-var result = from user in GetUser(id)
-             from profile in GetProfile(user.Id)  
-             from address in GetAddress(profile.AddressId)
-             select new UserDetails(user, profile, address);
+// Monad.NET uses Map/Bind chains
+var result = GetUser(id)
+    .Bind(user => GetProfile(user.Id)
+        .Bind(profile => GetAddress(profile.AddressId)
+            .Map(address => new UserDetails(user, profile, address))));
 ```
+
+> **Note:** Monad.NET removed LINQ support to avoid semantic confusion (especially with Validation where SelectMany short-circuits). Use `Map`/`Bind` chains instead.
 
 ### Key Differences to Note
 
@@ -377,9 +379,19 @@ Match(Succ:    →  Match(success:
 Match(Fail:    →  Match(failure:
 ```
 
-### 3. Handle LINQ Syntax
+### 3. Convert LINQ to Map/Bind
 
-Monad.NET supports LINQ syntax for most types. Your existing LINQ queries should work with minimal changes.
+Monad.NET does not support LINQ query syntax. Convert your LINQ queries to `Map`/`Bind` chains:
+
+```csharp
+// Before (LINQ)
+var result = from x in option1
+             from y in option2
+             select x + y;
+
+// After (Map/Bind)
+var result = option1.Bind(x => option2.Map(y => x + y));
+```
 
 ### 4. Migrate Error Types
 

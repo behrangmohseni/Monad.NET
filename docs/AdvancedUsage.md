@@ -4,7 +4,7 @@ This document covers advanced patterns and features in Monad.NET.
 
 ## Table of Contents
 
-- [LINQ Support](#linq-support)
+- [Fluent Composition](#fluent-composition)
 - [When/Unless Guards](#whenunless-guards)
 - [Collection Operations](#collection-operations)
 - [Parallel Collection Operations](#parallel-collection-operations)
@@ -14,68 +14,55 @@ This document covers advanced patterns and features in Monad.NET.
 
 ---
 
-## LINQ Support
+## Fluent Composition
 
-All monads support LINQ extension methods (`Select`, `SelectMany`, `Where`) for fluent composition.
+All monads support `Map`, `Bind`, and `Filter` methods for fluent composition.
 
-### Method Syntax (Recommended)
+### Core Methods
 
-The method syntax is familiar to most .NET developers and works great with IntelliSense:
+| Method | Description | Analogy |
+|--------|-------------|---------|
+| `Map(f)` | Transform the value inside | "If success, apply f" |
+| `Bind(f)` | Chain to another monad-returning function | "If success, continue with f" |
+| `Filter(predicate)` | Keep value only if predicate passes | "If success and matches, keep" |
+
+### Examples
 
 ```csharp
-// Option - chain transformations with Select and SelectMany
+// Option - chain transformations with Map and Bind
 var userEmail = FindUser(id)
-    .Select(user => user.Email)                    // Map: Option<User> → Option<string>
-    .Where(email => email.Contains("@"))           // Filter: keep only valid emails
-    .SelectMany(email => ValidateEmail(email));    // Bind: chain Option-returning functions
+    .Map(user => user.Email)                    // Map: Option<User> → Option<string>
+    .Filter(email => email.Contains("@"))       // Filter: None if predicate fails
+    .Bind(email => ValidateEmail(email));       // Bind: chain Option-returning functions
 
 // Result - compose fallible operations
 var order = ValidateCart(input)
-    .SelectMany(cart => ProcessPayment(cart))      // Chain to next Result
-    .Select(payment => CreateOrderDto(payment));   // Transform success value
+    .Bind(cart => ProcessPayment(cart))         // Chain to next Result
+    .Map(payment => CreateOrderDto(payment));   // Transform success value
 
 // Try - safely chain operations that might throw
 var parsed = Try<string>.Of(() => ReadFile(path))
-    .Select(content => content.Trim())
-    .SelectMany(content => Try<int>.Of(() => int.Parse(content)))
-    .Where(value => value > 0);
-```
+    .Map(content => content.Trim())
+    .Bind(content => Try<int>.Of(() => int.Parse(content)))
+    .Filter(value => value > 0);
 
-### Query Syntax
-
-For complex compositions with multiple bindings, query syntax can be more readable:
-
-```csharp
-// Option - multiple from clauses bind values
-var result = from user in FindUser(id)
-             from profile in LoadProfile(user.Id)
-             where profile.IsComplete
-             select new UserView(user, profile);
-
-// Result - railway-oriented composition
-var order = from cart in ValidateCart(input)
-            from payment in ProcessPayment(cart)
-            from confirmation in CreateOrder(cart, payment)
-            select confirmation;
-
-// ⚠️ Validation with LINQ - WARNING: Does NOT accumulate errors!
-// Use Apply() instead for error accumulation:
+// Validation - use Apply for error accumulation
 var user = ValidateName(input.Name)
     .Apply(ValidateEmail(input.Email), (name, email) => new User(name, email));
 ```
 
-### Available LINQ Methods
+### Method Availability by Type
 
-| Monad | Select | SelectMany | Where |
-|-------|--------|------------|-------|
-| `Option<T>` | Map value | Chain Options | Filter by predicate |
-| `Result<T,E>` | Map Ok value | Chain Results | With error value/factory |
-| `Try<T>` | Map success | Chain Trys | Filter with predicate |
-| `Validation<T,E>` | Map valid | ⚠️ Short-circuits (use `Apply`) | — |
-| `RemoteData<T,E>` | Map success | Chain RemoteData | — |
-| `Writer<W,T>` | Map value | Chain with log combine | — |
-| `State<S,A>` | Map value | Chain State | — |
-| `IO<T>` | Map value | Chain IO | — |
+| Monad | Map | Bind | Filter |
+|-------|-----|------|--------|
+| `Option<T>` | ✅ | ✅ | ✅ |
+| `Result<T,E>` | ✅ | ✅ | ✅ (with error) |
+| `Try<T>` | ✅ | ✅ | ✅ |
+| `Validation<T,E>` | ✅ | ✅ (short-circuits) | — |
+| `RemoteData<T,E>` | ✅ | ✅ | — |
+| `Writer<W,T>` | ✅ | ✅ | — |
+| `State<S,A>` | ✅ | ✅ | — |
+| `IO<T>` | ✅ | ✅ | — |
 
 ---
 

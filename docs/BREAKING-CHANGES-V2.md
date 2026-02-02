@@ -4,12 +4,13 @@ This document describes the breaking changes in Monad.NET v2.0 and provides migr
 
 ## Overview
 
-Version 2.0 is a major release with four key focuses:
+Version 2.0 is a major release with five key focuses:
 
 1. **API Simplification** — Reduced from ~722 to ~437 public methods
 2. **C#-Idiomatic Naming** — Rust-style names replaced with C# conventions
 3. **Stricter Type Safety** — `default(Result<T,E>)` now protected
 4. **Consistent Naming** — Unified `Ok()`/`Error()` factory methods across all types
+5. **LINQ Removal** — Removed LINQ query syntax to avoid semantic confusion
 
 The core functionality remains intact, with removed methods having straightforward replacements.
 
@@ -53,6 +54,51 @@ var result = Result<int, string>.Error("error");
 var validation = Validation<int, string>.Ok(42);
 var tryValue = Try<int>.Ok(42);
 ```
+
+## LINQ Support Removed
+
+LINQ query syntax support has been completely removed from all monad types to avoid semantic confusion, particularly with `Validation` where `SelectMany` short-circuits on first error (defeating the purpose of error accumulation).
+
+### Removed Classes
+
+| Class | Description |
+|-------|-------------|
+| `OptionLinq` | LINQ extensions for Option |
+| `ResultLinq` | LINQ extensions for Result |
+| `TryLinq` | LINQ extensions for Try |
+| `ValidationLinq` | LINQ extensions for Validation |
+| `RemoteDataLinq` | LINQ extensions for RemoteData |
+
+### Removed Extension Methods
+
+The `Select` and `SelectMany` extension methods have been removed from:
+- `IO<T>` and `IOAsync<T>`
+- `Reader<R, A>`
+- `State<S, A>`
+
+### Migration
+
+```csharp
+// Before (LINQ query syntax)
+var result = from x in option1
+             from y in option2
+             select x + y;
+
+// After (use Map/Bind)
+var result = option1.Bind(x => option2.Map(y => x + y));
+
+// Before (LINQ method syntax)
+var result = option.Select(x => x * 2);
+
+// After
+var result = option.Map(x => x * 2);
+```
+
+### Rationale
+
+1. **Semantic confusion**: LINQ's `SelectMany` implies short-circuit behavior, but `Validation` was designed for error accumulation
+2. **API clarity**: `Map`/`Bind`/`Filter` are clearer and more consistent than `Select`/`SelectMany`/`Where`
+3. **No naming conflicts**: Removes potential confusion with `System.Linq` methods
 
 ## Behavioral Changes
 

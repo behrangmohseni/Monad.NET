@@ -37,7 +37,7 @@ Version 2.0 is a major release focused on **C#-idiomatic naming** and **API simp
 - **`default(Result<T,E>)` now protected**: Throws `InvalidOperationException` to prevent invalid states
 - **2,042 tests** ensure correctness across all changes
 
-All core functionality remains — removed methods have straightforward replacements using `Match()`, `GetValueOr()`, and LINQ.
+All core functionality remains — removed methods have straightforward replacements using `Match()`, `GetValueOr()`, and `Map()`/`Bind()`.
 
 **[See the full migration guide →](docs/BREAKING-CHANGES-V2.md)**
 
@@ -261,13 +261,6 @@ dotnet add package Monad.NET.EntityFrameworkCore
 ### Option — Handle missing values
 
 ```csharp
-// Method syntax (recommended)
-var email = FindUser(id)
-    .Select(user => user.Email)
-    .Where(email => email.Contains("@"))
-    .SelectMany(email => ValidateEmail(email));
-
-// Or use Map/Filter/AndThen
 var email = FindUser(id)
     .Map(user => user.Email)
     .Filter(email => email.Contains("@"))
@@ -301,7 +294,7 @@ user.Match(
 );
 ```
 
-> **Important:** LINQ query syntax (`from...select`) on Validation **short-circuits** on the first error. Use `Apply()` or `Zip()` to accumulate all errors.
+> **Tip:** Use `Apply()` or `Zip()` to accumulate all errors. `Bind()` short-circuits on the first error (use `Result` if you only need the first error).
 
 ### Discriminated Unions — Type-safe alternatives
 
@@ -329,7 +322,7 @@ var area = shape.Match(
 | [NuGet Packages](docs/NuGetPackages.md) | All packages with version badges and installation instructions |
 | [Quick Start Guide](docs/QUICKSTART.md) | Get up and running in 5 minutes |
 | [Core Types](docs/CoreTypes.md) | Detailed docs for Option, Result, Validation, Try, and more |
-| [Advanced Usage](docs/AdvancedUsage.md) | LINQ, async, collection operations, parallel processing |
+| [Advanced Usage](docs/AdvancedUsage.md) | Async operations, collection methods, parallel processing |
 | [Examples](docs/Examples.md) | Real-world code samples |
 | [Integrations](docs/Integrations.md) | Source Generators, ASP.NET Core, Entity Framework Core |
 | [API Reference](docs/API.md) | Complete API documentation |

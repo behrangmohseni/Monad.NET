@@ -224,37 +224,37 @@ var result = ParseInput(data)
     .TapError(e => Log($"Error: {e}"));
 ```
 
-### LINQ Method Syntax (Recommended)
+### Fluent Method Syntax
 
-Use familiar `Select`, `SelectMany`, and `Where` methods for fluent composition:
+Use `Map`, `Bind`, and `Filter` methods for fluent composition:
 
 ```csharp
 // Chain Option operations
 var userEmail = FindUser(id)
-    .Select(u => u.Email)                      // Transform: Option<User> → Option<string>
-    .Where(email => email.Contains("@"))       // Filter: None if predicate fails
-    .SelectMany(email => SendWelcome(email));  // Chain: bind to another Option
+    .Map(u => u.Email)                      // Transform: Option<User> → Option<string>
+    .Filter(email => email.Contains("@"))   // Filter: None if predicate fails
+    .Bind(email => SendWelcome(email));     // Chain: bind to another Option
 
 // Chain Result operations  
 var order = ParseOrderId(input)
-    .SelectMany(id => FetchOrder(id))          // Chain fallible operations
-    .Select(order => order.Total);             // Transform success value
+    .Bind(id => FetchOrder(id))             // Chain fallible operations
+    .Map(order => order.Total);             // Transform success value
 
 // Chain Try operations
 var config = Try<string>.Of(() => File.ReadAllText("config.json"))
-    .Select(json => JsonSerializer.Deserialize<Config>(json))
-    .Where(cfg => cfg.IsOk);
+    .Map(json => JsonSerializer.Deserialize<Config>(json))
+    .Filter(cfg => cfg.IsOk);
 ```
 
-### LINQ Query Syntax
+### Combining Multiple Values
 
-For complex compositions, query syntax can be more readable:
+Use `Bind` to chain operations that return monads:
 
 ```csharp
-var result = from x in Option<int>.Some(10)
-             from y in Option<int>.Some(20)
-             where x > 5
-             select x + y;
+var result = Option<int>.Some(10)
+    .Bind(x => Option<int>.Some(20)
+        .Filter(y => x > 5)
+        .Map(y => x + y));
 // Some(30)
 ```
 
