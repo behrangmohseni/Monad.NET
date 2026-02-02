@@ -391,41 +391,6 @@ public class IOTests
 
     #endregion
 
-    #region LINQ Support
-
-    [Fact]
-    public void LinqQuery_SelectWorks()
-    {
-        var io = from x in IO<int>.Return(21)
-                 select x * 2;
-
-        Assert.Equal(42, io.Run());
-    }
-
-    [Fact]
-    public void LinqQuery_SelectManyWorks()
-    {
-        var io = from x in IO<int>.Return(10)
-                 from y in IO<int>.Return(5)
-                 select x + y;
-
-        Assert.Equal(15, io.Run());
-    }
-
-    [Fact]
-    public void LinqQuery_ComplexQuery()
-    {
-        var io = from a in IO<int>.Return(1)
-                 from b in IO<int>.Return(2)
-                 from c in IO<int>.Return(3)
-                 let sum = a + b + c
-                 select sum * 2;
-
-        Assert.Equal(12, io.Run());
-    }
-
-    #endregion
-
     #region Extensions - Flatten
 
     [Fact]
@@ -805,31 +770,6 @@ public class IOAsyncTests
 
         var result = await io.RunAsync();
         Assert.Equal(99, result);
-    }
-
-    #endregion
-
-    #region LINQ Support
-
-    [Fact]
-    public async Task LinqQuery_SelectWorks()
-    {
-        var io = from x in IOAsync<int>.Return(21)
-                 select x * 2;
-
-        var result = await io.RunAsync();
-        Assert.Equal(42, result);
-    }
-
-    [Fact]
-    public async Task LinqQuery_SelectManyWorks()
-    {
-        var io = from x in IOAsync<int>.Return(10)
-                 from y in IOAsync<int>.Return(5)
-                 select x + y;
-
-        var result = await io.RunAsync();
-        Assert.Equal(15, result);
     }
 
     #endregion

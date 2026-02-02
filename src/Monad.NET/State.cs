@@ -629,41 +629,5 @@ public static class StateExtensions
             return new StateResult<TState, IReadOnlyList<T>>(results, currentState);
         });
     }
-
-    /// <summary>
-    /// LINQ Select support for State monad.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static State<TState, U> Select<TState, T, U>(
-        this State<TState, T> state,
-        Func<T, U> selector)
-    {
-        return state.Map(selector);
-    }
-
-    /// <summary>
-    /// LINQ SelectMany support for State monad.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static State<TState, U> SelectMany<TState, T, U>(
-        this State<TState, T> state,
-        Func<T, State<TState, U>> selector)
-    {
-        return state.Bind(selector);
-    }
-
-    /// <summary>
-    /// LINQ SelectMany support with result selector for State monad.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static State<TState, V> SelectMany<TState, T, U, V>(
-        this State<TState, T> state,
-        Func<T, State<TState, U>> selector,
-        Func<T, U, V> resultSelector)
-    {
-        ThrowHelper.ThrowIfNull(resultSelector);
-
-        return state.Bind(a => selector(a).Map(b => resultSelector(a, b)));
-    }
 }
 

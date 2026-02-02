@@ -26,7 +26,6 @@ internal class ExampleRunner
         ("Writer<W, T>", WriterExamples.Run),
         ("Reader<R, A>", ReaderExamples.Run),
         ("IO<T>", IOExamples.Run),
-        ("LINQ Integration", LinqExamples.Run),
         ("ErrorUnion (Source Gen)", ErrorUnionExamples.Run),
         ("Real-World Patterns", RealWorldExamples.Run),
     ];

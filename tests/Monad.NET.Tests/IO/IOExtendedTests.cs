@@ -388,25 +388,6 @@ public class IOExtendedTests
         Assert.Equal(new[] { 10, 20, 30 }, traversed.Run());
     }
 
-    [Fact]
-    public void Select_LinqSupport()
-    {
-        var io = from x in IO<int>.Return(21)
-                 select x * 2;
-
-        Assert.Equal(42, io.Run());
-    }
-
-    [Fact]
-    public void SelectMany_LinqSupport()
-    {
-        var io = from x in IO<int>.Return(10)
-                 from y in IO<int>.Return(32)
-                 select x + y;
-
-        Assert.Equal(42, io.Run());
-    }
-
     #endregion
 
     #region IOAsync Tests
@@ -669,25 +650,6 @@ public class IOExtendedTests
         var traversed = source.Traverse(x => IOAsync<int>.Return(x * 10));
 
         Assert.Equal(new[] { 10, 20, 30 }, await traversed.RunAsync());
-    }
-
-    [Fact]
-    public async Task IOAsync_Select_LinqSupport()
-    {
-        var io = from x in IOAsync<int>.Return(21)
-                 select x * 2;
-
-        Assert.Equal(42, await io.RunAsync());
-    }
-
-    [Fact]
-    public async Task IOAsync_SelectMany_LinqSupport()
-    {
-        var io = from x in IOAsync<int>.Return(10)
-                 from y in IOAsync<int>.Return(32)
-                 select x + y;
-
-        Assert.Equal(42, await io.RunAsync());
     }
 
     #endregion
