@@ -330,6 +330,7 @@ var area = shape.Match(
 | [Performance Benchmarks](docs/PerformanceBenchmarks.md) | Detailed performance comparisons and analysis |
 | [Versioning Policy](docs/VersioningPolicy.md) | API versioning and deprecation policy |
 | [Pitfalls & Gotchas](docs/Guides/Pitfalls.md) | Common mistakes to avoid |
+| [Async Patterns](docs/Guides/AsyncPatterns.md) | How to use async/await with monadic types |
 | [Logging Guidance](docs/Guides/Logging.md) | Best practices for logging |
 | [Type Selection Guide](docs/Guides/TypeSelectionGuide.md) | Decision flowchart for choosing the right type |
 | [Migration Guide](docs/Guides/MigrationGuide.md) | Migrate from language-ext, OneOf, FluentResults |
@@ -411,17 +412,53 @@ Want to dive deeper into functional programming and these patterns?
 
 ## When NOT to Use Monad.NET
 
-Monad.NET is not always the right choice. Here's when to stick with native C#:
+Monad.NET adds value in specific scenarios. Here's a decision framework:
 
-| Scenario | Recommendation |
-|----------|----------------|
-| Simple null checks | Use `??`, `?.`, and nullable reference types |
-| Exceptional failures (IO, network) | Use exceptions — they're designed for this |
-| Performance-critical hot loops | Avoid lambda allocations; use traditional control flow |
-| Team unfamiliar with FP concepts | Consider the learning curve before adoption |
-| Simple CRUD operations | Often overkill; use when composition benefits outweigh complexity |
+### Use Native C# When...
 
-**Good rule of thumb:** If you're writing `if (x != null) { ... }` once, use nullable. If you're chaining multiple such checks, use `Option`.
+| Scenario | Why | What to Use Instead |
+|----------|-----|---------------------|
+| Single null check | Monad overhead isn't justified | `x?.Property ?? default` |
+| Truly exceptional errors | Stack traces are valuable for debugging | `try/catch` with proper exception types |
+| Performance-critical inner loops | Lambda allocations matter at scale | Traditional `if/else`, early returns |
+| Simple CRUD with no composition | No chaining benefit | Direct calls, simple conditionals |
+
+### Use Monad.NET When...
+
+| Scenario | Why | What to Use |
+|----------|-----|-------------|
+| Chaining 3+ nullable operations | Avoids nested `if (x != null)` pyramids | `Option<T>` with `Bind`/`Map` |
+| Expected failures with typed errors | Error handling in the type signature | `Result<T, E>` |
+| Showing ALL validation errors | Accumulation instead of short-circuit | `Validation<T, E>` |
+| Wrapping exception-throwing code | Convert exceptions to values | `Try<T>` |
+| UI async state (loading/error/success) | Explicit state modeling | `RemoteData<T, E>` |
+
+### Decision Flowchart
+
+```
+Is the value optional?
+├─► YES: How many operations do you chain?
+│   ├─► 1-2: Use nullable reference types (T?)
+│   └─► 3+: Use Option<T>
+│
+└─► NO: Can the operation fail?
+    ├─► YES: Is failure exceptional (bugs, network, disk)?
+    │   ├─► YES: Use exceptions
+    │   └─► NO: Is it validation?
+    │       ├─► YES: Need ALL errors? Use Validation<T,E>
+    │       │        First error is enough? Use Result<T,E>
+    │       └─► NO: Use Result<T,E>
+    └─► NO: Just use regular types
+```
+
+### Team Considerations
+
+Adopting Monad.NET requires the team to understand:
+- `Map` vs `Bind` (transformation vs chaining)
+- Railway-oriented programming concepts
+- When to use `Match` vs direct value access
+
+**Recommendation:** Start with `Option<T>` and `Result<T,E>` only. Add other types as the team gains familiarity. Don't adopt the full library at once.
 
 ---
 

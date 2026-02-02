@@ -2,6 +2,12 @@
 
 This document provides detailed documentation for all monad types in Monad.NET.
 
+> **Struct Default Warning:** Most types are `readonly struct` for performance. However, `default(T)` behavior varies:
+> - **Safe:** `Option<T>` (→ None), `RemoteData<T,E>` (→ NotAsked)
+> - **Throws:** `Result<T,E>`, `Validation<T,E>`, `Try<T>` — always use factory methods
+>
+> See [Pitfalls Guide](Guides/Pitfalls.md#struct-default-values-critical) for details.
+
 ## Table of Contents
 
 - [Option\<T\>](#optiont)
@@ -74,7 +80,7 @@ Represents either success (`Ok`) or failure (`Error`) with a typed error.
 
 **Inspired by:** Rust `Result<T, E>`
 
-> **Important (v2.0):** `default(Result<T,E>)` now throws `InvalidOperationException` on any operation. Always use `Ok()` or `Error()` factory methods.
+> **Important (v2.0):** `default(Result<T,E>)` throws `InvalidOperationException` on any operation. Always use `Ok()` or `Error()` factory methods. See [Pitfalls Guide](Guides/Pitfalls.md#struct-default-values-critical) for details.
 
 ```csharp
 // Creation - always use factory methods
@@ -136,6 +142,8 @@ Unlike `Result`, validation **accumulates all errors** instead of short-circuiti
 
 **Inspired by:** Haskell `Validation` (from `Data.Validation`), Scala Cats `Validated`
 
+> **Important (v2.0):** `default(Validation<T,E>)` throws `InvalidOperationException` on any operation. Always use `Ok()` or `Error()` factory methods. See [Pitfalls Guide](Guides/Pitfalls.md#struct-default-values-critical).
+
 ```csharp
 Validation<string, ValidationError> ValidateEmail(string email)
 {
@@ -176,6 +184,8 @@ user.Match(
 Wraps computations that might throw, converting exceptions to values.
 
 **Inspired by:** Scala `Try[T]`, Vavr (Java) `Try<T>`
+
+> **Important (v2.0):** `default(Try<T>)` throws `InvalidOperationException` on any operation. Always use `Ok()`, `Error()`, or `Of()` factory methods. See [Pitfalls Guide](Guides/Pitfalls.md#struct-default-values-critical).
 
 ```csharp
 // Capture exceptions
