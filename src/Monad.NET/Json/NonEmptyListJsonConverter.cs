@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -58,6 +59,11 @@ public class NonEmptyListJsonConverter<T> : JsonConverter<NonEmptyList<T>>
 /// <summary>
 /// Factory for creating <see cref="NonEmptyListJsonConverter{T}"/> instances.
 /// </summary>
+/// <remarks>
+/// This factory uses reflection to create generic converter instances.
+/// For full Native AOT support, register specific <see cref="NonEmptyListJsonConverter{T}"/> 
+/// instances directly in your JsonSerializerOptions.
+/// </remarks>
 public class NonEmptyListJsonConverterFactory : JsonConverterFactory
 {
     /// <inheritdoc />
@@ -68,7 +74,13 @@ public class NonEmptyListJsonConverterFactory : JsonConverterFactory
     }
 
     /// <inheritdoc />
-    public override JsonConverter? CreateConverter(Type typeToConvert, JsonSerializerOptions options)
+#if NET7_0_OR_GREATER
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the NonEmptyListJsonConverter<T> directly for AOT scenarios.")]
+    [RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed.")]
+#endif
+    public override JsonConverter? CreateConverter(
+        Type typeToConvert,
+        JsonSerializerOptions options)
     {
         var valueType = typeToConvert.GetGenericArguments()[0];
         var converterType = typeof(NonEmptyListJsonConverter<>).MakeGenericType(valueType);
