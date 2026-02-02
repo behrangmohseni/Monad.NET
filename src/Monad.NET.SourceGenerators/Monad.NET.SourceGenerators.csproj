@@ -2,32 +2,17 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <LangVersion>latest</LangVersion>
-    <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     
-    <!-- Package Info -->
+    <!-- Package Info (inherits Version, Authors, Company, Copyright from Directory.Build.props) -->
     <PackageId>Monad.NET.SourceGenerators</PackageId>
-    <Version>2.0.0-beta.1</Version>
-    <Authors>Behrang Mohseni</Authors>
-    <Company>behrangmohseni.com</Company>
     <Product>Monad.NET.SourceGenerators</Product>
     <Description>Source generators for Monad.NET - auto-generate Match methods for discriminated unions and typed error hierarchies with [Union] and [ErrorUnion] attributes</Description>
     <PackageTags>monad;functional;source-generator;discriminated-union;match;error-union;result</PackageTags>
-    <PackageProjectUrl>https://behrangmohseni.com/monad_dot_net</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/behrangmohseni/Monad.NET</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageIcon>icon.png</PackageIcon>
     
-    <!-- Source Generator specific -->
-    <IncludeBuildOutput>false</IncludeBuildOutput>
-    <DevelopmentDependency>true</DevelopmentDependency>
-    <IsRoslynComponent>true</IsRoslynComponent>
-    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
-    <NoWarn>$(NoWarn);NU5128;RS2008</NoWarn>
+    <!-- Suppress missing XML doc warnings for internal generator methods -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

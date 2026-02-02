@@ -109,7 +109,9 @@ jobs:
       run: dotnet build --configuration Release --no-restore /warnaserror
 
     - name: Check formatting
-      run: dotnet format --verify-no-changes --verbosity diagnostic
+      # Exclude projects that use source-generated attributes ([Union], [ErrorUnion])
+      # as dotnet format cannot resolve them even after building
+      run: dotnet format --verify-no-changes --verbosity diagnostic --exclude examples/ --exclude tests/Monad.NET.SourceGenerators.Tests/
 
   pack:
     name: Create NuGet Package

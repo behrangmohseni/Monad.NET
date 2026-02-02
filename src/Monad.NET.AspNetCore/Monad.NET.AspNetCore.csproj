@@ -1,51 +1,24 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!-- Target Framework - .NET 6.0 and later -->
+    <!-- Target Framework - .NET 8.0 and later -->
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <LangVersion>latest</LangVersion>
     
-    <!-- Package Metadata -->
+    <!-- Package Metadata (inherits Version, Authors, Company, Copyright from Directory.Build.props) -->
     <PackageId>Monad.NET.AspNetCore</PackageId>
-    <Version>2.0.0-beta.1</Version>
-    <Authors>Behrang Mohseni</Authors>
-    <Company>Behrang Mohseni</Company>
     <Product>Monad.NET.AspNetCore</Product>
-    <Copyright>Copyright © 2025 Behrang Mohseni</Copyright>
     <Description>ASP.NET Core integration for Monad.NET. IActionResult extensions and middleware for Option, Result, Validation, and Try types.</Description>
     <PackageTags>monad;functional;aspnetcore;mvc;webapi;result;option;iactionresult;middleware;error-handling</PackageTags>
-    
-    <!-- URLs -->
-    <PackageProjectUrl>https://github.com/behrangmohseni/Monad.NET</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/behrangmohseni/Monad.NET</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
     <PackageReleaseNotes>https://github.com/behrangmohseni/Monad.NET/releases</PackageReleaseNotes>
-    
-    <!-- License -->
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    
-    <!-- Package Files -->
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageIcon>icon.png</PackageIcon>
     
     <!-- Build Settings -->
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Deterministic>true</Deterministic>
-    
-    <!-- Source Link for debugging -->
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     
     <!-- Assembly Info -->
     <AssemblyName>Monad.NET.AspNetCore</AssemblyName>
     <RootNamespace>Monad.NET.AspNetCore</RootNamespace>
-    <NeutralLanguage>en-US</NeutralLanguage>
   </PropertyGroup>
 
   <!-- Package Files -->
@@ -60,16 +33,6 @@
     <ProjectReference Include="..\Monad.NET\Monad.NET.csproj" />
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
-
-  <!-- Source Link -->
-  <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
-  </ItemGroup>
-
-  <!-- Continuous Integration -->
-  <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
-    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-  </PropertyGroup>
 
 </Project>
 
