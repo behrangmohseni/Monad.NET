@@ -52,11 +52,11 @@ public class ValidationJsonConverter<T, E> : JsonConverter<Validation<T, E>>
 
         if (isValid == true && value is not null)
         {
-            return Validation<T, E>.Valid(value);
+            return Validation<T, E>.Ok(value);
         }
         else if (isValid == false && errors is not null)
         {
-            return Validation<T, E>.Invalid(errors);
+            return Validation<T, E>.Error(errors);
         }
 
         throw new JsonException("Invalid Validation JSON: missing isValid, value, or errors");

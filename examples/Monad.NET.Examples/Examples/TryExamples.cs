@@ -12,8 +12,8 @@ public static class TryExamples
 
         // Creating Try values
         Console.WriteLine("1. Creating Try Values:");
-        var success = Try<int>.Success(42);
-        var failure = Try<int>.Failure(new InvalidOperationException("Operation failed"));
+        var success = Try<int>.Ok(42);
+        var failure = Try<int>.Error(new InvalidOperationException("Operation failed"));
         Console.WriteLine($"   Success(42): {success}");
         Console.WriteLine($"   Failure:     {failure}");
 
@@ -52,8 +52,8 @@ public static class TryExamples
 
         var recoveredWith = failed.RecoverWith(ex =>
             ex is FormatException
-                ? Try<int>.Success(0)
-                : Try<int>.Failure(ex));
+                ? Try<int>.Ok(0)
+                : Try<int>.Error(ex));
         Console.WriteLine($"   RecoverWith: {recoveredWith}");
 
         // GetValueOr
@@ -64,8 +64,8 @@ public static class TryExamples
 
         // Filter
         Console.WriteLine("\n8. Filtering:");
-        var filtered = Try<int>.Success(42).Filter(x => x > 50, "Must be > 50");
-        var kept = Try<int>.Success(42).Filter(x => x < 50, "Must be < 50");
+        var filtered = Try<int>.Ok(42).Filter(x => x > 50, "Must be > 50");
+        var kept = Try<int>.Ok(42).Filter(x => x < 50, "Must be < 50");
         Console.WriteLine($"   Filter(42 > 50): {filtered}");
         Console.WriteLine($"   Filter(42 < 50): {kept}");
 

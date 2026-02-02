@@ -283,7 +283,7 @@ public Result<Order, OrderError> ProcessOrder(OrderRequest request)
         .Bind(order => CheckInventory(order))
         .Bind(order => ChargePayment(order))
         .Tap(order => _logger.LogInfo($"Order {order.Id} created"))
-        .TapErr(err => _logger.LogError($"Order failed: {err}"));
+        .TapError(err => _logger.LogError($"Order failed: {err}"));
 }
 ```
 

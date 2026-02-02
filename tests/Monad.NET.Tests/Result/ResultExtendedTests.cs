@@ -26,7 +26,7 @@ public class ResultExtendedTests
     [Fact]
     public void Contains_OnErr_ReturnsFalse()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
         Assert.False(result.Contains(42));
     }
 
@@ -47,7 +47,7 @@ public class ResultExtendedTests
     [Fact]
     public void Exists_OnErr_ReturnsFalse()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
         Assert.False(result.Exists(x => x > 0));
     }
 
@@ -68,7 +68,7 @@ public class ResultExtendedTests
     [Fact]
     public void OrElse_OnErr_ReturnsAlternative()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
         var final = result.OrElse(err => Result<int, string>.Ok(99));
 
         Assert.True(final.IsOk);
@@ -88,7 +88,7 @@ public class ResultExtendedTests
     [Fact]
     public void Or_OnErr_ReturnsAlternative()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
         var final = result.Or(Result<int, string>.Ok(99));
 
         Assert.True(final.IsOk);
@@ -112,7 +112,7 @@ public class ResultExtendedTests
     [Fact]
     public void Flatten_OuterErr_ReturnsErr()
     {
-        var nested = Result<Result<int, string>, string>.Err("outer error");
+        var nested = Result<Result<int, string>, string>.Error("outer error");
         var result = nested.Flatten();
 
         Assert.True(result.IsError);
@@ -122,7 +122,7 @@ public class ResultExtendedTests
     [Fact]
     public void Flatten_InnerErr_ReturnsErr()
     {
-        var nested = Result<Result<int, string>, string>.Ok(Result<int, string>.Err("inner error"));
+        var nested = Result<Result<int, string>, string>.Ok(Result<int, string>.Error("inner error"));
         var result = nested.Flatten();
 
         Assert.True(result.IsError);
@@ -156,8 +156,8 @@ public class ResultExtendedTests
     [Fact]
     public void Equals_ErrWithSameValue_ReturnsTrue()
     {
-        var result1 = Result<int, string>.Err("error");
-        var result2 = Result<int, string>.Err("error");
+        var result1 = Result<int, string>.Error("error");
+        var result2 = Result<int, string>.Error("error");
 
         Assert.True(result1.Equals(result2));
     }
@@ -165,8 +165,8 @@ public class ResultExtendedTests
     [Fact]
     public void Equals_ErrWithDifferentValue_ReturnsFalse()
     {
-        var result1 = Result<int, string>.Err("error1");
-        var result2 = Result<int, string>.Err("error2");
+        var result1 = Result<int, string>.Error("error1");
+        var result2 = Result<int, string>.Error("error2");
 
         Assert.False(result1.Equals(result2));
     }
@@ -175,7 +175,7 @@ public class ResultExtendedTests
     public void Equals_OkWithErr_ReturnsFalse()
     {
         var result1 = Result<int, string>.Ok(42);
-        var result2 = Result<int, string>.Err("error");
+        var result2 = Result<int, string>.Error("error");
 
         Assert.False(result1.Equals(result2));
     }
@@ -216,7 +216,7 @@ public class ResultExtendedTests
     [Fact]
     public void ToString_OnErr_ContainsError()
     {
-        var result = Result<int, string>.Err("error message");
+        var result = Result<int, string>.Error("error message");
         var str = result.ToString();
 
         Assert.Contains("error message", str);
@@ -242,7 +242,7 @@ public class ResultExtendedTests
     [Fact]
     public void Tap_OnErr_DoesNotExecuteAction()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
         var executed = false;
 
         var tapped = result.Tap(x => executed = true);
@@ -254,10 +254,10 @@ public class ResultExtendedTests
     [Fact]
     public void TapErr_OnErr_ExecutesAction()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
         var executed = false;
 
-        var tapped = result.TapErr(x => executed = true);
+        var tapped = result.TapError(x => executed = true);
 
         Assert.True(executed);
         Assert.True(tapped.IsError);
@@ -269,7 +269,7 @@ public class ResultExtendedTests
         var result = Result<int, string>.Ok(42);
         var executed = false;
 
-        var tapped = result.TapErr(x => executed = true);
+        var tapped = result.TapError(x => executed = true);
 
         Assert.False(executed);
         Assert.True(tapped.IsOk);
@@ -291,7 +291,7 @@ public class ResultExtendedTests
     [Fact]
     public void Match_OnErr_ExecutesErrFunc()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
         var matched = result.Match(x => $"Value: {x}", e => $"Error: {e}");
 
         Assert.Equal("Error: error", matched);
@@ -304,7 +304,7 @@ public class ResultExtendedTests
     [Fact]
     public void MapErr_OnErr_TransformsError()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
         var mapped = result.MapError(e => e.ToUpper());
 
         Assert.True(mapped.IsError);
@@ -337,7 +337,7 @@ public class ResultExtendedTests
     [Fact]
     public void Expect_OnErr_Throws()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
 
         Assert.Throws<InvalidOperationException>(() => result.GetOrThrow());
     }
@@ -345,7 +345,7 @@ public class ResultExtendedTests
     [Fact]
     public void ExpectErr_OnErr_ReturnsError()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
         var error = result.GetErrorOrThrow();
 
         Assert.Equal("error", error);

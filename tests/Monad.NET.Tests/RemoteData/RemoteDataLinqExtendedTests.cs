@@ -12,7 +12,7 @@ public class RemoteDataLinqExtendedTests
     [Fact]
     public void Select_Success_TransformsValue()
     {
-        var rd = RemoteData<int, string>.Success(21);
+        var rd = RemoteData<int, string>.Ok(21);
         var result = from x in rd
                      select x * 2;
 
@@ -43,7 +43,7 @@ public class RemoteDataLinqExtendedTests
     [Fact]
     public void Select_Failure_PreservesError()
     {
-        var rd = RemoteData<int, string>.Failure("error");
+        var rd = RemoteData<int, string>.Error("error");
         var result = from x in rd
                      select x * 2;
 
@@ -58,8 +58,8 @@ public class RemoteDataLinqExtendedTests
     [Fact]
     public void SelectMany_BothSuccess_ChainsValues()
     {
-        var rd1 = RemoteData<int, string>.Success(10);
-        var rd2 = RemoteData<int, string>.Success(32);
+        var rd1 = RemoteData<int, string>.Ok(10);
+        var rd2 = RemoteData<int, string>.Ok(32);
 
         var result = from x in rd1
                      from y in rd2
@@ -73,7 +73,7 @@ public class RemoteDataLinqExtendedTests
     public void SelectMany_FirstNotAsked_ReturnsNotAsked()
     {
         var rd1 = RemoteData<int, string>.NotAsked();
-        var rd2 = RemoteData<int, string>.Success(32);
+        var rd2 = RemoteData<int, string>.Ok(32);
 
         var result = from x in rd1
                      from y in rd2
@@ -85,7 +85,7 @@ public class RemoteDataLinqExtendedTests
     [Fact]
     public void SelectMany_SecondLoading_ReturnsLoading()
     {
-        var rd1 = RemoteData<int, string>.Success(10);
+        var rd1 = RemoteData<int, string>.Ok(10);
         var rd2 = RemoteData<int, string>.Loading();
 
         var result = from x in rd1
@@ -98,8 +98,8 @@ public class RemoteDataLinqExtendedTests
     [Fact]
     public void SelectMany_SecondFailure_ReturnsFailure()
     {
-        var rd1 = RemoteData<int, string>.Success(10);
-        var rd2 = RemoteData<int, string>.Failure("error");
+        var rd1 = RemoteData<int, string>.Ok(10);
+        var rd2 = RemoteData<int, string>.Error("error");
 
         var result = from x in rd1
                      from y in rd2
@@ -115,9 +115,9 @@ public class RemoteDataLinqExtendedTests
     [Fact]
     public void ComplexQuery_AllSuccess_Works()
     {
-        var name = RemoteData<string, string>.Success("John");
-        var age = RemoteData<int, string>.Success(30);
-        var city = RemoteData<string, string>.Success("NYC");
+        var name = RemoteData<string, string>.Ok("John");
+        var age = RemoteData<int, string>.Ok(30);
+        var city = RemoteData<string, string>.Ok("NYC");
 
         var result = from n in name
                      from a in age
@@ -131,9 +131,9 @@ public class RemoteDataLinqExtendedTests
     [Fact]
     public void ComplexQuery_OneLoading_ReturnsLoading()
     {
-        var name = RemoteData<string, string>.Success("John");
+        var name = RemoteData<string, string>.Ok("John");
         var age = RemoteData<int, string>.Loading();
-        var city = RemoteData<string, string>.Success("NYC");
+        var city = RemoteData<string, string>.Ok("NYC");
 
         var result = from n in name
                      from a in age

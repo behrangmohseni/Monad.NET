@@ -121,13 +121,13 @@ Convert validation errors to RFC 7807 format:
 
 ```csharp
 // Simple string errors
-var validation = Validation<User, string>.Invalid(
+var validation = Validation<User, string>.Error(
     new[] { "Name is required", "Email is invalid" }
 );
 return validation.ToValidationProblemResult("user");
 
 // Keyed errors (field-specific)
-var validation = Validation<User, KeyValuePair<string, string>>.Invalid(
+var validation = Validation<User, KeyValuePair<string, string>>.Error(
     new[]
     {
         KeyValuePair.Create("name", "Name is required"),

@@ -542,7 +542,7 @@ public readonly struct TestResult_Inlined<T, E>
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public TestResult_Inlined<U, E> Map<U>(Func<T, U> mapper) =>
-        _isOk ? TestResult_Inlined<U, E>.Ok(mapper(_value)) : TestResult_Inlined<U, E>.Err(_error);
+        _isOk ? TestResult_Inlined<U, E>.Ok(mapper(_value)) : TestResult_Inlined<U, E>.Error(_error);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public U Match<U>(Func<T, U> ok, Func<E, U> err) =>
@@ -576,7 +576,7 @@ public readonly struct TestResult_NoInline<T, E>
     public T GetValueOr(T defaultValue) => _isOk ? _value : defaultValue;
 
     public TestResult_NoInline<U, E> Map<U>(Func<T, U> mapper) =>
-        _isOk ? TestResult_NoInline<U, E>.Ok(mapper(_value)) : TestResult_NoInline<U, E>.Err(_error);
+        _isOk ? TestResult_NoInline<U, E>.Ok(mapper(_value)) : TestResult_NoInline<U, E>.Error(_error);
 
     public U Match<U>(Func<T, U> ok, Func<E, U> err) =>
         _isOk ? ok(_value) : err(_error);

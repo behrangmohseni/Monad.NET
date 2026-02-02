@@ -52,11 +52,11 @@ public class TryJsonConverter<T> : JsonConverter<Try<T>>
 
         if (isSuccess == true && value is not null)
         {
-            return Try<T>.Success(value);
+            return Try<T>.Ok(value);
         }
         else if (isSuccess == false)
         {
-            return Try<T>.Failure(new Exception(errorMessage ?? "Unknown error"));
+            return Try<T>.Error(new Exception(errorMessage ?? "Unknown error"));
         }
 
         throw new JsonException("Invalid Try JSON: missing isSuccess or value/error");

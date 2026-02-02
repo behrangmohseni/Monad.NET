@@ -14,8 +14,8 @@ public static class RemoteDataExamples
         Console.WriteLine("1. The Four States:");
         var notAsked = RemoteData<string, string>.NotAsked();
         var loading = RemoteData<string, string>.Loading();
-        var success = RemoteData<string, string>.Success("Data loaded!");
-        var failure = RemoteData<string, string>.Failure("Network error");
+        var success = RemoteData<string, string>.Ok("Data loaded!");
+        var failure = RemoteData<string, string>.Error("Network error");
 
         Console.WriteLine($"   NotAsked: {notAsked}");
         Console.WriteLine($"   Loading:  {loading}");
@@ -56,14 +56,14 @@ public static class RemoteDataExamples
         // Chaining
         Console.WriteLine("\n7. Chaining with Bind:");
         var chained = success
-            .Bind(s => RemoteData<int, string>.Success(s.Length))
+            .Bind(s => RemoteData<int, string>.Ok(s.Length))
             .Map(len => $"Length: {len}");
         Console.WriteLine($"   Result: {chained}");
 
         // Combining data
         Console.WriteLine("\n8. Combining Data:");
-        var user = RemoteData<string, string>.Success("John");
-        var posts = RemoteData<int, string>.Success(42);
+        var user = RemoteData<string, string>.Ok("John");
+        var posts = RemoteData<int, string>.Ok(42);
         var combined = user.Map(u => $"{u} has {posts.GetValueOr(0)} posts");
         Console.WriteLine($"   Combined: {combined}");
 
@@ -76,7 +76,7 @@ public static class RemoteDataExamples
 
         // Real-world: Dashboard widget
         Console.WriteLine("\n10. Dashboard Widget Pattern:");
-        var widgetData = RemoteData<DashboardData, string>.Success(
+        var widgetData = RemoteData<DashboardData, string>.Ok(
             new DashboardData(Users: 1500, Revenue: 50000m, Growth: 12.5));
 
         var widgetOutput = widgetData.Match(
@@ -107,7 +107,7 @@ public static class RemoteDataExamples
         state = RemoteData<string, string>.Loading();
         Console.WriteLine($"   After click: {GetStateName(state)}");
 
-        state = RemoteData<string, string>.Success("API Response");
+        state = RemoteData<string, string>.Ok("API Response");
         Console.WriteLine($"   After load:  {GetStateName(state)}");
     }
 

@@ -24,7 +24,7 @@ public class InliningBenchmarks
     {
         _some = Option<int>.Some(42);
         _ok = Result<int, string>.Ok(42);
-        _valid = Validation<int, string>.Valid(42);
+        _valid = Validation<int, string>.Ok(42);
     }
 
     #region Option Inlining Tests

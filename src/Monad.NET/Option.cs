@@ -16,13 +16,13 @@ namespace Monad.NET;
 /// This forces explicit handling of the absent case at compile time.
 /// </para>
 /// <para>
-/// For error handling with typed errors, consider <see cref="Result{T,TErr}"/> instead.
-/// For validation with multiple errors, use <see cref="Validation{T,TErr}"/>.
+/// For error handling with typed errors, consider <see cref="Result{T,TError}"/> instead.
+/// For validation with multiple errors, use <see cref="Validation{T,TError}"/>.
 /// For exception-throwing code, wrap with <see cref="Try{T}"/>.
 /// </para>
 /// </remarks>
-/// <seealso cref="Result{T,TErr}"/>
-/// <seealso cref="Validation{T,TErr}"/>
+/// <seealso cref="Result{T,TError}"/>
+/// <seealso cref="Validation{T,TError}"/>
 /// <seealso cref="Try{T}"/>
 /// <seealso cref="OptionExtensions"/>
 [Serializable]
@@ -475,10 +475,10 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the Option was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Result<T, TErr> OkOr<TErr>(TErr err)
+    public Result<T, TError> OkOr<TError>(TError err)
     {
         ThrowIfDefault();
-        return _isSome ? Result<T, TErr>.Ok(_value!) : Result<T, TErr>.Err(err);
+        return _isSome ? Result<T, TError>.Ok(_value!) : Result<T, TError>.Error(err);
     }
 
     /// <summary>
@@ -486,10 +486,10 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the Option was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Result<T, TErr> OkOrElse<TErr>(Func<TErr> errFunc)
+    public Result<T, TError> OkOrElse<TError>(Func<TError> errFunc)
     {
         ThrowIfDefault();
-        return _isSome ? Result<T, TErr>.Ok(_value!) : Result<T, TErr>.Err(errFunc());
+        return _isSome ? Result<T, TError>.Ok(_value!) : Result<T, TError>.Error(errFunc());
     }
 
     /// <summary>
@@ -874,14 +874,14 @@ public static class OptionExtensions
     /// Transposes an Option of a Result into a Result of an Option.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Result<Option<T>, TErr> Transpose<T, TErr>(this Option<Result<T, TErr>> option)
+    public static Result<Option<T>, TError> Transpose<T, TError>(this Option<Result<T, TError>> option)
     {
         return option.Match(
             someFunc: static result => result.Match(
-                okFunc: static value => Result<Option<T>, TErr>.Ok(Option<T>.Some(value)),
-                errFunc: static err => Result<Option<T>, TErr>.Err(err)
+                okFunc: static value => Result<Option<T>, TError>.Ok(Option<T>.Some(value)),
+                errFunc: static err => Result<Option<T>, TError>.Error(err)
             ),
-            noneFunc: static () => Result<Option<T>, TErr>.Ok(Option<T>.None())
+            noneFunc: static () => Result<Option<T>, TError>.Ok(Option<T>.None())
         );
     }
 
@@ -1029,216 +1029,6 @@ public static class OptionExtensions
         return trimmed.Length == 0
             ? Option<string>.None()
             : Option<string>.Some(trimmed);
-    }
-
-    #endregion
-
-    #region Parse Conversions
-
-    /// <summary>
-    /// Attempts to parse a string as an integer.
-    /// Returns Some if parsing succeeds; otherwise None.
-    /// </summary>
-    /// <param name="value">The string to parse.</param>
-    /// <returns>Some containing the parsed integer if successful; otherwise None.</returns>
-    /// <example>
-    /// <code>
-    /// "42".ParseInt();      // Some(42)
-    /// "invalid".ParseInt(); // None
-    /// "".ParseInt();        // None
-    /// </code>
-    /// </example>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Option<int> ParseInt(this string? value)
-    {
-        return int.TryParse(value, out var result)
-            ? Option<int>.Some(result)
-            : Option<int>.None();
-    }
-
-    /// <summary>
-    /// Attempts to parse a string as a long integer.
-    /// Returns Some if parsing succeeds; otherwise None.
-    /// </summary>
-    /// <param name="value">The string to parse.</param>
-    /// <returns>Some containing the parsed long if successful; otherwise None.</returns>
-    /// <example>
-    /// <code>
-    /// "9223372036854775807".ParseLong(); // Some(9223372036854775807)
-    /// "invalid".ParseLong();              // None
-    /// </code>
-    /// </example>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Option<long> ParseLong(this string? value)
-    {
-        return long.TryParse(value, out var result)
-            ? Option<long>.Some(result)
-            : Option<long>.None();
-    }
-
-    /// <summary>
-    /// Attempts to parse a string as a double.
-    /// Returns Some if parsing succeeds; otherwise None.
-    /// </summary>
-    /// <param name="value">The string to parse.</param>
-    /// <returns>Some containing the parsed double if successful; otherwise None.</returns>
-    /// <example>
-    /// <code>
-    /// "3.14".ParseDouble();    // Some(3.14)
-    /// "invalid".ParseDouble(); // None
-    /// </code>
-    /// </example>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Option<double> ParseDouble(this string? value)
-    {
-        return double.TryParse(value, out var result)
-            ? Option<double>.Some(result)
-            : Option<double>.None();
-    }
-
-    /// <summary>
-    /// Attempts to parse a string as a decimal.
-    /// Returns Some if parsing succeeds; otherwise None.
-    /// </summary>
-    /// <param name="value">The string to parse.</param>
-    /// <returns>Some containing the parsed decimal if successful; otherwise None.</returns>
-    /// <example>
-    /// <code>
-    /// "123.45".ParseDecimal(); // Some(123.45m)
-    /// "invalid".ParseDecimal(); // None
-    /// </code>
-    /// </example>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Option<decimal> ParseDecimal(this string? value)
-    {
-        return decimal.TryParse(value, out var result)
-            ? Option<decimal>.Some(result)
-            : Option<decimal>.None();
-    }
-
-    /// <summary>
-    /// Attempts to parse a string as a boolean.
-    /// Returns Some if parsing succeeds; otherwise None.
-    /// </summary>
-    /// <param name="value">The string to parse.</param>
-    /// <returns>Some containing the parsed boolean if successful; otherwise None.</returns>
-    /// <example>
-    /// <code>
-    /// "true".ParseBool();    // Some(true)
-    /// "false".ParseBool();   // Some(false)
-    /// "yes".ParseBool();     // None (only "true"/"false" are valid)
-    /// </code>
-    /// </example>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Option<bool> ParseBool(this string? value)
-    {
-        return bool.TryParse(value, out var result)
-            ? Option<bool>.Some(result)
-            : Option<bool>.None();
-    }
-
-    /// <summary>
-    /// Attempts to parse a string as a GUID.
-    /// Returns Some if parsing succeeds; otherwise None.
-    /// </summary>
-    /// <param name="value">The string to parse.</param>
-    /// <returns>Some containing the parsed GUID if successful; otherwise None.</returns>
-    /// <example>
-    /// <code>
-    /// "550e8400-e29b-41d4-a716-446655440000".ParseGuid(); // Some(Guid)
-    /// "invalid".ParseGuid();                               // None
-    /// </code>
-    /// </example>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Option<Guid> ParseGuid(this string? value)
-    {
-        return Guid.TryParse(value, out var result)
-            ? Option<Guid>.Some(result)
-            : Option<Guid>.None();
-    }
-
-    /// <summary>
-    /// Attempts to parse a string as a DateTime.
-    /// Returns Some if parsing succeeds; otherwise None.
-    /// </summary>
-    /// <param name="value">The string to parse.</param>
-    /// <returns>Some containing the parsed DateTime if successful; otherwise None.</returns>
-    /// <example>
-    /// <code>
-    /// "2024-01-15".ParseDateTime();    // Some(DateTime)
-    /// "invalid".ParseDateTime();        // None
-    /// </code>
-    /// </example>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Option<DateTime> ParseDateTime(this string? value)
-    {
-        return DateTime.TryParse(value, out var result)
-            ? Option<DateTime>.Some(result)
-            : Option<DateTime>.None();
-    }
-
-    /// <summary>
-    /// Attempts to parse a string as a DateTimeOffset.
-    /// Returns Some if parsing succeeds; otherwise None.
-    /// </summary>
-    /// <param name="value">The string to parse.</param>
-    /// <returns>Some containing the parsed DateTimeOffset if successful; otherwise None.</returns>
-    /// <example>
-    /// <code>
-    /// "2024-01-15T10:30:00+00:00".ParseDateTimeOffset(); // Some(DateTimeOffset)
-    /// "invalid".ParseDateTimeOffset();                    // None
-    /// </code>
-    /// </example>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Option<DateTimeOffset> ParseDateTimeOffset(this string? value)
-    {
-        return DateTimeOffset.TryParse(value, out var result)
-            ? Option<DateTimeOffset>.Some(result)
-            : Option<DateTimeOffset>.None();
-    }
-
-    /// <summary>
-    /// Attempts to parse a string as a TimeSpan.
-    /// Returns Some if parsing succeeds; otherwise None.
-    /// </summary>
-    /// <param name="value">The string to parse.</param>
-    /// <returns>Some containing the parsed TimeSpan if successful; otherwise None.</returns>
-    /// <example>
-    /// <code>
-    /// "01:30:00".ParseTimeSpan(); // Some(TimeSpan of 1.5 hours)
-    /// "invalid".ParseTimeSpan();  // None
-    /// </code>
-    /// </example>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Option<TimeSpan> ParseTimeSpan(this string? value)
-    {
-        return TimeSpan.TryParse(value, out var result)
-            ? Option<TimeSpan>.Some(result)
-            : Option<TimeSpan>.None();
-    }
-
-    /// <summary>
-    /// Attempts to parse a string as an enum value.
-    /// Returns Some if parsing succeeds; otherwise None.
-    /// </summary>
-    /// <typeparam name="TEnum">The enum type to parse to.</typeparam>
-    /// <param name="value">The string to parse.</param>
-    /// <param name="ignoreCase">Whether to ignore case when parsing. Default is true.</param>
-    /// <returns>Some containing the parsed enum if successful; otherwise None.</returns>
-    /// <example>
-    /// <code>
-    /// "Monday".ParseEnum&lt;DayOfWeek&gt;();     // Some(DayOfWeek.Monday)
-    /// "monday".ParseEnum&lt;DayOfWeek&gt;();     // Some(DayOfWeek.Monday) (case insensitive)
-    /// "invalid".ParseEnum&lt;DayOfWeek&gt;();    // None
-    /// </code>
-    /// </example>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Option<TEnum> ParseEnum<TEnum>(this string? value, bool ignoreCase = true)
-        where TEnum : struct, Enum
-    {
-        return Enum.TryParse<TEnum>(value, ignoreCase, out var result)
-            ? Option<TEnum>.Some(result)
-            : Option<TEnum>.None();
     }
 
     #endregion

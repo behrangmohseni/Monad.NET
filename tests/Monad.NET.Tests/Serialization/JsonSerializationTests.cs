@@ -74,7 +74,7 @@ public class JsonSerializationTests
     [Fact]
     public void Result_Err_Serializes()
     {
-        var result = Result<int, string>.Err("error message");
+        var result = Result<int, string>.Error("error message");
         var json = JsonSerializer.Serialize(result, _options);
         Assert.Contains("\"isOk\":false", json);
         Assert.Contains("\"error\":\"error message\"", json);
@@ -93,7 +93,7 @@ public class JsonSerializationTests
     [Fact]
     public void Result_Err_Roundtrip()
     {
-        var original = Result<string, string>.Err("failure");
+        var original = Result<string, string>.Error("failure");
         var json = JsonSerializer.Serialize(original, _options);
         var deserialized = JsonSerializer.Deserialize<Result<string, string>>(json, _options);
         Assert.True(deserialized.IsError);
@@ -107,7 +107,7 @@ public class JsonSerializationTests
     [Fact]
     public void Try_Success_Serializes()
     {
-        var tryResult = Try<int>.Success(42);
+        var tryResult = Try<int>.Ok(42);
         var json = JsonSerializer.Serialize(tryResult, _options);
         Assert.Contains("\"isSuccess\":true", json);
         Assert.Contains("\"value\":42", json);
@@ -116,7 +116,7 @@ public class JsonSerializationTests
     [Fact]
     public void Try_Failure_Serializes()
     {
-        var tryResult = Try<int>.Failure(new InvalidOperationException("Something went wrong"));
+        var tryResult = Try<int>.Error(new InvalidOperationException("Something went wrong"));
         var json = JsonSerializer.Serialize(tryResult, _options);
         Assert.Contains("\"isSuccess\":false", json);
         Assert.Contains("\"error\":\"Something went wrong\"", json);
@@ -125,7 +125,7 @@ public class JsonSerializationTests
     [Fact]
     public void Try_Success_Roundtrip()
     {
-        var original = Try<string>.Success("hello");
+        var original = Try<string>.Ok("hello");
         var json = JsonSerializer.Serialize(original, _options);
         var deserialized = JsonSerializer.Deserialize<Try<string>>(json, _options);
         Assert.True(deserialized.IsOk);
@@ -135,7 +135,7 @@ public class JsonSerializationTests
     [Fact]
     public void Try_Failure_Roundtrip()
     {
-        var original = Try<string>.Failure(new Exception("test error"));
+        var original = Try<string>.Error(new Exception("test error"));
         var json = JsonSerializer.Serialize(original, _options);
         var deserialized = JsonSerializer.Deserialize<Try<string>>(json, _options);
         Assert.False(deserialized.IsOk);
@@ -148,7 +148,7 @@ public class JsonSerializationTests
     [Fact]
     public void Validation_Valid_Serializes()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
         var json = JsonSerializer.Serialize(validation, _options);
         Assert.Contains("\"isValid\":true", json);
         Assert.Contains("\"value\":42", json);
@@ -157,7 +157,7 @@ public class JsonSerializationTests
     [Fact]
     public void Validation_Invalid_Serializes()
     {
-        var validation = Validation<int, string>.Invalid(new[] { "error1", "error2" });
+        var validation = Validation<int, string>.Error(new[] { "error1", "error2" });
         var json = JsonSerializer.Serialize(validation, _options);
         Assert.Contains("\"isValid\":false", json);
         Assert.Contains("\"errors\":", json);
@@ -166,7 +166,7 @@ public class JsonSerializationTests
     [Fact]
     public void Validation_Valid_Roundtrip()
     {
-        var original = Validation<string, string>.Valid("success");
+        var original = Validation<string, string>.Ok("success");
         var json = JsonSerializer.Serialize(original, _options);
         var deserialized = JsonSerializer.Deserialize<Validation<string, string>>(json, _options);
         Assert.True(deserialized.IsOk);
@@ -176,7 +176,7 @@ public class JsonSerializationTests
     [Fact]
     public void Validation_Invalid_Roundtrip()
     {
-        var original = Validation<string, string>.Invalid(new[] { "error1", "error2" });
+        var original = Validation<string, string>.Error(new[] { "error1", "error2" });
         var json = JsonSerializer.Serialize(original, _options);
         var deserialized = JsonSerializer.Deserialize<Validation<string, string>>(json, _options);
         Assert.False(deserialized.IsOk);
@@ -236,7 +236,7 @@ public class JsonSerializationTests
     [Fact]
     public void RemoteData_Success_Serializes()
     {
-        var data = RemoteData<int, string>.Success(42);
+        var data = RemoteData<int, string>.Ok(42);
         var json = JsonSerializer.Serialize(data, _options);
         Assert.Contains("\"state\":\"Success\"", json);
         Assert.Contains("\"data\":42", json);
@@ -245,7 +245,7 @@ public class JsonSerializationTests
     [Fact]
     public void RemoteData_Failure_Serializes()
     {
-        var data = RemoteData<int, string>.Failure("error");
+        var data = RemoteData<int, string>.Error("error");
         var json = JsonSerializer.Serialize(data, _options);
         Assert.Contains("\"state\":\"Failure\"", json);
         Assert.Contains("\"error\":\"error\"", json);
@@ -254,7 +254,7 @@ public class JsonSerializationTests
     [Fact]
     public void RemoteData_Success_Roundtrip()
     {
-        var original = RemoteData<string, string>.Success("data");
+        var original = RemoteData<string, string>.Ok("data");
         var json = JsonSerializer.Serialize(original, _options);
         var deserialized = JsonSerializer.Deserialize<RemoteData<string, string>>(json, _options);
         Assert.True(deserialized.IsOk);

@@ -12,7 +12,7 @@ public class RemoteDataLinqTests
     [Fact]
     public void RemoteData_Select_OnSuccess_TransformsValue()
     {
-        var data = RemoteData<int, string>.Success(42);
+        var data = RemoteData<int, string>.Ok(42);
         var result = from x in data select x * 2;
 
         Assert.True(result.IsOk);
@@ -40,7 +40,7 @@ public class RemoteDataLinqTests
     [Fact]
     public void RemoteData_Select_OnFailure_ReturnsFailure()
     {
-        var data = RemoteData<int, string>.Failure("error");
+        var data = RemoteData<int, string>.Error("error");
         var result = from x in data select x * 2;
 
         Assert.True(result.IsError);
@@ -54,8 +54,8 @@ public class RemoteDataLinqTests
     [Fact]
     public void RemoteData_SelectMany_BothSuccess_Chains()
     {
-        var result = from x in RemoteData<int, string>.Success(10)
-                     from y in RemoteData<int, string>.Success(20)
+        var result = from x in RemoteData<int, string>.Ok(10)
+                     from y in RemoteData<int, string>.Ok(20)
                      select x + y;
 
         Assert.True(result.IsOk);
@@ -66,7 +66,7 @@ public class RemoteDataLinqTests
     public void RemoteData_SelectMany_FirstNotAsked_ReturnsNotAsked()
     {
         var result = from x in RemoteData<int, string>.NotAsked()
-                     from y in RemoteData<int, string>.Success(20)
+                     from y in RemoteData<int, string>.Ok(20)
                      select x + y;
 
         Assert.True(result.IsNotAsked);
@@ -76,7 +76,7 @@ public class RemoteDataLinqTests
     public void RemoteData_SelectMany_FirstLoading_ReturnsLoading()
     {
         var result = from x in RemoteData<int, string>.Loading()
-                     from y in RemoteData<int, string>.Success(20)
+                     from y in RemoteData<int, string>.Ok(20)
                      select x + y;
 
         Assert.True(result.IsLoading);
@@ -85,8 +85,8 @@ public class RemoteDataLinqTests
     [Fact]
     public void RemoteData_SelectMany_FirstFailure_ReturnsFailure()
     {
-        var result = from x in RemoteData<int, string>.Failure("error")
-                     from y in RemoteData<int, string>.Success(20)
+        var result = from x in RemoteData<int, string>.Error("error")
+                     from y in RemoteData<int, string>.Ok(20)
                      select x + y;
 
         Assert.True(result.IsError);
@@ -96,7 +96,7 @@ public class RemoteDataLinqTests
     [Fact]
     public void RemoteData_SelectMany_SecondNotAsked_ReturnsNotAsked()
     {
-        var result = from x in RemoteData<int, string>.Success(10)
+        var result = from x in RemoteData<int, string>.Ok(10)
                      from y in RemoteData<int, string>.NotAsked()
                      select x + y;
 
@@ -106,7 +106,7 @@ public class RemoteDataLinqTests
     [Fact]
     public void RemoteData_SelectMany_SecondLoading_ReturnsLoading()
     {
-        var result = from x in RemoteData<int, string>.Success(10)
+        var result = from x in RemoteData<int, string>.Ok(10)
                      from y in RemoteData<int, string>.Loading()
                      select x + y;
 
@@ -116,8 +116,8 @@ public class RemoteDataLinqTests
     [Fact]
     public void RemoteData_SelectMany_SecondFailure_ReturnsFailure()
     {
-        var result = from x in RemoteData<int, string>.Success(10)
-                     from y in RemoteData<int, string>.Failure("error")
+        var result = from x in RemoteData<int, string>.Ok(10)
+                     from y in RemoteData<int, string>.Error("error")
                      select x + y;
 
         Assert.True(result.IsError);
@@ -127,9 +127,9 @@ public class RemoteDataLinqTests
     [Fact]
     public void RemoteData_SelectMany_ComplexChain_Success()
     {
-        var result = from a in RemoteData<int, string>.Success(1)
-                     from b in RemoteData<int, string>.Success(2)
-                     from c in RemoteData<int, string>.Success(3)
+        var result = from a in RemoteData<int, string>.Ok(1)
+                     from b in RemoteData<int, string>.Ok(2)
+                     from c in RemoteData<int, string>.Ok(3)
                      select a + b + c;
 
         Assert.True(result.IsOk);
@@ -143,8 +143,8 @@ public class RemoteDataLinqTests
     [Fact]
     public void RemoteData_SelectMany_WithResultSelector_Chains()
     {
-        var first = RemoteData<int, string>.Success(10);
-        var second = RemoteData<string, string>.Success("hello");
+        var first = RemoteData<int, string>.Ok(10);
+        var second = RemoteData<string, string>.Ok("hello");
 
         var result = first.SelectMany(
             x => second,
@@ -158,7 +158,7 @@ public class RemoteDataLinqTests
     public void RemoteData_SelectMany_WithResultSelector_FirstNotAsked()
     {
         var first = RemoteData<int, string>.NotAsked();
-        var second = RemoteData<string, string>.Success("hello");
+        var second = RemoteData<string, string>.Ok("hello");
 
         var result = first.SelectMany(
             x => second,
@@ -171,7 +171,7 @@ public class RemoteDataLinqTests
     public void RemoteData_SelectMany_WithResultSelector_FirstLoading()
     {
         var first = RemoteData<int, string>.Loading();
-        var second = RemoteData<string, string>.Success("hello");
+        var second = RemoteData<string, string>.Ok("hello");
 
         var result = first.SelectMany(
             x => second,
@@ -183,8 +183,8 @@ public class RemoteDataLinqTests
     [Fact]
     public void RemoteData_SelectMany_WithResultSelector_FirstFailure()
     {
-        var first = RemoteData<int, string>.Failure("error");
-        var second = RemoteData<string, string>.Success("hello");
+        var first = RemoteData<int, string>.Error("error");
+        var second = RemoteData<string, string>.Ok("hello");
 
         var result = first.SelectMany(
             x => second,

@@ -37,13 +37,13 @@ public sealed class TryFormatter<T> : IMessagePackFormatter<Try<T>>
             var formatter = options.Resolver.GetFormatterWithVerify<T>();
             var value = formatter.Deserialize(ref reader, options);
             return value is not null
-                ? Try<T>.Success(value)
+                ? Try<T>.Ok(value)
                 : throw new MessagePackSerializationException("Try Success value cannot be null.");
         }
         else
         {
             var errorMessage = reader.ReadString();
-            return Try<T>.Failure(new Exception(errorMessage ?? "Unknown error"));
+            return Try<T>.Error(new Exception(errorMessage ?? "Unknown error"));
         }
     }
 }

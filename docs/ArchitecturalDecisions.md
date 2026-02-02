@@ -34,8 +34,8 @@ This section provides visual diagrams showing how Monad.NET types relate to each
 │  ┌─────────────┐    ┌─────────────────┐    ┌─────────────┐                      │
 │  │  Result<T,E>│    │ Validation<T,E> │    │   Try<T>    │                      │
 │  ├─────────────┤    ├─────────────────┤    ├─────────────┤                      │
-│  │ • Ok(value) │    │ • Valid(value)  │    │ • Success   │                      │
-│  │ • Err(error)│    │ • Invalid(errs) │    │ • Failure   │                      │
+│  │ • Ok(value) │    │ • Ok(value)     │    │ • Ok(value) │                      │
+│  │ • Error(err)│    │ • Error(errs)   │    │ • Error(ex) │                      │
 │  ├─────────────┤    ├─────────────────┤    ├─────────────┤                      │
 │  │Short-circuit│    │Accumulates ALL  │    │ Captures    │                      │
 │  │on first err │    │errors           │    │ exceptions  │                      │
@@ -55,8 +55,8 @@ This section provides visual diagrams showing how Monad.NET types relate to each
 │  ├───────────────┤    ├───────────────────┤    ├─────────────────────────────┤  │
 │  │ • Some(value) │    │ • First element   │    │ • NotAsked                  │  │
 │  │ • None        │    │ • Rest elements   │    │ • Loading                   │  │
-│  ├───────────────┤    ├───────────────────┤    │ • Success(data)             │  │
-│  │ 0 or 1 value  │    │ 1 or more values  │    │ • Failure(error)            │  │
+│  ├───────────────┤    ├───────────────────┤    │ • Ok(data)                  │  │
+│  │ 0 or 1 value  │    │ 1 or more values  │    │ • Error(error)              │  │
 │  │ Nullable      │    │ Guaranteed Head   │    ├─────────────────────────────┤  │
 │  │ replacement   │    │                   │    │ UI async state management   │  │
 │  └───────────────┘    └───────────────────┘    └─────────────────────────────┘  │
@@ -164,7 +164,7 @@ This section provides visual diagrams showing how Monad.NET types relate to each
         ▼                ▼                ▼
    ┌──────────┐     ┌──────────┐     ┌──────────┐
    │ Returns  │     │ Returns  │     │ Returns  │
-   │Err(first)│     │Invalid(  │     │Failure(  │
+   │Error(1st)│     │Error(    │     │Error(    │
    │          │     │ all errs)│     │ ex)      │
    └──────────┘     └──────────┘     └──────────┘
 
@@ -271,8 +271,8 @@ Monadic types have many small methods (property getters, factory methods, transf
 
 ### Decision
 Apply `[MethodImpl(MethodImplOptions.AggressiveInlining)]` to **all** public methods on monadic types, including:
-- Property getters (`IsSome`, `IsOk`, `IsRight`, etc.)
-- Factory methods (`Some()`, `None()`, `Ok()`, `Err()`, etc.)
+- Property getters (`IsSome`, `IsOk`, `IsError`, etc.)
+- Factory methods (`Some()`, `None()`, `Ok()`, `Error()`, etc.)
 - Value accessors (`GetValueOr()`, `TryGet()`)
 - Transform operations (`Map()`, `Filter()`, `Bind()`)
 - Pattern matching (`Match()`)
@@ -507,7 +507,7 @@ Ship analyzers as a separate NuGet package (`Monad.NET.Analyzers`) that can be o
 | MONAD004 | Redundant .Map().Bind() chain |
 | MONAD005 | throw expression inside Match() |
 | MONAD006 | Empty Match branch |
-| MONAD007 | Nullable value in Validation.Valid() |
+| MONAD007 | Nullable value in Validation.Ok() |
 | MONAD008 | Try.Of() with pure function |
 | MONAD009 | Result error type could be more specific |
 | MONAD010 | Unreachable Match branch |

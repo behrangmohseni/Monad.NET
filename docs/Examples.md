@@ -31,7 +31,7 @@ public async Task<Result<UserDto, ApiError>> GetUserProfileAsync(int userId)
         err: error => 
         {
             _logger.LogError("Failed to get user {Id}: {Error}", userId, error);
-            return Task.FromResult(Result<UserDto, ApiError>.Err(error));
+            return Task.FromResult(Result<UserDto, ApiError>.Error(error));
         }
     );
 }
@@ -71,14 +71,14 @@ public Validation<User, ValidationError> ValidateCreateUser(CreateUserRequest re
 Validation<string, ValidationError> ValidateName(string name)
 {
     if (string.IsNullOrWhiteSpace(name))
-        return Validation<string, ValidationError>.Invalid(
+        return Validation<string, ValidationError>.Error(
             new ValidationError("Name", "Name is required"));
     
     if (name.Length < 2)
-        return Validation<string, ValidationError>.Invalid(
+        return Validation<string, ValidationError>.Error(
             new ValidationError("Name", "Name must be at least 2 characters"));
     
-    return Validation<string, ValidationError>.Valid(name);
+    return Validation<string, ValidationError>.Ok(name);
 }
 
 // Returns ALL validation errors at once
@@ -161,11 +161,11 @@ var enrichedUsers = await Task.WhenAll(users.Select(enricher));
         try
         {
             var user = await _userService.GetUserAsync(Id);
-            _userData = RemoteData<User, ApiError>.Success(user);
+            _userData = RemoteData<User, ApiError>.Ok(user);
         }
         catch (ApiException ex)
         {
-            _userData = RemoteData<User, ApiError>.Failure(ex.Error);
+            _userData = RemoteData<User, ApiError>.Error(ex.Error);
         }
         
         StateHasChanged();

@@ -70,16 +70,16 @@ var message = some.Match(
 
 ## Result\<T, E\>
 
-Represents either success (`Ok`) or failure (`Err`) with a typed error.
+Represents either success (`Ok`) or failure (`Error`) with a typed error.
 
 **Inspired by:** Rust `Result<T, E>`
 
-> **Important (v2.0):** `default(Result<T,E>)` now throws `InvalidOperationException` on any operation. Always use `Ok()` or `Err()` factory methods.
+> **Important (v2.0):** `default(Result<T,E>)` now throws `InvalidOperationException` on any operation. Always use `Ok()` or `Error()` factory methods.
 
 ```csharp
 // Creation - always use factory methods
 var ok = Result<int, string>.Ok(42);
-var err = Result<int, string>.Err("Something went wrong");
+var err = Result<int, string>.Error("Something went wrong");
 
 // Never do this - will throw on any operation:
 // var invalid = default(Result<int, string>);
@@ -94,7 +94,7 @@ var pipeline = ParseInput(raw)
     .Bind(Transform)
     .Bind(Save)
     .Tap(result => _logger.LogInformation("Saved: {Id}", result.Id))
-    .TapErr(error => _logger.LogError("Failed: {Error}", error));
+    .TapError(error => _logger.LogError("Failed: {Error}", error));
 
 // Recovery strategies
 var recovered = err.OrElse(e => FallbackStrategy(e));
@@ -140,14 +140,14 @@ Unlike `Result`, validation **accumulates all errors** instead of short-circuiti
 Validation<string, ValidationError> ValidateEmail(string email)
 {
     if (string.IsNullOrWhiteSpace(email))
-        return Validation<string, ValidationError>.Invalid(
+        return Validation<string, ValidationError>.Error(
             new ValidationError("Email", "Email is required"));
     
     if (!email.Contains('@'))
-        return Validation<string, ValidationError>.Invalid(
+        return Validation<string, ValidationError>.Error(
             new ValidationError("Email", "Invalid email format"));
     
-    return Validation<string, ValidationError>.Valid(email);
+    return Validation<string, ValidationError>.Ok(email);
 }
 
 // Combine validations — errors accumulate!
@@ -180,14 +180,14 @@ Wraps computations that might throw, converting exceptions to values.
 ```csharp
 // Capture exceptions
 var result = Try<int>.Of(() => int.Parse("not a number"));
-// → Failure(FormatException)
+// → Error(FormatException)
 
 var asyncResult = await Try<string>.OfAsync(() => 
     httpClient.GetStringAsync(url));
 
 // Recovery
 var recovered = result
-    .Recover(ex => -1)                     // Returns Try<int>.Success(-1)
+    .Recover(ex => -1)                     // Returns Try<int>.Ok(-1)
     .Map(x => x * 2);
 
 // Filtering with custom exception
@@ -231,11 +231,11 @@ async Task LoadUser(int userId)
     try
     {
         var user = await _api.GetUserAsync(userId);
-        userData = RemoteData<User, ApiError>.Success(user);
+        userData = RemoteData<User, ApiError>.Ok(user);
     }
     catch (ApiException ex)
     {
-        userData = RemoteData<User, ApiError>.Failure(ex.Error);
+        userData = RemoteData<User, ApiError>.Error(ex.Error);
     }
     
     StateHasChanged();

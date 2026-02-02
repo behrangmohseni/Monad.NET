@@ -7,7 +7,7 @@ public class ValidationTests
     [Fact]
     public void Valid_CreatesValidValidation()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
 
         Assert.True(validation.IsOk);
         Assert.False(validation.IsError);
@@ -17,7 +17,7 @@ public class ValidationTests
     [Fact]
     public void Invalid_SingleError_CreatesInvalidValidation()
     {
-        var validation = Validation<int, string>.Invalid("error");
+        var validation = Validation<int, string>.Error("error");
 
         Assert.False(validation.IsOk);
         Assert.True(validation.IsError);
@@ -29,7 +29,7 @@ public class ValidationTests
     public void Invalid_MultipleErrors_CreatesInvalidValidation()
     {
         var errors = new[] { "error1", "error2", "error3" };
-        var validation = Validation<int, string>.Invalid(errors);
+        var validation = Validation<int, string>.Error(errors);
 
         Assert.False(validation.IsOk);
         Assert.Equal(3, validation.GetErrors().Length);
@@ -39,33 +39,33 @@ public class ValidationTests
     [Fact]
     public void Valid_WithNull_ThrowsException()
     {
-        Assert.Throws<ArgumentNullException>(() => Validation<string, int>.Valid(null!));
+        Assert.Throws<ArgumentNullException>(() => Validation<string, int>.Ok(null!));
     }
 
     [Fact]
     public void Invalid_WithNull_ThrowsException()
     {
-        Assert.Throws<ArgumentNullException>(() => Validation<int, string>.Invalid((string)null!));
+        Assert.Throws<ArgumentNullException>(() => Validation<int, string>.Error((string)null!));
     }
 
     [Fact]
     public void Unwrap_OnValid_ReturnsValue()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
         Assert.Equal(42, validation.GetValue());
     }
 
     [Fact]
     public void Unwrap_OnInvalid_ThrowsException()
     {
-        var validation = Validation<int, string>.Invalid("error");
+        var validation = Validation<int, string>.Error("error");
         Assert.Throws<InvalidOperationException>(() => validation.GetValue());
     }
 
     [Fact]
     public void UnwrapErrors_OnInvalid_ReturnsErrors()
     {
-        var validation = Validation<int, string>.Invalid(new[] { "error1", "error2" });
+        var validation = Validation<int, string>.Error(new[] { "error1", "error2" });
         var errors = validation.GetErrors();
 
         Assert.Equal(2, errors.Length);
@@ -76,14 +76,14 @@ public class ValidationTests
     [Fact]
     public void UnwrapErrors_OnValid_ThrowsException()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
         Assert.Throws<InvalidOperationException>(() => validation.GetErrors());
     }
 
     [Fact]
     public void Map_OnValid_TransformsValue()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
         var mapped = validation.Map(x => x * 2);
 
         Assert.True(mapped.IsOk);
@@ -93,7 +93,7 @@ public class ValidationTests
     [Fact]
     public void Map_OnInvalid_PreservesErrors()
     {
-        var validation = Validation<int, string>.Invalid("error");
+        var validation = Validation<int, string>.Error("error");
         var mapped = validation.Map(x => x * 2);
 
         Assert.True(mapped.IsError);
@@ -103,7 +103,7 @@ public class ValidationTests
     [Fact]
     public void TryGet_OnValid_ReturnsTrueAndValue()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
 
         var result = validation.TryGet(out var value);
 
@@ -114,7 +114,7 @@ public class ValidationTests
     [Fact]
     public void TryGet_OnInvalid_ReturnsFalse()
     {
-        var validation = Validation<int, string>.Invalid("error");
+        var validation = Validation<int, string>.Error("error");
 
         var result = validation.TryGet(out var value);
 
@@ -125,7 +125,7 @@ public class ValidationTests
     [Fact]
     public void TryGetErrors_OnInvalid_ReturnsTrueAndErrors()
     {
-        var validation = Validation<int, string>.Invalid(new[] { "error1", "error2" });
+        var validation = Validation<int, string>.Error(new[] { "error1", "error2" });
 
         var result = validation.TryGetErrors(out var errors);
 
@@ -138,7 +138,7 @@ public class ValidationTests
     [Fact]
     public void TryGetErrors_OnValid_ReturnsFalseAndEmptyList()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
 
         var result = validation.TryGetErrors(out var errors);
 
@@ -149,7 +149,7 @@ public class ValidationTests
     [Fact]
     public void MapErrors_OnInvalid_TransformsErrors()
     {
-        var validation = Validation<int, string>.Invalid(new[] { "error1", "error2" });
+        var validation = Validation<int, string>.Error(new[] { "error1", "error2" });
         var mapped = validation.MapErrors(e => e.ToUpper());
 
         Assert.True(mapped.IsError);
@@ -159,8 +159,8 @@ public class ValidationTests
     [Fact]
     public void Apply_BothValid_CombinesValues()
     {
-        var val1 = Validation<int, string>.Valid(10);
-        var val2 = Validation<int, string>.Valid(20);
+        var val1 = Validation<int, string>.Ok(10);
+        var val2 = Validation<int, string>.Ok(20);
 
         var result = val1.Apply(val2, (a, b) => a + b);
 
@@ -171,8 +171,8 @@ public class ValidationTests
     [Fact]
     public void Apply_BothInvalid_AccumulatesErrors()
     {
-        var val1 = Validation<int, string>.Invalid("error1");
-        var val2 = Validation<int, string>.Invalid("error2");
+        var val1 = Validation<int, string>.Error("error1");
+        var val2 = Validation<int, string>.Error("error2");
 
         var result = val1.Apply(val2, (a, b) => a + b);
 
@@ -185,8 +185,8 @@ public class ValidationTests
     [Fact]
     public void Apply_FirstInvalid_ReturnsFirstErrors()
     {
-        var val1 = Validation<int, string>.Invalid("error1");
-        var val2 = Validation<int, string>.Valid(20);
+        var val1 = Validation<int, string>.Error("error1");
+        var val2 = Validation<int, string>.Ok(20);
 
         var result = val1.Apply(val2, (a, b) => a + b);
 
@@ -198,8 +198,8 @@ public class ValidationTests
     [Fact]
     public void Zip_BothValid_ReturnsTuple()
     {
-        var val1 = Validation<int, string>.Valid(42);
-        var val2 = Validation<string, string>.Valid("hello");
+        var val1 = Validation<int, string>.Ok(42);
+        var val2 = Validation<string, string>.Ok("hello");
 
         var result = val1.Zip(val2);
 
@@ -210,8 +210,8 @@ public class ValidationTests
     [Fact]
     public void Zip_BothInvalid_AccumulatesAllErrors()
     {
-        var val1 = Validation<int, string>.Invalid(new[] { "error1", "error2" });
-        var val2 = Validation<string, string>.Invalid(new[] { "error3" });
+        var val1 = Validation<int, string>.Error(new[] { "error1", "error2" });
+        var val2 = Validation<string, string>.Error(new[] { "error3" });
 
         var result = val1.Zip(val2);
 
@@ -225,8 +225,8 @@ public class ValidationTests
     [Fact]
     public void Zip_FirstInvalid_ReturnsFirstErrors()
     {
-        var val1 = Validation<int, string>.Invalid("error1");
-        var val2 = Validation<string, string>.Valid("hello");
+        var val1 = Validation<int, string>.Error("error1");
+        var val2 = Validation<string, string>.Ok("hello");
 
         var result = val1.Zip(val2);
 
@@ -238,8 +238,8 @@ public class ValidationTests
     [Fact]
     public void Zip_SecondInvalid_ReturnsSecondErrors()
     {
-        var val1 = Validation<int, string>.Valid(42);
-        var val2 = Validation<string, string>.Invalid("error2");
+        var val1 = Validation<int, string>.Ok(42);
+        var val2 = Validation<string, string>.Error("error2");
 
         var result = val1.Zip(val2);
 
@@ -251,8 +251,8 @@ public class ValidationTests
     [Fact]
     public void ZipWith_BothValid_ReturnsCombinedValue()
     {
-        var val1 = Validation<int, string>.Valid(10);
-        var val2 = Validation<int, string>.Valid(20);
+        var val1 = Validation<int, string>.Ok(10);
+        var val2 = Validation<int, string>.Ok(20);
 
         var result = val1.ZipWith(val2, (a, b) => a + b);
 
@@ -263,8 +263,8 @@ public class ValidationTests
     [Fact]
     public void ZipWith_BothInvalid_AccumulatesAllErrors()
     {
-        var val1 = Validation<int, string>.Invalid("error1");
-        var val2 = Validation<int, string>.Invalid("error2");
+        var val1 = Validation<int, string>.Error("error1");
+        var val2 = Validation<int, string>.Error("error2");
 
         var result = val1.ZipWith(val2, (a, b) => a + b);
 
@@ -277,8 +277,8 @@ public class ValidationTests
     [Fact]
     public void And_BothValid_ReturnsSecond()
     {
-        var val1 = Validation<int, string>.Valid(10);
-        var val2 = Validation<int, string>.Valid(20);
+        var val1 = Validation<int, string>.Ok(10);
+        var val2 = Validation<int, string>.Ok(20);
 
         var result = val1.And(val2);
 
@@ -289,8 +289,8 @@ public class ValidationTests
     [Fact]
     public void And_BothInvalid_AccumulatesAllErrors()
     {
-        var val1 = Validation<int, string>.Invalid(new[] { "error1", "error2" });
-        var val2 = Validation<int, string>.Invalid(new[] { "error3", "error4" });
+        var val1 = Validation<int, string>.Error(new[] { "error1", "error2" });
+        var val2 = Validation<int, string>.Error(new[] { "error3", "error4" });
 
         var result = val1.And(val2);
 
@@ -302,11 +302,11 @@ public class ValidationTests
     [Fact]
     public void AndThen_OnValid_ExecutesFunction()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
         var result = validation.Bind(x =>
             x > 40
-                ? Validation<string, string>.Valid("large")
-                : Validation<string, string>.Invalid("small"));
+                ? Validation<string, string>.Ok("large")
+                : Validation<string, string>.Error("small"));
 
         Assert.True(result.IsOk);
         Assert.Equal("large", result.GetValue());
@@ -315,8 +315,8 @@ public class ValidationTests
     [Fact]
     public void AndThen_OnInvalid_ReturnsInvalid()
     {
-        var validation = Validation<int, string>.Invalid("error");
-        var result = validation.Bind(x => Validation<string, string>.Valid(x.ToString()));
+        var validation = Validation<int, string>.Error("error");
+        var result = validation.Bind(x => Validation<string, string>.Ok(x.ToString()));
 
         Assert.True(result.IsError);
         Assert.Equal("error", result.GetErrors()[0]);
@@ -325,7 +325,7 @@ public class ValidationTests
     [Fact]
     public void Match_OnValid_ExecutesValidAction()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
         var value = 0;
 
         validation.Match(
@@ -339,7 +339,7 @@ public class ValidationTests
     [Fact]
     public void Match_OnInvalid_ExecutesInvalidAction()
     {
-        var validation = Validation<int, string>.Invalid(new[] { "error1", "error2" });
+        var validation = Validation<int, string>.Error(new[] { "error1", "error2" });
         var errorCount = 0;
 
         validation.Match(
@@ -353,7 +353,7 @@ public class ValidationTests
     [Fact]
     public void Match_WithReturn_OnValid_ReturnsValidValue()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
         var result = validation.Match(
             validFunc: x => x.ToString(),
             invalidFunc: errors => string.Join(", ", errors)
@@ -365,7 +365,7 @@ public class ValidationTests
     [Fact]
     public void Match_WithReturn_OnInvalid_ReturnsInvalidValue()
     {
-        var validation = Validation<int, string>.Invalid(new[] { "error1", "error2" });
+        var validation = Validation<int, string>.Error(new[] { "error1", "error2" });
         var result = validation.Match(
             validFunc: x => x.ToString(),
             invalidFunc: errors => string.Join(", ", errors)
@@ -377,7 +377,7 @@ public class ValidationTests
     [Fact]
     public void ToResult_OnValid_ReturnsOk()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
         var result = validation.ToResult();
 
         Assert.True(result.IsOk);
@@ -387,7 +387,7 @@ public class ValidationTests
     [Fact]
     public void ToResult_OnInvalid_ReturnsErrWithFirstError()
     {
-        var validation = Validation<int, string>.Invalid(new[] { "error1", "error2" });
+        var validation = Validation<int, string>.Error(new[] { "error1", "error2" });
         var result = validation.ToResult();
 
         Assert.True(result.IsError);
@@ -397,7 +397,7 @@ public class ValidationTests
     [Fact]
     public void ToResult_WithCombiner_CombinesErrors()
     {
-        var validation = Validation<int, string>.Invalid(new[] { "error1", "error2" });
+        var validation = Validation<int, string>.Error(new[] { "error1", "error2" });
         var result = validation.ToResult(errors => string.Join("; ", errors));
 
         Assert.True(result.IsError);
@@ -407,7 +407,7 @@ public class ValidationTests
     [Fact]
     public void ToOption_OnValid_ReturnsSome()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
         var option = validation.ToOption();
 
         Assert.True(option.IsSome);
@@ -417,7 +417,7 @@ public class ValidationTests
     [Fact]
     public void ToOption_OnInvalid_ReturnsNone()
     {
-        var validation = Validation<int, string>.Invalid("error");
+        var validation = Validation<int, string>.Error("error");
         var option = validation.ToOption();
 
         Assert.True(option.IsNone);
@@ -428,9 +428,9 @@ public class ValidationTests
     {
         var validations = new[]
         {
-            Validation<int, string>.Valid(10),
-            Validation<int, string>.Valid(20),
-            Validation<int, string>.Valid(30)
+            Validation<int, string>.Ok(10),
+            Validation<int, string>.Ok(20),
+            Validation<int, string>.Ok(30)
         };
 
         var combined = validations.Combine();
@@ -444,9 +444,9 @@ public class ValidationTests
     {
         var validations = new[]
         {
-            Validation<int, string>.Valid(10),
-            Validation<int, string>.Invalid("error1"),
-            Validation<int, string>.Invalid(new[] { "error2", "error3" })
+            Validation<int, string>.Ok(10),
+            Validation<int, string>.Error("error1"),
+            Validation<int, string>.Error(new[] { "error2", "error3" })
         };
 
         var combined = validations.Combine();
@@ -459,7 +459,7 @@ public class ValidationTests
     [Fact]
     public void Tap_OnValid_ExecutesAction()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
         var executed = false;
 
         var result = validation.Tap(x => executed = true);
@@ -471,7 +471,7 @@ public class ValidationTests
     [Fact]
     public void TapErrors_OnInvalid_ExecutesAction()
     {
-        var validation = Validation<int, string>.Invalid("error");
+        var validation = Validation<int, string>.Error("error");
         var executed = false;
 
         var result = validation.TapErrors(errors => executed = true);
@@ -483,7 +483,7 @@ public class ValidationTests
     [Fact]
     public void TapInvalid_OnInvalid_ExecutesAction()
     {
-        var validation = Validation<int, string>.Invalid("error");
+        var validation = Validation<int, string>.Error("error");
         var executed = false;
 
         var result = validation.TapErrors(errors => executed = true);
@@ -495,7 +495,7 @@ public class ValidationTests
     [Fact]
     public void TapInvalid_OnValid_DoesNotExecuteAction()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
         var executed = false;
 
         var result = validation.TapErrors(errors => executed = true);
@@ -517,7 +517,7 @@ public class ValidationTests
     [Fact]
     public void ToValidation_FromErr_ReturnsInvalid()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
         var validation = result.ToValidation();
 
         Assert.True(validation.IsError);
@@ -570,29 +570,29 @@ public class ValidationTests
     private static Validation<string, string> ValidateName2(string name)
     {
         return string.IsNullOrWhiteSpace(name)
-            ? Validation<string, string>.Invalid("Name is required")
-            : Validation<string, string>.Valid(name);
+            ? Validation<string, string>.Error("Name is required")
+            : Validation<string, string>.Ok(name);
     }
 
     private static Validation<string, string> ValidateEmail2(string email)
     {
         return email.Contains('@')
-            ? Validation<string, string>.Valid(email)
-            : Validation<string, string>.Invalid("Invalid email format");
+            ? Validation<string, string>.Ok(email)
+            : Validation<string, string>.Error("Invalid email format");
     }
 
     private static Validation<int, string> ValidateAge2(int age)
     {
         return age >= 18
-            ? Validation<int, string>.Valid(age)
-            : Validation<int, string>.Invalid("Must be 18 or older");
+            ? Validation<int, string>.Ok(age)
+            : Validation<int, string>.Error("Must be 18 or older");
     }
 
     [Fact]
     public void Equality_TwoValidsWithSameValue_AreEqual()
     {
-        var val1 = Validation<int, string>.Valid(42);
-        var val2 = Validation<int, string>.Valid(42);
+        var val1 = Validation<int, string>.Ok(42);
+        var val2 = Validation<int, string>.Ok(42);
 
         Assert.Equal(val1, val2);
         Assert.True(val1 == val2);
@@ -601,8 +601,8 @@ public class ValidationTests
     [Fact]
     public void Equality_TwoInvalidsWithSameErrors_AreEqual()
     {
-        var val1 = Validation<int, string>.Invalid(new[] { "error1", "error2" });
-        var val2 = Validation<int, string>.Invalid(new[] { "error1", "error2" });
+        var val1 = Validation<int, string>.Error(new[] { "error1", "error2" });
+        var val2 = Validation<int, string>.Error(new[] { "error1", "error2" });
 
         Assert.Equal(val1, val2);
         Assert.True(val1 == val2);
@@ -611,14 +611,14 @@ public class ValidationTests
     [Fact]
     public void ToString_OnValid_ReturnsFormattedString()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
         Assert.Equal("Valid(42)", validation.ToString());
     }
 
     [Fact]
     public void ToString_OnInvalid_ReturnsFormattedString()
     {
-        var validation = Validation<int, string>.Invalid(new[] { "error1", "error2" });
+        var validation = Validation<int, string>.Error(new[] { "error1", "error2" });
         Assert.Equal("Invalid([error1, error2])", validation.ToString());
     }
 }

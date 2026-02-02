@@ -361,7 +361,7 @@ public class ErrorUnionGenerator : IIncrementalGenerator
           .Append("    /// Converts this error to a failed Result.\n")
           .Append("    /// </summary>\n")
           .Append("    public global::Monad.NET.Result<T, ").Append(info.FullTypeName).Append("> ToResult<T>()\n")
-          .Append("        => global::Monad.NET.Result<T, ").Append(info.FullTypeName).Append(">.Err(this);\n\n")
+          .Append("        => global::Monad.NET.Result<T, ").Append(info.FullTypeName).Append(">.Error(this);\n\n")
           .Append("    #endregion\n");
     }
 
@@ -508,7 +508,7 @@ public class ErrorUnionGenerator : IIncrementalGenerator
 
         sb.Append("            _ => throw new global::System.InvalidOperationException($\"Unknown error case: {error.GetType().Name}\")\n")
           .Append("        };\n")
-          .Append("        return global::Monad.NET.Result<T, TNewError>.Err(newError);\n")
+          .Append("        return global::Monad.NET.Result<T, TNewError>.Error(newError);\n")
           .Append("    }\n\n");
     }
 

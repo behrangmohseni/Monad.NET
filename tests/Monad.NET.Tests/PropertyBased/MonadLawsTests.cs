@@ -108,7 +108,7 @@ public class MonadLawsTests
     {
         Func<int, Result<string, string>> f = x => x >= 0
             ? Result<string, string>.Ok(x.ToString())
-            : Result<string, string>.Err("negative");
+            : Result<string, string>.Error("negative");
 
         return Prop.ForAll<int>(a =>
         {
@@ -125,7 +125,7 @@ public class MonadLawsTests
         {
             var result = a >= 0
                 ? Result<int, string>.Ok(a)
-                : Result<int, string>.Err("negative");
+                : Result<int, string>.Error("negative");
             var computed = result.Bind(x => Result<int, string>.Ok(x));
             return computed.Equals(result);
         });
@@ -136,16 +136,16 @@ public class MonadLawsTests
     {
         Func<int, Result<string, string>> f = x => x >= 0
             ? Result<string, string>.Ok(x.ToString())
-            : Result<string, string>.Err("f failed");
+            : Result<string, string>.Error("f failed");
         Func<string, Result<int, string>> g = s => s.Length > 0
             ? Result<int, string>.Ok(s.Length)
-            : Result<int, string>.Err("g failed");
+            : Result<int, string>.Error("g failed");
 
         return Prop.ForAll<int>(a =>
         {
             var result = a >= 0
                 ? Result<int, string>.Ok(a)
-                : Result<int, string>.Err("initial error");
+                : Result<int, string>.Error("initial error");
             var left = result.Bind(f).Bind(g);
             var right = result.Bind(x => f(x).Bind(g));
             return left.Equals(right);
@@ -163,7 +163,7 @@ public class MonadLawsTests
         {
             var result = a >= 0
                 ? Result<int, string>.Ok(a)
-                : Result<int, string>.Err("error");
+                : Result<int, string>.Error("error");
             var computed = result.Map(x => x);
             return computed.Equals(result);
         });
@@ -179,7 +179,7 @@ public class MonadLawsTests
         {
             var result = a >= 0
                 ? Result<int, string>.Ok(a)
-                : Result<int, string>.Err("error");
+                : Result<int, string>.Error("error");
             var left = result.Map(x => f(g(x)));
             var right = result.Map(g).Map(f);
             return left.Equals(right);
@@ -194,12 +194,12 @@ public class MonadLawsTests
     public Property Try_LeftIdentity_Law()
     {
         Func<int, Try<string>> f = x => x >= 0
-            ? Try<string>.Success(x.ToString())
-            : Try<string>.Failure(new InvalidOperationException("negative"));
+            ? Try<string>.Ok(x.ToString())
+            : Try<string>.Error(new InvalidOperationException("negative"));
 
         return Prop.ForAll<int>(a =>
         {
-            var left = Try<int>.Success(a).Bind(f);
+            var left = Try<int>.Ok(a).Bind(f);
             var right = f(a);
             return left.IsOk == right.IsOk &&
                    (!left.IsOk || left.GetValue() == right.GetValue());
@@ -212,9 +212,9 @@ public class MonadLawsTests
         return Prop.ForAll<int>(a =>
         {
             var @try = a >= 0
-                ? Try<int>.Success(a)
-                : Try<int>.Failure(new InvalidOperationException("negative"));
-            var result = @try.Bind(x => Try<int>.Success(x));
+                ? Try<int>.Ok(a)
+                : Try<int>.Error(new InvalidOperationException("negative"));
+            var result = @try.Bind(x => Try<int>.Ok(x));
             return result.IsOk == @try.IsOk &&
                    (!result.IsOk || result.GetValue() == @try.GetValue());
         });
@@ -230,8 +230,8 @@ public class MonadLawsTests
         return Prop.ForAll<int>(a =>
         {
             var validation = a >= 0
-                ? Validation<int, string>.Valid(a)
-                : Validation<int, string>.Invalid("error");
+                ? Validation<int, string>.Ok(a)
+                : Validation<int, string>.Error("error");
             var result = validation.Map(x => x);
             return result.Equals(validation);
         });
@@ -246,8 +246,8 @@ public class MonadLawsTests
         return Prop.ForAll<int>(a =>
         {
             var validation = a >= 0
-                ? Validation<int, string>.Valid(a)
-                : Validation<int, string>.Invalid("error");
+                ? Validation<int, string>.Ok(a)
+                : Validation<int, string>.Error("error");
             var left = validation.Map(x => f(g(x)));
             var right = validation.Map(g).Map(f);
             return left.Equals(right);
@@ -260,8 +260,8 @@ public class MonadLawsTests
         // When both validations are invalid, errors should accumulate
         return Prop.ForAll<NonEmptyString, NonEmptyString>((err1, err2) =>
         {
-            var v1 = Validation<int, string>.Invalid(err1.Get);
-            var v2 = Validation<int, string>.Invalid(err2.Get);
+            var v1 = Validation<int, string>.Error(err1.Get);
+            var v2 = Validation<int, string>.Error(err2.Get);
 
             var result = v1.Apply(v2, (a, b) => a + b);
 
@@ -363,7 +363,7 @@ public class MonadLawsTests
 
         return Prop.ForAll<NonEmptyString>(err =>
         {
-            var result = Result<int, string>.Err(err.Get).Bind(f);
+            var result = Result<int, string>.Error(err.Get).Bind(f);
             return result.IsError && result.GetError() == err.Get;
         });
     }

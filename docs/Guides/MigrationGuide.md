@@ -128,8 +128,8 @@ var result = (ValidateName(n), ValidateEmail(e), ValidateAge(a))
 // Monad.NET
 Validation<string, Error> ValidateName(string name) =>
     string.IsNullOrEmpty(name)
-        ? Validation<string, Error>.Invalid(new Error("Name required"))
-        : Validation<string, Error>.Valid(name);
+        ? Validation<string, Error>.Error(new Error("Name required"))
+        : Validation<string, Error>.Ok(name);
 
 var result = ValidateName(n)
     .Apply(ValidateEmail(e), (name, email) => (name, email))
@@ -262,11 +262,11 @@ else
 public Result<User, UserError> GetUser(int id)
 {
     if (id <= 0)
-        return Result<User, UserError>.Err(UserError.InvalidId);
+        return Result<User, UserError>.Error(UserError.InvalidId);
     
     var user = _db.Find(id);
     if (user == null)
-        return Result<User, UserError>.Err(UserError.NotFound);
+        return Result<User, UserError>.Error(UserError.NotFound);
     
     return Result<User, UserError>.Ok(user);
 }
@@ -333,7 +333,7 @@ result.Match(
 public Result<User, UserError> CreateUser(CreateUserRequest request)
 {
     if (string.IsNullOrEmpty(request.Name))
-        return Result<User, UserError>.Err(new UserError("Name is required"));
+        return Result<User, UserError>.Error(new UserError("Name is required"));
     
     return Result<User, UserError>.Ok(new User(request.Name));
 }

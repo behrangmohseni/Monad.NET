@@ -34,7 +34,7 @@ public class AsyncPipelineBenchmarks
         if (DelayMs > 0) await Task.Delay(DelayMs);
         return id > 0 
             ? Result<User, string>.Ok(new User(id, $"User{id}", $"user{id}@example.com"))
-            : Result<User, string>.Err("User not found");
+            : Result<User, string>.Error("User not found");
     }
 
     private static async Task<Order?> GetOrderNullableAsync(int userId)
@@ -56,7 +56,7 @@ public class AsyncPipelineBenchmarks
         if (DelayMs > 0) await Task.Delay(DelayMs);
         return userId > 0 
             ? Result<Order, string>.Ok(new Order(userId * 10, userId, 99.99m))
-            : Result<Order, string>.Err("Order not found");
+            : Result<Order, string>.Error("Order not found");
     }
 
     #region Simple Async Chain
@@ -160,7 +160,7 @@ public class AsyncPipelineBenchmarks
             .BindAsync(async user =>
             {
                 if (!user.Email.Contains("@"))
-                    return Result<User, string>.Err("Invalid email");
+                    return Result<User, string>.Error("Invalid email");
                 return Result<User, string>.Ok(user);
             })
             .BindAsync(async user =>
@@ -171,7 +171,7 @@ public class AsyncPipelineBenchmarks
             .BindAsync(async x =>
             {
                 if (x.order.Amount <= 0)
-                    return Result<(User user, Order order), string>.Err("Invalid order amount");
+                    return Result<(User user, Order order), string>.Error("Invalid order amount");
                 return Result<(User user, Order order), string>.Ok(x);
             })
             .MapAsync(x => new OrderSummary(

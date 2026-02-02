@@ -28,10 +28,10 @@ This document provides a comprehensive comparison of APIs showing what changed i
 | Type | Success Factory | Failure Factory | Other |
 |------|-----------------|-----------------|-------|
 | **Option\<T\>** | `Some(T)` | `None()` | - |
-| **Result\<T,E\>** | `Ok(T)` | `Err(E)` | - |
-| **Validation\<T,E\>** | `Valid(T)` | `Invalid(E)`, `Invalid(IEnumerable<E>)` | - |
-| **Try\<T\>** | `Success(T)` | `Failure(Exception)` | `Of(Func<T>)`, `OfAsync(...)` |
-| **RemoteData\<T,E\>** | `Success(T)` | `Failure(E)` | `NotAsked()`, `Loading()` |
+| **Result\<T,E\>** | `Ok(T)` | `Error(E)` | - |
+| **Validation\<T,E\>** | `Ok(T)` | `Error(E)`, `Error(IEnumerable<E>)` | - |
+| **Try\<T\>** | `Ok(T)` | `Error(Exception)` | `Of(Func<T>)`, `OfAsync(...)` |
+| **RemoteData\<T,E\>** | `Ok(T)` | `Error(E)` | `NotAsked()`, `Loading()` |
 | **NonEmptyList\<T\>** | `Of(T)`, `Of(T, params T[])` | - | `FromEnumerable(...)` |
 | **Writer\<W,T\>** | `Of(T, W empty)`, `Tell(T, W)` | - | `TellUnit(W)` |
 | **Reader\<R,A\>** | `Return(A)`, `From(Func<R,A>)` | - | `Ask()`, `Asks(Func<R,A>)` |
@@ -200,10 +200,10 @@ This document provides a comprehensive comparison of APIs showing what changed i
 | Type | Tap Success | Tap Failure | Location |
 |------|-------------|-------------|----------|
 | **Option\<T\>** | `Tap(Action<T>)` | `TapNone(Action)` | Instance |
-| **Result\<T,E\>** | `Tap(Action<T>)` | `TapErr(Action<E>)` | Extension |
+| **Result\<T,E\>** | `Tap(Action<T>)` | `TapError(Action<E>)` | Extension |
 | **Validation\<T,E\>** | `Tap(Action<T>)` | `TapErrors(Action<list>)` | Extension |
-| **Try\<T\>** | `Tap(Action<T>)` | `TapFailure(Action<Ex>)` | Extension |
-| **RemoteData\<T,E\>** | `Tap(Action<T>)` | `TapFailure`, `TapNotAsked`, `TapLoading` | Extension |
+| **Try\<T\>** | `Tap(Action<T>)` | `TapError(Action<Ex>)` | Extension |
+| **RemoteData\<T,E\>** | `Tap(Action<T>)` | `TapError`, `TapNotAsked`, `TapLoading` | Extension |
 | **Writer\<W,T\>** | `Tap(Action<T>)` | `TapLog(Action<W>)` | Instance |
 | **Reader\<R,A\>** | `Tap(Action<A>)` | `TapEnv(Action<R>)` | Instance |
 | **State\<S,T\>** | `Tap(Action<T>)` | `TapState(Action<S>)` | Instance |
@@ -211,14 +211,9 @@ This document provides a comprehensive comparison of APIs showing what changed i
 | **IOAsync\<T\>** | `Tap(Action<T>)` | ❌ | Instance |
 | **NonEmptyList\<T\>** | `Tap(Action<T>)`, `TapIndexed(...)` | ❌ | Instance |
 
-### Inconsistencies (V1.0)
-- Mix of instance methods and extension methods
-- Different naming: `TapNone`, `TapErr`, `TapLeft`, `TapFailure`, `TapErrors`
-- `IO/IOAsync` missing failure tap
-
 ### V2.0 Status
-- Removed `TapInvalid` alias (use `TapErrors`)
-- Removed `TapError` alias (use `TapFailure`)
+- Consistent naming: `TapError()` for all error-capable types (except `TapErrors()` for `Validation` plural)
+- `IO/IOAsync` missing failure tap
 
 ---
 
@@ -553,12 +548,13 @@ If removing methods is too breaking, consider:
 | `MapErr` | `MapError` | Result |
 | `MapErrAsync` | `MapErrorAsync` | ResultAsync |
 
-### 7. Tap Alias Consolidation
+### 7. Tap Method Standardization
 
 | Old Name (Removed) | New Name (Kept) | Type |
 |-------------------|-----------------|------|
+| `TapErr` | `TapError` | ResultExtensions |
+| `TapFailure` | `TapError` | TryExtensions, RemoteDataExtensions |
 | `TapInvalid` | `TapErrors` | ValidationExtensions |
-| `TapError` | `TapFailure` | RemoteDataExtensions |
 
 ### 8. Analyzer Updates
 
@@ -627,9 +623,8 @@ Bind(Func<T,M<U>>)                  // monadic bind
 
 // Side effects
 Tap(Action<T>)                      // side effect on value
-TapFailure(Action<E>)               // side effect on error (RemoteData, Try)
-TapErrors(Action<IReadOnlyList<E>>) // side effect on errors (Validation)
-TapErr(Action<E>)                   // side effect on error (Result)
+TapError(Action<E>)                 // side effect on error (Result, Try, RemoteData)
+TapErrors(Action<IReadOnlyList<E>>) // side effect on errors (Validation - plural)
 
 // Matching
 Match(onSuccess, onFailure)         // pattern match

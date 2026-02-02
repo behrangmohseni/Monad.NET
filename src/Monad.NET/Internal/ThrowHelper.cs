@@ -96,7 +96,7 @@ internal static class ThrowHelper
     /// </summary>
     [DoesNotReturn]
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static void ThrowResultIsErr<TErr>(TErr error)
+    public static void ThrowResultIsErr<TError>(TError error)
     {
         throw new InvalidOperationException(
             $"Cannot unwrap Result because it is Err: {error}. " +
@@ -120,7 +120,7 @@ internal static class ThrowHelper
     /// </summary>
     [DoesNotReturn]
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static void ThrowValidationIsInvalid<TErr>(IReadOnlyList<TErr> errors)
+    public static void ThrowValidationIsInvalid<TError>(IReadOnlyList<TError> errors)
     {
         var errorList = string.Join(", ", errors);
         throw new InvalidOperationException(
@@ -261,7 +261,7 @@ internal static class ThrowHelper
     {
         throw new InvalidOperationException(
             "Cannot use Result because it was not properly initialized. " +
-            "Use Result<T,E>.Ok(value) or Result<T,E>.Err(error) to create a valid instance. " +
+            "Use Result<T,E>.Ok(value) or Result<T,E>.Error(error) to create a valid instance. " +
             "The default value (e.g., default(Result<T,E>)) is not a valid Result state.");
     }
 
@@ -287,7 +287,7 @@ internal static class ThrowHelper
     {
         throw new InvalidOperationException(
             "Cannot use Try because it was not properly initialized. " +
-            "Use Try<T>.Success(value), Try<T>.Failure(exception), or Try<T>.Of(func) to create a valid instance. " +
+            "Use Try<T>.Ok(value), Try<T>.Error(exception), or Try<T>.Of(func) to create a valid instance. " +
             "The default value (e.g., default(Try<T>)) is not a valid Try state.");
     }
 
@@ -300,7 +300,7 @@ internal static class ThrowHelper
     {
         throw new InvalidOperationException(
             "Cannot use Validation because it was not properly initialized. " +
-            "Use Validation<T,E>.Valid(value) or Validation<T,E>.Invalid(error) to create a valid instance. " +
+            "Use Validation<T,E>.Ok(value) or Validation<T,E>.Error(error) to create a valid instance. " +
             "The default value (e.g., default(Validation<T,E>)) is not a valid Validation state.");
     }
 
@@ -313,8 +313,8 @@ internal static class ThrowHelper
     {
         throw new InvalidOperationException(
             "Cannot use RemoteData because it was not properly initialized. " +
-            "Use RemoteData<T,E>.NotAsked(), RemoteData<T,E>.Loading(), RemoteData<T,E>.Success(data), " +
-            "or RemoteData<T,E>.Failure(error) to create a valid instance. " +
+            "Use RemoteData<T,E>.NotAsked(), RemoteData<T,E>.Loading(), RemoteData<T,E>.Ok(data), " +
+            "or RemoteData<T,E>.Error(error) to create a valid instance. " +
             "The default value (e.g., default(RemoteData<T,E>)) is not a valid RemoteData state.");
     }
 

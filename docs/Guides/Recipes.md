@@ -34,20 +34,20 @@ public record UserForm(string Name, string Email, int Age);
 // Individual validators
 Validation<string, string> ValidateName(string name) =>
     string.IsNullOrWhiteSpace(name) 
-        ? Validation<string, string>.Invalid("Name is required")
+        ? Validation<string, string>.Error("Name is required")
         : name.Length < 2 
-            ? Validation<string, string>.Invalid("Name must be at least 2 characters")
-            : Validation<string, string>.Valid(name.Trim());
+            ? Validation<string, string>.Error("Name must be at least 2 characters")
+            : Validation<string, string>.Ok(name.Trim());
 
 Validation<string, string> ValidateEmail(string email) =>
     string.IsNullOrWhiteSpace(email)
-        ? Validation<string, string>.Invalid("Email is required")
+        ? Validation<string, string>.Error("Email is required")
         : !email.Contains("@")
-            ? Validation<string, string>.Invalid("Email must contain @")
-            : Validation<string, string>.Valid(email.ToLower());
+            ? Validation<string, string>.Error("Email must contain @")
+            : Validation<string, string>.Ok(email.ToLower());
 
 Validation<int, string> ValidateAge(int age) =>
-    Validation<int, string>.Valid(age)
+    Validation<int, string>.Ok(age)
         .Ensure(a => a >= 18, "Must be at least 18 years old")
         .Ensure(a => a <= 120, "Age seems unrealistic");
 
@@ -97,7 +97,7 @@ public async Task<Result<T, ApiError>> CallWithRetry<T>(
     Func<Task<Result<T, ApiError>>> apiCall,
     int maxRetries = 3)
 {
-    Result<T, ApiError> lastResult = Result<T, ApiError>.Err(new ApiError("Not started"));
+    Result<T, ApiError> lastResult = Result<T, ApiError>.Error(new ApiError("Not started"));
     
     for (int i = 0; i < maxRetries; i++)
     {
@@ -179,13 +179,13 @@ Result<AppConfig, ConfigError> LoadFromEnvironment()
         .Match(
             some: pair => Result<AppConfig, ConfigError>.Ok(
                 new AppConfig(pair.Item1, pair.Item2)),
-            none: () => Result<AppConfig, ConfigError>.Err(
+            none: () => Result<AppConfig, ConfigError>.Error(
                 new ConfigError("Missing environment variables")));
 }
 
 Result<AppConfig, ConfigError> ValidateConfiguration(AppConfig config)
 {
-    return Validation<AppConfig, string>.Valid(config)
+    return Validation<AppConfig, string>.Ok(config)
         .Ensure(c => !string.IsNullOrEmpty(c.ConnectionString), "Connection string required")
         .Ensure(c => c.ApiKey.Length >= 32, "API key must be at least 32 characters")
         .ToResult()
@@ -226,8 +226,8 @@ Option<int> value = tried.ToOption(); // Failure becomes None
 // Option → Try
 Option<User> user = FindUser(id);
 Try<User> tried = user.Match(
-    some: u => Try<User>.Success(u),
-    none: () => Try<User>.Failure(new InvalidOperationException("User not found")));
+    some: u => Try<User>.Ok(u),
+    none: () => Try<User>.Error(new InvalidOperationException("User not found")));
 
 // Chaining different types
 var userOption = await GetUserOption(id);      // Option<User>
@@ -235,7 +235,7 @@ var userResult = userOption
     .OkOrElse(() => "User not found");         // Result<User, string>
     
 if (userResult.IsError) 
-    return Result<UserDto, string>.Err(userResult.GetError());
+    return Result<UserDto, string>.Error(userResult.GetError());
 
 var validResult = await ValidateUserAsync(userResult.GetValue());
 var dtoResult = validResult.Map(user => user.ToDto());
@@ -305,7 +305,7 @@ public async Task<Try<T>> RetryWithBackoff<T>(
         }
     }
     
-    return Try<T>.Failure(lastException!);
+    return Try<T>.Error(lastException!);
 }
 
 // Using Reader with async operation
@@ -357,7 +357,7 @@ public async Task<Result<Order, OrderError>> ProcessOrder(OrderRequest request)
 
 // Each step returns Result<T, OrderError>
 Result<OrderRequest, OrderError> ValidateRequest(OrderRequest req) =>
-    Validation<OrderRequest, string>.Valid(req)
+    Validation<OrderRequest, string>.Ok(req)
         .Ensure(r => !string.IsNullOrEmpty(r.CustomerId), "Customer ID required")
         .Ensure(r => !string.IsNullOrEmpty(r.ProductId), "Product ID required")
         .Ensure(r => r.Quantity > 0, "Quantity must be positive")
@@ -595,7 +595,7 @@ var result = TryPrimary()
 
 // Recover with logging
 var result = await operation
-    .TapErr(err => _logger.LogWarning("Operation failed: {Error}", err))
+    .TapError(err => _logger.LogWarning("Operation failed: {Error}", err))
     .RecoverAsync(async err => {
         await _metrics.RecordFailure(err);
         return FallbackValue;
@@ -605,7 +605,7 @@ var result = await operation
 var result = FetchData()
     .OrElse(err => err.IsTransient 
         ? RetryFetch() 
-        : Result<Data, Error>.Err(err));
+        : Result<Data, Error>.Error(err));
 
 // Try multiple strategies
 Try<Connection> Connect() =>

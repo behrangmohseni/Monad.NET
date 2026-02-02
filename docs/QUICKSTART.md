@@ -113,8 +113,8 @@ var adapted = apiResult.BiMap(
     err => new DomainError(err.Code, err.Message)
 );
 
-// Throw custom exceptions with ThrowIfErr
-var user = GetUser(id).ThrowIfErr(err => new UserNotFoundException($"User not found: {err}"));
+// Throw custom exceptions with ThrowIfError
+var user = GetUser(id).ThrowIfError(err => new UserNotFoundException($"User not found: {err}"));
 ```
 
 ### Validation - Collect All Errors
@@ -135,7 +135,7 @@ user.Match(
 );
 
 // Chain validations with Ensure
-var validatedAge = Validation<int, string>.Valid(age)
+var validatedAge = Validation<int, string>.Ok(age)
     .Ensure(x => x >= 18, "Must be at least 18")
     .Ensure(x => x <= 120, "Must be at most 120")
     .Ensure(x => x > 0, "Must be positive");
@@ -221,7 +221,7 @@ var result = ParseInput(data)
     .Bind(Transform)
     .Bind(Save)
     .Tap(x => Log($"Success: {x}"))
-    .TapErr(e => Log($"Error: {e}"));
+    .TapError(e => Log($"Error: {e}"));
 ```
 
 ### LINQ Method Syntax (Recommended)

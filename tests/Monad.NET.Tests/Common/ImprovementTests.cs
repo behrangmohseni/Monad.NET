@@ -12,7 +12,7 @@ public class ImprovementTests
     [Fact]
     public void Ensure_ValidPasses_ReturnsOriginal()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
 
         var result = validation.Ensure(x => x > 0, "Must be positive");
 
@@ -23,7 +23,7 @@ public class ImprovementTests
     [Fact]
     public void Ensure_ValidFails_ReturnsInvalid()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
 
         var result = validation.Ensure(x => x > 100, "Must be greater than 100");
 
@@ -34,7 +34,7 @@ public class ImprovementTests
     [Fact]
     public void Ensure_Invalid_ReturnsOriginalInvalid()
     {
-        var validation = Validation<int, string>.Invalid("original error");
+        var validation = Validation<int, string>.Error("original error");
 
         var result = validation.Ensure(x => x > 0, "Must be positive");
 
@@ -45,7 +45,7 @@ public class ImprovementTests
     [Fact]
     public void Ensure_Chained_AllPass()
     {
-        var result = Validation<int, string>.Valid(50)
+        var result = Validation<int, string>.Ok(50)
             .Ensure(x => x > 0, "Must be positive")
             .Ensure(x => x < 100, "Must be less than 100")
             .Ensure(x => x % 2 == 0, "Must be even");
@@ -57,7 +57,7 @@ public class ImprovementTests
     [Fact]
     public void Ensure_Chained_FirstFails()
     {
-        var result = Validation<int, string>.Valid(-5)
+        var result = Validation<int, string>.Ok(-5)
             .Ensure(x => x > 0, "Must be positive")
             .Ensure(x => x < 100, "Must be less than 100");
 
@@ -68,7 +68,7 @@ public class ImprovementTests
     [Fact]
     public void Ensure_NullPredicate_ThrowsArgumentNull()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
 
         Assert.Throws<ArgumentNullException>(
             () => validation.Ensure(null!, "error"));
@@ -77,7 +77,7 @@ public class ImprovementTests
     [Fact]
     public void Ensure_NullError_ThrowsArgumentNull()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
 
         Assert.Throws<ArgumentNullException>(
             () => validation.Ensure(x => x > 0, (string)null!));
@@ -86,7 +86,7 @@ public class ImprovementTests
     [Fact]
     public void Ensure_Factory_ValidPasses_ReturnsOriginal()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
         var factoryCalled = false;
 
         var result = validation.Ensure(
@@ -104,7 +104,7 @@ public class ImprovementTests
     [Fact]
     public void Ensure_Factory_ValidFails_CallsFactory()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
         var factoryCalled = false;
 
         var result = validation.Ensure(
@@ -123,7 +123,7 @@ public class ImprovementTests
     [Fact]
     public void Ensure_Factory_Invalid_DoesNotCallFactory()
     {
-        var validation = Validation<int, string>.Invalid("original error");
+        var validation = Validation<int, string>.Error("original error");
         var factoryCalled = false;
 
         var result = validation.Ensure(
@@ -146,8 +146,8 @@ public class ImprovementTests
     [Fact]
     public void Flatten_BothValid_ReturnsInnerValue()
     {
-        var nested = Validation<Validation<int, string>, string>.Valid(
-            Validation<int, string>.Valid(42));
+        var nested = Validation<Validation<int, string>, string>.Ok(
+            Validation<int, string>.Ok(42));
 
         var result = nested.Flatten();
 
@@ -158,7 +158,7 @@ public class ImprovementTests
     [Fact]
     public void Flatten_OuterInvalid_ReturnsOuterErrors()
     {
-        var nested = Validation<Validation<int, string>, string>.Invalid("outer error");
+        var nested = Validation<Validation<int, string>, string>.Error("outer error");
 
         var result = nested.Flatten();
 
@@ -169,8 +169,8 @@ public class ImprovementTests
     [Fact]
     public void Flatten_InnerInvalid_ReturnsInnerErrors()
     {
-        var nested = Validation<Validation<int, string>, string>.Valid(
-            Validation<int, string>.Invalid("inner error"));
+        var nested = Validation<Validation<int, string>, string>.Ok(
+            Validation<int, string>.Error("inner error"));
 
         var result = nested.Flatten();
 
@@ -181,8 +181,8 @@ public class ImprovementTests
     [Fact]
     public void Flatten_MultipleNestedErrors()
     {
-        var nested = Validation<Validation<int, string>, string>.Valid(
-            Validation<int, string>.Invalid(new[] { "error1", "error2" }));
+        var nested = Validation<Validation<int, string>, string>.Ok(
+            Validation<int, string>.Error(new[] { "error1", "error2" }));
 
         var result = nested.Flatten();
 
@@ -212,7 +212,7 @@ public class ImprovementTests
     [Fact]
     public void BiMap_Err_TransformsError()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
 
         var mapped = result.BiMap(
             x => x.ToString(),
@@ -255,7 +255,7 @@ public class ImprovementTests
     [Fact]
     public void BiMap_EquivalentToSeparateMaps_Err()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
 
         var biMapped = result.BiMap(x => x.ToString(), e => e.Length);
         var separateMapped = result.Map(x => x.ToString()).MapError(e => e.Length);
@@ -441,7 +441,7 @@ public class ImprovementTests
     {
         var result = Result<int, string>.Ok(42);
 
-        var value = result.ThrowIfErr(new InvalidOperationException("Error occurred"));
+        var value = result.ThrowIfError(new InvalidOperationException("Error occurred"));
 
         Assert.Equal(42, value);
     }
@@ -449,11 +449,11 @@ public class ImprovementTests
     [Fact]
     public void ThrowIfErr_Err_ThrowsException()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
         var expectedException = new InvalidOperationException("Error occurred");
 
         var thrownException = Assert.Throws<InvalidOperationException>(
-            () => result.ThrowIfErr(expectedException));
+            () => result.ThrowIfError(expectedException));
 
         Assert.Same(expectedException, thrownException);
     }
@@ -464,7 +464,7 @@ public class ImprovementTests
         var result = Result<int, string>.Ok(42);
 
         Assert.Throws<ArgumentNullException>(
-            () => result.ThrowIfErr((Exception)null!));
+            () => result.ThrowIfError((Exception)null!));
     }
 
     [Fact]
@@ -473,7 +473,7 @@ public class ImprovementTests
         var result = Result<int, string>.Ok(42);
         var factoryCalled = false;
 
-        var value = result.ThrowIfErr(err =>
+        var value = result.ThrowIfError(err =>
         {
             factoryCalled = true;
             return new InvalidOperationException(err);
@@ -486,11 +486,11 @@ public class ImprovementTests
     [Fact]
     public void ThrowIfErr_Factory_Err_CallsFactoryWithError()
     {
-        var result = Result<int, string>.Err("the error message");
+        var result = Result<int, string>.Error("the error message");
         string? capturedError = null;
 
         Assert.Throws<InvalidOperationException>(
-            () => result.ThrowIfErr(err =>
+            () => result.ThrowIfError(err =>
             {
                 capturedError = err;
                 return new InvalidOperationException(err);
@@ -505,25 +505,25 @@ public class ImprovementTests
         var result = Result<int, string>.Ok(42);
 
         Assert.Throws<ArgumentNullException>(
-            () => result.ThrowIfErr((Func<string, Exception>)null!));
+            () => result.ThrowIfError((Func<string, Exception>)null!));
     }
 
     [Fact]
     public void ThrowIfErr_CustomExceptionType()
     {
-        var result = Result<int, string>.Err("not found");
+        var result = Result<int, string>.Error("not found");
 
         Assert.Throws<FileNotFoundException>(
-            () => result.ThrowIfErr(new FileNotFoundException("File not found")));
+            () => result.ThrowIfError(new FileNotFoundException("File not found")));
     }
 
     [Fact]
     public void ThrowIfErr_Factory_CreatesExceptionFromError()
     {
-        var result = Result<int, int>.Err(404);
+        var result = Result<int, int>.Error(404);
 
         var ex = Assert.Throws<HttpRequestException>(
-            () => result.ThrowIfErr(code => new HttpRequestException($"HTTP {code} error")));
+            () => result.ThrowIfError(code => new HttpRequestException($"HTTP {code} error")));
 
         Assert.Equal("HTTP 404 error", ex.Message);
     }

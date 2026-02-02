@@ -93,7 +93,7 @@ public class TryGetPatternTests
     [Fact]
     public void Result_TryGet_Err_ReturnsFalseAndDefault()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
 
         var success = result.TryGet(out var value);
 
@@ -104,7 +104,7 @@ public class TryGetPatternTests
     [Fact]
     public void Result_TryGetError_Err_ReturnsTrueAndError()
     {
-        var result = Result<int, string>.Err("error message");
+        var result = Result<int, string>.Error("error message");
 
         var hasError = result.TryGetError(out var error);
 
@@ -141,7 +141,7 @@ public class TryGetPatternTests
     [Fact]
     public void Result_TryGetError_WorksWithIfStatement()
     {
-        var result = Result<string, int>.Err(404);
+        var result = Result<string, int>.Error(404);
 
         if (result.TryGetError(out var error))
         {
@@ -160,7 +160,7 @@ public class TryGetPatternTests
     [Fact]
     public void Try_TryGet_Success_ReturnsTrueAndValue()
     {
-        var tryResult = Try<int>.Success(42);
+        var tryResult = Try<int>.Ok(42);
 
         var success = tryResult.TryGet(out var value);
 
@@ -171,7 +171,7 @@ public class TryGetPatternTests
     [Fact]
     public void Try_TryGet_Failure_ReturnsFalseAndDefault()
     {
-        var tryResult = Try<int>.Failure(new Exception("error"));
+        var tryResult = Try<int>.Error(new Exception("error"));
 
         var success = tryResult.TryGet(out var value);
 
@@ -183,7 +183,7 @@ public class TryGetPatternTests
     public void Try_TryGetException_Failure_ReturnsTrueAndException()
     {
         var exception = new InvalidOperationException("test error");
-        var tryResult = Try<int>.Failure(exception);
+        var tryResult = Try<int>.Error(exception);
 
         var hasException = tryResult.TryGetException(out var ex);
 
@@ -194,7 +194,7 @@ public class TryGetPatternTests
     [Fact]
     public void Try_TryGetException_Success_ReturnsFalseAndNull()
     {
-        var tryResult = Try<int>.Success(42);
+        var tryResult = Try<int>.Ok(42);
 
         var hasException = tryResult.TryGetException(out var ex);
 
@@ -263,7 +263,7 @@ public class TryGetPatternTests
         {
             if (int.TryParse(input, out var result))
                 return Result<int, string>.Ok(result);
-            return Result<int, string>.Err($"Cannot parse '{input}' as int");
+            return Result<int, string>.Error($"Cannot parse '{input}' as int");
         }
 
         // Familiar TryParse pattern

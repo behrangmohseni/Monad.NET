@@ -14,10 +14,10 @@ public static class ValidationExtensions
     /// Valid values return 200 OK, Invalid returns 422 Unprocessable Entity with validation errors.
     /// </summary>
     /// <typeparam name="T">The value type.</typeparam>
-    /// <typeparam name="TErr">The error type.</typeparam>
+    /// <typeparam name="TError">The error type.</typeparam>
     /// <param name="validation">The validation to convert.</param>
     /// <returns>An IActionResult.</returns>
-    public static IActionResult ToActionResult<T, TErr>(this Validation<T, TErr> validation)
+    public static IActionResult ToActionResult<T, TError>(this Validation<T, TError> validation)
     {
         return validation.Match<IActionResult>(
             validFunc: value => new OkObjectResult(value),
@@ -32,15 +32,15 @@ public static class ValidationExtensions
     /// Converts a Validation to an IActionResult with custom mapping.
     /// </summary>
     /// <typeparam name="T">The value type.</typeparam>
-    /// <typeparam name="TErr">The error type.</typeparam>
+    /// <typeparam name="TError">The error type.</typeparam>
     /// <param name="validation">The validation to convert.</param>
     /// <param name="onValid">Function to create IActionResult from valid value.</param>
     /// <param name="onInvalid">Function to create IActionResult from errors.</param>
     /// <returns>An IActionResult.</returns>
-    public static IActionResult ToActionResult<T, TErr>(
-        this Validation<T, TErr> validation,
+    public static IActionResult ToActionResult<T, TError>(
+        this Validation<T, TError> validation,
         Func<T, IActionResult> onValid,
-        Func<ImmutableArray<TErr>, IActionResult> onInvalid)
+        Func<ImmutableArray<TError>, IActionResult> onInvalid)
     {
         return validation.Match(onValid, onInvalid);
     }
@@ -105,8 +105,8 @@ public static class ValidationExtensions
     /// <summary>
     /// Converts a Validation to an IActionResult, returning 201 Created for valid values.
     /// </summary>
-    public static IActionResult ToCreatedResult<T, TErr>(
-        this Validation<T, TErr> validation,
+    public static IActionResult ToCreatedResult<T, TError>(
+        this Validation<T, TError> validation,
         string location)
     {
         return validation.Match<IActionResult>(
@@ -118,8 +118,8 @@ public static class ValidationExtensions
     /// <summary>
     /// Asynchronously converts a Task of Validation to an IActionResult.
     /// </summary>
-    public static async Task<IActionResult> ToActionResultAsync<T, TErr>(
-        this Task<Validation<T, TErr>> validationTask)
+    public static async Task<IActionResult> ToActionResultAsync<T, TError>(
+        this Task<Validation<T, TError>> validationTask)
     {
         var validation = await validationTask.ConfigureAwait(false);
         return validation.ToActionResult();
@@ -128,10 +128,10 @@ public static class ValidationExtensions
     /// <summary>
     /// Asynchronously converts a Task of Validation to an IActionResult with custom mapping.
     /// </summary>
-    public static async Task<IActionResult> ToActionResultAsync<T, TErr>(
-        this Task<Validation<T, TErr>> validationTask,
+    public static async Task<IActionResult> ToActionResultAsync<T, TError>(
+        this Task<Validation<T, TError>> validationTask,
         Func<T, IActionResult> onValid,
-        Func<ImmutableArray<TErr>, IActionResult> onInvalid)
+        Func<ImmutableArray<TError>, IActionResult> onInvalid)
     {
         var validation = await validationTask.ConfigureAwait(false);
         return validation.ToActionResult(onValid, onInvalid);

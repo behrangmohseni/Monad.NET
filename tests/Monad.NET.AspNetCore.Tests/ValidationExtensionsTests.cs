@@ -10,7 +10,7 @@ public class ValidationExtensionsTests
     [Fact]
     public void ToActionResult_Valid_ReturnsOkObjectResult()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
 
         var result = validation.ToActionResult();
 
@@ -21,7 +21,7 @@ public class ValidationExtensionsTests
     [Fact]
     public void ToActionResult_Invalid_ReturnsUnprocessableEntity()
     {
-        var validation = Validation<int, string>.Invalid(new[] { "Error 1", "Error 2" });
+        var validation = Validation<int, string>.Error(new[] { "Error 1", "Error 2" });
 
         var result = validation.ToActionResult();
 
@@ -32,7 +32,7 @@ public class ValidationExtensionsTests
     [Fact]
     public void ToActionResult_WithCustomMapping_Valid_UsesOnValid()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
 
         var result = validation.ToActionResult(
             onValid: v => new CreatedResult("/test", v),
@@ -46,7 +46,7 @@ public class ValidationExtensionsTests
     [Fact]
     public void ToActionResult_WithCustomMapping_Invalid_UsesOnInvalid()
     {
-        var validation = Validation<int, string>.Invalid(new[] { "Error" });
+        var validation = Validation<int, string>.Error(new[] { "Error" });
 
         var result = validation.ToActionResult(
             onValid: v => new OkObjectResult(v),
@@ -61,7 +61,7 @@ public class ValidationExtensionsTests
     [Fact]
     public void ToValidationProblemResult_Valid_ReturnsOk()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
 
         var result = validation.ToValidationProblemResult();
 
@@ -72,7 +72,7 @@ public class ValidationExtensionsTests
     [Fact]
     public void ToValidationProblemResult_Invalid_ReturnsValidationProblemDetails()
     {
-        var validation = Validation<int, string>.Invalid(new[] { "Name is required", "Email is invalid" });
+        var validation = Validation<int, string>.Error(new[] { "Name is required", "Email is invalid" });
 
         var result = validation.ToValidationProblemResult("form");
 
@@ -86,7 +86,7 @@ public class ValidationExtensionsTests
     [Fact]
     public void ToValidationProblemResult_KeyedErrors_GroupsByKey()
     {
-        var validation = Validation<int, KeyValuePair<string, string>>.Invalid(new[]
+        var validation = Validation<int, KeyValuePair<string, string>>.Error(new[]
         {
             KeyValuePair.Create("name", "Name is required"),
             KeyValuePair.Create("email", "Email is invalid"),
@@ -104,7 +104,7 @@ public class ValidationExtensionsTests
     [Fact]
     public void ToCreatedResult_Valid_ReturnsCreated()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
 
         var result = validation.ToCreatedResult("/api/items/42");
 
@@ -116,7 +116,7 @@ public class ValidationExtensionsTests
     [Fact]
     public async Task ToActionResultAsync_Valid_ReturnsOk()
     {
-        var validationTask = Task.FromResult(Validation<int, string>.Valid(42));
+        var validationTask = Task.FromResult(Validation<int, string>.Ok(42));
 
         var result = await validationTask.ToActionResultAsync();
 
@@ -127,7 +127,7 @@ public class ValidationExtensionsTests
     [Fact]
     public async Task ToActionResultAsync_Invalid_ReturnsUnprocessableEntity()
     {
-        var validationTask = Task.FromResult(Validation<int, string>.Invalid("Error"));
+        var validationTask = Task.FromResult(Validation<int, string>.Error("Error"));
 
         var result = await validationTask.ToActionResultAsync();
 

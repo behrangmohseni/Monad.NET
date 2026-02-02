@@ -35,7 +35,7 @@ public readonly struct Reader<R, A> : IEquatable<Reader<R, A>> { ... }
 
 #### Validation.SelectMany Now Short-Circuits
 
-LINQ query syntax on `Validation<T,TErr>` now short-circuits on first error (like `Result`):
+LINQ query syntax on `Validation<T,TError>` now short-circuits on first error (like `Result`):
 
 ```csharp
 // This now short-circuits on first error - use Apply() for accumulation
@@ -147,7 +147,7 @@ Version 2.0 beta 1 is a **pre-release** for testing and feedback. This major rel
 | `TapInvalid` | `TapErrors` | Removed alias |
 | `TapError` | `TapFailure` | Consistent naming |
 
-#### Result<T, TErr> Breaking Changes
+#### Result<T, TError> Breaking Changes
 
 - `default(Result<T,E>)` now throws `InvalidOperationException` on any operation
 - Added `IsInitialized` property to detect uninitialized structs
@@ -155,7 +155,7 @@ Version 2.0 beta 1 is a **pre-release** for testing and feedback. This major rel
 
 ### Added
 
-#### Result<T, TErr> Default Struct Protection
+#### Result<T, TError> Default Struct Protection
 
 - `IsInitialized` property to detect default-constructed structs
 - All methods now throw `InvalidOperationException` if struct is uninitialized
@@ -284,9 +284,9 @@ result.MapError(...)
 #### Core Library Enhancements
 
 - **Result.Filter** - Filter Ok values with predicate
-  - `Filter(Func<T, bool> predicate, TErr error)` - Returns Err if predicate fails
-  - `Filter(Func<T, bool> predicate, Func<TErr> errorFactory)` - Lazy error creation
-  - `Filter(Func<T, bool> predicate, Func<T, TErr> errorFactory)` - Error from value
+  - `Filter(Func<T, bool> predicate, TError error)` - Returns Err if predicate fails
+  - `Filter(Func<T, bool> predicate, Func<TError> errorFactory)` - Lazy error creation
+  - `Filter(Func<T, bool> predicate, Func<T, TError> errorFactory)` - Error from value
 
 - **Enhanced Async Extensions**
   - New async combinators for `Result<T, E>` in `ResultAsync.cs`
@@ -381,18 +381,18 @@ All features from the alpha releases (1.0.0-alpha.1 through 1.0.0-alpha.13) are 
 ### Added
 
 - **Validation.Ensure** - Conditional validation with predicate
-  - `Ensure(Func<T, bool> predicate, TErr error)` - Validates against predicate
-  - `Ensure(Func<T, bool> predicate, Func<TErr> errorFactory)` - Lazy error creation
+  - `Ensure(Func<T, bool> predicate, TError error)` - Validates against predicate
+  - `Ensure(Func<T, bool> predicate, Func<TError> errorFactory)` - Lazy error creation
   - Chain multiple validations fluently
   - Short-circuits if already invalid (preserves original errors)
 
 - **Result.BiMap** - Transform both success and error types
-  - `BiMap<U, F>(Func<T, U> okMapper, Func<TErr, F> errMapper)` - Maps both sides
+  - `BiMap<U, F>(Func<T, U> okMapper, Func<TError, F> errMapper)` - Maps both sides
   - Equivalent to `Map().MapError()` but in one operation
   - Useful for adapting Result types between layers
 
 - **Validation.Flatten** - Flatten nested validations
-  - `Flatten<T, TErr>(this Validation<Validation<T, TErr>, TErr>)` - Flattens nested structure
+  - `Flatten<T, TError>(this Validation<Validation<T, TError>, TError>)` - Flattens nested structure
   - Preserves outer errors if outer is invalid
   - Returns inner errors if outer valid but inner invalid
 
@@ -408,7 +408,7 @@ All features from the alpha releases (1.0.0-alpha.1 through 1.0.0-alpha.13) are 
 
 - **Result.ThrowIfErr** - Throw specific exceptions on Err
   - `ThrowIfErr(Exception exception)` - Throws provided exception
-  - `ThrowIfErr(Func<TErr, Exception> factory)` - Create exception from error
+  - `ThrowIfErr(Func<TError, Exception> factory)` - Create exception from error
   - Alternative to `Expect` with custom exception types
 
 - **Enhanced Benchmark Tests**
@@ -430,10 +430,10 @@ All features from the alpha releases (1.0.0-alpha.1 through 1.0.0-alpha.13) are 
 - **Parallel Collection Extensions** - High-performance parallel operations for monadic collections
   - `TraverseParallelAsync<T, U>` for `Option` - Map items to Options in parallel
   - `SequenceParallelAsync<T>` for `Option` - Await Option tasks in parallel
-  - `TraverseParallelAsync<T, U, TErr>` for `Result` - Map items to Results in parallel
-  - `SequenceParallelAsync<T, TErr>` for `Result` - Await Result tasks in parallel
+  - `TraverseParallelAsync<T, U, TError>` for `Result` - Map items to Results in parallel
+  - `SequenceParallelAsync<T, TError>` for `Result` - Await Result tasks in parallel
   - `ChooseParallelAsync<T, U>` - Map to Options in parallel, collect Some values
-  - `PartitionParallelAsync<T, U, TErr>` - Map to Results in parallel, separate Ok/Err
+  - `PartitionParallelAsync<T, U, TError>` - Map to Results in parallel, separate Ok/Err
   - All methods support `maxDegreeOfParallelism` parameter for controlled concurrency
   - Comprehensive tests for all parallel operations
 

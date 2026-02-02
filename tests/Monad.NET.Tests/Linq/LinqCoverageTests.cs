@@ -32,7 +32,7 @@ public class LinqCoverageTests
     [Fact]
     public void ResultLinq_Where_Err_ReturnsErr()
     {
-        var result = Result<int, string>.Err("original error");
+        var result = Result<int, string>.Error("original error");
         var filtered = result.Where(x => x > 50, "Value too small");
 
         Assert.True(filtered.IsError);
@@ -62,7 +62,7 @@ public class LinqCoverageTests
     [Fact]
     public void ResultLinq_Where_WithFactory_Err_ReturnsErr()
     {
-        var result = Result<int, string>.Err("original error");
+        var result = Result<int, string>.Error("original error");
         var filtered = result.Where(x => x > 50, x => $"Value {x} is too small");
 
         Assert.True(filtered.IsError);
@@ -76,7 +76,7 @@ public class LinqCoverageTests
     [Fact]
     public void TryLinq_Where_Success_PredicateTrue_ReturnsSuccess()
     {
-        var result = Try<int>.Success(42);
+        var result = Try<int>.Ok(42);
         var filtered = result.Where(x => x > 40);
 
         Assert.True(filtered.IsOk);
@@ -86,7 +86,7 @@ public class LinqCoverageTests
     [Fact]
     public void TryLinq_Where_Success_PredicateFalse_ReturnsFailure()
     {
-        var result = Try<int>.Success(42);
+        var result = Try<int>.Ok(42);
         var filtered = result.Where(x => x > 50);
 
         Assert.True(filtered.IsError);
@@ -95,7 +95,7 @@ public class LinqCoverageTests
     [Fact]
     public void TryLinq_Where_Failure_ReturnsFailure()
     {
-        var result = Try<int>.Failure(new InvalidOperationException("error"));
+        var result = Try<int>.Error(new InvalidOperationException("error"));
         var filtered = result.Where(x => x > 50);
 
         Assert.True(filtered.IsError);
@@ -172,11 +172,11 @@ public class LinqCoverageTests
     [Fact]
     public void RemoteDataLinq_SelectMany_Success_ChainsCorrectly()
     {
-        var rd1 = RemoteData<int, string>.Success(10);
+        var rd1 = RemoteData<int, string>.Ok(10);
 
         var result =
             from x in rd1
-            from y in RemoteData<int, string>.Success(x + 5)
+            from y in RemoteData<int, string>.Ok(x + 5)
             select x + y;
 
         Assert.True(result.IsOk);
@@ -186,11 +186,11 @@ public class LinqCoverageTests
     [Fact]
     public void RemoteDataLinq_SelectMany_Failure_ReturnsFailure()
     {
-        var rd1 = RemoteData<int, string>.Failure("error");
+        var rd1 = RemoteData<int, string>.Error("error");
 
         var result =
             from x in rd1
-            from y in RemoteData<int, string>.Success(x + 5)
+            from y in RemoteData<int, string>.Ok(x + 5)
             select x + y;
 
         Assert.True(result.IsError);
@@ -204,7 +204,7 @@ public class LinqCoverageTests
 
         var result =
             from x in rd1
-            from y in RemoteData<int, string>.Success(x + 5)
+            from y in RemoteData<int, string>.Ok(x + 5)
             select x + y;
 
         Assert.True(result.IsNotAsked);
@@ -217,7 +217,7 @@ public class LinqCoverageTests
 
         var result =
             from x in rd1
-            from y in RemoteData<int, string>.Success(x + 5)
+            from y in RemoteData<int, string>.Ok(x + 5)
             select x + y;
 
         Assert.True(result.IsLoading);

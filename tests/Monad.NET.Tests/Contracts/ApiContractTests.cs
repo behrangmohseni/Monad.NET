@@ -148,11 +148,11 @@ public class ApiContractTests
 
     #endregion
 
-    #region Result<T, TErr> API Contract
+    #region Result<T, TError> API Contract
 
     [Theory]
     [InlineData("Ok")]
-    [InlineData("Err")]
+    [InlineData("Error")]
     public void Result_StaticFactoryMethods_ShouldExist(string methodName)
     {
         var methods = typeof(Result<int, string>).GetMethods(BindingFlags.Public | BindingFlags.Static)
@@ -221,11 +221,11 @@ public class ApiContractTests
 
     #endregion
 
-    #region Validation<T, TErr> API Contract
+    #region Validation<T, TError> API Contract
 
     [Theory]
-    [InlineData("Valid")]
-    [InlineData("Invalid")]
+    [InlineData("Ok")]
+    [InlineData("Error")]
     public void Validation_StaticFactoryMethods_ShouldExist(string methodName)
     {
         var methods = typeof(Validation<int, string>).GetMethods(BindingFlags.Public | BindingFlags.Static)
@@ -282,8 +282,8 @@ public class ApiContractTests
     #region Try<T> API Contract
 
     [Theory]
-    [InlineData("Success")]
-    [InlineData("Failure")]
+    [InlineData("Ok")]
+    [InlineData("Error")]
     [InlineData("Of")]
     [InlineData("OfAsync")]
     public void Try_StaticFactoryMethods_ShouldExist(string methodName)
@@ -496,13 +496,13 @@ public class ApiContractTests
 
     #endregion
 
-    #region RemoteData<T, TErr> API Contract
+    #region RemoteData<T, TError> API Contract
 
     [Theory]
     [InlineData("NotAsked")]
     [InlineData("Loading")]
-    [InlineData("Success")]
-    [InlineData("Failure")]
+    [InlineData("Ok")]
+    [InlineData("Error")]
     public void RemoteData_StaticFactoryMethods_ShouldExist(string methodName)
     {
         var methods = typeof(RemoteData<int, string>).GetMethods(BindingFlags.Public | BindingFlags.Static)

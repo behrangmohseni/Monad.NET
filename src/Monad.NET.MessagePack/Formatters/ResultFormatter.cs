@@ -1,12 +1,12 @@
 namespace Monad.NET.MessagePack.Formatters;
 
 /// <summary>
-/// MessagePack formatter for <see cref="Result{T, TErr}"/>.
+/// MessagePack formatter for <see cref="Result{T, TError}"/>.
 /// Serializes as [isOk, value/error].
 /// </summary>
-public sealed class ResultFormatter<T, TErr> : IMessagePackFormatter<Result<T, TErr>>
+public sealed class ResultFormatter<T, TError> : IMessagePackFormatter<Result<T, TError>>
 {
-    public void Serialize(ref MessagePackWriter writer, Result<T, TErr> value, MessagePackSerializerOptions options)
+    public void Serialize(ref MessagePackWriter writer, Result<T, TError> value, MessagePackSerializerOptions options)
     {
         writer.WriteArrayHeader(2);
         writer.Write(value.IsOk);
@@ -18,12 +18,12 @@ public sealed class ResultFormatter<T, TErr> : IMessagePackFormatter<Result<T, T
         }
         else
         {
-            var formatter = options.Resolver.GetFormatterWithVerify<TErr>();
+            var formatter = options.Resolver.GetFormatterWithVerify<TError>();
             formatter.Serialize(ref writer, value.GetError(), options);
         }
     }
 
-    public Result<T, TErr> Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+    public Result<T, TError> Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
     {
         var count = reader.ReadArrayHeader();
         if (count != 2)
@@ -38,15 +38,15 @@ public sealed class ResultFormatter<T, TErr> : IMessagePackFormatter<Result<T, T
             var formatter = options.Resolver.GetFormatterWithVerify<T>();
             var value = formatter.Deserialize(ref reader, options);
             return value is not null
-                ? Result<T, TErr>.Ok(value)
+                ? Result<T, TError>.Ok(value)
                 : throw new MessagePackSerializationException("Result Ok value cannot be null.");
         }
         else
         {
-            var formatter = options.Resolver.GetFormatterWithVerify<TErr>();
+            var formatter = options.Resolver.GetFormatterWithVerify<TError>();
             var error = formatter.Deserialize(ref reader, options);
             return error is not null
-                ? Result<T, TErr>.Err(error)
+                ? Result<T, TError>.Error(error)
                 : throw new MessagePackSerializationException("Result Err value cannot be null.");
         }
     }

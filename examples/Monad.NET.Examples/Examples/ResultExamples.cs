@@ -13,7 +13,7 @@ public static class ResultExamples
         // Creating Results
         Console.WriteLine("1. Creating Results:");
         var ok = Result<int, string>.Ok(42);
-        var err = Result<int, string>.Err("Something went wrong");
+        var err = Result<int, string>.Error("Something went wrong");
         Console.WriteLine($"   Ok(42):  {ok}");
         Console.WriteLine($"   Err(...): {err}");
 
@@ -77,13 +77,13 @@ public static class ResultExamples
         // Side effects with Tap
         Console.WriteLine("\n11. Side Effects with Tap:");
         _ = success.Tap(x => Console.WriteLine($"   Logging success: {x}"));
-        _ = failure.TapErr(e => Console.WriteLine($"   Logging error: {e}"));
+        _ = failure.TapError(e => Console.WriteLine($"   Logging error: {e}"));
     }
 
     private static Result<double, string> Divide(double a, double b)
     {
         return b == 0
-            ? Result<double, string>.Err("Division by zero")
+            ? Result<double, string>.Error("Division by zero")
             : Result<double, string>.Ok(a / b);
     }
 }

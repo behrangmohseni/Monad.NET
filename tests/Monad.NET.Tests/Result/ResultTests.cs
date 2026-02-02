@@ -17,7 +17,7 @@ public class ResultTests
     [Fact]
     public void Err_CreatesResultWithError()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
 
         Assert.False(result.IsOk);
         Assert.True(result.IsError);
@@ -33,13 +33,13 @@ public class ResultTests
     [Fact]
     public void Err_WithNullValue_ThrowsException()
     {
-        Assert.Throws<ArgumentNullException>(() => Result<int, string>.Err(null!));
+        Assert.Throws<ArgumentNullException>(() => Result<int, string>.Error(null!));
     }
 
     [Fact]
     public void Unwrap_OnErr_ThrowsException()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
 
         Assert.Throws<InvalidOperationException>(() => result.GetValue());
     }
@@ -55,7 +55,7 @@ public class ResultTests
     [Fact]
     public void Expect_OnErr_Throws()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
 
         Assert.Throws<InvalidOperationException>(() => result.GetOrThrow());
     }
@@ -79,7 +79,7 @@ public class ResultTests
     [Fact]
     public void UnwrapOr_OnErr_ReturnsDefault()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
 
         Assert.Equal(0, result.GetValueOr(0));
     }
@@ -95,7 +95,7 @@ public class ResultTests
     [Fact]
     public void UnwrapOrElse_OnErr_ExecutesFunction()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
 
         Assert.Equal(100, result.Match(ok => ok, _ => 100));
     }
@@ -113,7 +113,7 @@ public class ResultTests
     [Fact]
     public void Map_OnErr_ReturnsErr()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
         var mapped = result.Map(x => x * 2);
 
         Assert.True(mapped.IsError);
@@ -133,7 +133,7 @@ public class ResultTests
     [Fact]
     public void MapErr_OnErr_TransformsError()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
         var mapped = result.MapError(err => err.Length);
 
         Assert.True(mapped.IsError);
@@ -153,7 +153,7 @@ public class ResultTests
     [Fact]
     public void AndThen_OnErr_ReturnsErr()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
         var chained = result.Bind(x => Result<string, string>.Ok(x.ToString()));
 
         Assert.True(chained.IsError);
@@ -175,7 +175,7 @@ public class ResultTests
     [Fact]
     public void Zip_FirstErr_ReturnsFirstError()
     {
-        var result1 = Result<int, string>.Err("first error");
+        var result1 = Result<int, string>.Error("first error");
         var result2 = Result<string, string>.Ok("hello");
 
         var combined = result1.Zip(result2);
@@ -188,7 +188,7 @@ public class ResultTests
     public void Zip_SecondErr_ReturnsSecondError()
     {
         var result1 = Result<int, string>.Ok(42);
-        var result2 = Result<string, string>.Err("second error");
+        var result2 = Result<string, string>.Error("second error");
 
         var combined = result1.Zip(result2);
 
@@ -211,7 +211,7 @@ public class ResultTests
     [Fact]
     public void ZipWith_FirstErr_ReturnsFirstError()
     {
-        var result1 = Result<int, string>.Err("first error");
+        var result1 = Result<int, string>.Error("first error");
         var result2 = Result<int, string>.Ok(20);
 
         var combined = result1.ZipWith(result2, (a, b) => a + b);
@@ -224,7 +224,7 @@ public class ResultTests
     public void ZipWith_SecondErr_ReturnsSecondError()
     {
         var result1 = Result<int, string>.Ok(10);
-        var result2 = Result<int, string>.Err("second error");
+        var result2 = Result<int, string>.Error("second error");
 
         var combined = result1.ZipWith(result2, (a, b) => a + b);
 
@@ -245,7 +245,7 @@ public class ResultTests
     [Fact]
     public void Or_FirstErr_ReturnsSecond()
     {
-        var result1 = Result<int, string>.Err("error1");
+        var result1 = Result<int, string>.Error("error1");
         var result2 = Result<int, string>.Ok(2);
         var combined = result1.Or(result2);
 
@@ -265,7 +265,7 @@ public class ResultTests
     [Fact]
     public void OrElse_OnErr_ExecutesFunction()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
         var recovered = result.OrElse(err => Result<int, int>.Ok(100));
 
         Assert.True(recovered.IsOk);
@@ -285,7 +285,7 @@ public class ResultTests
     [Fact]
     public void Ok_Method_OnErr_ReturnsNone()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
         var option = result.Ok();
 
         Assert.True(option.IsNone);
@@ -294,7 +294,7 @@ public class ResultTests
     [Fact]
     public void Err_Method_OnErr_ReturnsSome()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
         var option = result.Err();
 
         Assert.True(option.IsSome);
@@ -327,7 +327,7 @@ public class ResultTests
     [Fact]
     public void Match_OnErr_ExecutesErrAction()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
         var errorMessage = string.Empty;
 
         result.Match(
@@ -353,7 +353,7 @@ public class ResultTests
     [Fact]
     public void Match_WithReturn_OnErr_ReturnsErrValue()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
         var output = result.Match(
             okFunc: x => x.ToString(),
             errFunc: err => err
@@ -375,7 +375,7 @@ public class ResultTests
     [Fact]
     public void Flatten_NestedErr_ReturnsErr()
     {
-        var nested = Result<Result<int, string>, string>.Ok(Result<int, string>.Err("inner error"));
+        var nested = Result<Result<int, string>, string>.Ok(Result<int, string>.Error("inner error"));
         var flattened = nested.Flatten();
 
         Assert.True(flattened.IsError);
@@ -397,7 +397,7 @@ public class ResultTests
     [Fact]
     public void Tap_OnErr_DoesNotExecuteAction()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
         var executed = false;
 
         var returned = result.Tap(x => executed = true);
@@ -409,10 +409,10 @@ public class ResultTests
     [Fact]
     public void TapErr_OnErr_ExecutesAction()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
         var executed = false;
 
-        var returned = result.TapErr(err => executed = true);
+        var returned = result.TapError(err => executed = true);
 
         Assert.True(executed);
         Assert.Equal(result, returned);
@@ -424,7 +424,7 @@ public class ResultTests
         var result = Result<int, string>.Ok(42);
         var executed = false;
 
-        var returned = result.TapErr(err => executed = true);
+        var returned = result.TapError(err => executed = true);
 
         Assert.False(executed);
         Assert.Equal(result, returned);
@@ -481,8 +481,8 @@ public class ResultTests
     [Fact]
     public void Equality_TwoErrsWithSameError_AreEqual()
     {
-        var result1 = Result<int, string>.Err("error");
-        var result2 = Result<int, string>.Err("error");
+        var result1 = Result<int, string>.Error("error");
+        var result2 = Result<int, string>.Error("error");
 
         Assert.Equal(result1, result2);
         Assert.True(result1 == result2);
@@ -492,7 +492,7 @@ public class ResultTests
     public void Equality_OkAndErr_AreNotEqual()
     {
         var result1 = Result<int, string>.Ok(42);
-        var result2 = Result<int, string>.Err("error");
+        var result2 = Result<int, string>.Error("error");
 
         Assert.NotEqual(result1, result2);
         Assert.True(result1 != result2);
@@ -509,7 +509,7 @@ public class ResultTests
     [Fact]
     public void ToString_OnErr_ReturnsFormattedString()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
 
         Assert.Equal("Err(error)", result.ToString());
     }
@@ -609,7 +609,7 @@ public class ResultTests
     public void DefaultStruct_Equals_DefaultAndInitialized_ReturnsFalse()
     {
         var defaultResult = default(Result<int, string>);
-        var initializedResult = Result<int, string>.Err("error");
+        var initializedResult = Result<int, string>.Error("error");
 
         Assert.False(defaultResult.Equals(initializedResult));
         Assert.False(defaultResult == initializedResult);
@@ -637,7 +637,7 @@ public class ResultTests
     public void InitializedResult_IsInitialized_ReturnsTrue()
     {
         var okResult = Result<int, string>.Ok(42);
-        var errResult = Result<int, string>.Err("error");
+        var errResult = Result<int, string>.Error("error");
 
         Assert.True(okResult.IsInitialized);
         Assert.True(errResult.IsInitialized);

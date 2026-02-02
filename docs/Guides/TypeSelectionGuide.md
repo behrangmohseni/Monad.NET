@@ -208,11 +208,11 @@ Q: How should validation errors be reported?
 public Result<User, string> QuickValidate(UserForm form)
 {
     if (string.IsNullOrEmpty(form.Name))
-        return Result<User, string>.Err("Name required");
+        return Result<User, string>.Error("Name required");
     // Stops here if name is empty
     
     if (!form.Email.Contains("@"))
-        return Result<User, string>.Err("Invalid email");
+        return Result<User, string>.Error("Invalid email");
     
     return Result<User, string>.Ok(new User(form.Name, form.Email));
 }
@@ -255,8 +255,8 @@ public Result<Data, ApiError> CallExternalApi()
     return response.StatusCode switch
     {
         200 => Result<Data, ApiError>.Ok(response.Data),
-        404 => Result<Data, ApiError>.Err(ApiError.NotFound),
-        _ => Result<Data, ApiError>.Err(ApiError.Unknown)
+        404 => Result<Data, ApiError>.Error(ApiError.NotFound),
+        _ => Result<Data, ApiError>.Error(ApiError.Unknown)
     };
 }
 ```
@@ -290,7 +290,7 @@ public Try<User> GetUser(int id)
 // Good: Return Result directly
 public Result<User, UserError> GetUser(int id)
 {
-    if (id <= 0) return Result<User, UserError>.Err(UserError.InvalidId);
+    if (id <= 0) return Result<User, UserError>.Error(UserError.InvalidId);
     return _db.Find(id).ToOption()
         .ToResult(() => UserError.NotFound);
 }

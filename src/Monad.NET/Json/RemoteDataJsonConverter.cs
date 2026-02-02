@@ -54,8 +54,8 @@ public class RemoteDataJsonConverter<T, E> : JsonConverter<RemoteData<T, E>>
         {
             "notasked" => RemoteData<T, E>.NotAsked(),
             "loading" => RemoteData<T, E>.Loading(),
-            "success" when data is not null => RemoteData<T, E>.Success(data),
-            "failure" when error is not null => RemoteData<T, E>.Failure(error),
+            "success" when data is not null => RemoteData<T, E>.Ok(data),
+            "failure" when error is not null => RemoteData<T, E>.Error(error),
             _ => throw new JsonException($"Invalid RemoteData state: {state}")
         };
     }
