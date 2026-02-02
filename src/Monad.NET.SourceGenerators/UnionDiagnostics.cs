@@ -74,18 +74,7 @@ internal static class UnionDiagnostics
         description: "Each case in a union must have a unique name to enable unambiguous pattern matching and Is{Case} property generation.",
         helpLinkUri: "https://github.com/behrangmohseni/Monad.NET/blob/main/docs/Guides/UnionAttribute.md#MNG005");
 
-    /// <summary>
-    /// MNG006: Case type is not nested.
-    /// </summary>
-    public static readonly DiagnosticDescriptor CaseNotNested = new(
-        id: "MNG006",
-        title: "Union case is not nested",
-        messageFormat: "Type '{0}' inherits from union '{1}' but is not nested inside it. Move the case type inside the union type.",
-        category: Category,
-        defaultSeverity: DiagnosticSeverity.Warning,
-        isEnabledByDefault: true,
-        description: "Union case types should be nested inside the union type for proper encapsulation and to enable factory method generation.",
-        helpLinkUri: "https://github.com/behrangmohseni/Monad.NET/blob/main/docs/Guides/UnionAttribute.md#MNG006");
+    // Note: MNG006 is reserved for future use (was: CaseNotNested)
 
     /// <summary>
     /// MNG007: Union type should not have instance fields.
