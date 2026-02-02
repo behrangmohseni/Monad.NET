@@ -169,19 +169,6 @@ internal static class DiagnosticDescriptors
     // ============================================================================
 
     /// <summary>
-    /// MNT013: Validation used with LINQ - LINQ short-circuits on first error, breaking error accumulation.
-    /// </summary>
-    public static readonly DiagnosticDescriptor ValidationLinqShortCircuits = new(
-        id: "MNT013",
-        title: "LINQ on Validation short-circuits - use Apply() or Zip() instead",
-        messageFormat: "LINQ query syntax on Validation short-circuits on the first error, defeating the purpose of Validation. Use Apply() or Zip() for proper error accumulation.",
-        category: Category,
-        defaultSeverity: DiagnosticSeverity.Error,
-        isEnabledByDefault: true,
-        description: "LINQ query syntax (from...select) on Validation short-circuits on the first error, which is the exact opposite of what Validation is designed for. Users expect all validation errors to be accumulated, but LINQ's SelectMany semantics mean only the first error is captured. This is a semantic trap. Use Validation.Apply() or Validation.Zip() for guaranteed error accumulation, or use Result<T,E> if you only need the first error.",
-        helpLinkUri: "https://github.com/behrangmohseni/Monad.NET/blob/main/docs/Guides/Analyzers.md#mnt013");
-
-    /// <summary>
     /// MNT014: Prefer Match over manual IsSome/IsOk checks.
     /// </summary>
     public static readonly DiagnosticDescriptor PreferMatch = new(

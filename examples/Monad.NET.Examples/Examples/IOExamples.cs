@@ -44,14 +44,14 @@ public static class IOExamples
         var writeAction = IO.WriteLine("   Hello from IO!");
         writeAction.Run();
 
-        // Combining with Select/SelectMany (LINQ)
-        Console.WriteLine("\n6. LINQ Query Syntax:");
-        var program = from _ in IO.WriteLine("   [IO] Starting computation")
-                      from a in IO.Return(10)
-                      from b in IO.Return(20)
-                      from __ in IO.WriteLine($"   [IO] Adding {a} + {b}")
-                      select a + b;
-        Console.WriteLine("   Running LINQ program:");
+        // Combining with Bind/Map
+        Console.WriteLine("\n6. Chaining IO with Bind/Map:");
+        var program = IO.WriteLine("   [IO] Starting computation")
+            .Bind(_ => IO.Return(10)
+                .Bind(a => IO.Return(20)
+                    .Bind(b => IO.WriteLine($"   [IO] Adding {a} + {b}")
+                        .Map(_ => a + b))));
+        Console.WriteLine("   Running chained program:");
         Console.WriteLine($"   Result: {program.Run()}");
 
         // Lazy evaluation demonstration
@@ -94,11 +94,11 @@ public static class IOExamples
 
     private static IO<Unit> SimulateFileOperation()
     {
-        return from _ in IO.WriteLine("   [FILE] Opening file...")
-               from content in IO.Return("File contents here")
-               from __ in IO.WriteLine($"   [FILE] Read: {content}")
-               from ___ in IO.WriteLine("   [FILE] Closing file...")
-               select Unit.Default;
+        return IO.WriteLine("   [FILE] Opening file...")
+            .Bind(_ => IO.Return("File contents here"))
+            .Bind(content => IO.WriteLine($"   [FILE] Read: {content}"))
+            .Bind(_ => IO.WriteLine("   [FILE] Closing file..."))
+            .Map(_ => Unit.Default);
     }
 }
 

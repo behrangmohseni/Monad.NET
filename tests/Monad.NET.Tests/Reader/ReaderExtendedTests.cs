@@ -183,51 +183,7 @@ public class ReaderExtendedTests
 
     #endregion
 
-    #region ReaderExtensions LINQ Tests
-
-    [Fact]
-    public void Reader_Select_TransformsResult()
-    {
-        var reader = Reader<TestConfig, int>.Asks(cfg => cfg.Value);
-        var mapped = reader.Select(x => x * 2);
-
-        var config = new TestConfig { Value = 21 };
-        Assert.Equal(42, mapped.Run(config));
-    }
-
-    [Fact]
-    public void Reader_SelectMany_ChainsReaders()
-    {
-        var reader = Reader<TestConfig, int>
-            .Asks(cfg => cfg.Value)
-            .SelectMany(x => Reader<TestConfig, string>.Return($"Value: {x}"));
-
-        var config = new TestConfig { Value = 42 };
-        Assert.Equal("Value: 42", reader.Run(config));
-    }
-
-    [Fact]
-    public void Reader_SelectMany_WithResultSelector_ChainsReaders()
-    {
-        var reader = Reader<TestConfig, int>
-            .Asks(cfg => cfg.Value)
-            .SelectMany(
-                x => Reader<TestConfig, string>.Asks(cfg => cfg.Name),
-                (value, name) => $"{name}: {value}");
-
-        var config = new TestConfig { Name = "Answer", Value = 42 };
-        Assert.Equal("Answer: 42", reader.Run(config));
-    }
-
-    [Fact]
-    public void Reader_SelectMany_WithResultSelector_ThrowsOnNullSelector()
-    {
-        var reader = Reader<TestConfig, int>.Return(42);
-        Assert.Throws<ArgumentNullException>(() =>
-            reader.SelectMany(
-                x => Reader<TestConfig, string>.Return("test"),
-                (Func<int, string, string>)null!));
-    }
+    #region ReaderExtensions Tests
 
     [Fact]
     public void Reader_Sequence_ThrowsOnNull()

@@ -63,13 +63,13 @@ public static class WriterExamples
         Console.WriteLine($"   Result: [{string.Join(", ", metrics.Value)}]");
         Console.WriteLine($"   Metrics: {metrics.Log}");
 
-        // LINQ syntax
-        Console.WriteLine("\n8. LINQ Query Syntax:");
-        var linqResult = from a in Writer<string, int>.Tell(10, "Got 10")
-                         from b in Writer<string, int>.Tell(20, "Got 20")
-                         select a + b;
-        Console.WriteLine($"   Value: {linqResult.Value}");
-        Console.WriteLine($"   Log:   {linqResult.Log}");
+        // Chaining with Bind
+        Console.WriteLine("\n8. Chaining with Bind:");
+        var chainedResult = Writer<string, int>.Tell(10, "Got 10")
+            .Bind(a => Writer<string, int>.Tell(20, "Got 20")
+                .Map(b => a + b));
+        Console.WriteLine($"   Value: {chainedResult.Value}");
+        Console.WriteLine($"   Log:   {chainedResult.Log}");
 
         // Real-world: Audit trail
         Console.WriteLine("\n9. Real-World: Audit Trail:");

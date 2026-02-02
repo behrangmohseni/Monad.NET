@@ -352,29 +352,6 @@ public class StateExtendedTests
         Assert.Equal(5, result.State);
     }
 
-    [Fact]
-    public void Select_LinqSupport()
-    {
-        var state = from x in State<int, int>.Get()
-                    select x * 2;
-        var result = state.Run(21);
-
-        Assert.Equal(42, result.Value);
-    }
-
-    [Fact]
-    public void SelectMany_LinqSupport()
-    {
-        var state = from x in State<int, int>.Get()
-                    from _ in State<int, Unit>.Modify(s => s * 2)
-                    from y in State<int, int>.Get()
-                    select (x, y);
-        var result = state.Run(10);
-
-        Assert.Equal((10, 20), result.Value);
-        Assert.Equal(20, result.State);
-    }
-
     #endregion
 
     #region Label and Debugging Tests

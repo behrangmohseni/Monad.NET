@@ -355,56 +355,6 @@ public class ApiContractTests
 
     #endregion
 
-    #region LINQ Support Classes
-
-    [Theory]
-    [InlineData("OptionLinq")]
-    [InlineData("ResultLinq")]
-    [InlineData("TryLinq")]
-    [InlineData("ValidationLinq")]
-    public void LinqClasses_ShouldExist(string className)
-    {
-        var type = MonadAssembly.GetTypes()
-            .FirstOrDefault(t => t.Name == className && t.IsPublic);
-
-        Assert.NotNull(type);
-    }
-
-    [Fact]
-    public void OptionLinq_ShouldHaveSelectMethod()
-    {
-        var type = MonadAssembly.GetTypes().First(t => t.Name == "OptionLinq");
-        var selectMethods = type.GetMethods(BindingFlags.Public | BindingFlags.Static)
-            .Where(m => m.Name == "Select")
-            .ToList();
-
-        Assert.NotEmpty(selectMethods);
-    }
-
-    [Fact]
-    public void OptionLinq_ShouldHaveSelectManyMethod()
-    {
-        var type = MonadAssembly.GetTypes().First(t => t.Name == "OptionLinq");
-        var selectManyMethods = type.GetMethods(BindingFlags.Public | BindingFlags.Static)
-            .Where(m => m.Name == "SelectMany")
-            .ToList();
-
-        Assert.NotEmpty(selectManyMethods);
-    }
-
-    [Fact]
-    public void OptionLinq_ShouldHaveWhereMethod()
-    {
-        var type = MonadAssembly.GetTypes().First(t => t.Name == "OptionLinq");
-        var whereMethods = type.GetMethods(BindingFlags.Public | BindingFlags.Static)
-            .Where(m => m.Name == "Where")
-            .ToList();
-
-        Assert.NotEmpty(whereMethods);
-    }
-
-    #endregion
-
     #region Unit Type Contract
 
     [Fact]
