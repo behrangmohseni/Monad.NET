@@ -57,12 +57,12 @@ public static class ReaderExamples
                 $"{name} v1.0 (retries: {c.MaxRetries})"));
         Console.WriteLine($"   Composed: {composed.Run(config)}");
 
-        // LINQ syntax
-        Console.WriteLine("\n7. LINQ Query Syntax:");
-        var linqReader = from name in Reader<AppConfig, string>.Asks(c => c.AppName)
-                         from retries in Reader<AppConfig, int>.Asks(c => c.MaxRetries)
-                         select $"{name} configured with {retries} retries";
-        Console.WriteLine($"   LINQ: {linqReader.Run(config)}");
+        // Method syntax composition
+        Console.WriteLine("\n7. Method Syntax Composition:");
+        var composedReader = Reader<AppConfig, string>.Asks(c => c.AppName)
+            .Bind(name => Reader<AppConfig, int>.Asks(c => c.MaxRetries)
+                .Map(retries => $"{name} configured with {retries} retries"));
+        Console.WriteLine($"   Composed: {composedReader.Run(config)}");
 
         // Service composition
         Console.WriteLine("\n8. Service Composition:");
@@ -113,10 +113,13 @@ public static class ReaderExamples
     private static Reader<AppConfig, string> ProcessOrder(string orderId)
     {
         // Compose multiple operations that all need config
-        return from config in Reader<AppConfig, AppConfig>.Ask()
-               let validated = ValidateOrder(orderId, config.MaxRetries)
-               from saved in SaveOrder(orderId)
-               select $"Order {orderId}: validated={validated}, saved={saved}";
+        return Reader<AppConfig, AppConfig>.Ask()
+            .Bind(config =>
+            {
+                var validated = ValidateOrder(orderId, config.MaxRetries);
+                return SaveOrder(orderId)
+                    .Map(saved => $"Order {orderId}: validated={validated}, saved={saved}");
+            });
     }
 
     private static bool ValidateOrder(string orderId, int maxRetries)

@@ -83,11 +83,11 @@ public class ReaderTests
     }
 
     [Fact]
-    public void Linq_QuerySyntax_WorksCorrectly()
+    public void Bind_ChainsReaders()
     {
-        var reader = from timeout in Reader<TestEnvironment, int>.Asks(e => e.Timeout)
-                     from debug in Reader<TestEnvironment, bool>.Asks(e => e.Debug)
-                     select $"Timeout: {timeout}, Debug: {debug}";
+        var reader = Reader<TestEnvironment, int>.Asks(e => e.Timeout)
+            .Bind(timeout => Reader<TestEnvironment, bool>.Asks(e => e.Debug)
+                .Map(debug => $"Timeout: {timeout}, Debug: {debug}"));
 
         var env = new TestEnvironment { Timeout = 60, Debug = true };
         Assert.Equal("Timeout: 60, Debug: True", reader.Run(env));
@@ -129,9 +129,9 @@ public class ReaderTests
     {
         // Simulate a service that depends on environment
         Reader<TestEnvironment, string> GetConnectionInfo() =>
-            from conn in Reader<TestEnvironment, string>.Asks(e => e.ConnectionString)
-            from timeout in Reader<TestEnvironment, int>.Asks(e => e.Timeout)
-            select $"Connecting to {conn} with timeout {timeout}s";
+            Reader<TestEnvironment, string>.Asks(e => e.ConnectionString)
+                .Bind(conn => Reader<TestEnvironment, int>.Asks(e => e.Timeout)
+                    .Map(timeout => $"Connecting to {conn} with timeout {timeout}s"));
 
         var env = new TestEnvironment
         {

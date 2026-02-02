@@ -293,42 +293,6 @@ public readonly struct Reader<R, A> : IEquatable<Reader<R, A>>
 public static class ReaderExtensions
 {
     /// <summary>
-    /// LINQ Select support for Reader.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Reader<R, B> Select<R, A, B>(this Reader<R, A> reader, Func<A, B> selector)
-    {
-        return reader.Map(selector);
-    }
-
-    /// <summary>
-    /// LINQ SelectMany support for Reader.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Reader<R, B> SelectMany<R, A, B>(
-        this Reader<R, A> reader,
-        Func<A, Reader<R, B>> selector)
-    {
-        return reader.Bind(selector);
-    }
-
-    /// <summary>
-    /// LINQ SelectMany support with result selector.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Reader<R, C> SelectMany<R, A, B, C>(
-        this Reader<R, A> reader,
-        Func<A, Reader<R, B>> selector,
-        Func<A, B, C> resultSelector)
-    {
-        ThrowHelper.ThrowIfNull(resultSelector);
-
-        return reader.Bind(a =>
-            selector(a).Map(b =>
-                resultSelector(a, b)));
-    }
-
-    /// <summary>
     /// Sequences a collection of Readers into a Reader of a collection.
     /// </summary>
     public static Reader<R, IEnumerable<A>> Sequence<R, A>(this IEnumerable<Reader<R, A>> readers)

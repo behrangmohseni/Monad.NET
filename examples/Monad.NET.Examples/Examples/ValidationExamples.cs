@@ -65,14 +65,13 @@ public static class ValidationExamples
         Console.WriteLine($"   Valid.ToResult():   {asResult}");
         Console.WriteLine($"   Invalid.ToResult(): {invalidAsResult}");
 
-        // LINQ warning: short-circuits!
-        Console.WriteLine("\n8. LINQ Query (Warning: Short-Circuits!):");
-        Console.WriteLine("   Note: LINQ stops at FIRST error, use Apply/Zip instead!");
-        var linqResult = from name in ValidateName("")
-                         from email in ValidateEmail("invalid")
-                         from age in ValidateAge(-1)
-                         select new UserDto(name, email, age);
-        Console.WriteLine($"   LINQ result: {linqResult}"); // Only shows first error
+        // Using Apply for error accumulation
+        Console.WriteLine("\n8. Apply for Error Accumulation:");
+        Console.WriteLine("   Apply collects ALL errors:");
+        var applyResult = ValidateName("")
+            .Apply(ValidateEmail("invalid"), (name, email) => (name, email))
+            .Apply(ValidateAge(-1), (partial, age) => new UserDto(partial.name, partial.email, age));
+        Console.WriteLine($"   Apply result: {applyResult}"); // Shows all errors
 
         // Real-world: Form validation
         Console.WriteLine("\n9. Real-World: Form Validation:");

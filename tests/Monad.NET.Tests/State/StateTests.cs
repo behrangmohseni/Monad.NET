@@ -399,47 +399,6 @@ public class StateTests
 
     #endregion
 
-    #region LINQ Tests
-
-    [Fact]
-    public void Select_WorksWithLinqSyntax()
-    {
-        var state = from x in State<int, int>.Return(10)
-                    select x * 2;
-
-        var result = state.Run(0);
-        Assert.Equal(20, result.Value);
-    }
-
-    [Fact]
-    public void SelectMany_WorksWithLinqSyntax()
-    {
-        var state = from x in State<int, int>.Return(10)
-                    from y in State<int, int>.Return(20)
-                    select x + y;
-
-        var result = state.Run(0);
-        Assert.Equal(30, result.Value);
-    }
-
-    [Fact]
-    public void ComplexLinqExpression_WorksCorrectly()
-    {
-        var computation =
-            from _ in State<int, Unit>.Modify(s => s + 1)
-            from a in State<int, int>.Get()
-            from __ in State<int, Unit>.Modify(s => s * 2)
-            from b in State<int, int>.Get()
-            select (a, b);
-
-        var result = computation.Run(5);
-
-        Assert.Equal((6, 12), result.Value);
-        Assert.Equal(12, result.State);
-    }
-
-    #endregion
-
     #region Real-World Example Tests
 
     [Fact]
@@ -449,13 +408,11 @@ public class StateTests
         var decrement = State<int, Unit>.Modify(s => s - 1);
         var getCount = State<int, int>.Get();
 
-        var computation =
-            from _ in increment
-            from __ in increment
-            from ___ in increment
-            from ____ in decrement
-            from count in getCount
-            select count;
+        var computation = increment
+            .Bind(_ => increment)
+            .Bind(_ => increment)
+            .Bind(_ => decrement)
+            .Bind(_ => getCount);
 
         var result = computation.Run(0);
 
@@ -485,13 +442,11 @@ public class StateTests
                 return (Option<int>.Some(value), newStack);
             });
 
-        var computation =
-            from _ in Push(1)
-            from __ in Push(2)
-            from ___ in Push(3)
-            from a in Pop()
-            from b in Pop()
-            select (a, b);
+        var computation = Push(1)
+            .Bind(_ => Push(2))
+            .Bind(_ => Push(3))
+            .Bind(_ => Pop())
+            .Bind(a => Pop().Map(b => (a, b)));
 
         var result = computation.Run(new List<int>());
 
@@ -514,11 +469,10 @@ public class StateTests
                 return (next % 100, next); // Return value 0-99
             });
 
-        var computation =
-            from a in NextRandom()
-            from b in NextRandom()
-            from c in NextRandom()
-            select new[] { a, b, c };
+        var computation = NextRandom()
+            .Bind(a => NextRandom()
+                .Bind(b => NextRandom()
+                    .Map(c => new[] { a, b, c })));
 
         var result1 = computation.Run(42);
         var result2 = computation.Run(42);
