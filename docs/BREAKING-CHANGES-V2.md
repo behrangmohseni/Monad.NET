@@ -4,13 +4,55 @@ This document describes the breaking changes in Monad.NET v2.0 and provides migr
 
 ## Overview
 
-Version 2.0 is a major release with three key focuses:
+Version 2.0 is a major release with four key focuses:
 
 1. **API Simplification** — Reduced from ~722 to ~437 public methods
 2. **C#-Idiomatic Naming** — Rust-style names replaced with C# conventions
 3. **Stricter Type Safety** — `default(Result<T,E>)` now protected
+4. **Consistent Naming** — Unified `Ok()`/`Error()` factory methods across all types
 
 The core functionality remains intact, with removed methods having straightforward replacements.
+
+## Factory Method Standardization
+
+All monad types now use consistent `Ok()` and `Error()` factory method names. The old factory methods have been **removed**.
+
+| Type | Removed Factory Methods | New Factory Methods |
+|------|-------------------------|---------------------|
+| `Result<T,E>` | `Err()` | `Ok()`, `Error()` |
+| `Validation<T,E>` | `Valid()`, `Invalid()` | `Ok()`, `Error()` |
+| `Try<T>` | `Success()`, `Failure()` | `Ok()`, `Error()` |
+| `RemoteData<T,E>` | `Success()`, `Failure()` | `Ok()`, `Error()` |
+
+### Tap Method Standardization
+
+Error tap methods are now consistently named `TapError()`. The old methods have been **removed**.
+
+| Type | Removed Method | New Method |
+|------|----------------|------------|
+| `Result<T,E>` | `TapErr()` | `TapError()` |
+| `Try<T>` | `TapFailure()` | `TapError()` |
+| `RemoteData<T,E>` | `TapFailure()` | `TapError()` |
+
+**Note:** `Validation<T,E>` keeps `TapErrors()` (plural) since it can have multiple errors.
+
+### ThrowIfError Standardization
+
+The `Result<T,E>` type now uses `ThrowIfError()` instead of the old `ThrowIfErr()` method, which has been **removed**.
+
+### Migration Examples
+
+```csharp
+// Before
+var result = Result<int, string>.Err("error");
+var validation = Validation<int, string>.Valid(42);
+var tryValue = Try<int>.Success(42);
+
+// After
+var result = Result<int, string>.Error("error");
+var validation = Validation<int, string>.Ok(42);
+var tryValue = Try<int>.Ok(42);
+```
 
 ## Behavioral Changes
 
@@ -34,7 +76,7 @@ result.IsError;    // throws InvalidOperationException
 result.IsInitialized; // false (new property)
 ```
 
-**Migration:** Always use factory methods `Result<T,E>.Ok(value)` or `Result<T,E>.Err(error)` instead of default construction.
+**Migration:** Always use factory methods `Result<T,E>.Ok(value)` or `Result<T,E>.Error(error)` instead of default construction.
 
 ## Removed Extensions
 
@@ -112,15 +154,15 @@ var values = options.Where(o => o.IsSome).Select(o => o.GetValue());
 | `GetValueOrDefault()` | `GetValueOr(default)` |
 | `GetOrThrow(string)` | `GetOrThrow()` |
 
-### Result<T, TErr>
+### Result<T, TError>
 
 | Removed Method | Replacement |
 |----------------|-------------|
-| `GetValueOrElse(Func<TErr, T>)` | `Match(ok => ok, err => fallback(err))` |
+| `GetValueOrElse(Func<TError, T>)` | `Match(ok => ok, err => fallback(err))` |
 | `GetValueOrDefault()` | `GetValueOr(default)` |
 | `GetOrThrow(string)` | `GetOrThrow()` |
 
-### Validation<T, TErr>
+### Validation<T, TError>
 
 | Removed Method | Replacement |
 |----------------|-------------|
@@ -136,7 +178,7 @@ var values = options.Where(o => o.IsSome).Select(o => o.GetValue());
 | `GetOrThrow(string)` | `GetOrThrow()` |
 | `GetExceptionOrThrow(string)` | `GetExceptionOrThrow()` |
 
-### RemoteData<T, TErr>
+### RemoteData<T, TError>
 
 | Removed Method | Replacement |
 |----------------|-------------|

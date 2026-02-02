@@ -12,7 +12,7 @@ public class TryExtendedTests2
     [Fact]
     public void Success_CreatesSuccessInstance()
     {
-        var @try = Try<int>.Success(42);
+        var @try = Try<int>.Ok(42);
 
         Assert.True(@try.IsOk);
         Assert.Equal(42, @try.GetValue());
@@ -22,7 +22,7 @@ public class TryExtendedTests2
     public void Failure_CreatesFailureInstance()
     {
         var ex = new InvalidOperationException("error");
-        var @try = Try<int>.Failure(ex);
+        var @try = Try<int>.Error(ex);
 
         Assert.True(@try.IsError);
         Assert.Same(ex, @try.GetException());
@@ -53,7 +53,7 @@ public class TryExtendedTests2
     [Fact]
     public void Map_OnSuccess_TransformsValue()
     {
-        var @try = Try<int>.Success(42);
+        var @try = Try<int>.Ok(42);
         var result = @try.Map(x => x * 2);
 
         Assert.True(result.IsOk);
@@ -64,7 +64,7 @@ public class TryExtendedTests2
     public void Map_OnFailure_ReturnsFailure()
     {
         var ex = new InvalidOperationException("error");
-        var @try = Try<int>.Failure(ex);
+        var @try = Try<int>.Error(ex);
         var result = @try.Map(x => x * 2);
 
         Assert.True(result.IsError);
@@ -73,7 +73,7 @@ public class TryExtendedTests2
     [Fact]
     public void Map_WithThrowingMapper_ReturnsFailure()
     {
-        var @try = Try<int>.Success(42);
+        var @try = Try<int>.Ok(42);
         var result = @try.Map<int>(x => throw new InvalidOperationException("mapper error"));
 
         Assert.True(result.IsError);
@@ -86,8 +86,8 @@ public class TryExtendedTests2
     [Fact]
     public void FlatMap_OnSuccess_Chains()
     {
-        var @try = Try<int>.Success(42);
-        var result = @try.Bind(x => Try<string>.Success(x.ToString()));
+        var @try = Try<int>.Ok(42);
+        var result = @try.Bind(x => Try<string>.Ok(x.ToString()));
 
         Assert.True(result.IsOk);
         Assert.Equal("42", result.GetValue());
@@ -96,8 +96,8 @@ public class TryExtendedTests2
     [Fact]
     public void FlatMap_OnFailure_ReturnsFailure()
     {
-        var @try = Try<int>.Failure(new InvalidOperationException("error"));
-        var result = @try.Bind(x => Try<string>.Success(x.ToString()));
+        var @try = Try<int>.Error(new InvalidOperationException("error"));
+        var result = @try.Bind(x => Try<string>.Ok(x.ToString()));
 
         Assert.True(result.IsError);
     }
@@ -105,8 +105,8 @@ public class TryExtendedTests2
     [Fact]
     public void FlatMap_SuccessToFailure_ReturnsFailure()
     {
-        var @try = Try<int>.Success(42);
-        var result = @try.Bind(_ => Try<string>.Failure(new InvalidOperationException("chained error")));
+        var @try = Try<int>.Ok(42);
+        var result = @try.Bind(_ => Try<string>.Error(new InvalidOperationException("chained error")));
 
         Assert.True(result.IsError);
     }
@@ -118,7 +118,7 @@ public class TryExtendedTests2
     [Fact]
     public void Recover_OnFailure_RecoversWith()
     {
-        var @try = Try<int>.Failure(new InvalidOperationException("error"));
+        var @try = Try<int>.Error(new InvalidOperationException("error"));
         var result = @try.Recover(_ => 99);
 
         Assert.True(result.IsOk);
@@ -128,7 +128,7 @@ public class TryExtendedTests2
     [Fact]
     public void Recover_OnSuccess_ReturnsOriginal()
     {
-        var @try = Try<int>.Success(42);
+        var @try = Try<int>.Ok(42);
         var result = @try.Recover(_ => 99);
 
         Assert.True(result.IsOk);
@@ -138,8 +138,8 @@ public class TryExtendedTests2
     [Fact]
     public void RecoverWith_OnFailure_RecoversWith()
     {
-        var @try = Try<int>.Failure(new InvalidOperationException("error"));
-        var result = @try.RecoverWith(_ => Try<int>.Success(99));
+        var @try = Try<int>.Error(new InvalidOperationException("error"));
+        var result = @try.RecoverWith(_ => Try<int>.Ok(99));
 
         Assert.True(result.IsOk);
         Assert.Equal(99, result.GetValue());
@@ -148,8 +148,8 @@ public class TryExtendedTests2
     [Fact]
     public void RecoverWith_OnSuccess_ReturnsOriginal()
     {
-        var @try = Try<int>.Success(42);
-        var result = @try.RecoverWith(_ => Try<int>.Success(99));
+        var @try = Try<int>.Ok(42);
+        var result = @try.RecoverWith(_ => Try<int>.Ok(99));
 
         Assert.True(result.IsOk);
         Assert.Equal(42, result.GetValue());
@@ -162,7 +162,7 @@ public class TryExtendedTests2
     [Fact]
     public void Filter_OnSuccess_PredicatePasses_ReturnsSuccess()
     {
-        var @try = Try<int>.Success(42);
+        var @try = Try<int>.Ok(42);
         var result = @try.Filter(x => x > 40);
 
         Assert.True(result.IsOk);
@@ -171,7 +171,7 @@ public class TryExtendedTests2
     [Fact]
     public void Filter_OnSuccess_PredicateFails_ReturnsFailure()
     {
-        var @try = Try<int>.Success(42);
+        var @try = Try<int>.Ok(42);
         var result = @try.Filter(x => x > 50);
 
         Assert.True(result.IsError);
@@ -180,7 +180,7 @@ public class TryExtendedTests2
     [Fact]
     public void Filter_OnFailure_ReturnsFailure()
     {
-        var @try = Try<int>.Failure(new InvalidOperationException("error"));
+        var @try = Try<int>.Error(new InvalidOperationException("error"));
         var result = @try.Filter(x => x > 40);
 
         Assert.True(result.IsError);
@@ -193,7 +193,7 @@ public class TryExtendedTests2
     [Fact]
     public void Tap_OnSuccess_ExecutesAction()
     {
-        var @try = Try<int>.Success(42);
+        var @try = Try<int>.Ok(42);
         var executed = false;
 
         var result = @try.Tap(x => executed = true);
@@ -205,7 +205,7 @@ public class TryExtendedTests2
     [Fact]
     public void Tap_OnFailure_DoesNotExecuteAction()
     {
-        var @try = Try<int>.Failure(new InvalidOperationException("error"));
+        var @try = Try<int>.Error(new InvalidOperationException("error"));
         var executed = false;
 
         var result = @try.Tap(x => executed = true);
@@ -217,10 +217,10 @@ public class TryExtendedTests2
     [Fact]
     public void TapFailure_OnFailure_ExecutesAction()
     {
-        var @try = Try<int>.Failure(new InvalidOperationException("error"));
+        var @try = Try<int>.Error(new InvalidOperationException("error"));
         var executed = false;
 
-        var result = @try.TapFailure(ex => executed = true);
+        var result = @try.TapError(ex => executed = true);
 
         Assert.True(executed);
         Assert.True(result.IsError);
@@ -229,10 +229,10 @@ public class TryExtendedTests2
     [Fact]
     public void TapFailure_OnSuccess_DoesNotExecuteAction()
     {
-        var @try = Try<int>.Success(42);
+        var @try = Try<int>.Ok(42);
         var executed = false;
 
-        var result = @try.TapFailure(ex => executed = true);
+        var result = @try.TapError(ex => executed = true);
 
         Assert.False(executed);
         Assert.True(result.IsOk);
@@ -245,7 +245,7 @@ public class TryExtendedTests2
     [Fact]
     public void Match_OnSuccess_ExecutesSuccessFunc()
     {
-        var @try = Try<int>.Success(42);
+        var @try = Try<int>.Ok(42);
         var result = @try.Match(x => $"Value: {x}", ex => $"Error: {ex.Message}");
 
         Assert.Equal("Value: 42", result);
@@ -254,7 +254,7 @@ public class TryExtendedTests2
     [Fact]
     public void Match_OnFailure_ExecutesFailureFunc()
     {
-        var @try = Try<int>.Failure(new InvalidOperationException("error"));
+        var @try = Try<int>.Error(new InvalidOperationException("error"));
         var result = @try.Match(x => $"Value: {x}", ex => $"Error: {ex.Message}");
 
         Assert.Equal("Error: error", result);
@@ -263,7 +263,7 @@ public class TryExtendedTests2
     [Fact]
     public void Match_WithActions_OnSuccess_ExecutesSuccessAction()
     {
-        var @try = Try<int>.Success(42);
+        var @try = Try<int>.Ok(42);
         var capturedValue = 0;
 
         @try.Match(x => capturedValue = x, ex => { });
@@ -274,7 +274,7 @@ public class TryExtendedTests2
     [Fact]
     public void Match_WithActions_OnFailure_ExecutesFailureAction()
     {
-        var @try = Try<int>.Failure(new InvalidOperationException("error"));
+        var @try = Try<int>.Error(new InvalidOperationException("error"));
         var capturedMessage = "";
 
         @try.Match(x => { }, ex => capturedMessage = ex.Message);
@@ -289,7 +289,7 @@ public class TryExtendedTests2
     [Fact]
     public void ToResult_OnSuccess_ReturnsOk()
     {
-        var @try = Try<int>.Success(42);
+        var @try = Try<int>.Ok(42);
         var result = @try.ToResult();
 
         Assert.True(result.IsOk);
@@ -300,7 +300,7 @@ public class TryExtendedTests2
     public void ToResult_OnFailure_ReturnsErr()
     {
         var ex = new InvalidOperationException("error");
-        var @try = Try<int>.Failure(ex);
+        var @try = Try<int>.Error(ex);
         var result = @try.ToResult();
 
         Assert.True(result.IsError);
@@ -314,21 +314,21 @@ public class TryExtendedTests2
     [Fact]
     public void GetOrElse_OnSuccess_ReturnsValue()
     {
-        var @try = Try<int>.Success(42);
+        var @try = Try<int>.Ok(42);
         Assert.Equal(42, @try.GetValueOr(99));
     }
 
     [Fact]
     public void GetOrElse_OnFailure_ReturnsDefault()
     {
-        var @try = Try<int>.Failure(new InvalidOperationException("error"));
+        var @try = Try<int>.Error(new InvalidOperationException("error"));
         Assert.Equal(99, @try.GetValueOr(99));
     }
 
     [Fact]
     public void Match_WithFunc_OnSuccess_ReturnsValue()
     {
-        var @try = Try<int>.Success(42);
+        var @try = Try<int>.Ok(42);
         var factoryExecuted = false;
         var value = @try.Match(
             ok => ok,
@@ -345,7 +345,7 @@ public class TryExtendedTests2
     [Fact]
     public void Match_WithFunc_OnFailure_ExecutesFactory()
     {
-        var @try = Try<int>.Failure(new InvalidOperationException("error"));
+        var @try = Try<int>.Error(new InvalidOperationException("error"));
         var value = @try.Match(ok => ok, _ => 99);
 
         Assert.Equal(99, value);
@@ -358,8 +358,8 @@ public class TryExtendedTests2
     [Fact]
     public void Equals_SuccessWithSameValue_ReturnsTrue()
     {
-        var t1 = Try<int>.Success(42);
-        var t2 = Try<int>.Success(42);
+        var t1 = Try<int>.Ok(42);
+        var t2 = Try<int>.Ok(42);
 
         Assert.True(t1.Equals(t2));
         Assert.True(t1 == t2);
@@ -368,8 +368,8 @@ public class TryExtendedTests2
     [Fact]
     public void Equals_SuccessWithDifferentValue_ReturnsFalse()
     {
-        var t1 = Try<int>.Success(42);
-        var t2 = Try<int>.Success(99);
+        var t1 = Try<int>.Ok(42);
+        var t2 = Try<int>.Ok(99);
 
         Assert.False(t1.Equals(t2));
         Assert.True(t1 != t2);
@@ -378,8 +378,8 @@ public class TryExtendedTests2
     [Fact]
     public void Equals_SuccessWithFailure_ReturnsFalse()
     {
-        var t1 = Try<int>.Success(42);
-        var t2 = Try<int>.Failure(new InvalidOperationException("error"));
+        var t1 = Try<int>.Ok(42);
+        var t2 = Try<int>.Error(new InvalidOperationException("error"));
 
         Assert.False(t1.Equals(t2));
     }
@@ -387,8 +387,8 @@ public class TryExtendedTests2
     [Fact]
     public void GetHashCode_SameForEqualTries()
     {
-        var t1 = Try<int>.Success(42);
-        var t2 = Try<int>.Success(42);
+        var t1 = Try<int>.Ok(42);
+        var t2 = Try<int>.Ok(42);
 
         Assert.Equal(t1.GetHashCode(), t2.GetHashCode());
     }
@@ -400,7 +400,7 @@ public class TryExtendedTests2
     [Fact]
     public void ToString_OnSuccess_ContainsValue()
     {
-        var @try = Try<int>.Success(42);
+        var @try = Try<int>.Ok(42);
         var str = @try.ToString();
 
         Assert.Contains("42", str);
@@ -410,7 +410,7 @@ public class TryExtendedTests2
     [Fact]
     public void ToString_OnFailure_ContainsFailure()
     {
-        var @try = Try<int>.Failure(new InvalidOperationException("error"));
+        var @try = Try<int>.Error(new InvalidOperationException("error"));
         var str = @try.ToString();
 
         Assert.Contains("Failure", str);

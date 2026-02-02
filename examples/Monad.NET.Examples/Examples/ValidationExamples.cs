@@ -14,9 +14,9 @@ public static class ValidationExamples
 
         // Creating Validations
         Console.WriteLine("1. Creating Validations:");
-        var valid = Validation<int, string>.Valid(42);
-        var invalid = Validation<int, string>.Invalid("Value is required");
-        var multiError = Validation<int, string>.Invalid(new[] { "Error 1", "Error 2" });
+        var valid = Validation<int, string>.Ok(42);
+        var invalid = Validation<int, string>.Error("Value is required");
+        var multiError = Validation<int, string>.Error(new[] { "Error 1", "Error 2" });
         Console.WriteLine($"   Valid(42):       {valid}");
         Console.WriteLine($"   Invalid(single): {invalid}");
         Console.WriteLine($"   Invalid(multi):  {multiError}");
@@ -83,28 +83,28 @@ public static class ValidationExamples
     private static Validation<string, string> ValidateName(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
-            return Validation<string, string>.Invalid("Name is required");
+            return Validation<string, string>.Error("Name is required");
         if (name.Length < 2)
-            return Validation<string, string>.Invalid("Name must be at least 2 characters");
-        return Validation<string, string>.Valid(name);
+            return Validation<string, string>.Error("Name must be at least 2 characters");
+        return Validation<string, string>.Ok(name);
     }
 
     private static Validation<string, string> ValidateEmail(string email)
     {
         if (string.IsNullOrWhiteSpace(email))
-            return Validation<string, string>.Invalid("Email is required");
+            return Validation<string, string>.Error("Email is required");
         if (!email.Contains('@'))
-            return Validation<string, string>.Invalid("Email must contain @");
-        return Validation<string, string>.Valid(email);
+            return Validation<string, string>.Error("Email must contain @");
+        return Validation<string, string>.Ok(email);
     }
 
     private static Validation<int, string> ValidateAge(int age)
     {
         if (age < 0)
-            return Validation<int, string>.Invalid("Age must be non-negative");
+            return Validation<int, string>.Error("Age must be non-negative");
         if (age < 18)
-            return Validation<int, string>.Invalid("Must be 18 or older");
-        return Validation<int, string>.Valid(age);
+            return Validation<int, string>.Error("Must be 18 or older");
+        return Validation<int, string>.Ok(age);
     }
 
     private static void ValidateForm(string name, string email, int age)

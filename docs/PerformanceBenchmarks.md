@@ -208,7 +208,7 @@ throw new ValidationException("Invalid input");
 // Typical: 400-2000 bytes depending on stack depth
 
 // Returning error
-return Result<T, Error>.Err(new Error("Invalid input"));
+return Result<T, Error>.Error(new Error("Invalid input"));
 // Allocates: 0 bytes (if Error is a struct) or sizeof(Error)
 ```
 
@@ -362,7 +362,7 @@ Matrix MultiplyMatrices(Matrix a, Matrix b)
 Result<Matrix, MatrixError> MultiplyMatrices(Matrix a, Matrix b)
 {
     if (!CanMultiply(a, b))
-        return Result<Matrix, MatrixError>.Err(MatrixError.IncompatibleDimensions);
+        return Result<Matrix, MatrixError>.Error(MatrixError.IncompatibleDimensions);
     
     // Direct computation inside
     var result = new double[rows, cols];
@@ -427,7 +427,7 @@ Use monadic types at boundaries, direct operations inside:
 public Result<ProcessedData, ProcessingError> ProcessLargeDataset(byte[] data)
 {
     if (data.Length == 0)
-        return Result<ProcessedData, ProcessingError>.Err(ProcessingError.EmptyInput);
+        return Result<ProcessedData, ProcessingError>.Error(ProcessingError.EmptyInput);
     
     try
     {
@@ -442,7 +442,7 @@ public Result<ProcessedData, ProcessingError> ProcessLargeDataset(byte[] data)
     }
     catch (Exception ex)
     {
-        return Result<ProcessedData, ProcessingError>.Err(ProcessingError.ProcessingFailed(ex));
+        return Result<ProcessedData, ProcessingError>.Error(ProcessingError.ProcessingFailed(ex));
     }
 }
 ```

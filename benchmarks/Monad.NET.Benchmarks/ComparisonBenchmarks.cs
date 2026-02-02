@@ -70,7 +70,7 @@ public class ComparisonBenchmarks
     private static Result<int, string> DivideWithResult(int a, int b)
     {
         return b == 0
-            ? Result<int, string>.Err("Division by zero")
+            ? Result<int, string>.Error("Division by zero")
             : Result<int, string>.Ok(a / b);
     }
 

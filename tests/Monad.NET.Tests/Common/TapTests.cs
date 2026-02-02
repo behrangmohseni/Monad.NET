@@ -305,10 +305,10 @@ public class TapTests
     [Fact]
     public void Result_TapErr_StillWorks()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
         var executed = false;
 
-        result.TapErr(e => executed = true);
+        result.TapError(e => executed = true);
 
         Assert.True(executed);
     }
@@ -316,7 +316,7 @@ public class TapTests
     [Fact]
     public void Try_Tap_StillWorks()
     {
-        var tryResult = Try<int>.Success(42);
+        var tryResult = Try<int>.Ok(42);
         var executed = false;
 
         tryResult.Tap(x => executed = true);
@@ -327,7 +327,7 @@ public class TapTests
     [Fact]
     public void Validation_Tap_StillWorks()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
         var executed = false;
 
         validation.Tap(x => executed = true);
@@ -338,7 +338,7 @@ public class TapTests
     [Fact]
     public void RemoteData_Tap_StillWorks()
     {
-        var remoteData = RemoteData<int, string>.Success(42);
+        var remoteData = RemoteData<int, string>.Ok(42);
         var executed = false;
 
         remoteData.Tap(x => executed = true);

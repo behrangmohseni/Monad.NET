@@ -166,15 +166,15 @@ public readonly struct NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList
     /// Attempts to create a NonEmptyList from an enumerable.
     /// Returns Result with error if empty.
     /// </summary>
-    public static Result<NonEmptyList<T>, TErr> FromEnumerable<TErr>(IEnumerable<T> items, TErr errorIfEmpty)
+    public static Result<NonEmptyList<T>, TError> FromEnumerable<TError>(IEnumerable<T> items, TError errorIfEmpty)
     {
         ThrowHelper.ThrowIfNull(items);
 
         var array = items.ToImmutableArray();
         if (array.Length == 0)
-            return Result<NonEmptyList<T>, TErr>.Err(errorIfEmpty);
+            return Result<NonEmptyList<T>, TError>.Error(errorIfEmpty);
 
-        return Result<NonEmptyList<T>, TErr>.Ok(
+        return Result<NonEmptyList<T>, TError>.Ok(
             new NonEmptyList<T>(array[0], array.RemoveAt(0)));
     }
 

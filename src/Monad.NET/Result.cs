@@ -5,33 +5,33 @@ using System.Runtime.CompilerServices;
 namespace Monad.NET;
 
 /// <summary>
-/// Result is a type that represents either success (Ok) or failure (Err).
+/// Result is a type that represents either success (Ok) or failure (Error).
 /// This is inspired by Rust's Result&lt;T, E&gt; type.
 /// </summary>
 /// <typeparam name="T">The type of the success value</typeparam>
-/// <typeparam name="TErr">The type of the error value</typeparam>
+/// <typeparam name="TError">The type of the error value</typeparam>
 /// <remarks>
 /// <para>
-/// Use <see cref="Result{T,TErr}"/> for operations that can fail with a specific error type.
+/// Use <see cref="Result{T,TError}"/> for operations that can fail with a specific error type.
 /// This provides type-safe error handling without exceptions.
 /// </para>
 /// <para>
 /// For simple presence/absence without error info, use <see cref="Option{T}"/>.
-/// For validation with multiple accumulated errors, use <see cref="Validation{T,TErr}"/>.
+/// For validation with multiple accumulated errors, use <see cref="Validation{T,TError}"/>.
 /// For wrapping exception-throwing code, use <see cref="Try{T}"/>.
 /// </para>
 /// </remarks>
 /// <seealso cref="Option{T}"/>
-/// <seealso cref="Validation{T,TErr}"/>
+/// <seealso cref="Validation{T,TError}"/>
 /// <seealso cref="Try{T}"/>
 /// <seealso cref="ResultExtensions"/>
 [Serializable]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DebuggerTypeProxy(typeof(ResultDebugView<,>))]
-public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparable<Result<T, TErr>>
+public readonly struct Result<T, TError> : IEquatable<Result<T, TError>>, IComparable<Result<T, TError>>
 {
     private readonly T? _value;
-    private readonly TErr? _error;
+    private readonly TError? _error;
     private readonly bool _isOk;
     private readonly bool _isInitialized;
 
@@ -39,7 +39,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     private string DebuggerDisplay => !_isInitialized ? "Uninitialized (default struct)" : _isOk ? $"Ok({_value})" : $"Err({_error})";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private Result(T value, TErr error, bool isOk)
+    private Result(T value, TError error, bool isOk)
     {
         _value = value;
         _error = error;
@@ -48,12 +48,12 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     }
 
     /// <summary>
-    /// Returns true if the Result was properly initialized via <see cref="Ok(T)"/> or <see cref="Err(TErr)"/>.
+    /// Returns true if the Result was properly initialized via <see cref="Ok(T)"/> or <see cref="Error(TError)"/>.
     /// A default-constructed struct (e.g., <c>default(Result&lt;T,E&gt;)</c>) returns false.
     /// </summary>
     /// <remarks>
     /// Using a default-constructed Result in any operation will throw <see cref="InvalidOperationException"/>.
-    /// Always create Results via <see cref="Ok(T)"/> or <see cref="Err(TErr)"/> factory methods.
+    /// Always create Results via <see cref="Ok(T)"/> or <see cref="Error(TError)"/> factory methods.
     /// </remarks>
     public bool IsInitialized
     {
@@ -76,7 +76,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     }
 
     /// <summary>
-    /// Returns true if the result is an error (Err).
+    /// Returns true if the result is an error (Error).
     /// </summary>
     /// <remarks>
     /// This follows F# naming conventions for consistency across monadic types.
@@ -108,7 +108,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// var message = result switch
     /// {
     ///     { IsOk: true, Value: var v } => $"Success: {v}",
-    ///     { IsError: true, Error: var e } => $"Error: {e}",
+    ///     { IsError: true, ErrorValue: var e } => $"Error: {e}",
     ///     _ => "Unknown"
     /// };
     /// </code>
@@ -120,10 +120,10 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     }
 
     /// <summary>
-    /// Gets the contained error for pattern matching. Returns the error if Err, default otherwise.
+    /// Gets the contained error for pattern matching. Returns the error if Error, default otherwise.
     /// Use with pattern matching in switch expressions.
     /// </summary>
-    public TErr? Error
+    public TError? ErrorValue
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => _error;
@@ -133,24 +133,24 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// Creates an Ok result containing the specified value.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Result<T, TErr> Ok(T value)
+    public static Result<T, TError> Ok(T value)
     {
         if (value is null)
             ThrowHelper.ThrowCannotCreateOkWithNull();
 
-        return new Result<T, TErr>(value, default!, true);
+        return new Result<T, TError>(value, default!, true);
     }
 
     /// <summary>
-    /// Creates an Err result containing the specified error.
+    /// Creates an Error result containing the specified error.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Result<T, TErr> Err(TErr error)
+    public static Result<T, TError> Error(TError error)
     {
         if (error is null)
             ThrowHelper.ThrowCannotCreateErrWithNull();
 
-        return new Result<T, TErr>(default!, error, false);
+        return new Result<T, TError>(default!, error, false);
     }
 
     /// <summary>
@@ -173,7 +173,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the value is Ok or if the Result is a default-constructed struct.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public TErr GetError()
+    public TError GetError()
     {
         ThrowIfDefault();
         if (_isOk)
@@ -202,7 +202,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// var result = Result&lt;int, string&gt;.Ok(42);
     /// var value = result.GetOrThrow(); // 42
     /// 
-    /// var error = Result&lt;int, string&gt;.Err("failed");
+    /// var error = Result&lt;int, string&gt;.Error("failed");
     /// error.GetOrThrow(); // throws InvalidOperationException
     /// </code>
     /// </example>
@@ -222,7 +222,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// <exception cref="InvalidOperationException">Thrown if the Result is Ok or if the Result is a default-constructed struct.</exception>
     /// <example>
     /// <code>
-    /// var error = Result&lt;int, string&gt;.Err("failed");
+    /// var error = Result&lt;int, string&gt;.Error("failed");
     /// var err = error.GetErrorOrThrow(); // "failed"
     /// 
     /// var success = Result&lt;int, string&gt;.Ok(42);
@@ -230,7 +230,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// </code>
     /// </example>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public TErr GetErrorOrThrow()
+    public TError GetErrorOrThrow()
     {
         ThrowIfDefault();
         if (_isOk)
@@ -247,7 +247,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// <exception cref="InvalidOperationException">Thrown if the Result is Ok or if the Result is a default-constructed struct.</exception>
     /// <example>
     /// <code>
-    /// var error = Result&lt;int, string&gt;.Err("failed");
+    /// var error = Result&lt;int, string&gt;.Error("failed");
     /// var err = error.GetErrorOrThrow("Expected failure"); // "failed"
     /// 
     /// var success = Result&lt;int, string&gt;.Ok(42);
@@ -255,7 +255,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// </code>
     /// </example>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public TErr GetErrorOrThrow(string message)
+    public TError GetErrorOrThrow(string message)
     {
         ThrowIfDefault();
         if (_isOk)
@@ -301,7 +301,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// </code>
     /// </example>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool TryGetError(out TErr? error)
+    public bool TryGetError(out TError? error)
     {
         ThrowIfDefault();
         error = _error;
@@ -320,7 +320,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// var result = Result&lt;int, string&gt;.Ok(42);
     /// result.Contains(42); // true
     /// result.Contains(0);  // false
-    /// Result&lt;int, string&gt;.Err("error").Contains(42); // false
+    /// Result&lt;int, string&gt;.Error("error").Contains(42); // false
     /// </code>
     /// </example>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -332,24 +332,24 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
 
     /// <summary>
     /// Returns true if the Result is Err and contains the specified error.
-    /// Uses the default equality comparer for type TErr.
+    /// Uses the default equality comparer for type TError.
     /// </summary>
     /// <param name="error">The error to check for.</param>
     /// <returns>True if the Result is Err and contains the specified error; otherwise, false.</returns>
     /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     /// <example>
     /// <code>
-    /// var result = Result&lt;int, string&gt;.Err("not found");
+    /// var result = Result&lt;int, string&gt;.Error("not found");
     /// result.ContainsError("not found"); // true
     /// result.ContainsError("other");     // false
     /// Result&lt;int, string&gt;.Ok(42).ContainsError("not found"); // false
     /// </code>
     /// </example>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool ContainsError(TErr error)
+    public bool ContainsError(TError error)
     {
         ThrowIfDefault();
-        return !_isOk && EqualityComparer<TErr>.Default.Equals(_error, error);
+        return !_isOk && EqualityComparer<TError>.Default.Equals(_error, error);
     }
 
     /// <summary>
@@ -363,7 +363,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// var result = Result&lt;int, string&gt;.Ok(42);
     /// result.Exists(x => x > 40); // true
     /// result.Exists(x => x > 50); // false
-    /// Result&lt;int, string&gt;.Err("error").Exists(x => x > 0); // false
+    /// Result&lt;int, string&gt;.Error("error").Exists(x => x > 0); // false
     /// </code>
     /// </example>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -382,13 +382,13 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     /// <example>
     /// <code>
-    /// var result = Result&lt;int, string&gt;.Err("not found");
+    /// var result = Result&lt;int, string&gt;.Error("not found");
     /// result.ExistsError(e => e.Contains("not")); // true
     /// result.ExistsError(e => e.Contains("xyz")); // false
     /// </code>
     /// </example>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool ExistsError(Func<TErr, bool> predicate)
+    public bool ExistsError(Func<TError, bool> predicate)
     {
         ThrowHelper.ThrowIfNull(predicate);
         ThrowIfDefault();
@@ -396,25 +396,25 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     }
 
     /// <summary>
-    /// Maps a Result&lt;T, TErr&gt; to Result&lt;U, TErr&gt; by applying a function to a contained Ok value.
+    /// Maps a Result&lt;T, TError&gt; to Result&lt;U, TError&gt; by applying a function to a contained Ok value.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Result<U, TErr> Map<U>(Func<T, U> mapper)
+    public Result<U, TError> Map<U>(Func<T, U> mapper)
     {
         ThrowIfDefault();
-        return _isOk ? Result<U, TErr>.Ok(mapper(_value!)) : Result<U, TErr>.Err(_error!);
+        return _isOk ? Result<U, TError>.Ok(mapper(_value!)) : Result<U, TError>.Error(_error!);
     }
 
     /// <summary>
-    /// Maps a Result&lt;T, TErr&gt; to Result&lt;T, F&gt; by applying a function to a contained Err value.
+    /// Maps a Result&lt;T, TError&gt; to Result&lt;T, F&gt; by applying a function to a contained Err value.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Result<T, F> MapError<F>(Func<TErr, F> mapper)
+    public Result<T, F> MapError<F>(Func<TError, F> mapper)
     {
         ThrowIfDefault();
-        return _isOk ? Result<T, F>.Ok(_value!) : Result<T, F>.Err(mapper(_error!));
+        return _isOk ? Result<T, F>.Ok(_value!) : Result<T, F>.Error(mapper(_error!));
     }
 
     /// <summary>
@@ -435,15 +435,15 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     ///     e => new Error(e)
     /// ); // Result&lt;string, Error&gt;.Ok("42")
     /// 
-    /// var error = Result&lt;int, string&gt;.Err("not found");
+    /// var error = Result&lt;int, string&gt;.Error("not found");
     /// var mappedError = error.BiMap(
     ///     x => x.ToString(),
     ///     e => new Error(e)
-    /// ); // Result&lt;string, Error&gt;.Err(Error("not found"))
+    /// ); // Result&lt;string, Error&gt;.Error(Error("not found"))
     /// </code>
     /// </example>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Result<U, F> BiMap<U, F>(Func<T, U> okMapper, Func<TErr, F> errMapper)
+    public Result<U, F> BiMap<U, F>(Func<T, U> okMapper, Func<TError, F> errMapper)
     {
         ThrowHelper.ThrowIfNull(okMapper);
         ThrowHelper.ThrowIfNull(errMapper);
@@ -451,7 +451,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
 
         return _isOk
             ? Result<U, F>.Ok(okMapper(_value!))
-            : Result<U, F>.Err(errMapper(_error!));
+            : Result<U, F>.Error(errMapper(_error!));
     }
 
     /// <summary>
@@ -466,11 +466,11 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     }
 
     /// <summary>
-    /// Maps a Result&lt;T, TErr&gt; to U by applying a function to a contained Ok value, or a fallback function to a contained Err value.
+    /// Maps a Result&lt;T, TError&gt; to U by applying a function to a contained Ok value, or a fallback function to a contained Err value.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public U MapOrElse<U>(Func<TErr, U> defaultFunc, Func<T, U> mapper)
+    public U MapOrElse<U>(Func<TError, U> defaultFunc, Func<T, U> mapper)
     {
         ThrowIfDefault();
         return _isOk ? mapper(_value!) : defaultFunc(_error!);
@@ -489,13 +489,13 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// result.Filter(x => x > 40); // Some(42)
     /// result.Filter(x => x > 50); // None
     /// 
-    /// var err = Result&lt;int, string&gt;.Err("error");
+    /// var err = Result&lt;int, string&gt;.Error("error");
     /// err.Filter(x => true); // None
     /// </code>
     /// </example>
     /// <remarks>
     /// This method discards the error information when converting to Option.
-    /// Use <see cref="FilterOrElse(Func{T, bool}, TErr)"/> if you need to preserve
+    /// Use <see cref="FilterOrElse(Func{T, bool}, TError)"/> if you need to preserve
     /// the Result type with a custom error for failed predicates.
     /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -518,20 +518,20 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// <code>
     /// var ok = Result&lt;int, string&gt;.Ok(42);
     /// ok.FilterOrElse(x => x > 40, "Value too small"); // Ok(42)
-    /// ok.FilterOrElse(x => x > 50, "Value too small"); // Err("Value too small")
+    /// ok.FilterOrElse(x => x > 50, "Value too small"); // Error("Value too small")
     /// 
-    /// var err = Result&lt;int, string&gt;.Err("original error");
-    /// err.FilterOrElse(x => x > 0, "Value too small"); // Err("original error") - preserved
+    /// var err = Result&lt;int, string&gt;.Error("original error");
+    /// err.FilterOrElse(x => x > 0, "Value too small"); // Error("original error") - preserved
     /// </code>
     /// </example>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Result<T, TErr> FilterOrElse(Func<T, bool> predicate, TErr error)
+    public Result<T, TError> FilterOrElse(Func<T, bool> predicate, TError error)
     {
         ThrowHelper.ThrowIfNull(predicate);
         ThrowIfDefault();
         if (!_isOk)
             return this;
-        return predicate(_value!) ? this : Err(error);
+        return predicate(_value!) ? this : Error(error);
     }
 
     /// <summary>
@@ -545,21 +545,21 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// <code>
     /// var ok = Result&lt;int, string&gt;.Ok(42);
     /// ok.FilterOrElse(x => x > 40, () => "Value too small"); // Ok(42)
-    /// ok.FilterOrElse(x => x > 50, () => "Value too small"); // Err("Value too small")
+    /// ok.FilterOrElse(x => x > 50, () => "Value too small"); // Error("Value too small")
     /// 
-    /// var err = Result&lt;int, string&gt;.Err("original error");
-    /// err.FilterOrElse(x => x > 0, () => "Value too small"); // Err("original error") - preserved
+    /// var err = Result&lt;int, string&gt;.Error("original error");
+    /// err.FilterOrElse(x => x > 0, () => "Value too small"); // Error("original error") - preserved
     /// </code>
     /// </example>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Result<T, TErr> FilterOrElse(Func<T, bool> predicate, Func<TErr> errorFactory)
+    public Result<T, TError> FilterOrElse(Func<T, bool> predicate, Func<TError> errorFactory)
     {
         ThrowHelper.ThrowIfNull(predicate);
         ThrowHelper.ThrowIfNull(errorFactory);
         ThrowIfDefault();
         if (!_isOk)
             return this;
-        return predicate(_value!) ? this : Err(errorFactory());
+        return predicate(_value!) ? this : Error(errorFactory());
     }
 
     /// <summary>
@@ -573,21 +573,21 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// <example>
     /// <code>
     /// var ok = Result&lt;int, string&gt;.Ok(42);
-    /// ok.FilterOrElse(x => x > 50, x => $"Value {x} is too small"); // Err("Value 42 is too small")
+    /// ok.FilterOrElse(x => x > 50, x => $"Value {x} is too small"); // Error("Value 42 is too small")
     /// 
-    /// var err = Result&lt;int, string&gt;.Err("original error");
-    /// err.FilterOrElse(x => x > 0, x => $"Value {x} too small"); // Err("original error") - preserved
+    /// var err = Result&lt;int, string&gt;.Error("original error");
+    /// err.FilterOrElse(x => x > 0, x => $"Value {x} too small"); // Error("original error") - preserved
     /// </code>
     /// </example>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Result<T, TErr> FilterOrElse(Func<T, bool> predicate, Func<T, TErr> errorFactory)
+    public Result<T, TError> FilterOrElse(Func<T, bool> predicate, Func<T, TError> errorFactory)
     {
         ThrowHelper.ThrowIfNull(predicate);
         ThrowHelper.ThrowIfNull(errorFactory);
         ThrowIfDefault();
         if (!_isOk)
             return this;
-        return predicate(_value!) ? this : Err(errorFactory(_value!));
+        return predicate(_value!) ? this : Error(errorFactory(_value!));
     }
 
     /// <summary>
@@ -596,10 +596,10 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Result<U, TErr> Bind<U>(Func<T, Result<U, TErr>> binder)
+    public Result<U, TError> Bind<U>(Func<T, Result<U, TError>> binder)
     {
         ThrowIfDefault();
-        return _isOk ? binder(_value!) : Result<U, TErr>.Err(_error!);
+        return _isOk ? binder(_value!) : Result<U, TError>.Error(_error!);
     }
 
     /// <summary>
@@ -618,14 +618,14 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// </code>
     /// </example>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Result<(T, U), TErr> Zip<U>(Result<U, TErr> other)
+    public Result<(T, U), TError> Zip<U>(Result<U, TError> other)
     {
         ThrowIfDefault();
         if (!_isOk)
-            return Result<(T, U), TErr>.Err(_error!);
+            return Result<(T, U), TError>.Error(_error!);
         if (!other.IsOk)
-            return Result<(T, U), TErr>.Err(other.GetError());
-        return Result<(T, U), TErr>.Ok((_value!, other.GetValue()));
+            return Result<(T, U), TError>.Error(other.GetError());
+        return Result<(T, U), TError>.Ok((_value!, other.GetValue()));
     }
 
     /// <summary>
@@ -646,14 +646,14 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// </code>
     /// </example>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Result<V, TErr> ZipWith<U, V>(Result<U, TErr> other, Func<T, U, V> combiner)
+    public Result<V, TError> ZipWith<U, V>(Result<U, TError> other, Func<T, U, V> combiner)
     {
         ThrowIfDefault();
         if (!_isOk)
-            return Result<V, TErr>.Err(_error!);
+            return Result<V, TError>.Error(_error!);
         if (!other.IsOk)
-            return Result<V, TErr>.Err(other.GetError());
-        return Result<V, TErr>.Ok(combiner(_value!, other.GetValue()));
+            return Result<V, TError>.Error(other.GetError());
+        return Result<V, TError>.Ok(combiner(_value!, other.GetValue()));
     }
 
     /// <summary>
@@ -661,10 +661,10 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Result<U, TErr> And<U>(Result<U, TErr> resultB)
+    public Result<U, TError> And<U>(Result<U, TError> resultB)
     {
         ThrowIfDefault();
-        return _isOk ? resultB : Result<U, TErr>.Err(_error!);
+        return _isOk ? resultB : Result<U, TError>.Error(_error!);
     }
 
     /// <summary>
@@ -672,7 +672,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Result<T, F> OrElse<F>(Func<TErr, Result<T, F>> op)
+    public Result<T, F> OrElse<F>(Func<TError, Result<T, F>> op)
     {
         ThrowIfDefault();
         return _isOk ? Result<T, F>.Ok(_value!) : op(_error!);
@@ -683,14 +683,14 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Result<T, TErr> Or(Result<T, TErr> resultB)
+    public Result<T, TError> Or(Result<T, TError> resultB)
     {
         ThrowIfDefault();
         return _isOk ? this : resultB;
     }
 
     /// <summary>
-    /// Converts from Result&lt;T, TErr&gt; to Option&lt;T&gt;.
+    /// Converts from Result&lt;T, TError&gt; to Option&lt;T&gt;.
     /// Converts self into an Option&lt;T&gt;, consuming self, and discarding the error, if any.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
@@ -702,15 +702,15 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     }
 
     /// <summary>
-    /// Converts from Result&lt;T, TErr&gt; to Option&lt;TErr&gt;.
-    /// Converts self into an Option&lt;TErr&gt;, consuming self, and discarding the success value, if any.
+    /// Converts from Result&lt;T, TError&gt; to Option&lt;TError&gt;.
+    /// Converts self into an Option&lt;TError&gt;, consuming self, and discarding the success value, if any.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Option<TErr> Err()
+    public Option<TError> Err()
     {
         ThrowIfDefault();
-        return _isOk ? Option<TErr>.None() : Option<TErr>.Some(_error!);
+        return _isOk ? Option<TError>.None() : Option<TError>.Some(_error!);
     }
 
     /// <summary>
@@ -722,7 +722,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// <example>
     /// <code>
     /// Result&lt;int, string&gt;.Ok(42).ToOption();     // Some(42)
-    /// Result&lt;int, string&gt;.Err("error").ToOption(); // None
+    /// Result&lt;int, string&gt;.Error("error").ToOption(); // None
     /// </code>
     /// </example>
     /// <remarks>
@@ -741,7 +741,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Match(Action<T> okAction, Action<TErr> errAction)
+    public void Match(Action<T> okAction, Action<TError> errAction)
     {
         ThrowIfDefault();
         if (_isOk)
@@ -755,7 +755,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the Result is a default-constructed struct.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public U Match<U>(Func<T, U> okFunc, Func<TErr, U> errFunc)
+    public U Match<U>(Func<T, U> okFunc, Func<TError, U> errFunc)
     {
         ThrowIfDefault();
         return _isOk ? okFunc(_value!) : errFunc(_error!);
@@ -763,7 +763,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
 
     /// <inheritdoc />
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Equals(Result<T, TErr> other)
+    public bool Equals(Result<T, TError> other)
     {
         // Two uninitialized Results are considered equal
         if (!_isInitialized && !other._isInitialized)
@@ -779,14 +779,14 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
         if (_isOk)
             return EqualityComparer<T>.Default.Equals(_value, other._value);
 
-        return EqualityComparer<TErr>.Default.Equals(_error, other._error);
+        return EqualityComparer<TError>.Default.Equals(_error, other._error);
     }
 
     /// <inheritdoc />
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override bool Equals(object? obj)
     {
-        return obj is Result<T, TErr> other && Equals(other);
+        return obj is Result<T, TError> other && Equals(other);
     }
 
     /// <inheritdoc />
@@ -807,14 +807,14 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// <returns>A negative value if this is less than other, zero if equal, positive if greater.</returns>
     /// <exception cref="InvalidOperationException">Thrown if either Result is a default-constructed struct.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int CompareTo(Result<T, TErr> other)
+    public int CompareTo(Result<T, TError> other)
     {
         ThrowIfDefault();
         other.ThrowIfDefault();
         if (_isOk && other._isOk)
             return Comparer<T>.Default.Compare(_value, other._value);
         if (!_isOk && !other._isOk)
-            return Comparer<TErr>.Default.Compare(_error, other._error);
+            return Comparer<TError>.Default.Compare(_error, other._error);
         return _isOk ? 1 : -1;
     }
 
@@ -839,7 +839,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     ///     Console.WriteLine(value); // Prints: 42
     ///
     /// // Useful for flattening collections of Results
-    /// var results = new[] { Result&lt;int, string&gt;.Ok(1), Result&lt;int, string&gt;.Err("error"), Result&lt;int, string&gt;.Ok(3) };
+    /// var results = new[] { Result&lt;int, string&gt;.Ok(1), Result&lt;int, string&gt;.Error("error"), Result&lt;int, string&gt;.Ok(3) };
     /// var values = results.SelectMany(r => r.AsEnumerable()); // [1, 3]
     /// </code>
     /// </example>
@@ -880,7 +880,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// Determines whether two Result instances are equal.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator ==(Result<T, TErr> left, Result<T, TErr> right)
+    public static bool operator ==(Result<T, TError> left, Result<T, TError> right)
     {
         return left.Equals(right);
     }
@@ -889,7 +889,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// Determines whether two Result instances are not equal.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool operator !=(Result<T, TErr> left, Result<T, TErr> right)
+    public static bool operator !=(Result<T, TError> left, Result<T, TError> right)
     {
         return !left.Equals(right);
     }
@@ -929,7 +929,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
     /// </code>
     /// </example>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Deconstruct(out T? value, out TErr? error, out bool isOk)
+    public void Deconstruct(out T? value, out TError? error, out bool isOk)
     {
         ThrowIfDefault();
         value = _value;
@@ -939,7 +939,7 @@ public readonly struct Result<T, TErr> : IEquatable<Result<T, TErr>>, IComparabl
 }
 
 /// <summary>
-/// Extension methods for Result&lt;T, TErr&gt;.
+/// Extension methods for Result&lt;T, TError&gt;.
 /// </summary>
 [EditorBrowsable(EditorBrowsableState.Never)]
 public static class ResultExtensions
@@ -948,7 +948,7 @@ public static class ResultExtensions
     /// Flattens a nested Result.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Result<T, TErr> Flatten<T, TErr>(this Result<Result<T, TErr>, TErr> result)
+    public static Result<T, TError> Flatten<T, TError>(this Result<Result<T, TError>, TError> result)
     {
         return result.Bind(static inner => inner);
     }
@@ -957,14 +957,14 @@ public static class ResultExtensions
     /// Transposes a Result of an Option into an Option of a Result.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Option<Result<T, TErr>> Transpose<T, TErr>(this Result<Option<T>, TErr> result)
+    public static Option<Result<T, TError>> Transpose<T, TError>(this Result<Option<T>, TError> result)
     {
         return result.Match(
             okFunc: static option => option.Match(
-                someFunc: static value => Option<Result<T, TErr>>.Some(Result<T, TErr>.Ok(value)),
-                noneFunc: static () => Option<Result<T, TErr>>.None()
+                someFunc: static value => Option<Result<T, TError>>.Some(Result<T, TError>.Ok(value)),
+                noneFunc: static () => Option<Result<T, TError>>.None()
             ),
-            errFunc: static err => Option<Result<T, TErr>>.Some(Result<T, TErr>.Err(err))
+            errFunc: static err => Option<Result<T, TError>>.Some(Result<T, TError>.Error(err))
         );
     }
 
@@ -972,7 +972,7 @@ public static class ResultExtensions
     /// Executes an action if the result is Ok, allowing method chaining.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Result<T, TErr> Tap<T, TErr>(this Result<T, TErr> result, Action<T> action)
+    public static Result<T, TError> Tap<T, TError>(this Result<T, TError> result, Action<T> action)
     {
         if (result.IsOk)
             action(result.GetValue());
@@ -981,10 +981,10 @@ public static class ResultExtensions
     }
 
     /// <summary>
-    /// Executes an action if the result is Err, allowing method chaining.
+    /// Executes an action if the result is Error, allowing method chaining.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Result<T, TErr> TapErr<T, TErr>(this Result<T, TErr> result, Action<TErr> action)
+    public static Result<T, TError> TapError<T, TError>(this Result<T, TError> result, Action<TError> action)
     {
         if (result.IsError)
             action(result.GetError());
@@ -997,22 +997,22 @@ public static class ResultExtensions
     /// This is an alternative to Expect that allows throwing specific exception types.
     /// </summary>
     /// <typeparam name="T">The type of the success value.</typeparam>
-    /// <typeparam name="TErr">The type of the error value.</typeparam>
+    /// <typeparam name="TError">The type of the error value.</typeparam>
     /// <param name="result">The source Result.</param>
-    /// <param name="exception">The exception to throw if Err.</param>
+    /// <param name="exception">The exception to throw if Error.</param>
     /// <returns>The contained Ok value if successful.</returns>
-    /// <exception cref="Exception">Throws the specified exception if Err.</exception>
+    /// <exception cref="Exception">Throws the specified exception if Error.</exception>
     /// <example>
     /// <code>
     /// var ok = Result&lt;User, string&gt;.Ok(user);
-    /// var value = ok.ThrowIfErr(new UserNotFoundException()); // returns user
+    /// var value = ok.ThrowIfError(new UserNotFoundException()); // returns user
     /// 
-    /// var err = Result&lt;User, string&gt;.Err("not found");
-    /// err.ThrowIfErr(new UserNotFoundException()); // throws UserNotFoundException
+    /// var err = Result&lt;User, string&gt;.Error("not found");
+    /// err.ThrowIfError(new UserNotFoundException()); // throws UserNotFoundException
     /// </code>
     /// </example>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static T ThrowIfErr<T, TErr>(this Result<T, TErr> result, Exception exception)
+    public static T ThrowIfError<T, TError>(this Result<T, TError> result, Exception exception)
     {
         ThrowHelper.ThrowIfNull(exception);
 
@@ -1024,21 +1024,21 @@ public static class ResultExtensions
 
     /// <summary>
     /// Returns the contained Ok value if successful, otherwise throws an exception created by the factory.
-    /// The factory receives the error value and is only called if the Result is Err.
+    /// The factory receives the error value and is only called if the Result is Error.
     /// </summary>
     /// <typeparam name="T">The type of the success value.</typeparam>
-    /// <typeparam name="TErr">The type of the error value.</typeparam>
+    /// <typeparam name="TError">The type of the error value.</typeparam>
     /// <param name="result">The source Result.</param>
     /// <param name="exceptionFactory">The factory function to create the exception from the error.</param>
     /// <returns>The contained Ok value if successful.</returns>
-    /// <exception cref="Exception">Throws the exception from the factory if Err.</exception>
+    /// <exception cref="Exception">Throws the exception from the factory if Error.</exception>
     /// <example>
     /// <code>
-    /// var result = GetUser(id).ThrowIfErr(err => new UserNotFoundException($"User not found: {err}"));
+    /// var result = GetUser(id).ThrowIfError(err => new UserNotFoundException($"User not found: {err}"));
     /// </code>
     /// </example>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static T ThrowIfErr<T, TErr>(this Result<T, TErr> result, Func<TErr, Exception> exceptionFactory)
+    public static T ThrowIfError<T, TError>(this Result<T, TError> result, Func<TError, Exception> exceptionFactory)
     {
         ThrowHelper.ThrowIfNull(exceptionFactory);
 
@@ -1060,7 +1060,7 @@ public static class ResultExtensions
         }
         catch (Exception ex)
         {
-            return Result<T, Exception>.Err(ex);
+            return Result<T, Exception>.Error(ex);
         }
     }
 
@@ -1085,7 +1085,7 @@ public static class ResultExtensions
         }
         catch (Exception ex)
         {
-            return Result<T, Exception>.Err(ex);
+            return Result<T, Exception>.Error(ex);
         }
     }
 
@@ -1102,15 +1102,15 @@ public static class ResultExtensions
     /// </code>
     /// </example>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Result<(T1, T2), TErr> Combine<T1, T2, TErr>(
-        Result<T1, TErr> first,
-        Result<T2, TErr> second)
+    public static Result<(T1, T2), TError> Combine<T1, T2, TError>(
+        Result<T1, TError> first,
+        Result<T2, TError> second)
     {
         if (first.IsError)
-            return Result<(T1, T2), TErr>.Err(first.GetError());
+            return Result<(T1, T2), TError>.Error(first.GetError());
         if (second.IsError)
-            return Result<(T1, T2), TErr>.Err(second.GetError());
-        return Result<(T1, T2), TErr>.Ok((first.GetValue(), second.GetValue()));
+            return Result<(T1, T2), TError>.Error(second.GetError());
+        return Result<(T1, T2), TError>.Ok((first.GetValue(), second.GetValue()));
     }
 
     /// <summary>
@@ -1127,16 +1127,16 @@ public static class ResultExtensions
     /// </code>
     /// </example>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Result<TResult, TErr> Combine<T1, T2, TErr, TResult>(
-        Result<T1, TErr> first,
-        Result<T2, TErr> second,
+    public static Result<TResult, TError> Combine<T1, T2, TError, TResult>(
+        Result<T1, TError> first,
+        Result<T2, TError> second,
         Func<T1, T2, TResult> combiner)
     {
         if (first.IsError)
-            return Result<TResult, TErr>.Err(first.GetError());
+            return Result<TResult, TError>.Error(first.GetError());
         if (second.IsError)
-            return Result<TResult, TErr>.Err(second.GetError());
-        return Result<TResult, TErr>.Ok(combiner(first.GetValue(), second.GetValue()));
+            return Result<TResult, TError>.Error(second.GetError());
+        return Result<TResult, TError>.Ok(combiner(first.GetValue(), second.GetValue()));
     }
 
     /// <summary>
@@ -1144,18 +1144,18 @@ public static class ResultExtensions
     /// Returns the first error encountered if any Result is Err.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Result<(T1, T2, T3), TErr> Combine<T1, T2, T3, TErr>(
-        Result<T1, TErr> first,
-        Result<T2, TErr> second,
-        Result<T3, TErr> third)
+    public static Result<(T1, T2, T3), TError> Combine<T1, T2, T3, TError>(
+        Result<T1, TError> first,
+        Result<T2, TError> second,
+        Result<T3, TError> third)
     {
         if (first.IsError)
-            return Result<(T1, T2, T3), TErr>.Err(first.GetError());
+            return Result<(T1, T2, T3), TError>.Error(first.GetError());
         if (second.IsError)
-            return Result<(T1, T2, T3), TErr>.Err(second.GetError());
+            return Result<(T1, T2, T3), TError>.Error(second.GetError());
         if (third.IsError)
-            return Result<(T1, T2, T3), TErr>.Err(third.GetError());
-        return Result<(T1, T2, T3), TErr>.Ok((first.GetValue(), second.GetValue(), third.GetValue()));
+            return Result<(T1, T2, T3), TError>.Error(third.GetError());
+        return Result<(T1, T2, T3), TError>.Ok((first.GetValue(), second.GetValue(), third.GetValue()));
     }
 
     /// <summary>
@@ -1163,19 +1163,19 @@ public static class ResultExtensions
     /// Returns the first error encountered if any Result is Err.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Result<TResult, TErr> Combine<T1, T2, T3, TErr, TResult>(
-        Result<T1, TErr> first,
-        Result<T2, TErr> second,
-        Result<T3, TErr> third,
+    public static Result<TResult, TError> Combine<T1, T2, T3, TError, TResult>(
+        Result<T1, TError> first,
+        Result<T2, TError> second,
+        Result<T3, TError> third,
         Func<T1, T2, T3, TResult> combiner)
     {
         if (first.IsError)
-            return Result<TResult, TErr>.Err(first.GetError());
+            return Result<TResult, TError>.Error(first.GetError());
         if (second.IsError)
-            return Result<TResult, TErr>.Err(second.GetError());
+            return Result<TResult, TError>.Error(second.GetError());
         if (third.IsError)
-            return Result<TResult, TErr>.Err(third.GetError());
-        return Result<TResult, TErr>.Ok(combiner(first.GetValue(), second.GetValue(), third.GetValue()));
+            return Result<TResult, TError>.Error(third.GetError());
+        return Result<TResult, TError>.Ok(combiner(first.GetValue(), second.GetValue(), third.GetValue()));
     }
 
     /// <summary>
@@ -1183,21 +1183,21 @@ public static class ResultExtensions
     /// Returns the first error encountered if any Result is Err.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Result<(T1, T2, T3, T4), TErr> Combine<T1, T2, T3, T4, TErr>(
-        Result<T1, TErr> first,
-        Result<T2, TErr> second,
-        Result<T3, TErr> third,
-        Result<T4, TErr> fourth)
+    public static Result<(T1, T2, T3, T4), TError> Combine<T1, T2, T3, T4, TError>(
+        Result<T1, TError> first,
+        Result<T2, TError> second,
+        Result<T3, TError> third,
+        Result<T4, TError> fourth)
     {
         if (first.IsError)
-            return Result<(T1, T2, T3, T4), TErr>.Err(first.GetError());
+            return Result<(T1, T2, T3, T4), TError>.Error(first.GetError());
         if (second.IsError)
-            return Result<(T1, T2, T3, T4), TErr>.Err(second.GetError());
+            return Result<(T1, T2, T3, T4), TError>.Error(second.GetError());
         if (third.IsError)
-            return Result<(T1, T2, T3, T4), TErr>.Err(third.GetError());
+            return Result<(T1, T2, T3, T4), TError>.Error(third.GetError());
         if (fourth.IsError)
-            return Result<(T1, T2, T3, T4), TErr>.Err(fourth.GetError());
-        return Result<(T1, T2, T3, T4), TErr>.Ok((first.GetValue(), second.GetValue(), third.GetValue(), fourth.GetValue()));
+            return Result<(T1, T2, T3, T4), TError>.Error(fourth.GetError());
+        return Result<(T1, T2, T3, T4), TError>.Ok((first.GetValue(), second.GetValue(), third.GetValue(), fourth.GetValue()));
     }
 
     /// <summary>
@@ -1205,22 +1205,22 @@ public static class ResultExtensions
     /// Returns the first error encountered if any Result is Err.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Result<TResult, TErr> Combine<T1, T2, T3, T4, TErr, TResult>(
-        Result<T1, TErr> first,
-        Result<T2, TErr> second,
-        Result<T3, TErr> third,
-        Result<T4, TErr> fourth,
+    public static Result<TResult, TError> Combine<T1, T2, T3, T4, TError, TResult>(
+        Result<T1, TError> first,
+        Result<T2, TError> second,
+        Result<T3, TError> third,
+        Result<T4, TError> fourth,
         Func<T1, T2, T3, T4, TResult> combiner)
     {
         if (first.IsError)
-            return Result<TResult, TErr>.Err(first.GetError());
+            return Result<TResult, TError>.Error(first.GetError());
         if (second.IsError)
-            return Result<TResult, TErr>.Err(second.GetError());
+            return Result<TResult, TError>.Error(second.GetError());
         if (third.IsError)
-            return Result<TResult, TErr>.Err(third.GetError());
+            return Result<TResult, TError>.Error(third.GetError());
         if (fourth.IsError)
-            return Result<TResult, TErr>.Err(fourth.GetError());
-        return Result<TResult, TErr>.Ok(combiner(first.GetValue(), second.GetValue(), third.GetValue(), fourth.GetValue()));
+            return Result<TResult, TError>.Error(fourth.GetError());
+        return Result<TResult, TError>.Ok(combiner(first.GetValue(), second.GetValue(), third.GetValue(), fourth.GetValue()));
     }
 
     /// <summary>
@@ -1234,16 +1234,16 @@ public static class ResultExtensions
     /// // Result&lt;IReadOnlyList&lt;User&gt;, Error&gt;
     /// </code>
     /// </example>
-    public static Result<IReadOnlyList<T>, TErr> Combine<T, TErr>(IEnumerable<Result<T, TErr>> results)
+    public static Result<IReadOnlyList<T>, TError> Combine<T, TError>(IEnumerable<Result<T, TError>> results)
     {
         var list = new List<T>();
         foreach (var result in results)
         {
             if (result.IsError)
-                return Result<IReadOnlyList<T>, TErr>.Err(result.GetError());
+                return Result<IReadOnlyList<T>, TError>.Error(result.GetError());
             list.Add(result.GetValue());
         }
-        return Result<IReadOnlyList<T>, TErr>.Ok(list);
+        return Result<IReadOnlyList<T>, TError>.Ok(list);
     }
 
     /// <summary>
@@ -1258,14 +1258,14 @@ public static class ResultExtensions
     /// // Result&lt;Unit, Error&gt;
     /// </code>
     /// </example>
-    public static Result<Unit, TErr> CombineAll<T, TErr>(IEnumerable<Result<T, TErr>> results)
+    public static Result<Unit, TError> CombineAll<T, TError>(IEnumerable<Result<T, TError>> results)
     {
         foreach (var result in results)
         {
             if (result.IsError)
-                return Result<Unit, TErr>.Err(result.GetError());
+                return Result<Unit, TError>.Error(result.GetError());
         }
-        return Result<Unit, TErr>.Ok(Unit.Value);
+        return Result<Unit, TError>.Ok(Unit.Value);
     }
 
     #region Async Combine
@@ -1282,9 +1282,9 @@ public static class ResultExtensions
     /// ); // Result&lt;(User, Order), Error&gt;
     /// </code>
     /// </example>
-    public static async Task<Result<(T1, T2), TErr>> CombineAsync<T1, T2, TErr>(
-        Task<Result<T1, TErr>> first,
-        Task<Result<T2, TErr>> second,
+    public static async Task<Result<(T1, T2), TError>> CombineAsync<T1, T2, TError>(
+        Task<Result<T1, TError>> first,
+        Task<Result<T2, TError>> second,
         CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(first);
@@ -1310,9 +1310,9 @@ public static class ResultExtensions
     /// );
     /// </code>
     /// </example>
-    public static async Task<Result<TResult, TErr>> CombineAsync<T1, T2, TErr, TResult>(
-        Task<Result<T1, TErr>> first,
-        Task<Result<T2, TErr>> second,
+    public static async Task<Result<TResult, TError>> CombineAsync<T1, T2, TError, TResult>(
+        Task<Result<T1, TError>> first,
+        Task<Result<T2, TError>> second,
         Func<T1, T2, TResult> combiner,
         CancellationToken cancellationToken = default)
     {
@@ -1331,10 +1331,10 @@ public static class ResultExtensions
     /// Asynchronously combines three Result tasks into a single Result containing a tuple.
     /// Returns the first error encountered if any Result is Err.
     /// </summary>
-    public static async Task<Result<(T1, T2, T3), TErr>> CombineAsync<T1, T2, T3, TErr>(
-        Task<Result<T1, TErr>> first,
-        Task<Result<T2, TErr>> second,
-        Task<Result<T3, TErr>> third,
+    public static async Task<Result<(T1, T2, T3), TError>> CombineAsync<T1, T2, T3, TError>(
+        Task<Result<T1, TError>> first,
+        Task<Result<T2, TError>> second,
+        Task<Result<T3, TError>> third,
         CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(first);
@@ -1354,10 +1354,10 @@ public static class ResultExtensions
     /// Asynchronously combines three Result tasks using a combiner function.
     /// Returns the first error encountered if any Result is Err.
     /// </summary>
-    public static async Task<Result<TResult, TErr>> CombineAsync<T1, T2, T3, TErr, TResult>(
-        Task<Result<T1, TErr>> first,
-        Task<Result<T2, TErr>> second,
-        Task<Result<T3, TErr>> third,
+    public static async Task<Result<TResult, TError>> CombineAsync<T1, T2, T3, TError, TResult>(
+        Task<Result<T1, TError>> first,
+        Task<Result<T2, TError>> second,
+        Task<Result<T3, TError>> third,
         Func<T1, T2, T3, TResult> combiner,
         CancellationToken cancellationToken = default)
     {
@@ -1388,8 +1388,8 @@ public static class ResultExtensions
     /// // Result&lt;IReadOnlyList&lt;User&gt;, Error&gt;
     /// </code>
     /// </example>
-    public static async Task<Result<IReadOnlyList<T>, TErr>> CombineAsync<T, TErr>(
-        IEnumerable<Task<Result<T, TErr>>> resultTasks,
+    public static async Task<Result<IReadOnlyList<T>, TError>> CombineAsync<T, TError>(
+        IEnumerable<Task<Result<T, TError>>> resultTasks,
         CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(resultTasks);
@@ -1405,8 +1405,8 @@ public static class ResultExtensions
     /// Useful when you only care about success/failure, not the values.
     /// Returns the first error encountered if any Result is Err.
     /// </summary>
-    public static async Task<Result<Unit, TErr>> CombineAllAsync<T, TErr>(
-        IEnumerable<Task<Result<T, TErr>>> resultTasks,
+    public static async Task<Result<Unit, TError>> CombineAllAsync<T, TError>(
+        IEnumerable<Task<Result<T, TError>>> resultTasks,
         CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(resultTasks);
@@ -1423,7 +1423,7 @@ public static class ResultExtensions
 
     /// <summary>
     /// Combines two Results, accumulating ALL errors from both if either/both fail.
-    /// Unlike <see cref="Combine{T1,T2,TErr}"/> which returns the first error,
+    /// Unlike <see cref="Combine{T1,T2,TError}"/> which returns the first error,
     /// this method collects all errors like Validation does.
     /// </summary>
     /// <example>
@@ -1434,11 +1434,11 @@ public static class ResultExtensions
     /// // Result&lt;(string, int), IReadOnlyList&lt;Error&gt;&gt; - contains ALL errors if any failed
     /// </code>
     /// </example>
-    public static Result<(T1, T2), IReadOnlyList<TErr>> CombineErrors<T1, T2, TErr>(
-        Result<T1, TErr> first,
-        Result<T2, TErr> second)
+    public static Result<(T1, T2), IReadOnlyList<TError>> CombineErrors<T1, T2, TError>(
+        Result<T1, TError> first,
+        Result<T2, TError> second)
     {
-        var errors = new List<TErr>();
+        var errors = new List<TError>();
 
         if (first.IsError)
             errors.Add(first.GetError());
@@ -1446,22 +1446,22 @@ public static class ResultExtensions
             errors.Add(second.GetError());
 
         if (errors.Count > 0)
-            return Result<(T1, T2), IReadOnlyList<TErr>>.Err(errors);
+            return Result<(T1, T2), IReadOnlyList<TError>>.Error(errors);
 
-        return Result<(T1, T2), IReadOnlyList<TErr>>.Ok((first.GetValue(), second.GetValue()));
+        return Result<(T1, T2), IReadOnlyList<TError>>.Ok((first.GetValue(), second.GetValue()));
     }
 
     /// <summary>
     /// Combines two Results with a combiner function, accumulating ALL errors from both if either/both fail.
     /// </summary>
-    public static Result<TResult, IReadOnlyList<TErr>> CombineErrors<T1, T2, TErr, TResult>(
-        Result<T1, TErr> first,
-        Result<T2, TErr> second,
+    public static Result<TResult, IReadOnlyList<TError>> CombineErrors<T1, T2, TError, TResult>(
+        Result<T1, TError> first,
+        Result<T2, TError> second,
         Func<T1, T2, TResult> combiner)
     {
         ThrowHelper.ThrowIfNull(combiner);
 
-        var errors = new List<TErr>();
+        var errors = new List<TError>();
 
         if (first.IsError)
             errors.Add(first.GetError());
@@ -1469,20 +1469,20 @@ public static class ResultExtensions
             errors.Add(second.GetError());
 
         if (errors.Count > 0)
-            return Result<TResult, IReadOnlyList<TErr>>.Err(errors);
+            return Result<TResult, IReadOnlyList<TError>>.Error(errors);
 
-        return Result<TResult, IReadOnlyList<TErr>>.Ok(combiner(first.GetValue(), second.GetValue()));
+        return Result<TResult, IReadOnlyList<TError>>.Ok(combiner(first.GetValue(), second.GetValue()));
     }
 
     /// <summary>
     /// Combines three Results, accumulating ALL errors from all if any fail.
     /// </summary>
-    public static Result<(T1, T2, T3), IReadOnlyList<TErr>> CombineErrors<T1, T2, T3, TErr>(
-        Result<T1, TErr> first,
-        Result<T2, TErr> second,
-        Result<T3, TErr> third)
+    public static Result<(T1, T2, T3), IReadOnlyList<TError>> CombineErrors<T1, T2, T3, TError>(
+        Result<T1, TError> first,
+        Result<T2, TError> second,
+        Result<T3, TError> third)
     {
-        var errors = new List<TErr>();
+        var errors = new List<TError>();
 
         if (first.IsError)
             errors.Add(first.GetError());
@@ -1492,23 +1492,23 @@ public static class ResultExtensions
             errors.Add(third.GetError());
 
         if (errors.Count > 0)
-            return Result<(T1, T2, T3), IReadOnlyList<TErr>>.Err(errors);
+            return Result<(T1, T2, T3), IReadOnlyList<TError>>.Error(errors);
 
-        return Result<(T1, T2, T3), IReadOnlyList<TErr>>.Ok((first.GetValue(), second.GetValue(), third.GetValue()));
+        return Result<(T1, T2, T3), IReadOnlyList<TError>>.Ok((first.GetValue(), second.GetValue(), third.GetValue()));
     }
 
     /// <summary>
     /// Combines three Results with a combiner function, accumulating ALL errors from all if any fail.
     /// </summary>
-    public static Result<TResult, IReadOnlyList<TErr>> CombineErrors<T1, T2, T3, TErr, TResult>(
-        Result<T1, TErr> first,
-        Result<T2, TErr> second,
-        Result<T3, TErr> third,
+    public static Result<TResult, IReadOnlyList<TError>> CombineErrors<T1, T2, T3, TError, TResult>(
+        Result<T1, TError> first,
+        Result<T2, TError> second,
+        Result<T3, TError> third,
         Func<T1, T2, T3, TResult> combiner)
     {
         ThrowHelper.ThrowIfNull(combiner);
 
-        var errors = new List<TErr>();
+        var errors = new List<TError>();
 
         if (first.IsError)
             errors.Add(first.GetError());
@@ -1518,21 +1518,21 @@ public static class ResultExtensions
             errors.Add(third.GetError());
 
         if (errors.Count > 0)
-            return Result<TResult, IReadOnlyList<TErr>>.Err(errors);
+            return Result<TResult, IReadOnlyList<TError>>.Error(errors);
 
-        return Result<TResult, IReadOnlyList<TErr>>.Ok(combiner(first.GetValue(), second.GetValue(), third.GetValue()));
+        return Result<TResult, IReadOnlyList<TError>>.Ok(combiner(first.GetValue(), second.GetValue(), third.GetValue()));
     }
 
     /// <summary>
     /// Combines four Results, accumulating ALL errors from all if any fail.
     /// </summary>
-    public static Result<(T1, T2, T3, T4), IReadOnlyList<TErr>> CombineErrors<T1, T2, T3, T4, TErr>(
-        Result<T1, TErr> first,
-        Result<T2, TErr> second,
-        Result<T3, TErr> third,
-        Result<T4, TErr> fourth)
+    public static Result<(T1, T2, T3, T4), IReadOnlyList<TError>> CombineErrors<T1, T2, T3, T4, TError>(
+        Result<T1, TError> first,
+        Result<T2, TError> second,
+        Result<T3, TError> third,
+        Result<T4, TError> fourth)
     {
-        var errors = new List<TErr>();
+        var errors = new List<TError>();
 
         if (first.IsError)
             errors.Add(first.GetError());
@@ -1544,9 +1544,9 @@ public static class ResultExtensions
             errors.Add(fourth.GetError());
 
         if (errors.Count > 0)
-            return Result<(T1, T2, T3, T4), IReadOnlyList<TErr>>.Err(errors);
+            return Result<(T1, T2, T3, T4), IReadOnlyList<TError>>.Error(errors);
 
-        return Result<(T1, T2, T3, T4), IReadOnlyList<TErr>>.Ok((
+        return Result<(T1, T2, T3, T4), IReadOnlyList<TError>>.Ok((
             first.GetValue(), second.GetValue(), third.GetValue(), fourth.GetValue()));
     }
 
@@ -1560,13 +1560,13 @@ public static class ResultExtensions
     /// // Result&lt;IReadOnlyList&lt;T&gt;, IReadOnlyList&lt;Error&gt;&gt;
     /// </code>
     /// </example>
-    public static Result<IReadOnlyList<T>, IReadOnlyList<TErr>> CombineErrors<T, TErr>(
-        IEnumerable<Result<T, TErr>> results)
+    public static Result<IReadOnlyList<T>, IReadOnlyList<TError>> CombineErrors<T, TError>(
+        IEnumerable<Result<T, TError>> results)
     {
         ThrowHelper.ThrowIfNull(results);
 
         var values = new List<T>();
-        var errors = new List<TErr>();
+        var errors = new List<TError>();
 
         foreach (var result in results)
         {
@@ -1577,17 +1577,17 @@ public static class ResultExtensions
         }
 
         if (errors.Count > 0)
-            return Result<IReadOnlyList<T>, IReadOnlyList<TErr>>.Err(errors);
+            return Result<IReadOnlyList<T>, IReadOnlyList<TError>>.Error(errors);
 
-        return Result<IReadOnlyList<T>, IReadOnlyList<TErr>>.Ok(values);
+        return Result<IReadOnlyList<T>, IReadOnlyList<TError>>.Ok(values);
     }
 
     /// <summary>
     /// Asynchronously combines two Result tasks, accumulating ALL errors from both if either/both fail.
     /// </summary>
-    public static async Task<Result<(T1, T2), IReadOnlyList<TErr>>> CombineErrorsAsync<T1, T2, TErr>(
-        Task<Result<T1, TErr>> first,
-        Task<Result<T2, TErr>> second,
+    public static async Task<Result<(T1, T2), IReadOnlyList<TError>>> CombineErrorsAsync<T1, T2, TError>(
+        Task<Result<T1, TError>> first,
+        Task<Result<T2, TError>> second,
         CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(first);
@@ -1604,8 +1604,8 @@ public static class ResultExtensions
     /// <summary>
     /// Asynchronously combines a collection of Result tasks, accumulating ALL errors from all if any fail.
     /// </summary>
-    public static async Task<Result<IReadOnlyList<T>, IReadOnlyList<TErr>>> CombineErrorsAsync<T, TErr>(
-        IEnumerable<Task<Result<T, TErr>>> resultTasks,
+    public static async Task<Result<IReadOnlyList<T>, IReadOnlyList<TError>>> CombineErrorsAsync<T, TError>(
+        IEnumerable<Task<Result<T, TError>>> resultTasks,
         CancellationToken cancellationToken = default)
     {
         ThrowHelper.ThrowIfNull(resultTasks);
@@ -1621,13 +1621,13 @@ public static class ResultExtensions
 }
 
 /// <summary>
-/// Debug view proxy for <see cref="Result{T, TErr}"/> to provide a better debugging experience.
+/// Debug view proxy for <see cref="Result{T, TError}"/> to provide a better debugging experience.
 /// </summary>
-internal sealed class ResultDebugView<T, TErr>
+internal sealed class ResultDebugView<T, TError>
 {
-    private readonly Result<T, TErr> _result;
+    private readonly Result<T, TError> _result;
 
-    public ResultDebugView(Result<T, TErr> result)
+    public ResultDebugView(Result<T, TError> result)
     {
         _result = result;
     }

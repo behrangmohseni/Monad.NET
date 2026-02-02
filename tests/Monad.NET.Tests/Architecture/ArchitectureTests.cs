@@ -88,16 +88,16 @@ public class ArchitectureTests
 
     /// <summary>
     /// Static factory methods on monad types should have AggressiveInlining.
-    /// Note: Some overloads like Validation.Invalid(IEnumerable) do more work and don't have AggressiveInlining.
+    /// Note: Some overloads like Validation.Error(IEnumerable) do more work and don't have AggressiveInlining.
     /// </summary>
     [Theory]
     [InlineData(typeof(Option<int>), "Some")]
     [InlineData(typeof(Option<int>), "None")]
     [InlineData(typeof(Result<int, string>), "Ok")]
-    [InlineData(typeof(Result<int, string>), "Err")]
-    [InlineData(typeof(Try<int>), "Success")]
-    [InlineData(typeof(Try<int>), "Failure")]
-    [InlineData(typeof(Validation<int, string>), "Valid")]
+    [InlineData(typeof(Result<int, string>), "Error")]
+    [InlineData(typeof(Try<int>), "Ok")]
+    [InlineData(typeof(Try<int>), "Error")]
+    [InlineData(typeof(Validation<int, string>), "Ok")]
     public void FactoryMethods_ShouldHaveAggressiveInlining(Type type, string methodName)
     {
         var methods = type.GetMethods(BindingFlags.Static | BindingFlags.Public)
@@ -115,19 +115,19 @@ public class ArchitectureTests
     }
 
     /// <summary>
-    /// Validation.Invalid(TErr) single-error factory should have AggressiveInlining.
+    /// Validation.Error(TError) single-error factory should have AggressiveInlining.
     /// The IEnumerable overload is excluded as it does more work (ToList).
     /// </summary>
     [Fact]
-    public void Validation_Invalid_SingleError_ShouldHaveAggressiveInlining()
+    public void Validation_Error_SingleError_ShouldHaveAggressiveInlining()
     {
         var type = typeof(Validation<int, string>);
-        var method = type.GetMethod("Invalid", BindingFlags.Static | BindingFlags.Public, null, new[] { typeof(string) }, null);
+        var method = type.GetMethod("Error", BindingFlags.Static | BindingFlags.Public, null, new[] { typeof(string) }, null);
 
         Assert.NotNull(method);
         var flags = method!.MethodImplementationFlags;
         Assert.True(flags.HasFlag(MethodImplAttributes.AggressiveInlining),
-            $"Validation.Invalid(TErr) should have AggressiveInlining (flags: {flags})");
+            $"Validation.Error(TError) should have AggressiveInlining (flags: {flags})");
     }
 
     /// <summary>

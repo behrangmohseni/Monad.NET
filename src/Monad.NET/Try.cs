@@ -16,11 +16,11 @@ namespace Monad.NET;
 /// This is useful for integrating with legacy code or external libraries that use exceptions.
 /// </para>
 /// <para>
-/// For typed errors without exceptions, prefer <see cref="Result{T,TErr}"/>.
+/// For typed errors without exceptions, prefer <see cref="Result{T,TError}"/>.
 /// For simple presence/absence, use <see cref="Option{T}"/>.
 /// </para>
 /// </remarks>
-/// <seealso cref="Result{T,TErr}"/>
+/// <seealso cref="Result{T,TError}"/>
 /// <seealso cref="Option{T}"/>
 /// <seealso cref="TryExtensions"/>
 [Serializable]
@@ -50,7 +50,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
     /// <summary>
     /// Indicates whether the Try was properly initialized via factory methods.
     /// A default-constructed Try (e.g., default(Try&lt;T&gt;)) is not initialized.
-    /// Always create Try instances via <see cref="Success(T)"/>, <see cref="Failure(Exception)"/>, or <see cref="Of(Func{T})"/> factory methods.
+    /// Always create Try instances via <see cref="Ok(T)"/>, <see cref="Error(Exception)"/>, or <see cref="Of(Func{T})"/> factory methods.
     /// </summary>
     public bool IsInitialized
     {
@@ -130,22 +130,22 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
     }
 
     /// <summary>
-    /// Creates a successful Try.
+    /// Creates a successful (Ok) Try.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Try<T> Success(T value)
+    public static Try<T> Ok(T value)
     {
         if (value is null)
-            ThrowHelper.ThrowArgumentNull(nameof(value), "Cannot create Success with null value.");
+            ThrowHelper.ThrowArgumentNull(nameof(value), "Cannot create Ok with null value.");
 
         return new Try<T>(value, null, true);
     }
 
     /// <summary>
-    /// Creates a failed Try with an exception.
+    /// Creates a failed (Error) Try with an exception.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Try<T> Failure(Exception exception)
+    public static Try<T> Error(Exception exception)
     {
         if (exception is null)
             ThrowHelper.ThrowArgumentNull(nameof(exception));
@@ -161,11 +161,11 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
     {
         try
         {
-            return Success(func());
+            return Ok(func());
         }
         catch (Exception ex)
         {
-            return Failure(ex);
+            return Error(ex);
         }
     }
 
@@ -174,13 +174,13 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
     /// </summary>
     /// <param name="func">The async function to execute.</param>
     /// <param name="cancellationToken">A cancellation token to observe.</param>
-    /// <returns>Success with the result, or Failure with the exception.</returns>
+    /// <returns>Ok with the result, or Error with the exception.</returns>
     public static async Task<Try<T>> OfAsync(Func<Task<T>> func, CancellationToken cancellationToken = default)
     {
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return Success(await func().ConfigureAwait(false));
+            return Ok(await func().ConfigureAwait(false));
         }
         catch (OperationCanceledException)
         {
@@ -188,7 +188,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
         }
         catch (Exception ex)
         {
-            return Failure(ex);
+            return Error(ex);
         }
     }
 
@@ -200,7 +200,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return Success(await func(cancellationToken).ConfigureAwait(false));
+            return Ok(await func(cancellationToken).ConfigureAwait(false));
         }
         catch (OperationCanceledException)
         {
@@ -208,7 +208,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
         }
         catch (Exception ex)
         {
-            return Failure(ex);
+            return Error(ex);
         }
     }
 
@@ -233,10 +233,10 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
     /// <exception cref="InvalidOperationException">Thrown if failed or if the Try was not properly initialized.</exception>
     /// <example>
     /// <code>
-    /// var result = Try&lt;int&gt;.Success(42);
+    /// var result = Try&lt;int&gt;.Ok(42);
     /// var value = result.GetOrThrow(); // 42
     /// 
-    /// var failure = Try&lt;int&gt;.Failure(new Exception("error"));
+    /// var failure = Try&lt;int&gt;.Error(new Exception("error"));
     /// failure.GetOrThrow(); // throws InvalidOperationException
     /// </code>
     /// </example>
@@ -271,10 +271,10 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
     /// <exception cref="InvalidOperationException">Thrown if successful or if the Try was not properly initialized.</exception>
     /// <example>
     /// <code>
-    /// var failure = Try&lt;int&gt;.Failure(new Exception("error"));
+    /// var failure = Try&lt;int&gt;.Error(new Exception("error"));
     /// var ex = failure.GetExceptionOrThrow(); // Exception
     /// 
-    /// var success = Try&lt;int&gt;.Success(42);
+    /// var success = Try&lt;int&gt;.Ok(42);
     /// success.GetExceptionOrThrow(); // throws InvalidOperationException
     /// </code>
     /// </example>
@@ -352,7 +352,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
     /// <exception cref="InvalidOperationException">Thrown if the Try was not properly initialized.</exception>
     /// <example>
     /// <code>
-    /// var result = Try&lt;int&gt;.Success(42);
+    /// var result = Try&lt;int&gt;.Ok(42);
     /// result.Contains(42); // true
     /// result.Contains(0);  // false
     /// </code>
@@ -372,7 +372,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
     /// <exception cref="InvalidOperationException">Thrown if the Try was not properly initialized.</exception>
     /// <example>
     /// <code>
-    /// var result = Try&lt;int&gt;.Success(42);
+    /// var result = Try&lt;int&gt;.Ok(42);
     /// result.Exists(x => x > 40); // true
     /// result.Exists(x => x > 50); // false
     /// </code>
@@ -394,15 +394,15 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
     {
         ThrowIfDefault();
         if (!_isSuccess)
-            return Try<U>.Failure(_exception!);
+            return Try<U>.Error(_exception!);
 
         try
         {
-            return Try<U>.Success(mapper(_value!));
+            return Try<U>.Ok(mapper(_value!));
         }
         catch (Exception ex)
         {
-            return Try<U>.Failure(ex);
+            return Try<U>.Error(ex);
         }
     }
 
@@ -416,7 +416,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
     {
         ThrowIfDefault();
         if (!_isSuccess)
-            return Try<U>.Failure(_exception!);
+            return Try<U>.Error(_exception!);
 
         try
         {
@@ -424,7 +424,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
         }
         catch (Exception ex)
         {
-            return Try<U>.Failure(ex);
+            return Try<U>.Error(ex);
         }
     }
 
@@ -448,10 +448,10 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
     {
         ThrowIfDefault();
         if (!_isSuccess)
-            return Try<(T, U)>.Failure(_exception!);
+            return Try<(T, U)>.Error(_exception!);
         if (!other.IsOk)
-            return Try<(T, U)>.Failure(other.GetException());
-        return Try<(T, U)>.Success((_value!, other.GetValue()));
+            return Try<(T, U)>.Error(other.GetException());
+        return Try<(T, U)>.Ok((_value!, other.GetValue()));
     }
 
     /// <summary>
@@ -476,17 +476,17 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
     {
         ThrowIfDefault();
         if (!_isSuccess)
-            return Try<V>.Failure(_exception!);
+            return Try<V>.Error(_exception!);
         if (!other.IsOk)
-            return Try<V>.Failure(other.GetException());
+            return Try<V>.Error(other.GetException());
 
         try
         {
-            return Try<V>.Success(combiner(_value!, other.GetValue()));
+            return Try<V>.Ok(combiner(_value!, other.GetValue()));
         }
         catch (Exception ex)
         {
-            return Try<V>.Failure(ex);
+            return Try<V>.Error(ex);
         }
     }
 
@@ -505,11 +505,11 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
         {
             return predicate(_value!)
                 ? this
-                : Failure(new InvalidOperationException("Predicate not satisfied"));
+                : Error(new InvalidOperationException("Predicate not satisfied"));
         }
         catch (Exception ex)
         {
-            return Failure(ex);
+            return Error(ex);
         }
     }
 
@@ -528,11 +528,11 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
         {
             return predicate(_value!)
                 ? this
-                : Failure(new InvalidOperationException(errorMessage));
+                : Error(new InvalidOperationException(errorMessage));
         }
         catch (Exception ex)
         {
-            return Failure(ex);
+            return Error(ex);
         }
     }
 
@@ -551,11 +551,11 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
         {
             return predicate(_value!)
                 ? this
-                : Failure(exceptionFactory());
+                : Error(exceptionFactory());
         }
         catch (Exception ex)
         {
-            return Failure(ex);
+            return Error(ex);
         }
     }
 
@@ -572,11 +572,11 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
 
         try
         {
-            return Success(recovery(_exception!));
+            return Ok(recovery(_exception!));
         }
         catch (Exception ex)
         {
-            return Failure(ex);
+            return Error(ex);
         }
     }
 
@@ -598,7 +598,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
         }
         catch (Exception ex)
         {
-            return Failure(ex);
+            return Error(ex);
         }
     }
 
@@ -648,7 +648,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
         ThrowIfDefault();
         return _isSuccess
             ? Result<T, Exception>.Ok(_value!)
-            : Result<T, Exception>.Err(_exception!);
+            : Result<T, Exception>.Error(_exception!);
     }
 
     /// <summary>
@@ -656,12 +656,12 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if the Try was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Result<T, TErr> ToResult<TErr>(Func<Exception, TErr> errorMapper)
+    public Result<T, TError> ToResult<TError>(Func<Exception, TError> errorMapper)
     {
         ThrowIfDefault();
         return _isSuccess
-            ? Result<T, TErr>.Ok(_value!)
-            : Result<T, TErr>.Err(errorMapper(_exception!));
+            ? Result<T, TError>.Ok(_value!)
+            : Result<T, TError>.Error(errorMapper(_exception!));
     }
 
     /// <inheritdoc />
@@ -805,7 +805,7 @@ public static class TryExtensions
             }
             catch (Exception ex)
             {
-                return Try<T>.Failure(ex);
+                return Try<T>.Error(ex);
             }
         }
 
@@ -813,10 +813,10 @@ public static class TryExtensions
     }
 
     /// <summary>
-    /// Executes an action on failure, allowing method chaining.
+    /// Executes an action on error, allowing method chaining.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Try<T> TapFailure<T>(this Try<T> @try, Action<Exception> action)
+    public static Try<T> TapError<T>(this Try<T> @try, Action<Exception> action)
     {
         if (@try.IsError)
             action(@try.GetException());
@@ -840,8 +840,8 @@ public static class TryExtensions
     public static Try<T> ToTry<T>(this Result<T, Exception> result)
     {
         return result.Match(
-            okFunc: static value => Try<T>.Success(value),
-            errFunc: static ex => Try<T>.Failure(ex)
+            okFunc: static value => Try<T>.Ok(value),
+            errFunc: static ex => Try<T>.Error(ex)
         );
     }
 
@@ -858,13 +858,13 @@ public static class TryExtensions
         CancellationToken cancellationToken = default)
     {
         if (!@try.IsOk)
-            return Try<U>.Failure(@try.GetException());
+            return Try<U>.Error(@try.GetException());
 
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
             var result = await mapper(@try.GetValue()).ConfigureAwait(false);
-            return Try<U>.Success(result);
+            return Try<U>.Ok(result);
         }
         catch (OperationCanceledException)
         {
@@ -872,7 +872,7 @@ public static class TryExtensions
         }
         catch (Exception ex)
         {
-            return Try<U>.Failure(ex);
+            return Try<U>.Error(ex);
         }
     }
 
@@ -889,7 +889,7 @@ public static class TryExtensions
         CancellationToken cancellationToken = default)
     {
         if (!@try.IsOk)
-            return Try<U>.Failure(@try.GetException());
+            return Try<U>.Error(@try.GetException());
 
         try
         {
@@ -902,7 +902,7 @@ public static class TryExtensions
         }
         catch (Exception ex)
         {
-            return Try<U>.Failure(ex);
+            return Try<U>.Error(ex);
         }
     }
 
@@ -919,13 +919,13 @@ public static class TryExtensions
         CancellationToken cancellationToken = default)
     {
         if (!@try.IsOk)
-            return Try<U>.Failure(@try.GetException());
+            return Try<U>.Error(@try.GetException());
 
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
             var result = await mapper(@try.GetValue(), cancellationToken).ConfigureAwait(false);
-            return Try<U>.Success(result);
+            return Try<U>.Ok(result);
         }
         catch (OperationCanceledException)
         {
@@ -933,7 +933,7 @@ public static class TryExtensions
         }
         catch (Exception ex)
         {
-            return Try<U>.Failure(ex);
+            return Try<U>.Error(ex);
         }
     }
 
@@ -946,7 +946,7 @@ public static class TryExtensions
         CancellationToken cancellationToken = default)
     {
         if (!@try.IsOk)
-            return Try<U>.Failure(@try.GetException());
+            return Try<U>.Error(@try.GetException());
 
         try
         {
@@ -959,7 +959,7 @@ public static class TryExtensions
         }
         catch (Exception ex)
         {
-            return Try<U>.Failure(ex);
+            return Try<U>.Error(ex);
         }
     }
 
@@ -1011,13 +1011,13 @@ public static class TryExtensions
 
         var @try = await tryTask.ConfigureAwait(false);
         if (!@try.IsOk)
-            return Try<U>.Failure(@try.GetException());
+            return Try<U>.Error(@try.GetException());
 
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
             var result = await mapper(@try.GetValue(), cancellationToken).ConfigureAwait(false);
-            return Try<U>.Success(result);
+            return Try<U>.Ok(result);
         }
         catch (OperationCanceledException)
         {
@@ -1025,7 +1025,7 @@ public static class TryExtensions
         }
         catch (Exception ex)
         {
-            return Try<U>.Failure(ex);
+            return Try<U>.Error(ex);
         }
     }
 
@@ -1068,7 +1068,7 @@ public static class TryExtensions
 
         var @try = await tryTask.ConfigureAwait(false);
         if (!@try.IsOk)
-            return Try<U>.Failure(@try.GetException());
+            return Try<U>.Error(@try.GetException());
 
         try
         {
@@ -1081,7 +1081,7 @@ public static class TryExtensions
         }
         catch (Exception ex)
         {
-            return Try<U>.Failure(ex);
+            return Try<U>.Error(ex);
         }
     }
 

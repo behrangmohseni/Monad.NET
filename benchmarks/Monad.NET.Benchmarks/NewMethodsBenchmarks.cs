@@ -24,11 +24,11 @@ public class NewMethodsBenchmarks
         _some = Option<int>.Some(42);
         _none = Option<int>.None();
         _ok = Result<int, string>.Ok(42);
-        _err = Result<int, string>.Err("error");
-        _valid = Validation<int, string>.Valid(42);
-        _invalid = Validation<int, string>.Invalid("error");
-        _nestedValid = Validation<Validation<int, string>, string>.Valid(
-            Validation<int, string>.Valid(42));
+        _err = Result<int, string>.Error("error");
+        _valid = Validation<int, string>.Ok(42);
+        _invalid = Validation<int, string>.Error("error");
+        _nestedValid = Validation<Validation<int, string>, string>.Ok(
+            Validation<int, string>.Ok(42));
     }
 
     #region Option.DefaultIfNone Benchmarks
@@ -155,15 +155,15 @@ public class NewMethodsBenchmarks
     [Benchmark]
     public Validation<int, string> Flatten_OuterInvalid()
     {
-        var nested = Validation<Validation<int, string>, string>.Invalid("outer error");
+        var nested = Validation<Validation<int, string>, string>.Error("outer error");
         return nested.Flatten();
     }
 
     [Benchmark]
     public Validation<int, string> Flatten_InnerInvalid()
     {
-        var nested = Validation<Validation<int, string>, string>.Valid(
-            Validation<int, string>.Invalid("inner error"));
+        var nested = Validation<Validation<int, string>, string>.Ok(
+            Validation<int, string>.Error("inner error"));
         return nested.Flatten();
     }
 
@@ -214,8 +214,8 @@ public class NewMethodsBenchmarks
     public Validation<int, string> BindValidation_Comparison()
     {
         return _valid.Bind(x => x > 0 
-            ? Validation<int, string>.Valid(x) 
-            : Validation<int, string>.Invalid("Must be positive"));
+            ? Validation<int, string>.Ok(x) 
+            : Validation<int, string>.Error("Must be positive"));
     }
 
     #endregion

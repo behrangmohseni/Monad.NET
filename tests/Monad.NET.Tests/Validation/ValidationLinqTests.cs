@@ -12,7 +12,7 @@ public class ValidationLinqTests
     [Fact]
     public void Validation_Select_OnValid_TransformsValue()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
         var result = validation.Select(x => x * 2);
 
         Assert.True(result.IsOk);
@@ -22,7 +22,7 @@ public class ValidationLinqTests
     [Fact]
     public void Validation_Select_OnInvalid_ReturnsInvalid()
     {
-        var validation = Validation<int, string>.Invalid("error");
+        var validation = Validation<int, string>.Error("error");
         var result = validation.Select(x => x * 2);
 
         Assert.True(result.IsError);
@@ -34,7 +34,7 @@ public class ValidationLinqTests
     [Fact]
     public void Validation_Select_OnMultipleErrors_PreservesAllErrors()
     {
-        var validation = Validation<int, string>.Invalid(new[] { "error1", "error2" });
+        var validation = Validation<int, string>.Error(new[] { "error1", "error2" });
         var result = validation.Select(x => x * 2);
 
         Assert.True(result.IsError);
@@ -51,8 +51,8 @@ public class ValidationLinqTests
     [Fact]
     public void Validation_SelectMany_BothValid_Chains()
     {
-        var result = Validation<int, string>.Valid(10)
-            .SelectMany(x => Validation<int, string>.Valid(x + 20));
+        var result = Validation<int, string>.Ok(10)
+            .SelectMany(x => Validation<int, string>.Ok(x + 20));
 
         Assert.True(result.IsOk);
         Assert.Equal(30, result.GetValue());
@@ -63,8 +63,8 @@ public class ValidationLinqTests
     {
         // LINQ SelectMany uses short-circuit behavior (like Result) for safety.
         // It does NOT accumulate errors - use Apply() for error accumulation.
-        var result = Validation<int, string>.Invalid("first error")
-            .SelectMany(_ => Validation<int, string>.Invalid("second error"));
+        var result = Validation<int, string>.Error("first error")
+            .SelectMany(_ => Validation<int, string>.Error("second error"));
 
         Assert.True(result.IsError);
         var errors = result.GetErrorsOrThrow();
@@ -77,8 +77,8 @@ public class ValidationLinqTests
     public void Validation_SelectMany_FirstInvalid_SecondNotEvaluated()
     {
         // When first validation fails, second selector is not evaluated at all
-        var result = Validation<int, string>.Invalid("first error")
-            .SelectMany(x => Validation<int, string>.Valid(x + 20));
+        var result = Validation<int, string>.Error("first error")
+            .SelectMany(x => Validation<int, string>.Ok(x + 20));
 
         Assert.True(result.IsError);
         var errors = result.GetErrorsOrThrow();
@@ -89,8 +89,8 @@ public class ValidationLinqTests
     [Fact]
     public void Validation_SelectMany_SecondInvalid_ReturnsInvalid()
     {
-        var result = Validation<int, string>.Valid(10)
-            .SelectMany(_ => Validation<int, string>.Invalid("second error"));
+        var result = Validation<int, string>.Ok(10)
+            .SelectMany(_ => Validation<int, string>.Error("second error"));
 
         Assert.True(result.IsError);
         var errors = result.GetErrorsOrThrow();
@@ -101,9 +101,9 @@ public class ValidationLinqTests
     [Fact]
     public void Validation_SelectMany_WithResultSelector_Chains()
     {
-        var first = Validation<int, string>.Valid(10);
+        var first = Validation<int, string>.Ok(10);
         var result = first.SelectMany(
-            x => Validation<string, string>.Valid($"Value: {x}"),
+            x => Validation<string, string>.Ok($"Value: {x}"),
             (x, y) => $"{y} (original: {x})");
 
         Assert.True(result.IsOk);
@@ -115,9 +115,9 @@ public class ValidationLinqTests
     {
         // LINQ SelectMany uses short-circuit behavior for safety.
         // Use Apply() or Zip() for error accumulation.
-        var first = Validation<int, string>.Invalid("first error");
+        var first = Validation<int, string>.Error("first error");
         var result = first.SelectMany(
-            _ => Validation<string, string>.Invalid("second error"),
+            _ => Validation<string, string>.Error("second error"),
             (x, y) => $"{y} (original: {x})");
 
         Assert.True(result.IsError);
@@ -131,9 +131,9 @@ public class ValidationLinqTests
     public void Validation_SelectMany_WithResultSelector_FirstInvalid_SecondNotEvaluated()
     {
         // When first validation fails, collection selector is not called
-        var first = Validation<int, string>.Invalid("error");
+        var first = Validation<int, string>.Error("error");
         var result = first.SelectMany(
-            x => Validation<string, string>.Valid($"Value: {x}"),
+            x => Validation<string, string>.Ok($"Value: {x}"),
             (x, y) => $"{y} (original: {x})");
 
         Assert.True(result.IsError);
@@ -145,9 +145,9 @@ public class ValidationLinqTests
     [Fact]
     public void Validation_SelectMany_WithResultSelector_SecondInvalid()
     {
-        var first = Validation<int, string>.Valid(10);
+        var first = Validation<int, string>.Ok(10);
         var result = first.SelectMany(
-            _ => Validation<string, string>.Invalid("error"),
+            _ => Validation<string, string>.Error("error"),
             (x, y) => $"{y} (original: {x})");
 
         Assert.True(result.IsError);
@@ -156,7 +156,7 @@ public class ValidationLinqTests
     [Fact]
     public void Validation_SelectMany_NullSelectorThrows()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
 
         Assert.Throws<ArgumentNullException>(() =>
             validation.SelectMany((Func<int, Validation<int, string>>)null!));
@@ -165,7 +165,7 @@ public class ValidationLinqTests
     [Fact]
     public void Validation_SelectMany_WithResultSelector_NullCollectionSelectorThrows()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
 
         Assert.Throws<ArgumentNullException>(() =>
             validation.SelectMany(
@@ -176,11 +176,11 @@ public class ValidationLinqTests
     [Fact]
     public void Validation_SelectMany_WithResultSelector_NullResultSelectorThrows()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
 
         Assert.Throws<ArgumentNullException>(() =>
             validation.SelectMany(
-                _ => Validation<int, string>.Valid(10),
+                _ => Validation<int, string>.Ok(10),
                 (Func<int, int, int>)null!));
     }
 
@@ -191,8 +191,8 @@ public class ValidationLinqTests
     [Fact]
     public void Validation_LinqQuery_SimpleChain()
     {
-        var result = from a in Validation<int, string>.Valid(1)
-                     from b in Validation<int, string>.Valid(2)
+        var result = from a in Validation<int, string>.Ok(1)
+                     from b in Validation<int, string>.Ok(2)
                      select a + b;
 
         Assert.True(result.IsOk);
@@ -202,9 +202,9 @@ public class ValidationLinqTests
     [Fact]
     public void Validation_LinqQuery_WithLet()
     {
-        var result = from a in Validation<int, string>.Valid(5)
+        var result = from a in Validation<int, string>.Ok(5)
                      let doubled = a * 2
-                     from b in Validation<int, string>.Valid(3)
+                     from b in Validation<int, string>.Ok(3)
                      select doubled + b;
 
         Assert.True(result.IsOk);
@@ -214,9 +214,9 @@ public class ValidationLinqTests
     [Fact]
     public void Validation_LinqQuery_TripleChain()
     {
-        var result = from a in Validation<int, string>.Valid(1)
-                     from b in Validation<int, string>.Valid(2)
-                     from c in Validation<int, string>.Valid(3)
+        var result = from a in Validation<int, string>.Ok(1)
+                     from b in Validation<int, string>.Ok(2)
+                     from c in Validation<int, string>.Ok(3)
                      select a + b + c;
 
         Assert.True(result.IsOk);
@@ -228,8 +228,8 @@ public class ValidationLinqTests
     {
         // LINQ query syntax short-circuits on first error (like Result).
         // Use Apply() or Zip() for error accumulation.
-        var result = from a in Validation<int, string>.Invalid("first")
-                     from b in Validation<int, string>.Invalid("second")
+        var result = from a in Validation<int, string>.Error("first")
+                     from b in Validation<int, string>.Error("second")
                      select a + b;
 
         Assert.True(result.IsError);
@@ -243,8 +243,8 @@ public class ValidationLinqTests
     public void Validation_LinqQuery_FirstInvalid_SecondNotEvaluated()
     {
         // When first fails, second validation is not evaluated
-        var result = from a in Validation<int, string>.Invalid("first")
-                     from b in Validation<int, string>.Valid(2)
+        var result = from a in Validation<int, string>.Error("first")
+                     from b in Validation<int, string>.Ok(2)
                      select a + b;
 
         Assert.True(result.IsError);
@@ -256,9 +256,9 @@ public class ValidationLinqTests
     [Fact]
     public void Validation_LinqQuery_MiddleInvalid()
     {
-        var result = from a in Validation<int, string>.Valid(1)
-                     from b in Validation<int, string>.Invalid("middle")
-                     from c in Validation<int, string>.Valid(3)
+        var result = from a in Validation<int, string>.Ok(1)
+                     from b in Validation<int, string>.Error("middle")
+                     from c in Validation<int, string>.Ok(3)
                      select a + b + c;
 
         Assert.True(result.IsError);
@@ -269,9 +269,9 @@ public class ValidationLinqTests
     {
         // LINQ short-circuits: stops at first error, doesn't accumulate.
         // Use Apply().Apply().Apply() for accumulating multiple validations.
-        var result = from a in Validation<int, string>.Invalid("error1")
-                     from b in Validation<int, string>.Invalid("error2")
-                     from c in Validation<int, string>.Invalid("error3")
+        var result = from a in Validation<int, string>.Error("error1")
+                     from b in Validation<int, string>.Error("error2")
+                     from c in Validation<int, string>.Error("error3")
                      select a + b + c;
 
         Assert.True(result.IsError);
@@ -285,9 +285,9 @@ public class ValidationLinqTests
     public void Validation_Apply_AccumulatesAllErrors()
     {
         // Demonstrate the correct way to accumulate errors
-        var v1 = Validation<int, string>.Invalid("error1");
-        var v2 = Validation<int, string>.Invalid("error2");
-        var v3 = Validation<int, string>.Invalid("error3");
+        var v1 = Validation<int, string>.Error("error1");
+        var v2 = Validation<int, string>.Error("error2");
+        var v3 = Validation<int, string>.Error("error3");
 
         var result = v1
             .Apply(v2, (a, b) => a + b)

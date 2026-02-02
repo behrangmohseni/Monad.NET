@@ -493,11 +493,11 @@ public readonly struct IOAsync<T>
         {
             try
             {
-                return Try<T>.Success(await effect().ConfigureAwait(false));
+                return Try<T>.Ok(await effect().ConfigureAwait(false));
             }
             catch (Exception ex)
             {
-                return Try<T>.Failure(ex);
+                return Try<T>.Error(ex);
             }
         });
     }

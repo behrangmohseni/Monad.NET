@@ -21,7 +21,7 @@ public class ResultExtensionsTests
     [Fact]
     public void ToActionResult_Err_ReturnsObjectResultWithErrorCode()
     {
-        var result = Result<int, string>.Err("Error occurred");
+        var result = Result<int, string>.Error("Error occurred");
 
         var actionResult = result.ToActionResult(StatusCodes.Status400BadRequest);
 
@@ -33,7 +33,7 @@ public class ResultExtensionsTests
     [Fact]
     public void ToActionResult_Err_DefaultsTo400()
     {
-        var result = Result<int, string>.Err("Error");
+        var result = Result<int, string>.Error("Error");
 
         var actionResult = result.ToActionResult();
 
@@ -58,7 +58,7 @@ public class ResultExtensionsTests
     [Fact]
     public void ToActionResult_WithCustomMapping_Err_UsesOnErr()
     {
-        var result = Result<int, string>.Err("Error");
+        var result = Result<int, string>.Error("Error");
 
         var actionResult = result.ToActionResult(
             onOk: v => new OkObjectResult(v),
@@ -72,7 +72,7 @@ public class ResultExtensionsTests
     [Fact]
     public void ToActionResultOrNotFound_Err_ReturnsNotFound()
     {
-        var result = Result<int, string>.Err("Not found");
+        var result = Result<int, string>.Error("Not found");
 
         var actionResult = result.ToActionResultOrNotFound();
 
@@ -105,7 +105,7 @@ public class ResultExtensionsTests
     [Fact]
     public void ToActionResultWithProblemDetails_Err_ReturnsProblemDetails()
     {
-        var result = Result<int, string>.Err("Something went wrong");
+        var result = Result<int, string>.Error("Something went wrong");
 
         var actionResult = result.ToActionResultWithProblemDetails("Error", StatusCodes.Status500InternalServerError);
 
@@ -130,7 +130,7 @@ public class ResultExtensionsTests
     [Fact]
     public async Task ToActionResultAsync_Err_ReturnsObjectResult()
     {
-        var resultTask = Task.FromResult(Result<int, string>.Err("Error"));
+        var resultTask = Task.FromResult(Result<int, string>.Error("Error"));
 
         var actionResult = await resultTask.ToActionResultAsync(StatusCodes.Status422UnprocessableEntity);
 

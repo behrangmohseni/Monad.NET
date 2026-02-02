@@ -136,8 +136,8 @@ public class ThreadSafetyTests
     [Fact]
     public async Task Validation_ConcurrentApply_IsThreadSafe()
     {
-        var v1 = Validation<int, string>.Valid(10);
-        var v2 = Validation<int, string>.Valid(20);
+        var v1 = Validation<int, string>.Ok(10);
+        var v2 = Validation<int, string>.Ok(20);
         var results = new ConcurrentBag<int>();
         var exceptions = new ConcurrentBag<Exception>();
 
@@ -165,8 +165,8 @@ public class ThreadSafetyTests
     [Fact]
     public async Task Validation_ConcurrentErrorAccumulation_IsThreadSafe()
     {
-        var v1 = Validation<int, string>.Invalid("error1");
-        var v2 = Validation<int, string>.Invalid("error2");
+        var v1 = Validation<int, string>.Error("error1");
+        var v2 = Validation<int, string>.Error("error2");
         var results = new ConcurrentBag<int>();
         var exceptions = new ConcurrentBag<Exception>();
 
@@ -353,7 +353,7 @@ public class ThreadSafetyTests
     [Fact]
     public async Task RemoteData_ConcurrentReads_AreThreadSafe()
     {
-        var data = RemoteData<int, string>.Success(42);
+        var data = RemoteData<int, string>.Ok(42);
         var results = new ConcurrentBag<int>();
         var exceptions = new ConcurrentBag<Exception>();
 
@@ -390,7 +390,7 @@ public class ThreadSafetyTests
     {
         var option = Option<int>.Some(10);
         var result = Result<int, string>.Ok(20);
-        var validation = Validation<int, string>.Valid(30);
+        var validation = Validation<int, string>.Ok(30);
         var exceptions = new ConcurrentBag<Exception>();
 
         await RunConcurrently(() =>

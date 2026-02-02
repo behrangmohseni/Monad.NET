@@ -32,7 +32,7 @@ public static class LinqExamples
         Console.WriteLine($"   from Ok(10), Ok(20): {resultQuery}");
 
         var resultErr = from x in Result<int, string>.Ok(10)
-                        from y in Result<int, string>.Err("Failed!")
+                        from y in Result<int, string>.Error("Failed!")
                         select x * y;
         Console.WriteLine($"   from Ok(10), Err: {resultErr}");
 

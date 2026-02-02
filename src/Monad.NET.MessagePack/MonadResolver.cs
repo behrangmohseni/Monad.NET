@@ -69,7 +69,7 @@ internal static class MonadResolverGetFormatterHelper
             return CreateFormatter(typeof(OptionFormatter<>), typeArgs);
         }
 
-        // Result<T, TErr>
+        // Result<T, TError>
         if (genericType == typeof(Result<,>))
         {
             return CreateFormatter(typeof(ResultFormatter<,>), typeArgs);
@@ -81,7 +81,7 @@ internal static class MonadResolverGetFormatterHelper
             return CreateFormatter(typeof(TryFormatter<>), typeArgs);
         }
 
-        // Validation<T, TErr>
+        // Validation<T, TError>
         if (genericType == typeof(Validation<,>))
         {
             return CreateFormatter(typeof(ValidationFormatter<,>), typeArgs);
@@ -93,7 +93,7 @@ internal static class MonadResolverGetFormatterHelper
             return CreateFormatter(typeof(NonEmptyListFormatter<>), typeArgs);
         }
 
-        // RemoteData<T, TErr>
+        // RemoteData<T, TError>
         if (genericType == typeof(RemoteData<,>))
         {
             return CreateFormatter(typeof(RemoteDataFormatter<,>), typeArgs);

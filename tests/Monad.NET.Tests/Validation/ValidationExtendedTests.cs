@@ -12,7 +12,7 @@ public class ValidationExtendedTests
     [Fact]
     public void Valid_CreatesValidInstance()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
 
         Assert.True(validation.IsOk);
         Assert.Equal(42, validation.GetValue());
@@ -21,7 +21,7 @@ public class ValidationExtendedTests
     [Fact]
     public void Invalid_SingleError_CreatesInvalidInstance()
     {
-        var validation = Validation<int, string>.Invalid("error");
+        var validation = Validation<int, string>.Error("error");
 
         Assert.True(validation.IsError);
         var errors = validation.GetErrorsOrThrow();
@@ -32,7 +32,7 @@ public class ValidationExtendedTests
     [Fact]
     public void Invalid_MultipleErrors_CreatesInvalidInstance()
     {
-        var validation = Validation<int, string>.Invalid(new[] { "error1", "error2" });
+        var validation = Validation<int, string>.Error(new[] { "error1", "error2" });
 
         Assert.True(validation.IsError);
         var errors = validation.GetErrorsOrThrow();
@@ -48,7 +48,7 @@ public class ValidationExtendedTests
     [Fact]
     public void Map_OnValid_TransformsValue()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
         var result = validation.Map(x => x * 2);
 
         Assert.True(result.IsOk);
@@ -58,7 +58,7 @@ public class ValidationExtendedTests
     [Fact]
     public void Map_OnInvalid_ReturnsInvalid()
     {
-        var validation = Validation<int, string>.Invalid("error");
+        var validation = Validation<int, string>.Error("error");
         var result = validation.Map(x => x * 2);
 
         Assert.True(result.IsError);
@@ -71,8 +71,8 @@ public class ValidationExtendedTests
     [Fact]
     public void AndThen_ValidToValid_ReturnsValid()
     {
-        var validation = Validation<int, string>.Valid(42);
-        var result = validation.Bind(x => Validation<string, string>.Valid(x.ToString()));
+        var validation = Validation<int, string>.Ok(42);
+        var result = validation.Bind(x => Validation<string, string>.Ok(x.ToString()));
 
         Assert.True(result.IsOk);
         Assert.Equal("42", result.GetValue());
@@ -81,8 +81,8 @@ public class ValidationExtendedTests
     [Fact]
     public void AndThen_ValidToInvalid_ReturnsInvalid()
     {
-        var validation = Validation<int, string>.Valid(42);
-        var result = validation.Bind(_ => Validation<string, string>.Invalid("error"));
+        var validation = Validation<int, string>.Ok(42);
+        var result = validation.Bind(_ => Validation<string, string>.Error("error"));
 
         Assert.True(result.IsError);
     }
@@ -90,8 +90,8 @@ public class ValidationExtendedTests
     [Fact]
     public void AndThen_InvalidToAny_ReturnsInvalid()
     {
-        var validation = Validation<int, string>.Invalid("first error");
-        var result = validation.Bind(x => Validation<string, string>.Valid(x.ToString()));
+        var validation = Validation<int, string>.Error("first error");
+        var result = validation.Bind(x => Validation<string, string>.Ok(x.ToString()));
 
         Assert.True(result.IsError);
     }
@@ -103,8 +103,8 @@ public class ValidationExtendedTests
     [Fact]
     public void Zip_BothValid_CombinesValues()
     {
-        var v1 = Validation<int, string>.Valid(42);
-        var v2 = Validation<string, string>.Valid("hello");
+        var v1 = Validation<int, string>.Ok(42);
+        var v2 = Validation<string, string>.Ok("hello");
 
         var result = v1.Zip(v2);
 
@@ -117,8 +117,8 @@ public class ValidationExtendedTests
     [Fact]
     public void Zip_FirstInvalid_ReturnsInvalid()
     {
-        var v1 = Validation<int, string>.Invalid("error1");
-        var v2 = Validation<string, string>.Valid("hello");
+        var v1 = Validation<int, string>.Error("error1");
+        var v2 = Validation<string, string>.Ok("hello");
 
         var result = v1.Zip(v2);
 
@@ -128,8 +128,8 @@ public class ValidationExtendedTests
     [Fact]
     public void Zip_SecondInvalid_ReturnsInvalid()
     {
-        var v1 = Validation<int, string>.Valid(42);
-        var v2 = Validation<string, string>.Invalid("error2");
+        var v1 = Validation<int, string>.Ok(42);
+        var v2 = Validation<string, string>.Error("error2");
 
         var result = v1.Zip(v2);
 
@@ -139,8 +139,8 @@ public class ValidationExtendedTests
     [Fact]
     public void Zip_BothInvalid_AccumulatesErrors()
     {
-        var v1 = Validation<int, string>.Invalid("error1");
-        var v2 = Validation<string, string>.Invalid("error2");
+        var v1 = Validation<int, string>.Error("error1");
+        var v2 = Validation<string, string>.Error("error2");
 
         var result = v1.Zip(v2);
 
@@ -154,8 +154,8 @@ public class ValidationExtendedTests
     [Fact]
     public void ZipWith_BothValid_AppliesCombiner()
     {
-        var v1 = Validation<int, string>.Valid(42);
-        var v2 = Validation<int, string>.Valid(8);
+        var v1 = Validation<int, string>.Ok(42);
+        var v2 = Validation<int, string>.Ok(8);
 
         var result = v1.ZipWith(v2, (a, b) => a + b);
 
@@ -170,7 +170,7 @@ public class ValidationExtendedTests
     [Fact]
     public void Tap_OnValid_ExecutesAction()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
         var executed = false;
 
         var result = validation.Tap(x => executed = true);
@@ -182,7 +182,7 @@ public class ValidationExtendedTests
     [Fact]
     public void Tap_OnInvalid_DoesNotExecuteAction()
     {
-        var validation = Validation<int, string>.Invalid("error");
+        var validation = Validation<int, string>.Error("error");
         var executed = false;
 
         var result = validation.Tap(x => executed = true);
@@ -194,7 +194,7 @@ public class ValidationExtendedTests
     [Fact]
     public void TapErrors_OnInvalid_ExecutesAction()
     {
-        var validation = Validation<int, string>.Invalid("error");
+        var validation = Validation<int, string>.Error("error");
         var executed = false;
 
         var result = validation.TapErrors(errors => executed = true);
@@ -206,7 +206,7 @@ public class ValidationExtendedTests
     [Fact]
     public void TapErrors_OnValid_DoesNotExecuteAction()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
         var executed = false;
 
         var result = validation.TapErrors(errors => executed = true);
@@ -222,7 +222,7 @@ public class ValidationExtendedTests
     [Fact]
     public void Match_OnValid_ExecutesValidFunc()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
         var result = validation.Match(
             x => $"Value: {x}",
             errors => $"Errors: {errors.Length}");
@@ -233,7 +233,7 @@ public class ValidationExtendedTests
     [Fact]
     public void Match_OnInvalid_ExecutesInvalidFunc()
     {
-        var validation = Validation<int, string>.Invalid(new[] { "e1", "e2" });
+        var validation = Validation<int, string>.Error(new[] { "e1", "e2" });
         var result = validation.Match(
             x => $"Value: {x}",
             errors => $"Errors: {errors.Length}");
@@ -244,7 +244,7 @@ public class ValidationExtendedTests
     [Fact]
     public void Match_WithActions_OnValid_ExecutesValidAction()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
         var capturedValue = 0;
 
         validation.Match(
@@ -257,7 +257,7 @@ public class ValidationExtendedTests
     [Fact]
     public void Match_WithActions_OnInvalid_ExecutesInvalidAction()
     {
-        var validation = Validation<int, string>.Invalid("error");
+        var validation = Validation<int, string>.Error("error");
         var capturedCount = 0;
 
         validation.Match(
@@ -274,8 +274,8 @@ public class ValidationExtendedTests
     [Fact]
     public void Apply_ValidBothValues_CombinesValues()
     {
-        var first = Validation<int, string>.Valid(10);
-        var second = Validation<int, string>.Valid(32);
+        var first = Validation<int, string>.Ok(10);
+        var second = Validation<int, string>.Ok(32);
 
         var result = first.Apply(second, (a, b) => a + b);
 
@@ -286,8 +286,8 @@ public class ValidationExtendedTests
     [Fact]
     public void Apply_FirstInvalidSecondValid_ReturnsInvalid()
     {
-        var first = Validation<int, string>.Invalid("first error");
-        var second = Validation<int, string>.Valid(42);
+        var first = Validation<int, string>.Error("first error");
+        var second = Validation<int, string>.Ok(42);
 
         var result = first.Apply(second, (a, b) => a + b);
 
@@ -297,8 +297,8 @@ public class ValidationExtendedTests
     [Fact]
     public void Apply_FirstValidSecondInvalid_ReturnsInvalid()
     {
-        var first = Validation<int, string>.Valid(10);
-        var second = Validation<int, string>.Invalid("second error");
+        var first = Validation<int, string>.Ok(10);
+        var second = Validation<int, string>.Error("second error");
 
         var result = first.Apply(second, (a, b) => a + b);
 
@@ -308,8 +308,8 @@ public class ValidationExtendedTests
     [Fact]
     public void Apply_BothInvalid_AccumulatesErrors()
     {
-        var first = Validation<int, string>.Invalid("first error");
-        var second = Validation<int, string>.Invalid("second error");
+        var first = Validation<int, string>.Error("first error");
+        var second = Validation<int, string>.Error("second error");
 
         var result = first.Apply(second, (a, b) => a + b);
 
@@ -325,8 +325,8 @@ public class ValidationExtendedTests
     [Fact]
     public void Equals_ValidWithSameValue_ReturnsTrue()
     {
-        var v1 = Validation<int, string>.Valid(42);
-        var v2 = Validation<int, string>.Valid(42);
+        var v1 = Validation<int, string>.Ok(42);
+        var v2 = Validation<int, string>.Ok(42);
 
         Assert.True(v1.Equals(v2));
         Assert.True(v1 == v2);
@@ -335,8 +335,8 @@ public class ValidationExtendedTests
     [Fact]
     public void Equals_ValidWithDifferentValue_ReturnsFalse()
     {
-        var v1 = Validation<int, string>.Valid(42);
-        var v2 = Validation<int, string>.Valid(99);
+        var v1 = Validation<int, string>.Ok(42);
+        var v2 = Validation<int, string>.Ok(99);
 
         Assert.False(v1.Equals(v2));
         Assert.True(v1 != v2);
@@ -345,8 +345,8 @@ public class ValidationExtendedTests
     [Fact]
     public void Equals_InvalidWithSameErrors_ReturnsTrue()
     {
-        var v1 = Validation<int, string>.Invalid("error");
-        var v2 = Validation<int, string>.Invalid("error");
+        var v1 = Validation<int, string>.Error("error");
+        var v2 = Validation<int, string>.Error("error");
 
         Assert.True(v1.Equals(v2));
     }
@@ -354,8 +354,8 @@ public class ValidationExtendedTests
     [Fact]
     public void Equals_ValidWithInvalid_ReturnsFalse()
     {
-        var v1 = Validation<int, string>.Valid(42);
-        var v2 = Validation<int, string>.Invalid("error");
+        var v1 = Validation<int, string>.Ok(42);
+        var v2 = Validation<int, string>.Error("error");
 
         Assert.False(v1.Equals(v2));
     }
@@ -363,8 +363,8 @@ public class ValidationExtendedTests
     [Fact]
     public void GetHashCode_SameForEqualValidations()
     {
-        var v1 = Validation<int, string>.Valid(42);
-        var v2 = Validation<int, string>.Valid(42);
+        var v1 = Validation<int, string>.Ok(42);
+        var v2 = Validation<int, string>.Ok(42);
 
         Assert.Equal(v1.GetHashCode(), v2.GetHashCode());
     }
@@ -376,7 +376,7 @@ public class ValidationExtendedTests
     [Fact]
     public void ToString_OnValid_ContainsValue()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
         var str = validation.ToString();
 
         Assert.Contains("42", str);
@@ -386,7 +386,7 @@ public class ValidationExtendedTests
     [Fact]
     public void ToString_OnInvalid_ContainsInvalid()
     {
-        var validation = Validation<int, string>.Invalid("error");
+        var validation = Validation<int, string>.Error("error");
         var str = validation.ToString();
 
         Assert.Contains("Invalid", str);

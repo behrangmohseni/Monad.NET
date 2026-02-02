@@ -235,7 +235,7 @@ public Option<U> Map<U>(Func<T, U> mapper)
 | Properties | PascalCase | `IsSome`, `IsOk`, `Head` |
 | Private fields | _camelCase | `_value`, `_isSuccess` |
 | Parameters | camelCase | `mapper`, `defaultValue` |
-| Type parameters | Single uppercase or descriptive | `T`, `TErr`, `TResult` |
+| Type parameters | Single uppercase or descriptive | `T`, `TError`, `TResult` |
 
 ## Testing
 

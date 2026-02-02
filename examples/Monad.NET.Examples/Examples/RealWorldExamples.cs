@@ -100,35 +100,35 @@ public static class RealWorldExamples
 
     private static Result<string, string> ValidateCustomerId(string id) =>
         id == "invalid"
-            ? Result<string, string>.Err("Invalid customer")
+            ? Result<string, string>.Error("Invalid customer")
             : Result<string, string>.Ok(id);
 
     private static Result<string, string> ValidateProductId(string id) =>
         id.StartsWith("product-")
             ? Result<string, string>.Ok(id)
-            : Result<string, string>.Err("Invalid product ID");
+            : Result<string, string>.Error("Invalid product ID");
 
     private static Result<int, string> ValidateQuantity(int qty) =>
         qty > 0
             ? Result<int, string>.Ok(qty)
-            : Result<int, string>.Err("Quantity must be positive");
+            : Result<int, string>.Error("Quantity must be positive");
 
     // Form validation
     private static void ValidateRegistrationForm(string name, string email, int age)
     {
         var nameVal = string.IsNullOrWhiteSpace(name)
-            ? Validation<string, string>.Invalid("Name required")
-            : Validation<string, string>.Valid(name);
+            ? Validation<string, string>.Error("Name required")
+            : Validation<string, string>.Ok(name);
 
         var emailVal = !email.Contains('@')
-            ? Validation<string, string>.Invalid("Invalid email")
-            : Validation<string, string>.Valid(email);
+            ? Validation<string, string>.Error("Invalid email")
+            : Validation<string, string>.Ok(email);
 
         var ageVal = age < 0
-            ? Validation<int, string>.Invalid("Age must be non-negative")
+            ? Validation<int, string>.Error("Age must be non-negative")
             : age < 18
-                ? Validation<int, string>.Invalid("Must be 18+")
-                : Validation<int, string>.Valid(age);
+                ? Validation<int, string>.Error("Must be 18+")
+                : Validation<int, string>.Ok(age);
 
         var result = nameVal
             .Apply(emailVal, (n, e) => (n, e))
@@ -156,10 +156,10 @@ public static class RealWorldExamples
 
     // Error recovery
     private static Result<string, string> FetchFromPrimary() =>
-        Result<string, string>.Err("Primary unavailable");
+        Result<string, string>.Error("Primary unavailable");
 
     private static Result<string, string> FetchFromSecondary() =>
-        Result<string, string>.Err("Secondary unavailable");
+        Result<string, string>.Error("Secondary unavailable");
 
     private static Result<string, string> FetchFromCache() =>
         Result<string, string>.Ok("Cached data");
@@ -184,8 +184,8 @@ public static class RealWorldExamples
 
     private static Validation<int, string> ParseInt(Dictionary<string, string> d, string key) =>
         d.TryGetValue(key, out var v) && int.TryParse(v, out var n)
-            ? Validation<int, string>.Valid(n)
-            : Validation<int, string>.Invalid($"Invalid {key}");
+            ? Validation<int, string>.Ok(n)
+            : Validation<int, string>.Error($"Invalid {key}");
 
     // Optional parameters
     private static string GetDisplayName(User user) =>
@@ -197,7 +197,7 @@ public static class RealWorldExamples
     private static Result<string, string> ValidateCredentials(string user, string pass) =>
         pass.Length >= 8
             ? Result<string, string>.Ok(user)
-            : Result<string, string>.Err("Password too short");
+            : Result<string, string>.Error("Password too short");
 
     private static Result<string, string> GenerateToken(string user) =>
         Result<string, string>.Ok($"token-{user}-{Guid.NewGuid():N}");
@@ -211,7 +211,7 @@ public static class RealWorldExamples
         var results = items.Select(item =>
             int.TryParse(item, out var n)
                 ? Result<int, string>.Ok(n)
-                : Result<int, string>.Err(item)).ToList();
+                : Result<int, string>.Error(item)).ToList();
 
         var successes = results.Where(r => r.IsOk).Select(r => r.GetValue()).ToList();
         var failures = results.Where(r => r.IsError).Select(r => r.GetError()).ToList();

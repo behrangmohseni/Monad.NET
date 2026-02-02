@@ -164,18 +164,18 @@ Represents an optional value - either `Some(value)` or `None`.
 
 ## Result\<T, E\>
 
-Represents success (`Ok`) or failure (`Err`).
+Represents success (`Ok`) or failure (`Error`).
 
 > **Inspired by:** Rust's `Result<T, E>`, F#'s `Result<'T, 'E>`
 
-> **v2.0 Note:** `default(Result<T,E>)` is now protected. All operations throw `InvalidOperationException` if the struct was not properly initialized via `Ok()` or `Err()`.
+> **v2.0 Note:** `default(Result<T,E>)` is now protected. All operations throw `InvalidOperationException` if the struct was not properly initialized via `Ok()` or `Error()`.
 
 ### Constructors
 
 | Method | Description |
 |--------|-------------|
 | `Ok(T value)` | Creates a success Result |
-| `Err(E error)` | Creates an error Result |
+| `Error(E error)` | Creates an error Result |
 
 ### Properties
 
@@ -183,7 +183,7 @@ Represents success (`Ok`) or failure (`Err`).
 |----------|------|-------------|
 | `IsOk` | `bool` | True if success (throws if uninitialized) |
 | `IsError` | `bool` | True if error (throws if uninitialized) |
-| `IsInitialized` | `bool` | True if properly constructed via `Ok()` or `Err()` |
+| `IsInitialized` | `bool` | True if properly constructed via `Ok()` or `Error()` |
 
 ### Methods
 
@@ -202,9 +202,9 @@ Represents success (`Ok`) or failure (`Err`).
 | `OrElse<F>(Func<E, Result<T, F>>)` | `Result<T, F>` | Handles error |
 | `Match<U>(okFunc, errFunc)` | `U` | Pattern matching |
 | `Tap(Action<T>)` | `Result<T, E>` | Executes action if Ok |
-| `TapErr(Action<E>)` | `Result<T, E>` | Executes action if Err |
+| `TapError(Action<E>)` | `Result<T, E>` | Executes action if Error |
 | `Ok()` | `Option<T>` | Converts Ok to Some |
-| `Err()` | `Option<E>` | Converts Err to Some |
+| `Err()` | `Option<E>` | Converts Error to Some |
 | `Deconstruct(out T?, out bool)` | `void` | Deconstructs to `(value, isOk)` |
 | `Deconstruct(out T?, out E?, out bool)` | `void` | Deconstructs to `(value, error, isOk)` |
 
@@ -223,12 +223,12 @@ Represents success (`Ok`) or failure (`Err`).
 | `Combine(IEnumerable<Result>)` | Combines collection into list |
 | `CombineAll(IEnumerable<Result>)` | Combines ignoring values (returns Unit) |
 
-### ThrowIfErr Extensions
+### ThrowIfError Extensions
 
 | Method | Description |
 |--------|-------------|
-| `ThrowIfErr<T, E>(this Result<T, E>, Exception)` | Returns value if Ok, throws exception if Err |
-| `ThrowIfErr<T, E>(this Result<T, E>, Func<E, Exception>)` | Returns value if Ok, throws factory(err) if Err |
+| `ThrowIfError<T, E>(this Result<T, E>, Exception)` | Returns value if Ok, throws exception if Error |
+| `ThrowIfError<T, E>(this Result<T, E>, Func<E, Exception>)` | Returns value if Ok, throws factory(err) if Error |
 
 ### Operators
 
@@ -248,16 +248,16 @@ Accumulates errors instead of short-circuiting.
 
 | Method | Description |
 |--------|-------------|
-| `Valid(T value)` | Creates a valid Validation |
-| `Invalid(E error)` | Creates invalid with one error |
-| `Invalid(IEnumerable<E>)` | Creates invalid with multiple errors |
+| `Ok(T value)` | Creates a valid Validation |
+| `Error(E error)` | Creates invalid with one error |
+| `Error(IEnumerable<E>)` | Creates invalid with multiple errors |
 
 ### Properties
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `IsValid` | `bool` | True if valid |
-| `IsInvalid` | `bool` | True if has errors |
+| `IsOk` | `bool` | True if valid |
+| `IsError` | `bool` | True if has errors |
 
 ### Methods
 
@@ -323,8 +323,8 @@ Captures exceptions as values.
 
 | Method | Description |
 |--------|-------------|
-| `Success(T value)` | Creates successful Try |
-| `Failure(Exception)` | Creates failed Try |
+| `Ok(T value)` | Creates successful Try |
+| `Error(Exception)` | Creates failed Try |
 | `Of(Func<T>)` | Executes and captures exceptions |
 | `OfAsync(Func<Task<T>>)` | Async execution with capture |
 
@@ -332,8 +332,8 @@ Captures exceptions as values.
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `IsSuccess` | `bool` | True if successful |
-| `IsFailure` | `bool` | True if failed |
+| `IsOk` | `bool` | True if successful |
+| `IsError` | `bool` | True if failed |
 
 ### Methods
 
@@ -388,8 +388,8 @@ Tracks async data loading states.
 |--------|-------------|
 | `NotAsked()` | Initial state |
 | `Loading()` | Loading state |
-| `Success(T data)` | Success with data |
-| `Failure(E error)` | Failure with error |
+| `Ok(T data)` | Success with data |
+| `Error(E error)` | Failure with error |
 
 ### Properties
 
@@ -397,8 +397,8 @@ Tracks async data loading states.
 |----------|------|-------------|
 | `IsNotAsked` | `bool` | True if not asked |
 | `IsLoading` | `bool` | True if loading |
-| `IsSuccess` | `bool` | True if success |
-| `IsFailure` | `bool` | True if failure |
+| `IsOk` | `bool` | True if success |
+| `IsError` | `bool` | True if failure |
 
 ### Methods
 

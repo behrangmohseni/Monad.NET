@@ -162,10 +162,10 @@ var (successes, failures) = await orders.PartitionParallelAsync(
 |--------|-------------|
 | `TraverseParallelAsync<T, U>` (Option) | Map items to Options in parallel, return None if any None |
 | `SequenceParallelAsync<T>` (Option) | Await Option tasks in parallel |
-| `TraverseParallelAsync<T, U, TErr>` (Result) | Map items to Results in parallel, return first Err |
-| `SequenceParallelAsync<T, TErr>` (Result) | Await Result tasks in parallel |
+| `TraverseParallelAsync<T, U, TError>` (Result) | Map items to Results in parallel, return first Err |
+| `SequenceParallelAsync<T, TError>` (Result) | Await Result tasks in parallel |
 | `ChooseParallelAsync<T, U>` | Map to Options in parallel, collect Some values |
-| `PartitionParallelAsync<T, U, TErr>` | Map to Results in parallel, separate Ok/Err |
+| `PartitionParallelAsync<T, U, TError>` | Map to Results in parallel, separate Ok/Err |
 
 All parallel methods accept `maxDegreeOfParallelism`:
 - `-1` (default): Unlimited parallelism
@@ -261,17 +261,17 @@ Option<string> none = null!;              // Same as Option<string>.None()
 Result<int, string> result = 42;          // Same as Result<int, string>.Ok(42)
 
 // Try: value → Success, Exception → Failure
-Try<int> success = 42;                    // Same as Try<int>.Success(42)
-Try<int> failure = new Exception("oops"); // Same as Try<int>.Failure(exception)
+Try<int> success = 42;                    // Same as Try<int>.Ok(42)
+Try<int> failure = new Exception("oops"); // Same as Try<int>.Error(exception)
 
 // Validation: value → Valid
-Validation<int, string> valid = 42;       // Same as Validation<int, string>.Valid(42)
+Validation<int, string> valid = 42;       // Same as Validation<int, string>.Ok(42)
 
 // NonEmptyList: single value → single-element list
 NonEmptyList<int> list = 42;              // Same as NonEmptyList<int>.Of(42)
 
 // RemoteData: value → Success
-RemoteData<int, string> data = 42;        // Same as RemoteData<int, string>.Success(42)
+RemoteData<int, string> data = 42;        // Same as RemoteData<int, string>.Ok(42)
 ```
 
 This is especially useful in method returns:
@@ -280,7 +280,7 @@ This is especially useful in method returns:
 Result<int, string> ValidatePositive(int value)
 {
     if (value <= 0)
-        return Result<int, string>.Err("Must be positive");
+        return Result<int, string>.Error("Must be positive");
     return value;  // Implicit conversion to Ok!
 }
 

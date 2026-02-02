@@ -390,7 +390,7 @@ public class OptionConditionalTests
     [Fact]
     public void Transpose_SomeErr_ReturnsErr()
     {
-        var option = Option<Result<int, string>>.Some(Result<int, string>.Err("error"));
+        var option = Option<Result<int, string>>.Some(Result<int, string>.Error("error"));
         var result = option.Transpose();
 
         Assert.True(result.IsError);

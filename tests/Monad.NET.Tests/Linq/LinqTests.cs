@@ -100,7 +100,7 @@ public class LinqTests
     [Fact]
     public void Result_Select_OnErr_ReturnsErr()
     {
-        var result = from x in Result<int, string>.Err("error")
+        var result = from x in Result<int, string>.Error("error")
                      select x * 2;
 
         Assert.True(result.IsError);
@@ -122,7 +122,7 @@ public class LinqTests
     public void Result_SelectMany_WithErr_ReturnsErr()
     {
         var result = from x in Result<int, string>.Ok(10)
-                     from y in Result<int, string>.Err("error")
+                     from y in Result<int, string>.Error("error")
                      select x + y;
 
         Assert.True(result.IsError);
@@ -180,7 +180,7 @@ public class LinqTests
         var executedThird = false;
 
         var result = from x in Result<int, string>.Ok(10)
-                     from y in Result<int, string>.Err("error")
+                     from y in Result<int, string>.Error("error")
                      from z in GetResultWithSideEffect(ref executedThird)
                      select x + y + z;
 
@@ -221,12 +221,12 @@ public class LinqTests
         Result<int, string> ValidatePositive(int x) =>
             x > 0
                 ? Result<int, string>.Ok(x)
-                : Result<int, string>.Err("Must be positive");
+                : Result<int, string>.Error("Must be positive");
 
         Result<int, string> ValidateLessThan100(int x) =>
             x < 100
                 ? Result<int, string>.Ok(x)
-                : Result<int, string>.Err("Must be less than 100");
+                : Result<int, string>.Error("Must be less than 100");
 
         var result = from x in Result<int, string>.Ok(50)
                      from validated1 in ValidatePositive(x)
@@ -276,7 +276,7 @@ public class LinqTests
     [Fact]
     public void Try_Select_TransformsValue()
     {
-        var result = from x in Try<int>.Success(42)
+        var result = from x in Try<int>.Ok(42)
                      select x * 2;
 
         Assert.True(result.IsOk);
@@ -286,8 +286,8 @@ public class LinqTests
     [Fact]
     public void Try_SelectMany_ChainsOperations()
     {
-        var result = from x in Try<int>.Success(10)
-                     from y in Try<int>.Success(20)
+        var result = from x in Try<int>.Ok(10)
+                     from y in Try<int>.Ok(20)
                      select x + y;
 
         Assert.True(result.IsOk);
@@ -297,8 +297,8 @@ public class LinqTests
     [Fact]
     public void Try_SelectMany_WithFailure_ReturnsFailure()
     {
-        var result = from x in Try<int>.Success(10)
-                     from y in Try<int>.Failure(new InvalidOperationException("Failed"))
+        var result = from x in Try<int>.Ok(10)
+                     from y in Try<int>.Error(new InvalidOperationException("Failed"))
                      select x + y;
 
         Assert.True(result.IsError);
@@ -307,7 +307,7 @@ public class LinqTests
     [Fact]
     public void Try_Where_FiltersValues()
     {
-        var result = from x in Try<int>.Success(42)
+        var result = from x in Try<int>.Ok(42)
                      where x > 40
                      select x;
 
@@ -318,7 +318,7 @@ public class LinqTests
     [Fact]
     public void Try_Where_FailingPredicate_ReturnsFailure()
     {
-        var result = from x in Try<int>.Success(42)
+        var result = from x in Try<int>.Ok(42)
                      where x > 50
                      select x;
 
@@ -347,7 +347,7 @@ public class LinqTests
     [Fact]
     public void Validation_Select_TransformsValue()
     {
-        var result = from x in Validation<int, string>.Valid(42)
+        var result = from x in Validation<int, string>.Ok(42)
                      select x * 2;
 
         Assert.True(result.IsOk);
@@ -357,8 +357,8 @@ public class LinqTests
     [Fact]
     public void Validation_SelectMany_ChainsOperations()
     {
-        var result = from x in Validation<int, string>.Valid(10)
-                     from y in Validation<int, string>.Valid(20)
+        var result = from x in Validation<int, string>.Ok(10)
+                     from y in Validation<int, string>.Ok(20)
                      select x + y;
 
         Assert.True(result.IsOk);
@@ -368,8 +368,8 @@ public class LinqTests
     [Fact]
     public void Validation_SelectMany_WithInvalid_ReturnsInvalid()
     {
-        var result = from x in Validation<int, string>.Valid(10)
-                     from y in Validation<int, string>.Invalid("Error")
+        var result = from x in Validation<int, string>.Ok(10)
+                     from y in Validation<int, string>.Error("Error")
                      select x + y;
 
         Assert.True(result.IsError);
@@ -380,13 +380,13 @@ public class LinqTests
     {
         static Validation<string, string> ValidateName(string name) =>
             string.IsNullOrWhiteSpace(name)
-                ? Validation<string, string>.Invalid("Name is required")
-                : Validation<string, string>.Valid(name);
+                ? Validation<string, string>.Error("Name is required")
+                : Validation<string, string>.Ok(name);
 
         static Validation<int, string> ValidateAge(int age) =>
             age < 0
-                ? Validation<int, string>.Invalid("Age must be positive")
-                : Validation<int, string>.Valid(age);
+                ? Validation<int, string>.Error("Age must be positive")
+                : Validation<int, string>.Ok(age);
 
         var result = from name in ValidateName("John")
                      from age in ValidateAge(30)

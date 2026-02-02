@@ -119,7 +119,7 @@ public class AsEnumerableTests
     [Fact]
     public void Result_AsEnumerable_Err_ReturnsEmpty()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
 
         var enumerable = result.AsEnumerable().ToList();
 
@@ -132,9 +132,9 @@ public class AsEnumerableTests
         var results = new[]
         {
             Result<int, string>.Ok(1),
-            Result<int, string>.Err("error1"),
+            Result<int, string>.Error("error1"),
             Result<int, string>.Ok(3),
-            Result<int, string>.Err("error2"),
+            Result<int, string>.Error("error2"),
             Result<int, string>.Ok(5)
         };
 
@@ -172,7 +172,7 @@ public class AsEnumerableTests
     [Fact]
     public void Result_ToArray_Err_ReturnsEmptyArray()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
 
         var array = result.ToArray();
 
@@ -193,7 +193,7 @@ public class AsEnumerableTests
     [Fact]
     public void Result_ToList_Err_ReturnsEmptyList()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
 
         var list = result.ToList();
 
@@ -240,7 +240,7 @@ public class AsEnumerableTests
     public void Result_AsEnumerable_UsefulWithAny()
     {
         var okResult = Result<int, string>.Ok(42);
-        var errResult = Result<int, string>.Err("error");
+        var errResult = Result<int, string>.Error("error");
 
         Assert.True(okResult.AsEnumerable().Any());
         Assert.False(errResult.AsEnumerable().Any());
@@ -260,7 +260,7 @@ public class AsEnumerableTests
     public void Result_AsEnumerable_UsefulWithFirstOrDefault()
     {
         var okResult = Result<int, string>.Ok(42);
-        var errResult = Result<int, string>.Err("error");
+        var errResult = Result<int, string>.Error("error");
 
         Assert.Equal(42, okResult.AsEnumerable().FirstOrDefault());
         Assert.Equal(0, errResult.AsEnumerable().FirstOrDefault());

@@ -12,7 +12,7 @@ public class RemoteDataExtendedTests2
     [Fact]
     public void Success_CreatesSuccessState()
     {
-        var rd = RemoteData<int, string>.Success(42);
+        var rd = RemoteData<int, string>.Ok(42);
 
         Assert.True(rd.IsOk);
         Assert.False(rd.IsNotAsked);
@@ -24,7 +24,7 @@ public class RemoteDataExtendedTests2
     [Fact]
     public void Failure_CreatesFailureState()
     {
-        var rd = RemoteData<int, string>.Failure("error");
+        var rd = RemoteData<int, string>.Error("error");
 
         Assert.True(rd.IsError);
         Assert.False(rd.IsNotAsked);
@@ -58,7 +58,7 @@ public class RemoteDataExtendedTests2
     [Fact]
     public void Map_OnSuccess_TransformsValue()
     {
-        var rd = RemoteData<int, string>.Success(42);
+        var rd = RemoteData<int, string>.Ok(42);
         var result = rd.Map(x => x * 2);
 
         Assert.True(result.IsOk);
@@ -68,7 +68,7 @@ public class RemoteDataExtendedTests2
     [Fact]
     public void Map_OnFailure_ReturnsFailure()
     {
-        var rd = RemoteData<int, string>.Failure("error");
+        var rd = RemoteData<int, string>.Error("error");
         var result = rd.Map(x => x * 2);
 
         Assert.True(result.IsError);
@@ -83,7 +83,7 @@ public class RemoteDataExtendedTests2
     public void AndThen_OnNotAsked_ReturnsNotAsked()
     {
         var rd = RemoteData<int, string>.NotAsked();
-        var result = rd.Bind(x => RemoteData<string, string>.Success(x.ToString()));
+        var result = rd.Bind(x => RemoteData<string, string>.Ok(x.ToString()));
 
         Assert.True(result.IsNotAsked);
     }
@@ -92,7 +92,7 @@ public class RemoteDataExtendedTests2
     public void AndThen_OnLoading_ReturnsLoading()
     {
         var rd = RemoteData<int, string>.Loading();
-        var result = rd.Bind(x => RemoteData<string, string>.Success(x.ToString()));
+        var result = rd.Bind(x => RemoteData<string, string>.Ok(x.ToString()));
 
         Assert.True(result.IsLoading);
     }
@@ -100,8 +100,8 @@ public class RemoteDataExtendedTests2
     [Fact]
     public void AndThen_OnSuccess_Chains()
     {
-        var rd = RemoteData<int, string>.Success(42);
-        var result = rd.Bind(x => RemoteData<string, string>.Success(x.ToString()));
+        var rd = RemoteData<int, string>.Ok(42);
+        var result = rd.Bind(x => RemoteData<string, string>.Ok(x.ToString()));
 
         Assert.True(result.IsOk);
         Assert.Equal("42", result.GetValue());
@@ -110,8 +110,8 @@ public class RemoteDataExtendedTests2
     [Fact]
     public void AndThen_OnFailure_ReturnsFailure()
     {
-        var rd = RemoteData<int, string>.Failure("error");
-        var result = rd.Bind(x => RemoteData<string, string>.Success(x.ToString()));
+        var rd = RemoteData<int, string>.Error("error");
+        var result = rd.Bind(x => RemoteData<string, string>.Ok(x.ToString()));
 
         Assert.True(result.IsError);
     }
@@ -149,7 +149,7 @@ public class RemoteDataExtendedTests2
     [Fact]
     public void Match_OnSuccess_ExecutesSuccessFunc()
     {
-        var rd = RemoteData<int, string>.Success(42);
+        var rd = RemoteData<int, string>.Ok(42);
         var result = rd.Match(
             () => "not asked",
             () => "loading",
@@ -162,7 +162,7 @@ public class RemoteDataExtendedTests2
     [Fact]
     public void Match_OnFailure_ExecutesFailureFunc()
     {
-        var rd = RemoteData<int, string>.Failure("error");
+        var rd = RemoteData<int, string>.Error("error");
         var result = rd.Match(
             () => "not asked",
             () => "loading",
@@ -179,7 +179,7 @@ public class RemoteDataExtendedTests2
     [Fact]
     public void Tap_OnSuccess_ExecutesAction()
     {
-        var rd = RemoteData<int, string>.Success(42);
+        var rd = RemoteData<int, string>.Ok(42);
         var executed = false;
 
         var result = rd.Tap(x => executed = true);
@@ -203,10 +203,10 @@ public class RemoteDataExtendedTests2
     [Fact]
     public void TapFailure_OnFailure_ExecutesAction()
     {
-        var rd = RemoteData<int, string>.Failure("error");
+        var rd = RemoteData<int, string>.Error("error");
         var executed = false;
 
-        var result = rd.TapFailure(e => executed = true);
+        var result = rd.TapError(e => executed = true);
 
         Assert.True(executed);
         Assert.True(result.IsError);
@@ -215,10 +215,10 @@ public class RemoteDataExtendedTests2
     [Fact]
     public void TapFailure_OnSuccess_DoesNotExecuteAction()
     {
-        var rd = RemoteData<int, string>.Success(42);
+        var rd = RemoteData<int, string>.Ok(42);
         var executed = false;
 
-        var result = rd.TapFailure(e => executed = true);
+        var result = rd.TapError(e => executed = true);
 
         Assert.False(executed);
         Assert.True(result.IsOk);
@@ -255,8 +255,8 @@ public class RemoteDataExtendedTests2
     [Fact]
     public void Equals_SuccessWithSameValue_ReturnsTrue()
     {
-        var rd1 = RemoteData<int, string>.Success(42);
-        var rd2 = RemoteData<int, string>.Success(42);
+        var rd1 = RemoteData<int, string>.Ok(42);
+        var rd2 = RemoteData<int, string>.Ok(42);
 
         Assert.True(rd1.Equals(rd2));
         Assert.True(rd1 == rd2);
@@ -265,8 +265,8 @@ public class RemoteDataExtendedTests2
     [Fact]
     public void Equals_SuccessWithDifferentValue_ReturnsFalse()
     {
-        var rd1 = RemoteData<int, string>.Success(42);
-        var rd2 = RemoteData<int, string>.Success(99);
+        var rd1 = RemoteData<int, string>.Ok(42);
+        var rd2 = RemoteData<int, string>.Ok(99);
 
         Assert.False(rd1.Equals(rd2));
         Assert.True(rd1 != rd2);
@@ -293,8 +293,8 @@ public class RemoteDataExtendedTests2
     [Fact]
     public void Equals_FailureWithSameError_ReturnsTrue()
     {
-        var rd1 = RemoteData<int, string>.Failure("error");
-        var rd2 = RemoteData<int, string>.Failure("error");
+        var rd1 = RemoteData<int, string>.Error("error");
+        var rd2 = RemoteData<int, string>.Error("error");
 
         Assert.True(rd1.Equals(rd2));
     }
@@ -302,7 +302,7 @@ public class RemoteDataExtendedTests2
     [Fact]
     public void Equals_DifferentStates_ReturnsFalse()
     {
-        var rd1 = RemoteData<int, string>.Success(42);
+        var rd1 = RemoteData<int, string>.Ok(42);
         var rd2 = RemoteData<int, string>.Loading();
 
         Assert.False(rd1.Equals(rd2));
@@ -329,7 +329,7 @@ public class RemoteDataExtendedTests2
     [Fact]
     public void ToString_OnSuccess_ContainsValue()
     {
-        var rd = RemoteData<int, string>.Success(42);
+        var rd = RemoteData<int, string>.Ok(42);
         var str = rd.ToString();
 
         Assert.Contains("42", str);
@@ -339,7 +339,7 @@ public class RemoteDataExtendedTests2
     [Fact]
     public void ToString_OnFailure_ContainsError()
     {
-        var rd = RemoteData<int, string>.Failure("error");
+        var rd = RemoteData<int, string>.Error("error");
         var str = rd.ToString();
 
         Assert.Contains("error", str);
@@ -353,7 +353,7 @@ public class RemoteDataExtendedTests2
     [Fact]
     public void UnwrapOr_OnSuccess_ReturnsValue()
     {
-        var rd = RemoteData<int, string>.Success(42);
+        var rd = RemoteData<int, string>.Ok(42);
         Assert.Equal(42, rd.GetValueOr(99));
     }
 
@@ -367,7 +367,7 @@ public class RemoteDataExtendedTests2
     [Fact]
     public void Match_OnSuccess_ReturnsValue()
     {
-        var rd = RemoteData<int, string>.Success(42);
+        var rd = RemoteData<int, string>.Ok(42);
         var factoryExecuted = false;
         var value = rd.Match(
             () => { factoryExecuted = true; return 99; },

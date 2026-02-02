@@ -56,7 +56,7 @@ public class ResultJsonConverter<T, E> : JsonConverter<Result<T, E>>
         }
         else if (isOk == false && error is not null)
         {
-            return Result<T, E>.Err(error);
+            return Result<T, E>.Error(error);
         }
 
         throw new JsonException("Invalid Result JSON: missing isOk, value, or error");

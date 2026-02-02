@@ -21,7 +21,7 @@ public class ResultCombineTests
     [Fact]
     public void Combine_FirstErr_ReturnsFirstError()
     {
-        var r1 = Result<int, string>.Err("error1");
+        var r1 = Result<int, string>.Error("error1");
         var r2 = Result<int, string>.Ok(2);
 
         var combined = ResultExtensions.Combine(r1, r2);
@@ -34,7 +34,7 @@ public class ResultCombineTests
     public void Combine_SecondErr_ReturnsSecondError()
     {
         var r1 = Result<int, string>.Ok(1);
-        var r2 = Result<int, string>.Err("error2");
+        var r2 = Result<int, string>.Error("error2");
 
         var combined = ResultExtensions.Combine(r1, r2);
 
@@ -45,8 +45,8 @@ public class ResultCombineTests
     [Fact]
     public void Combine_BothErr_ReturnsFirstError()
     {
-        var r1 = Result<int, string>.Err("error1");
-        var r2 = Result<int, string>.Err("error2");
+        var r1 = Result<int, string>.Error("error1");
+        var r2 = Result<int, string>.Error("error2");
 
         var combined = ResultExtensions.Combine(r1, r2);
 
@@ -69,7 +69,7 @@ public class ResultCombineTests
     [Fact]
     public void Combine_WithCombiner_FirstErr_ReturnsError()
     {
-        var r1 = Result<int, string>.Err("error");
+        var r1 = Result<int, string>.Error("error");
         var r2 = Result<int, string>.Ok(20);
 
         var combined = ResultExtensions.Combine(r1, r2, (a, b) => a + b);
@@ -100,7 +100,7 @@ public class ResultCombineTests
     {
         var r1 = Result<int, string>.Ok(1);
         var r2 = Result<string, string>.Ok("hello");
-        var r3 = Result<double, string>.Err("error3");
+        var r3 = Result<double, string>.Error("error3");
 
         var combined = ResultExtensions.Combine(r1, r2, r3);
 
@@ -145,7 +145,7 @@ public class ResultCombineTests
         var r1 = Result<int, string>.Ok(1);
         var r2 = Result<int, string>.Ok(2);
         var r3 = Result<int, string>.Ok(3);
-        var r4 = Result<int, string>.Err("error4");
+        var r4 = Result<int, string>.Error("error4");
 
         var combined = ResultExtensions.Combine(r1, r2, r3, r4);
 
@@ -193,7 +193,7 @@ public class ResultCombineTests
         var results = new[]
         {
             Result<int, string>.Ok(1),
-            Result<int, string>.Err("error"),
+            Result<int, string>.Error("error"),
             Result<int, string>.Ok(3)
         };
 
@@ -219,8 +219,8 @@ public class ResultCombineTests
     {
         var results = new[]
         {
-            Result<int, string>.Err("first"),
-            Result<int, string>.Err("second"),
+            Result<int, string>.Error("first"),
+            Result<int, string>.Error("second"),
             Result<int, string>.Ok(3)
         };
 
@@ -256,7 +256,7 @@ public class ResultCombineTests
         var results = new[]
         {
             Result<int, string>.Ok(1),
-            Result<int, string>.Err("validation failed"),
+            Result<int, string>.Error("validation failed"),
             Result<int, string>.Ok(3)
         };
 
@@ -316,10 +316,10 @@ public class ResultCombineTests
     {
         // Simulate fetching user and order
         Result<string, string> GetUser(int id) =>
-            id > 0 ? Result<string, string>.Ok($"User{id}") : Result<string, string>.Err("User not found");
+            id > 0 ? Result<string, string>.Ok($"User{id}") : Result<string, string>.Error("User not found");
 
         Result<string, string> GetOrder(int id) =>
-            id > 0 ? Result<string, string>.Ok($"Order{id}") : Result<string, string>.Err("Order not found");
+            id > 0 ? Result<string, string>.Ok($"Order{id}") : Result<string, string>.Error("Order not found");
 
         // Combine both
         var result = ResultExtensions.Combine(
@@ -336,13 +336,13 @@ public class ResultCombineTests
     public void RealWorld_ValidateMultipleFields()
     {
         Result<string, string> ValidateName(string name) =>
-            string.IsNullOrEmpty(name) ? Result<string, string>.Err("Name required") : Result<string, string>.Ok(name);
+            string.IsNullOrEmpty(name) ? Result<string, string>.Error("Name required") : Result<string, string>.Ok(name);
 
         Result<int, string> ValidateAge(int age) =>
-            age < 0 ? Result<int, string>.Err("Age invalid") : Result<int, string>.Ok(age);
+            age < 0 ? Result<int, string>.Error("Age invalid") : Result<int, string>.Ok(age);
 
         Result<string, string> ValidateEmail(string email) =>
-            email.Contains('@') ? Result<string, string>.Ok(email) : Result<string, string>.Err("Invalid email");
+            email.Contains('@') ? Result<string, string>.Ok(email) : Result<string, string>.Error("Invalid email");
 
         // All valid
         var valid = ResultExtensions.Combine(
@@ -367,7 +367,7 @@ public class ResultCombineTests
     public void RealWorld_BatchOperation()
     {
         Result<int, string> Process(int x) =>
-            x >= 0 ? Result<int, string>.Ok(x * 2) : Result<int, string>.Err($"Cannot process {x}");
+            x >= 0 ? Result<int, string>.Ok(x * 2) : Result<int, string>.Error($"Cannot process {x}");
 
         var inputs = new[] { 1, 2, 3, 4, 5 };
         var results = ResultExtensions.Combine(inputs.Select(Process));

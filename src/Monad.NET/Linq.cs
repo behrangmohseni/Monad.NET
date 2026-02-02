@@ -93,8 +93,8 @@ public static class ResultLinq
     /// Equivalent to Map.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Result<U, TErr> Select<T, TErr, U>(
-        this Result<T, TErr> result,
+    public static Result<U, TError> Select<T, TError, U>(
+        this Result<T, TError> result,
         Func<T, U> selector)
     {
         return result.Map(selector);
@@ -105,9 +105,9 @@ public static class ResultLinq
     /// This is what makes query comprehension work.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Result<U, TErr> SelectMany<T, TErr, U>(
-        this Result<T, TErr> result,
-        Func<T, Result<U, TErr>> selector)
+    public static Result<U, TError> SelectMany<T, TError, U>(
+        this Result<T, TError> result,
+        Func<T, Result<U, TError>> selector)
     {
         return result.Bind(selector);
     }
@@ -117,9 +117,9 @@ public static class ResultLinq
     /// This allows multiple 'from' clauses in query syntax.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Result<V, TErr> SelectMany<T, TErr, U, V>(
-        this Result<T, TErr> result,
-        Func<T, Result<U, TErr>> selector,
+    public static Result<V, TError> SelectMany<T, TError, U, V>(
+        this Result<T, TError> result,
+        Func<T, Result<U, TError>> selector,
         Func<T, U, V> resultSelector)
     {
         return result.Bind(t =>
@@ -132,10 +132,10 @@ public static class ResultLinq
     /// Converts Ok to Err if the predicate is not satisfied.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Result<T, TErr> Where<T, TErr>(
-        this Result<T, TErr> result,
+    public static Result<T, TError> Where<T, TError>(
+        this Result<T, TError> result,
         Func<T, bool> predicate,
-        TErr errorIfFalse)
+        TError errorIfFalse)
     {
         return result.FilterOrElse(predicate, errorIfFalse);
     }
@@ -145,10 +145,10 @@ public static class ResultLinq
     /// Converts Ok to Err if the predicate is not satisfied.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Result<T, TErr> Where<T, TErr>(
-        this Result<T, TErr> result,
+    public static Result<T, TError> Where<T, TError>(
+        this Result<T, TError> result,
         Func<T, bool> predicate,
-        Func<T, TErr> errorFactory)
+        Func<T, TError> errorFactory)
     {
         return result.FilterOrElse(predicate, errorFactory);
     }
@@ -165,8 +165,8 @@ public static class RemoteDataLinq
     /// Equivalent to Map.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RemoteData<U, TErr> Select<T, TErr, U>(
-        this RemoteData<T, TErr> remoteData,
+    public static RemoteData<U, TError> Select<T, TError, U>(
+        this RemoteData<T, TError> remoteData,
         Func<T, U> selector)
     {
         return remoteData.Map(selector);
@@ -176,9 +176,9 @@ public static class RemoteDataLinq
     /// Enables LINQ SelectMany (monadic bind) for RemoteData&lt;T, E&gt;.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RemoteData<U, TErr> SelectMany<T, TErr, U>(
-        this RemoteData<T, TErr> remoteData,
-        Func<T, RemoteData<U, TErr>> selector)
+    public static RemoteData<U, TError> SelectMany<T, TError, U>(
+        this RemoteData<T, TError> remoteData,
+        Func<T, RemoteData<U, TError>> selector)
     {
         return remoteData.Bind(selector);
     }
@@ -187,9 +187,9 @@ public static class RemoteDataLinq
     /// Enables LINQ SelectMany with result selector for RemoteData&lt;T, E&gt;.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static RemoteData<V, TErr> SelectMany<T, TErr, U, V>(
-        this RemoteData<T, TErr> remoteData,
-        Func<T, RemoteData<U, TErr>> selector,
+    public static RemoteData<V, TError> SelectMany<T, TError, U, V>(
+        this RemoteData<T, TError> remoteData,
+        Func<T, RemoteData<U, TError>> selector,
         Func<T, U, V> resultSelector)
     {
         return remoteData.Bind(t =>
@@ -260,7 +260,7 @@ public static class TryLinq
 }
 
 /// <summary>
-/// LINQ query syntax support for Validation&lt;T, TErr&gt;.
+/// LINQ query syntax support for Validation&lt;T, TError&gt;.
 /// Enables C# query comprehension syntax with from, let, and select.
 /// </summary>
 /// <remarks>
@@ -294,8 +294,8 @@ public static class ValidationLinq
     /// Equivalent to Map.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Validation<U, TErr> Select<T, TErr, U>(
-        this Validation<T, TErr> validation,
+    public static Validation<U, TError> Select<T, TError, U>(
+        this Validation<T, TError> validation,
         Func<T, U> selector)
     {
         return validation.Map(selector);
@@ -307,12 +307,12 @@ public static class ValidationLinq
     /// <remarks>
     /// <para>
     /// <b>WARNING: LINQ query syntax does NOT accumulate errors.</b>
-    /// This method uses short-circuit evaluation (like <see cref="Validation{T,TErr}.Bind"/>)
+    /// This method uses short-circuit evaluation (like <see cref="Validation{T,TError}.Bind"/>)
     /// and stops at the first error, just like Result.
     /// </para>
     /// <para>
-    /// <b>For error accumulation, use <see cref="Validation{T,TErr}.Apply"/> or 
-    /// <see cref="Validation{T,TErr}.Zip"/> instead.</b>
+    /// <b>For error accumulation, use <see cref="Validation{T,TError}.Apply"/> or 
+    /// <see cref="Validation{T,TError}.Zip"/> instead.</b>
     /// </para>
     /// <para>
     /// Example of error accumulation with Apply:
@@ -324,9 +324,9 @@ public static class ValidationLinq
     /// </para>
     /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Validation<U, TErr> SelectMany<T, TErr, U>(
-        this Validation<T, TErr> validation,
-        Func<T, Validation<U, TErr>> selector)
+    public static Validation<U, TError> SelectMany<T, TError, U>(
+        this Validation<T, TError> validation,
+        Func<T, Validation<U, TError>> selector)
     {
         // Short-circuit: stop at first error (safe, consistent with Bind)
         return validation.Bind(selector);
@@ -341,14 +341,14 @@ public static class ValidationLinq
     /// This method uses short-circuit evaluation and stops at the first error.
     /// </para>
     /// <para>
-    /// <b>For error accumulation, use <see cref="Validation{T,TErr}.Apply"/> or 
-    /// <see cref="Validation{T,TErr}.Zip"/> instead.</b>
+    /// <b>For error accumulation, use <see cref="Validation{T,TError}.Apply"/> or 
+    /// <see cref="Validation{T,TError}.Zip"/> instead.</b>
     /// </para>
     /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Validation<V, TErr> SelectMany<T, TErr, U, V>(
-        this Validation<T, TErr> validation,
-        Func<T, Validation<U, TErr>> collectionSelector,
+    public static Validation<V, TError> SelectMany<T, TError, U, V>(
+        this Validation<T, TError> validation,
+        Func<T, Validation<U, TError>> collectionSelector,
         Func<T, U, V> resultSelector)
     {
         ThrowHelper.ThrowIfNull(collectionSelector);

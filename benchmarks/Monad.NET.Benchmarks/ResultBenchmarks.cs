@@ -17,7 +17,7 @@ public class ResultBenchmarks
     public void Setup()
     {
         _ok = Result<int, string>.Ok(42);
-        _err = Result<int, string>.Err("error");
+        _err = Result<int, string>.Error("error");
     }
 
     [Benchmark(Baseline = true)]
@@ -29,7 +29,7 @@ public class ResultBenchmarks
     [Benchmark]
     public Result<int, string> CreateErr()
     {
-        return Result<int, string>.Err("error");
+        return Result<int, string>.Error("error");
     }
 
     [Benchmark]

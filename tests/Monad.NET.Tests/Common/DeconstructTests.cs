@@ -54,7 +54,7 @@ public class DeconstructTests
     [Fact]
     public void Result_Deconstruct_Err_ReturnsDefaultAndFalse()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
         var (value, isOk) = result;
 
         Assert.Equal(default, value);
@@ -75,7 +75,7 @@ public class DeconstructTests
     [Fact]
     public void Result_DeconstructFull_Err_ReturnsAllComponents()
     {
-        var result = Result<int, string>.Err("oops");
+        var result = Result<int, string>.Error("oops");
         var (value, error, isOk) = result;
 
         Assert.Equal(default, value);
@@ -101,7 +101,7 @@ public class DeconstructTests
     [Fact]
     public void Try_Deconstruct_Success_ReturnsValueAndTrue()
     {
-        var tryResult = Try<int>.Success(42);
+        var tryResult = Try<int>.Ok(42);
         var (value, isSuccess) = tryResult;
 
         Assert.Equal(42, value);
@@ -111,7 +111,7 @@ public class DeconstructTests
     [Fact]
     public void Try_Deconstruct_Failure_ReturnsDefaultAndFalse()
     {
-        var tryResult = Try<int>.Failure(new Exception("oops"));
+        var tryResult = Try<int>.Error(new Exception("oops"));
         var (value, isSuccess) = tryResult;
 
         Assert.Equal(default, value);
@@ -121,7 +121,7 @@ public class DeconstructTests
     [Fact]
     public void Try_DeconstructFull_Success_ReturnsAllComponents()
     {
-        var tryResult = Try<int>.Success(42);
+        var tryResult = Try<int>.Ok(42);
         var (value, exception, isSuccess) = tryResult;
 
         Assert.Equal(42, value);
@@ -133,7 +133,7 @@ public class DeconstructTests
     public void Try_DeconstructFull_Failure_ReturnsAllComponents()
     {
         var ex = new InvalidOperationException("test error");
-        var tryResult = Try<int>.Failure(ex);
+        var tryResult = Try<int>.Error(ex);
         var (value, exception, isSuccess) = tryResult;
 
         Assert.Equal(default, value);
@@ -159,7 +159,7 @@ public class DeconstructTests
     [Fact]
     public void Validation_Deconstruct_Valid_ReturnsValueAndTrue()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
         var (value, isValid) = validation;
 
         Assert.Equal(42, value);
@@ -169,7 +169,7 @@ public class DeconstructTests
     [Fact]
     public void Validation_Deconstruct_Invalid_ReturnsDefaultAndFalse()
     {
-        var validation = Validation<int, string>.Invalid("error");
+        var validation = Validation<int, string>.Error("error");
         var (value, isValid) = validation;
 
         Assert.Equal(default, value);
@@ -179,7 +179,7 @@ public class DeconstructTests
     [Fact]
     public void Validation_DeconstructFull_Valid_ReturnsAllComponents()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
         var (value, errors, isValid) = validation;
 
         Assert.Equal(42, value);
@@ -190,7 +190,7 @@ public class DeconstructTests
     [Fact]
     public void Validation_DeconstructFull_Invalid_ReturnsAllComponents()
     {
-        var validation = Validation<int, string>.Invalid(new[] { "error1", "error2" });
+        var validation = Validation<int, string>.Error(new[] { "error1", "error2" });
         var (value, errors, isValid) = validation;
 
         Assert.Equal(default, value);
@@ -203,7 +203,7 @@ public class DeconstructTests
     [Fact]
     public void Validation_Deconstruct_WithPatternMatching()
     {
-        var validation = Validation<int, string>.Valid(100);
+        var validation = Validation<int, string>.Ok(100);
         var (value, isValid) = validation;
 
         var message = isValid ? $"Valid: {value}" : "Invalid";
@@ -218,7 +218,7 @@ public class DeconstructTests
     [Fact]
     public void RemoteData_Deconstruct_Success_ReturnsDataAndTrue()
     {
-        var remoteData = RemoteData<int, string>.Success(42);
+        var remoteData = RemoteData<int, string>.Ok(42);
         var (data, isSuccess) = remoteData;
 
         Assert.Equal(42, data);
@@ -266,7 +266,7 @@ public class DeconstructTests
     [Fact]
     public void RemoteData_DeconstructFull_Success_ReturnsAllComponents()
     {
-        var remoteData = RemoteData<int, string>.Success(42);
+        var remoteData = RemoteData<int, string>.Ok(42);
         var (data, error, isNotAsked, isLoading, isSuccess, isFailure) = remoteData;
 
         Assert.Equal(42, data);
@@ -280,7 +280,7 @@ public class DeconstructTests
     [Fact]
     public void RemoteData_DeconstructFull_Failure_ReturnsAllComponents()
     {
-        var remoteData = RemoteData<int, string>.Failure("oops");
+        var remoteData = RemoteData<int, string>.Error("oops");
         var (data, error, isNotAsked, isLoading, isSuccess, isFailure) = remoteData;
 
         Assert.Equal(default, data);
@@ -294,7 +294,7 @@ public class DeconstructTests
     [Fact]
     public void RemoteData_Deconstruct_WithPatternMatching()
     {
-        var remoteData = RemoteData<int, string>.Success(99);
+        var remoteData = RemoteData<int, string>.Ok(99);
 
         var message = (remoteData.IsNotAsked, remoteData.IsLoading, remoteData.IsOk, remoteData.IsError) switch
         {

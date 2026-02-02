@@ -13,7 +13,7 @@ public class LinqExtendedTests
     public void Try_Select_OnFailure_ReturnsFailure()
     {
         var exception = new InvalidOperationException("test");
-        var @try = Try<int>.Failure(exception);
+        var @try = Try<int>.Error(exception);
         var result = @try.Select(x => x * 2);
 
         Assert.True(result.IsError);
@@ -24,8 +24,8 @@ public class LinqExtendedTests
     public void Try_SelectMany_WithoutResultSelector_OnFailure_ReturnsFailure()
     {
         var exception = new InvalidOperationException("test");
-        var @try = Try<int>.Failure(exception);
-        var result = @try.SelectMany(x => Try<int>.Success(x + 5));
+        var @try = Try<int>.Error(exception);
+        var result = @try.SelectMany(x => Try<int>.Ok(x + 5));
 
         Assert.True(result.IsError);
     }
@@ -34,9 +34,9 @@ public class LinqExtendedTests
     public void Try_SelectMany_WithResultSelector_OnFailure_ReturnsFailure()
     {
         var exception = new InvalidOperationException("test");
-        var @try = Try<int>.Failure(exception);
+        var @try = Try<int>.Error(exception);
         var result = @try.SelectMany(
-            x => Try<string>.Success($"Value: {x}"),
+            x => Try<string>.Ok($"Value: {x}"),
             (x, y) => $"{y}!");
 
         Assert.True(result.IsError);
@@ -45,9 +45,9 @@ public class LinqExtendedTests
     [Fact]
     public void Try_SelectMany_WithResultSelector_SecondFailure_ReturnsFailure()
     {
-        var @try = Try<int>.Success(10);
+        var @try = Try<int>.Ok(10);
         var result = @try.SelectMany(
-            _ => Try<string>.Failure(new InvalidOperationException("second")),
+            _ => Try<string>.Error(new InvalidOperationException("second")),
             (x, y) => $"{y}!");
 
         Assert.True(result.IsError);
@@ -57,7 +57,7 @@ public class LinqExtendedTests
     public void Try_Where_OnFailure_ReturnsFailure()
     {
         var exception = new InvalidOperationException("test");
-        var @try = Try<int>.Failure(exception);
+        var @try = Try<int>.Error(exception);
         var result = @try.Where(x => x > 0);
 
         Assert.True(result.IsError);
@@ -114,7 +114,7 @@ public class LinqExtendedTests
     [Fact]
     public void Result_SelectMany_WithoutResultSelector_OnErr_ReturnsErr()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
         var mapped = result.SelectMany(x => Result<int, string>.Ok(x + 5));
 
         Assert.True(mapped.IsError);
@@ -124,7 +124,7 @@ public class LinqExtendedTests
     [Fact]
     public void Result_SelectMany_WithResultSelector_OnErr_ReturnsErr()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
         var mapped = result.SelectMany(
             x => Result<string, string>.Ok($"Value: {x}"),
             (x, y) => $"{y}!");
@@ -137,7 +137,7 @@ public class LinqExtendedTests
     {
         var result = Result<int, string>.Ok(10);
         var mapped = result.SelectMany(
-            _ => Result<string, string>.Err("second error"),
+            _ => Result<string, string>.Error("second error"),
             (x, y) => $"{y}!");
 
         Assert.True(mapped.IsError);
@@ -147,7 +147,7 @@ public class LinqExtendedTests
     [Fact]
     public void Result_Where_OnErr_ReturnsErr()
     {
-        var result = Result<int, string>.Err("existing error");
+        var result = Result<int, string>.Error("existing error");
         var filtered = result.Where(x => x > 0, "should not happen");
 
         Assert.True(filtered.IsError);
@@ -157,7 +157,7 @@ public class LinqExtendedTests
     [Fact]
     public void Result_Where_WithFactory_OnErr_ReturnsErr()
     {
-        var result = Result<int, string>.Err("existing error");
+        var result = Result<int, string>.Error("existing error");
         var filtered = result.Where(x => x > 0, x => $"value {x} is invalid");
 
         Assert.True(filtered.IsError);

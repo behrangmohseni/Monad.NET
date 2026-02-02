@@ -43,11 +43,11 @@ public class AggressiveInliningComprehensiveBenchmarks
         _someOption = Option<int>.Some(42);
         _noneOption = Option<int>.None();
         _okResult = Result<int, string>.Ok(42);
-        _errResult = Result<int, string>.Err("error");
+        _errResult = Result<int, string>.Error("error");
         _successTry = Try<int>.Of(() => 42);
         _failureTry = Try<int>.Of(() => throw new InvalidOperationException("test"));
-        _validValidation = Validation<int, string>.Valid(42);
-        _invalidValidation = Validation<int, string>.Invalid("error");
+        _validValidation = Validation<int, string>.Ok(42);
+        _invalidValidation = Validation<int, string>.Error("error");
     }
 
     #region Category 1: Property Accessors
@@ -495,7 +495,7 @@ public class AggressiveInliningComprehensiveBenchmarks
                 .Map(x => x * 2)
                 .Bind(x => x >= 0 
                     ? Result<string, string>.Ok($"Value: {x}") 
-                    : Result<string, string>.Err("Negative"));
+                    : Result<string, string>.Error("Negative"));
         }
         return result;
     }
@@ -538,7 +538,7 @@ public class AggressiveInliningComprehensiveBenchmarks
     private static Result<T, E> CreateOk_NoInline<T, E>(T value) => Result<T, E>.Ok(value);
     
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private static Result<T, E> CreateErr_NoInline<T, E>(E error) => Result<T, E>.Err(error);
+    private static Result<T, E> CreateErr_NoInline<T, E>(E error) => Result<T, E>.Error(error);
     
     // Value access
     [MethodImpl(MethodImplOptions.NoInlining)]

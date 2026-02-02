@@ -139,7 +139,7 @@ public class BehavioralContractTests
     [Fact]
     public void Result_Err_ShouldCreateErrValue()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
 
         Assert.False(result.IsOk);
         Assert.True(result.IsError);
@@ -155,7 +155,7 @@ public class BehavioralContractTests
     [Fact]
     public void Result_Err_WithNull_ShouldThrow()
     {
-        Assert.Throws<ArgumentNullException>(() => Result<string, string>.Err(null!));
+        Assert.Throws<ArgumentNullException>(() => Result<string, string>.Error(null!));
     }
 
     #endregion
@@ -303,7 +303,7 @@ public class BehavioralContractTests
     [Fact]
     public void Result_Map_OnErr_ShouldReturnErr()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
 
         var mapped = result.Map(x => x * 2);
 
@@ -314,7 +314,7 @@ public class BehavioralContractTests
     [Fact]
     public void Result_MapErr_OnErr_ShouldTransformError()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
 
         var mapped = result.MapError(e => e.ToUpper());
 
@@ -347,7 +347,7 @@ public class BehavioralContractTests
     [Fact]
     public void Result_AndThen_OnErr_ShouldNotExecuteFunction()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
         var executed = false;
 
         var chained = result.Bind(x =>
@@ -376,7 +376,7 @@ public class BehavioralContractTests
     [Fact]
     public void Result_Match_OnErr_ShouldExecuteErrBranch()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
 
         var matched = result.Match(
             okFunc: x => x.ToString(),
@@ -389,7 +389,7 @@ public class BehavioralContractTests
     [Fact]
     public void Result_Unwrap_OnErr_ShouldThrow()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
 
         Assert.Throws<InvalidOperationException>(() => result.GetValue());
     }
@@ -409,7 +409,7 @@ public class BehavioralContractTests
     [Fact]
     public void Validation_Valid_ShouldCreateValidValue()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
 
         Assert.True(validation.IsOk);
         Assert.False(validation.IsError);
@@ -419,7 +419,7 @@ public class BehavioralContractTests
     [Fact]
     public void Validation_Invalid_ShouldCreateInvalidValue()
     {
-        var validation = Validation<int, string>.Invalid("error");
+        var validation = Validation<int, string>.Error("error");
 
         Assert.False(validation.IsOk);
         Assert.True(validation.IsError);
@@ -428,8 +428,8 @@ public class BehavioralContractTests
     [Fact]
     public void Validation_Apply_BothValid_ShouldCombine()
     {
-        var v1 = Validation<int, string>.Valid(10);
-        var v2 = Validation<int, string>.Valid(20);
+        var v1 = Validation<int, string>.Ok(10);
+        var v2 = Validation<int, string>.Ok(20);
 
         var result = v1.Apply(v2, (a, b) => a + b);
 
@@ -440,8 +440,8 @@ public class BehavioralContractTests
     [Fact]
     public void Validation_Apply_BothInvalid_ShouldAccumulateErrors()
     {
-        var v1 = Validation<int, string>.Invalid("error1");
-        var v2 = Validation<int, string>.Invalid("error2");
+        var v1 = Validation<int, string>.Error("error1");
+        var v2 = Validation<int, string>.Error("error2");
 
         var result = v1.Apply(v2, (a, b) => a + b);
 
@@ -454,8 +454,8 @@ public class BehavioralContractTests
     [Fact]
     public void Validation_Apply_FirstInvalid_ShouldReturnErrors()
     {
-        var v1 = Validation<int, string>.Invalid("error1");
-        var v2 = Validation<int, string>.Valid(20);
+        var v1 = Validation<int, string>.Error("error1");
+        var v2 = Validation<int, string>.Ok(20);
 
         var result = v1.Apply(v2, (a, b) => a + b);
 
@@ -470,7 +470,7 @@ public class BehavioralContractTests
     [Fact]
     public void Try_Success_ShouldCreateSuccessValue()
     {
-        var tryValue = Try<int>.Success(42);
+        var tryValue = Try<int>.Ok(42);
 
         Assert.True(tryValue.IsOk);
         Assert.False(tryValue.IsError);
@@ -481,7 +481,7 @@ public class BehavioralContractTests
     public void Try_Failure_ShouldCreateFailureValue()
     {
         var exception = new InvalidOperationException("error");
-        var tryValue = Try<int>.Failure(exception);
+        var tryValue = Try<int>.Error(exception);
 
         Assert.False(tryValue.IsOk);
         Assert.True(tryValue.IsError);
@@ -508,7 +508,7 @@ public class BehavioralContractTests
     [Fact]
     public void Try_Recover_OnFailure_ShouldRecoverValue()
     {
-        var tryValue = Try<int>.Failure(new InvalidOperationException("error"));
+        var tryValue = Try<int>.Error(new InvalidOperationException("error"));
 
         var result = tryValue.Recover(_ => 0);
 
@@ -519,7 +519,7 @@ public class BehavioralContractTests
     [Fact]
     public void Try_Recover_OnSuccess_ShouldKeepValue()
     {
-        var tryValue = Try<int>.Success(42);
+        var tryValue = Try<int>.Ok(42);
 
         var result = tryValue.Recover(_ => 0);
 
@@ -650,8 +650,8 @@ public class BehavioralContractTests
     [Fact]
     public void Result_ErrWithSameError_ShouldBeEqual()
     {
-        var result1 = Result<int, string>.Err("error");
-        var result2 = Result<int, string>.Err("error");
+        var result1 = Result<int, string>.Error("error");
+        var result2 = Result<int, string>.Error("error");
 
         Assert.Equal(result1, result2);
     }

@@ -77,7 +77,7 @@ public class ContainsExistsTests
 
     #endregion
 
-    #region Result<T, TErr> Contains/Exists
+    #region Result<T, TError> Contains/Exists
 
     [Fact]
     public void Result_Contains_ReturnsTrueForMatchingValue()
@@ -96,21 +96,21 @@ public class ContainsExistsTests
     [Fact]
     public void Result_Contains_ReturnsFalseForErr()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
         Assert.False(result.Contains(42));
     }
 
     [Fact]
     public void Result_ContainsError_ReturnsTrueForMatchingError()
     {
-        var result = Result<int, string>.Err("not found");
+        var result = Result<int, string>.Error("not found");
         Assert.True(result.ContainsError("not found"));
     }
 
     [Fact]
     public void Result_ContainsError_ReturnsFalseForNonMatchingError()
     {
-        var result = Result<int, string>.Err("not found");
+        var result = Result<int, string>.Error("not found");
         Assert.False(result.ContainsError("other error"));
     }
 
@@ -139,7 +139,7 @@ public class ContainsExistsTests
     [Fact]
     public void Result_Exists_ReturnsFalseForErr()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
         Assert.False(result.Exists(x => true));
     }
 
@@ -153,7 +153,7 @@ public class ContainsExistsTests
     [Fact]
     public void Result_ExistsError_ReturnsTrueWhenPredicateMatches()
     {
-        var result = Result<int, string>.Err("not found");
+        var result = Result<int, string>.Error("not found");
         Assert.True(result.ExistsError(e => e.Contains("not")));
         Assert.True(result.ExistsError(e => e.Length > 0));
     }
@@ -161,7 +161,7 @@ public class ContainsExistsTests
     [Fact]
     public void Result_ExistsError_ReturnsFalseWhenPredicateDoesNotMatch()
     {
-        var result = Result<int, string>.Err("not found");
+        var result = Result<int, string>.Error("not found");
         Assert.False(result.ExistsError(e => e.Contains("xyz")));
     }
 
@@ -175,7 +175,7 @@ public class ContainsExistsTests
     [Fact]
     public void Result_ExistsError_ThrowsForNullPredicate()
     {
-        var result = Result<int, string>.Err("error");
+        var result = Result<int, string>.Error("error");
         Assert.Throws<ArgumentNullException>(() => result.ExistsError(null!));
     }
 
@@ -186,102 +186,102 @@ public class ContainsExistsTests
     [Fact]
     public void Try_Contains_ReturnsTrueForMatchingValue()
     {
-        var result = Try<int>.Success(42);
+        var result = Try<int>.Ok(42);
         Assert.True(result.Contains(42));
     }
 
     [Fact]
     public void Try_Contains_ReturnsFalseForNonMatchingValue()
     {
-        var result = Try<int>.Success(42);
+        var result = Try<int>.Ok(42);
         Assert.False(result.Contains(0));
     }
 
     [Fact]
     public void Try_Contains_ReturnsFalseForFailure()
     {
-        var result = Try<int>.Failure(new Exception("error"));
+        var result = Try<int>.Error(new Exception("error"));
         Assert.False(result.Contains(42));
     }
 
     [Fact]
     public void Try_Exists_ReturnsTrueWhenPredicateMatches()
     {
-        var result = Try<int>.Success(42);
+        var result = Try<int>.Ok(42);
         Assert.True(result.Exists(x => x > 40));
     }
 
     [Fact]
     public void Try_Exists_ReturnsFalseWhenPredicateDoesNotMatch()
     {
-        var result = Try<int>.Success(42);
+        var result = Try<int>.Ok(42);
         Assert.False(result.Exists(x => x > 50));
     }
 
     [Fact]
     public void Try_Exists_ReturnsFalseForFailure()
     {
-        var result = Try<int>.Failure(new Exception("error"));
+        var result = Try<int>.Error(new Exception("error"));
         Assert.False(result.Exists(x => true));
     }
 
     [Fact]
     public void Try_Exists_ThrowsForNullPredicate()
     {
-        var result = Try<int>.Success(42);
+        var result = Try<int>.Ok(42);
         Assert.Throws<ArgumentNullException>(() => result.Exists(null!));
     }
 
     #endregion
 
-    #region Validation<T, TErr> Contains/Exists
+    #region Validation<T, TError> Contains/Exists
 
     [Fact]
     public void Validation_Contains_ReturnsTrueForMatchingValue()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
         Assert.True(validation.Contains(42));
     }
 
     [Fact]
     public void Validation_Contains_ReturnsFalseForNonMatchingValue()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
         Assert.False(validation.Contains(0));
     }
 
     [Fact]
     public void Validation_Contains_ReturnsFalseForInvalid()
     {
-        var validation = Validation<int, string>.Invalid("error");
+        var validation = Validation<int, string>.Error("error");
         Assert.False(validation.Contains(42));
     }
 
     [Fact]
     public void Validation_Exists_ReturnsTrueWhenPredicateMatches()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
         Assert.True(validation.Exists(x => x > 40));
     }
 
     [Fact]
     public void Validation_Exists_ReturnsFalseWhenPredicateDoesNotMatch()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
         Assert.False(validation.Exists(x => x > 50));
     }
 
     [Fact]
     public void Validation_Exists_ReturnsFalseForInvalid()
     {
-        var validation = Validation<int, string>.Invalid("error");
+        var validation = Validation<int, string>.Error("error");
         Assert.False(validation.Exists(x => true));
     }
 
     [Fact]
     public void Validation_Exists_ThrowsForNullPredicate()
     {
-        var validation = Validation<int, string>.Valid(42);
+        var validation = Validation<int, string>.Ok(42);
         Assert.Throws<ArgumentNullException>(() => validation.Exists(null!));
     }
 

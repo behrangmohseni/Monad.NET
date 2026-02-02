@@ -16,20 +16,20 @@ public class TryBenchmarks
     [GlobalSetup]
     public void Setup()
     {
-        _success = Try<int>.Success(42);
-        _failure = Try<int>.Failure(new InvalidOperationException("error"));
+        _success = Try<int>.Ok(42);
+        _failure = Try<int>.Error(new InvalidOperationException("error"));
     }
 
     [Benchmark(Baseline = true)]
     public Try<int> CreateSuccess()
     {
-        return Try<int>.Success(42);
+        return Try<int>.Ok(42);
     }
 
     [Benchmark]
     public Try<int> CreateFailure()
     {
-        return Try<int>.Failure(new InvalidOperationException("error"));
+        return Try<int>.Error(new InvalidOperationException("error"));
     }
 
     [Benchmark]
@@ -59,13 +59,13 @@ public class TryBenchmarks
     [Benchmark]
     public Try<int> Bind_Success()
     {
-        return _success.Bind(x => Try<int>.Success(x * 2));
+        return _success.Bind(x => Try<int>.Ok(x * 2));
     }
 
     [Benchmark]
     public Try<int> Bind_Failure()
     {
-        return _failure.Bind(x => Try<int>.Success(x * 2));
+        return _failure.Bind(x => Try<int>.Ok(x * 2));
     }
 
     [Benchmark]
