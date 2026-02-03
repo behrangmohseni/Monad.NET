@@ -317,22 +317,52 @@ var area = shape.Match(
 
 ## Documentation
 
+### Getting Started
+
 | Document | Description |
 |----------|-------------|
-| [NuGet Packages](docs/NuGetPackages.md) | All packages with version badges and installation instructions |
 | [Quick Start Guide](docs/QUICKSTART.md) | Get up and running in 5 minutes |
+| [NuGet Packages](docs/NuGetPackages.md) | All packages with version badges and installation instructions |
+
+### Learning Functional Programming
+
+New to functional programming? Start here:
+
+| Document | Description |
+|----------|-------------|
+| [Why Functional Error Handling?](docs/Concepts/WhyFunctionalErrorHandling.md) | The case for Result over exceptions |
+| [Railway-Oriented Programming](docs/Concepts/RailwayOrientedProgramming.md) | The mental model for error handling |
+| [Option Explained](docs/Concepts/OptionExplained.md) | Handling missing values safely |
+| [Result Explained](docs/Concepts/ResultExplained.md) | Handling operations that can fail |
+| [Composition Patterns](docs/Concepts/CompositionPatterns.md) | Building complex operations from simple ones |
+| [From OOP to FP](docs/Concepts/FromOopToFp.md) | Mental shift guide for C# developers |
+
+### Reference Documentation
+
+| Document | Description |
+|----------|-------------|
 | [Core Types](docs/CoreTypes.md) | Detailed docs for Option, Result, Validation, Try, and more |
 | [Advanced Usage](docs/AdvancedUsage.md) | Async operations, collection methods, parallel processing |
 | [Examples](docs/Examples.md) | Real-world code samples |
 | [Integrations](docs/Integrations.md) | Source Generators, ASP.NET Core, Entity Framework Core |
 | [API Reference](docs/API.md) | Complete API documentation |
-| [Compatibility](docs/Compatibility.md) | Supported .NET versions |
-| [Performance Benchmarks](docs/PerformanceBenchmarks.md) | Detailed performance comparisons and analysis |
-| [Versioning Policy](docs/VersioningPolicy.md) | API versioning and deprecation policy |
+
+### Guides
+
+| Document | Description |
+|----------|-------------|
 | [Pitfalls & Gotchas](docs/Guides/Pitfalls.md) | Common mistakes to avoid |
 | [Logging Guidance](docs/Guides/Logging.md) | Best practices for logging |
 | [Type Selection Guide](docs/Guides/TypeSelectionGuide.md) | Decision flowchart for choosing the right type |
 | [Migration Guide](docs/Guides/MigrationGuide.md) | Migrate from language-ext, OneOf, FluentResults |
+
+### Project Information
+
+| Document | Description |
+|----------|-------------|
+| [Compatibility](docs/Compatibility.md) | Supported .NET versions |
+| [Performance Benchmarks](docs/PerformanceBenchmarks.md) | Detailed performance comparisons and analysis |
+| [Versioning Policy](docs/VersioningPolicy.md) | API versioning and deprecation policy |
 | [Architectural Decisions](docs/ArchitecturalDecisions.md) | Design decisions, rationale, and trade-offs |
 
 ---
