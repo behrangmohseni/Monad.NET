@@ -29,16 +29,16 @@ public class ComposabilityTests
         // 3. Transforms to domain model
         // 4. Enriches with external data
         // 5. Applies business rules
-        
+
         var pipeline = new DataPipeline();
-        
+
         // Success case - all steps pass
         var validResult = pipeline.Process(@"{""userId"": 123, ""amount"": 99.99}");
         Assert.True(validResult.IsOk);
         var enrichedOrder = validResult.GetValue();
         Assert.Equal(123, enrichedOrder.UserId);
         Assert.Equal("user-123@example.com", enrichedOrder.UserEmail);
-        
+
         // Error case - validation fails mid-pipeline
         var invalidResult = pipeline.Process(@"{""userId"": 123, ""amount"": -50}");
         Assert.True(invalidResult.IsError);
@@ -53,15 +53,15 @@ public class ComposabilityTests
     public void Pipeline_IndividualSteps_AreIndependentlyTestable()
     {
         var pipeline = new DataPipeline();
-        
+
         // Test parsing step in isolation
         var parseResult = pipeline.Parse(@"{""userId"": 42, ""amount"": 10}");
         Assert.True(parseResult.IsOk);
-        
+
         // Test validation step in isolation
         var validateResult = pipeline.Validate(new RawOrder(42, -10));
         Assert.True(validateResult.IsError);
-        
+
         // Test transformation step in isolation
         var transformResult = pipeline.Transform(new RawOrder(42, 100));
         Assert.True(transformResult.IsOk);
@@ -79,15 +79,15 @@ public class ComposabilityTests
     public void OptionChain_NavigatesThroughOptionalValues_Safely()
     {
         var repository = new UserRepository();
-        
+
         // Chain: User -> Settings -> NotificationPreferences -> EmailEnabled
         // Any step could return None
-        
+
         var result = repository.FindUser(1)
             .Bind(user => user.Settings)
             .Bind(settings => settings.NotificationPreferences)
             .Map(prefs => prefs.EmailEnabled);
-        
+
         Assert.True(result.IsSome);
         Assert.True(result.GetValue());
     }
@@ -99,13 +99,13 @@ public class ComposabilityTests
     public void OptionChain_ReturnsNone_WhenIntermediateValueMissing()
     {
         var repository = new UserRepository();
-        
+
         // User 2 has no settings configured
         var result = repository.FindUser(2)
             .Bind(user => user.Settings)
             .Bind(settings => settings.NotificationPreferences)
             .Map(prefs => prefs.EmailEnabled);
-        
+
         Assert.True(result.IsNone);
     }
 
@@ -116,14 +116,14 @@ public class ComposabilityTests
     public void OptionChain_ProvidesDefaults_AtAnyPoint()
     {
         var repository = new UserRepository();
-        
+
         // User doesn't exist, but we get a sensible default
         var emailEnabled = repository.FindUser(999)
             .Bind(user => user.Settings)
             .Bind(settings => settings.NotificationPreferences)
             .Map(prefs => prefs.EmailEnabled)
             .GetValueOr(false); // Default when user not found
-        
+
         Assert.False(emailEnabled);
     }
 
@@ -141,12 +141,12 @@ public class ComposabilityTests
         var userService = new UserService();
         var orderService = new OrderService();
         var inventoryService = new InventoryService();
-        
+
         // All three operations are independent - they can conceptually run in parallel
         var userResult = userService.GetUser(1);
         var orderResult = orderService.GetOrder(100);
         var inventoryResult = inventoryService.GetStock("product-1");
-        
+
         // Combine them into a single result
         var combined = userResult
             .Bind(user => orderResult.Map(order => (user, order)))
@@ -154,7 +154,7 @@ public class ComposabilityTests
                 tuple.user.Name,
                 tuple.order.Total,
                 stock)));
-        
+
         Assert.True(combined.IsOk);
         var summary = combined.GetValue();
         Assert.Equal("John Doe", summary.UserName);
@@ -172,18 +172,18 @@ public class ComposabilityTests
         var nameValidation = ValidateName("");
         var emailValidation = ValidateEmail("invalid");
         var ageValidation = ValidateAge(-5);
-        
+
         var combined = nameValidation
             .Apply(emailValidation, (name, email) => (name, email))
             .Apply(ageValidation, (tuple, age) => new PersonDto(tuple.name, tuple.email, age));
-        
+
         Assert.True(combined.IsError);
-        
+
         var errors = new List<string>();
         combined.Match(
             validAction: _ => { },
             invalidAction: errs => errors.AddRange(errs));
-        
+
         // All three errors are collected
         Assert.Equal(3, errors.Count);
         Assert.Contains("Name cannot be empty", errors);
@@ -202,12 +202,12 @@ public class ComposabilityTests
     public void ConditionalComposition_ExecutesStepsConditionally()
     {
         var service = new PremiumService();
-        
+
         // Premium users get extra features
         var premiumResult = service.GetUserFeatures(isPremium: true);
         Assert.True(premiumResult.IsOk);
         Assert.Contains("premium-analytics", premiumResult.GetValue().Features);
-        
+
         // Regular users get basic features
         var regularResult = service.GetUserFeatures(isPremium: false);
         Assert.True(regularResult.IsOk);
@@ -221,7 +221,7 @@ public class ComposabilityTests
     public void FilterComposition_StopsOnPredicateFailure()
     {
         var orders = new[] { 100m, 250m, 50m, 300m };
-        
+
         // Only process orders over $200
         var processed = orders
             .Select(amount => Option<decimal>.Some(amount))
@@ -229,7 +229,7 @@ public class ComposabilityTests
             .Where(opt => opt.IsSome)
             .Select(opt => opt.GetValue())
             .ToList();
-        
+
         Assert.Equal(2, processed.Count);
         Assert.Contains(250m, processed);
         Assert.Contains(300m, processed);
@@ -246,14 +246,14 @@ public class ComposabilityTests
     public void TapComposition_AllowsSideEffects_WithoutBreakingChain()
     {
         var logs = new List<string>();
-        
+
         var result = Result<int, string>.Ok(10)
             .Tap(x => logs.Add($"Started with: {x}"))
             .Map(x => x * 2)
             .Tap(x => logs.Add($"After doubling: {x}"))
             .Map(x => x + 5)
             .Tap(x => logs.Add($"Final value: {x}"));
-        
+
         Assert.Equal(25, result.GetValue());
         Assert.Equal(3, logs.Count);
         Assert.Equal("Started with: 10", logs[0]);
@@ -268,12 +268,12 @@ public class ComposabilityTests
     public void TapErrorComposition_LogsErrors_WithoutChangingThem()
     {
         var errorLogs = new List<string>();
-        
+
         var result = Result<int, string>.Error("Something went wrong")
             .TapError(e => errorLogs.Add($"Error occurred: {e}"))
             .Map(x => x * 2) // Never executed
             .TapError(e => errorLogs.Add($"Still failing: {e}"));
-        
+
         Assert.True(result.IsError);
         Assert.Equal(2, errorLogs.Count);
     }
@@ -413,7 +413,7 @@ public class ComposabilityTests
         public Result<FeatureSet, string> GetUserFeatures(bool isPremium)
         {
             var baseFeatures = new List<string> { "basic-dashboard", "reports" };
-            
+
             return Result<List<string>, string>.Ok(baseFeatures)
                 .Map(features => isPremium
                     ? features.Concat(new[] { "premium-analytics", "api-access" }).ToList()

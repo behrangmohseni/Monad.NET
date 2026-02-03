@@ -24,16 +24,16 @@ public class ErrorHandlingConsistencyTests
     public void Result_ForcesErrorHandling_ThroughTypeSystem()
     {
         var service = new PaymentService();
-        
+
         // You can't just "use" the result - you must handle both cases
         Result<PaymentConfirmation, PaymentError> result = service.ProcessPayment(100m);
-        
+
         // Option 1: Pattern match (exhaustive)
         var message = result.Match(
             okFunc: confirmation => $"Payment successful: {confirmation.TransactionId}",
             errFunc: error => $"Payment failed: {error.Code}"
         );
-        
+
         // Option 2: Check and extract
         if (result.IsOk)
         {
@@ -45,10 +45,10 @@ public class ErrorHandlingConsistencyTests
             var error = result.GetError();
             Assert.NotNull(error.Code);
         }
-        
+
         // You CANNOT do this (would not compile with strict null checks):
         // PaymentConfirmation confirmation = result; // Error: can't convert Result to PaymentConfirmation
-        
+
         Assert.True(result.IsOk);
     }
 
@@ -60,26 +60,26 @@ public class ErrorHandlingConsistencyTests
     public void Option_PreventsNullReferenceExceptions_ThroughTypeSystem()
     {
         var repository = new UserRepository();
-        
+
         // FindById returns Option<User>, not User?
         Option<User> userOption = repository.FindById(999);
-        
+
         // You can't just call methods on Option - you must handle the None case
         // userOption.Name; // Won't compile - Option<User> doesn't have .Name
-        
+
         // Safe access requires explicit handling
         var name = userOption.Match(
             someFunc: user => user.Name,
             noneFunc: () => "Unknown"
         );
-        
+
         Assert.Equal("Unknown", name);
-        
+
         // Or use Map for transformation
         var upperName = userOption
             .Map(user => user.Name.ToUpper())
             .GetValueOr("UNKNOWN");
-        
+
         Assert.Equal("UNKNOWN", upperName);
     }
 
@@ -96,22 +96,22 @@ public class ErrorHandlingConsistencyTests
     {
         var orchestrator = new OrderOrchestrator();
         var callLog = new List<string>();
-        
+
         // When validation fails early, later steps are NOT called
         var result = orchestrator.ProcessOrderWithLogging(
             customerId: -1, // Invalid - should fail validation
             productId: "product-1",
             quantity: 5,
             callLog);
-        
+
         Assert.True(result.IsError);
         Assert.Single(callLog); // Only "ValidateCustomer" was called
         Assert.Equal("ValidateCustomer", callLog[0]);
-        
+
         // When all steps succeed, all are called
         callLog.Clear();
         var successResult = orchestrator.ProcessOrderWithLogging(1, "product-1", 5, callLog);
-        
+
         Assert.True(successResult.IsOk);
         Assert.Equal(4, callLog.Count); // All four steps called
     }
@@ -124,17 +124,17 @@ public class ErrorHandlingConsistencyTests
     public void ErrorContext_IsPreserved_ThroughCallChain()
     {
         var orchestrator = new OrderOrchestrator();
-        
+
         // Error at validation step
         var validationError = orchestrator.ProcessOrder(-1, "product-1", 5);
         Assert.True(validationError.IsError);
         Assert.IsType<OrderError.ValidationError>(validationError.GetError());
-        
+
         // Error at inventory step (product ID must start with "product-" to pass validation)
         var inventoryError = orchestrator.ProcessOrder(1, "product-out-of-stock", 5);
         Assert.True(inventoryError.IsError);
         Assert.IsType<OrderError.InventoryError>(inventoryError.GetError());
-        
+
         // Error at payment step
         var paymentError = orchestrator.ProcessOrder(999, "product-1", 5); // Customer 999 has no funds
         Assert.True(paymentError.IsError);
@@ -159,7 +159,7 @@ public class ErrorHandlingConsistencyTests
             new ApiError.Unauthorized("Invalid token"),
             new ApiError.BusinessRuleViolation("Cannot delete active subscription")
         };
-        
+
         // All error types can be handled uniformly
         foreach (var error in errors)
         {
@@ -171,7 +171,7 @@ public class ErrorHandlingConsistencyTests
                 ApiError.BusinessRuleViolation e => (422, e.Message),
                 _ => (500, "Unknown error")
             };
-            
+
             Assert.True(statusCode >= 400);
             Assert.NotEmpty(message);
         }
@@ -186,16 +186,16 @@ public class ErrorHandlingConsistencyTests
         var repository = new ProductRepository();
         var service = new ProductService(repository);
         var controller = new ProductController(service);
-        
+
         // Repository returns Option
         Option<Product> repoResult = repository.FindById(999);
         Assert.True(repoResult.IsNone);
-        
+
         // Service converts to Result with business error
         Result<Product, ServiceError> serviceResult = service.GetProduct(999);
         Assert.True(serviceResult.IsError);
         Assert.IsType<ServiceError.NotFound>(serviceResult.GetError());
-        
+
         // Controller converts to HTTP response
         var httpResponse = controller.GetProduct(999);
         Assert.Equal(404, httpResponse.StatusCode);
@@ -215,18 +215,18 @@ public class ErrorHandlingConsistencyTests
         // Developer A's validation
         var validatorA = new UserValidatorA();
         var resultA = validatorA.Validate("", "invalid", -5);
-        
+
         // Developer B's validation (same pattern, same behavior)
         var validatorB = new UserValidatorB();
         var resultB = validatorB.Validate("", "invalid", -5);
-        
+
         // Both accumulate all errors
         Assert.True(resultA.IsError);
         Assert.True(resultB.IsError);
-        
+
         var errorsA = resultA.Match(validFunc: _ => 0, invalidFunc: errs => errs.Count());
         var errorsB = resultB.Match(validFunc: _ => 0, invalidFunc: errs => errs.Count());
-        
+
         Assert.Equal(3, errorsA);
         Assert.Equal(3, errorsB);
     }
@@ -239,21 +239,21 @@ public class ErrorHandlingConsistencyTests
     {
         var addressValidator = new AddressValidator();
         var paymentValidator = new PaymentValidator();
-        
+
         // Both fail with errors
         var addressResult = addressValidator.Validate("", "", "");
         var paymentResult = paymentValidator.Validate("", "");
-        
+
         // Combine errors from both validators
         var combined = addressResult
             .Apply(paymentResult, (addr, payment) => (addr, payment));
-        
+
         Assert.True(combined.IsError);
-        
+
         var allErrors = combined.Match(
             validFunc: _ => Array.Empty<string>(),
             invalidFunc: errs => errs.ToArray());
-        
+
         // All errors from both validators are present
         Assert.True(allErrors.Length >= 4); // At least 4 errors total
     }
@@ -271,17 +271,17 @@ public class ErrorHandlingConsistencyTests
     {
         // Team A's service returns Result<User, UserError>
         var teamAService = new TeamAUserService();
-        
+
         // Team B's service returns Result<Order, OrderError>
         var teamBService = new TeamBOrderService();
-        
+
         // Both can be composed naturally
         var result = teamAService.GetUser(1)
             .MapError(e => $"User error: {e}")
             .Bind(user => teamBService.GetOrders(user.Id)
                 .MapError(e => $"Order error: {e}")
                 .Map(orders => new UserWithOrders(user, orders)));
-        
+
         Assert.True(result.IsOk);
         var userWithOrders = result.GetValue();
         Assert.Equal("Alice", userWithOrders.User.Name);
@@ -299,7 +299,7 @@ public class ErrorHandlingConsistencyTests
             if (amount <= 0)
                 return Result<PaymentConfirmation, PaymentError>.Error(
                     new PaymentError("INVALID_AMOUNT", "Amount must be positive"));
-            
+
             return Result<PaymentConfirmation, PaymentError>.Ok(
                 new PaymentConfirmation($"txn-{Guid.NewGuid():N}", amount));
         }
@@ -432,9 +432,9 @@ public class ErrorHandlingConsistencyTests
     private class ProductService
     {
         private readonly ProductRepository _repository;
-        
+
         public ProductService(ProductRepository repository) => _repository = repository;
-        
+
         public Result<Product, ServiceError> GetProduct(int id)
         {
             return _repository.FindById(id)
@@ -448,9 +448,9 @@ public class ErrorHandlingConsistencyTests
     private class ProductController
     {
         private readonly ProductService _service;
-        
+
         public ProductController(ProductService service) => _service = service;
-        
+
         public HttpResponse GetProduct(int id)
         {
             return _service.GetProduct(id)
@@ -473,15 +473,15 @@ public class ErrorHandlingConsistencyTests
             var nameV = string.IsNullOrWhiteSpace(name)
                 ? Validation<string, string>.Error("Name required")
                 : Validation<string, string>.Ok(name);
-            
+
             var emailV = !email.Contains('@')
                 ? Validation<string, string>.Error("Invalid email")
                 : Validation<string, string>.Ok(email);
-            
+
             var ageV = age < 0
                 ? Validation<int, string>.Error("Invalid age")
                 : Validation<int, string>.Ok(age);
-            
+
             return nameV
                 .Apply(emailV, (n, e) => (n, e))
                 .Apply(ageV, (t, a) => new ValidatedUser(t.n, t.e, a));
@@ -523,15 +523,15 @@ public class ErrorHandlingConsistencyTests
             var streetV = string.IsNullOrWhiteSpace(street)
                 ? Validation<string, string>.Error("Street required")
                 : Validation<string, string>.Ok(street);
-            
+
             var cityV = string.IsNullOrWhiteSpace(city)
                 ? Validation<string, string>.Error("City required")
                 : Validation<string, string>.Ok(city);
-            
+
             var zipV = string.IsNullOrWhiteSpace(zip)
                 ? Validation<string, string>.Error("ZIP required")
                 : Validation<string, string>.Ok(zip);
-            
+
             return streetV
                 .Apply(cityV, (s, c) => (s, c))
                 .Apply(zipV, (t, z) => new ValidatedAddress(t.s, t.c, z));
@@ -547,11 +547,11 @@ public class ErrorHandlingConsistencyTests
             var cardV = string.IsNullOrWhiteSpace(cardNumber)
                 ? Validation<string, string>.Error("Card number required")
                 : Validation<string, string>.Ok(cardNumber);
-            
+
             var expiryV = string.IsNullOrWhiteSpace(expiry)
                 ? Validation<string, string>.Error("Expiry required")
                 : Validation<string, string>.Ok(expiry);
-            
+
             return cardV.Apply(expiryV, (c, e) => new ValidatedPayment(c, e));
         }
     }

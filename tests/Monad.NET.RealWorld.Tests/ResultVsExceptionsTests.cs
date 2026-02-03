@@ -30,7 +30,7 @@ public class ResultVsExceptionsTests
     {
         var service = new ExceptionBasedOrderService();
         var errors = new List<string>();
-        
+
         // Caller must GUESS what exceptions might be thrown
         try
         {
@@ -53,7 +53,7 @@ public class ResultVsExceptionsTests
             errors.Add(ex.Message);
         }
         // What if there are other exceptions? They propagate silently!
-        
+
         Assert.Single(errors);
         Assert.Contains("Customer not found", errors[0]);
     }
@@ -71,10 +71,10 @@ public class ResultVsExceptionsTests
     public void ResultBased_OrderProcessing_ErrorsAreExplicitInSignature()
     {
         var service = new ResultBasedOrderService();
-        
+
         // The return type TELLS us exactly what can go wrong
         Result<Order, OrderError> result = service.ProcessOrder("invalid-customer", "product-1", 5);
-        
+
         // Pattern matching ensures we handle both cases
         var message = result.Match(
             okFunc: order => $"Order {order.Id} created",
@@ -87,7 +87,7 @@ public class ResultVsExceptionsTests
                 _ => "Unknown error"
             }
         );
-        
+
         Assert.Contains("Customer error", message);
     }
 
@@ -99,7 +99,7 @@ public class ResultVsExceptionsTests
     public void ResultBased_Composability_ChainsNaturally()
     {
         var service = new ResultBasedOrderService();
-        
+
         // Compose a complex pipeline - errors short-circuit automatically
         var result = service.ValidateCustomer("customer-123")
             .Bind(customer => service.ValidateProduct("product-456")
@@ -108,7 +108,7 @@ public class ResultVsExceptionsTests
                 .Map(inventory => (tuple.customer, tuple.product, inventory)))
             .Bind(tuple => service.ProcessPayment(tuple.customer, 99.99m)
                 .Map(payment => new Order(Guid.NewGuid(), tuple.customer, tuple.product, 5, 99.99m)));
-        
+
         Assert.True(result.IsOk);
     }
 
@@ -121,7 +121,7 @@ public class ResultVsExceptionsTests
         var service = new ExceptionBasedOrderService();
         Order? order = null;
         string? error = null;
-        
+
         // This is what composed exception handling looks like - ugly!
         try
         {
@@ -144,7 +144,7 @@ public class ResultVsExceptionsTests
             catch (ProductNotFoundException ex) { error = ex.Message; }
         }
         catch (CustomerNotFoundException ex) { error = ex.Message; }
-        
+
         Assert.NotNull(order);
         Assert.Null(error);
     }
@@ -162,7 +162,7 @@ public class ResultVsExceptionsTests
     {
         var validator = new ExceptionBasedValidator();
         var errors = new List<string>();
-        
+
         // Empty name, invalid email, underage - but we only see ONE error
         try
         {
@@ -172,7 +172,7 @@ public class ResultVsExceptionsTests
         {
             errors.Add(ex.Message);
         }
-        
+
         // User only sees "Name is required" - frustrating!
         Assert.Single(errors);
         Assert.Equal("Name is required", errors[0]);
@@ -185,16 +185,16 @@ public class ResultVsExceptionsTests
     public void ValidationMonad_AccumulatesAllErrors()
     {
         var validator = new MonadicValidator();
-        
+
         var result = validator.ValidateUser("", "not-an-email", 15);
-        
+
         // User sees ALL three errors at once!
         Assert.True(result.IsError);
         var errors = result.Match(
             validFunc: _ => Array.Empty<string>(),
             invalidFunc: errs => errs.ToArray()
         );
-        
+
         Assert.Equal(3, errors.Length);
         Assert.Contains("Name is required", errors);
         Assert.Contains("Invalid email format", errors);
@@ -212,12 +212,12 @@ public class ResultVsExceptionsTests
     public void ResultBased_ErrorRecovery_ChainsElegantly()
     {
         var dataService = new ResultBasedDataService();
-        
+
         // Try primary, fall back to secondary, fall back to cache
         var result = dataService.FetchFromPrimary()
             .OrElse(_ => dataService.FetchFromSecondary())
             .OrElse(_ => dataService.FetchFromCache());
-        
+
         Assert.True(result.IsOk);
         Assert.Equal("cached-data", result.GetValue());
     }
@@ -230,7 +230,7 @@ public class ResultVsExceptionsTests
     {
         var dataService = new ExceptionBasedDataService();
         string? data = null;
-        
+
         try
         {
             data = dataService.FetchFromPrimary();
@@ -253,7 +253,7 @@ public class ResultVsExceptionsTests
                 }
             }
         }
-        
+
         Assert.Equal("cached-data", data);
     }
 
@@ -269,12 +269,12 @@ public class ResultVsExceptionsTests
     public void ResultBased_Testing_IsSimple()
     {
         var service = new ResultBasedOrderService();
-        
+
         // Test success case
         var successResult = service.ValidateCustomer("valid-customer");
         Assert.True(successResult.IsOk);
         Assert.Equal("valid-customer", successResult.GetValue().Id);
-        
+
         // Test error case - no exception handling needed
         var errorResult = service.ValidateCustomer("invalid-customer");
         Assert.True(errorResult.IsError);
@@ -288,11 +288,11 @@ public class ResultVsExceptionsTests
     public void ExceptionBased_Testing_RequiresExceptionAssertions()
     {
         var service = new ExceptionBasedOrderService();
-        
+
         // Test success case
         var customer = service.ValidateCustomer("valid-customer");
         Assert.Equal("valid-customer", customer.Id);
-        
+
         // Test error case - must know exact exception type
         var ex = Assert.Throws<CustomerNotFoundException>(
             () => service.ValidateCustomer("invalid-customer"));
@@ -433,13 +433,13 @@ public class ResultVsExceptionsTests
 
     private class ResultBasedDataService
     {
-        public Result<string, string> FetchFromPrimary() => 
+        public Result<string, string> FetchFromPrimary() =>
             Result<string, string>.Error("Primary unavailable");
-        
-        public Result<string, string> FetchFromSecondary() => 
+
+        public Result<string, string> FetchFromSecondary() =>
             Result<string, string>.Error("Secondary unavailable");
-        
-        public Result<string, string> FetchFromCache() => 
+
+        public Result<string, string> FetchFromCache() =>
             Result<string, string>.Ok("cached-data");
     }
 
@@ -466,7 +466,7 @@ public class ResultVsExceptionsTests
 
     public class CustomerNotFoundException(string message) : Exception(message);
     public class ProductNotFoundException(string message) : Exception(message);
-    public class InsufficientInventoryException(int required, int available) 
+    public class InsufficientInventoryException(int required, int available)
         : Exception($"Need {required}, have {available}");
     public class PaymentFailedException(string message) : Exception(message);
     public class ValidationException(string message) : Exception(message);
