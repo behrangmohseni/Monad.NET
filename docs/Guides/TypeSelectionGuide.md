@@ -1,6 +1,6 @@
 # Type Selection Guide
 
-This guide helps you choose the right Monad.NET type for your specific use case. Use the decision flowcharts and comparison tables to make the best choice.
+How to choose the right Monad.NET type for your use case. Use the decision flowcharts and comparison tables below.
 
 ## Table of Contents
 

@@ -8,13 +8,13 @@ Monad.NET supports a wide range of .NET versions:
 |------------------|-----------------|-------|
 | .NET Standard 2.0 | .NET Framework 4.6.1+ | Broadest compatibility |
 | .NET Standard 2.1 | .NET Core 3.0+ | Span, Index, Range support |
-| .NET 8.0 | .NET 8.0 | LTS release |
-| .NET 10.0 | .NET 10.0 | Latest features |
+| .NET 6.0 | .NET 6.0 | Previous LTS release |
+| .NET 8.0 | .NET 8.0 | Current LTS release |
 
 ## Package Compatibility Matrix
 
-| Package | .NET Standard 2.0 | .NET Standard 2.1 | .NET 8.0 | .NET 10.0 |
-|---------|-------------------|-------------------|----------|-----------|
+| Package | .NET Standard 2.0 | .NET Standard 2.1 | .NET 6.0 | .NET 8.0 |
+|---------|-------------------|-------------------|----------|----------|
 | Monad.NET | Yes | Yes | Yes | Yes |
 | Monad.NET.SourceGenerators | Yes | Yes | Yes | Yes |
 | Monad.NET.Analyzers | Yes | Yes | Yes | Yes |
@@ -32,9 +32,9 @@ For older frameworks, minimal polyfill packages are included:
 
 | Framework | Dependencies |
 |-----------|-------------|
-| .NET Standard 2.0 | `Microsoft.Bcl.AsyncInterfaces`, `System.Memory` |
-| .NET Standard 2.1 | `Microsoft.Bcl.AsyncInterfaces` |
-| .NET 8.0+ | None |
+| .NET Standard 2.0 | `Microsoft.Bcl.AsyncInterfaces`, `System.Collections.Immutable`, `System.Memory`, `System.Text.Json` |
+| .NET Standard 2.1 | `Microsoft.Bcl.AsyncInterfaces`, `System.Collections.Immutable`, `System.Text.Json` |
+| .NET 6.0+ | None |
 
 ### Integration Packages
 

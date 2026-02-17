@@ -1,6 +1,6 @@
 # Advanced Usage
 
-This document covers advanced patterns and features in Monad.NET.
+Advanced patterns and features in Monad.NET.
 
 ## Table of Contents
 
@@ -55,14 +55,14 @@ var user = ValidateName(input.Name)
 
 | Monad | Map | Bind | Filter |
 |-------|-----|------|--------|
-| `Option<T>` | ✅ | ✅ | ✅ |
-| `Result<T,E>` | ✅ | ✅ | ✅ (with error) |
-| `Try<T>` | ✅ | ✅ | ✅ |
-| `Validation<T,E>` | ✅ | ✅ (short-circuits) | — |
-| `RemoteData<T,E>` | ✅ | ✅ | — |
-| `Writer<W,T>` | ✅ | ✅ | — |
-| `State<S,A>` | ✅ | ✅ | — |
-| `IO<T>` | ✅ | ✅ | — |
+| `Option<T>` | Yes | Yes | Yes |
+| `Result<T,E>` | Yes | Yes | Yes (with error) |
+| `Try<T>` | Yes | Yes | Yes |
+| `Validation<T,E>` | Yes | Yes (short-circuits) | — |
+| `RemoteData<T,E>` | Yes | Yes | — |
+| `Writer<W,T>` | Yes | Yes | — |
+| `State<S,A>` | Yes | Yes | — |
+| `IO<T>` | Yes | Yes | — |
 
 ---
 

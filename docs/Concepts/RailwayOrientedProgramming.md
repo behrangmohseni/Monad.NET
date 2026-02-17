@@ -1,6 +1,6 @@
 # Railway-Oriented Programming
 
-> **For C# developers:** This guide explains the "railway" mental model that makes functional error handling intuitive.
+> **For C# developers:** The "railway" mental model that makes functional error handling intuitive.
 
 ## The Railway Metaphor
 
@@ -18,7 +18,7 @@ With exceptions, errors are like derailments:
 
 ```
 [Input] ────────────────╳ CRASH!
-                         💥 Exception thrown
+                         Exception thrown
 ```
 
 The train jumps off the track, and someone up the line has to catch it with `try/catch`.

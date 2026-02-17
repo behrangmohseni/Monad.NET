@@ -144,7 +144,7 @@ public class UserValidator : AbstractValidator<UserRequest>
 
 // Usage
 var result = await validator.ValidateAsync(request);
-if (!result.IsOk)
+if (!result.IsValid)
     return BadRequest(result.Errors);
 ```
 
@@ -202,7 +202,6 @@ result.Match(
 | Wrapping code that throws exceptions | `Try<T>` |
 | A list must have at least one item | `NonEmptyList<T>` |
 | UI state for async data loading (Blazor) | `RemoteData<T, E>` |
-| Compose async operations with shared dependencies | `ReaderAsync<R, A>` |
 | Dependency injection without DI container | `Reader<R, A>` |
 | Need to accumulate logs/traces alongside results | `Writer<W, T>` |
 | Thread state through pure computations | `State<S, A>` |
@@ -222,7 +221,6 @@ These types come from functional programming languages. Here's the lineage:
 | `NonEmptyList<T>` | — | — | `NonEmpty a` |
 | `Writer<W,T>` | — | — | `Writer w a` |
 | `Reader<R,A>` | — | — | `Reader r a` |
-| `ReaderAsync<R,A>` | — | — | `ReaderT IO r a` |
 | `State<S,A>` | — | — | `State s a` |
 | `IO<T>` | — | — | `IO a` |
 
@@ -370,7 +368,7 @@ New to functional programming? Start here:
 
 ## Examples
 
-The `examples/` folder contains a comprehensive example application:
+The `examples/` folder contains an example application:
 
 - `examples/Monad.NET.Examples` — Interactive console app demonstrating all monad types with real-world patterns.
 
@@ -384,7 +382,7 @@ Monad.NET is designed for correctness and safety first, but performance is still
 |--------|---------|
 | **Struct-based** | `Option<T>`, `Result<T,E>`, `Try<T>`, etc. are `readonly struct` — no heap allocations |
 | **No boxing** | Generic implementations avoid boxing value types |
-| **Lazy evaluation** | `UnwrapOrElse`, `OrElse` use `Func<>` for deferred computation |
+| **Lazy evaluation** | `Match`, `OrElse` use `Func<>` for deferred computation |
 | **Zero allocations** | Most operations on value types are allocation-free |
 | **Aggressive inlining** | Hot paths use `[MethodImpl(AggressiveInlining)]` |
 | **ConfigureAwait(false)** | All async methods use `ConfigureAwait(false)` |
@@ -395,7 +393,7 @@ For typical use cases, the overhead is negligible (nanoseconds). The safety guar
 
 ## Resources
 
-Want to dive deeper into functional programming and these patterns?
+Further reading on functional programming and these patterns:
 
 ### Books
 

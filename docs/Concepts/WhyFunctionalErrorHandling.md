@@ -1,10 +1,10 @@
 # Why Functional Error Handling?
 
-> **For C# developers:** This guide explains why you might want to handle errors differently than the traditional `try/catch` approach you're used to.
+> **For C# developers:** Why you might want to handle errors differently than the traditional `try/catch` approach.
 
 ## The Problem with Exceptions
 
-As a C# developer, you've written code like this thousands of times:
+Consider a common pattern:
 
 ```csharp
 public User GetUser(int id)
@@ -39,7 +39,7 @@ What can go wrong? The signature says "give me an int, get a User." But that's a
 ```csharp
 // Caller thinks this is safe
 var user = GetUser(42);
-Console.WriteLine(user.Name); // 💥 Might explode
+Console.WriteLine(user.Name); // Might explode at runtime
 ```
 
 ### Problem 2: Exceptions Are Invisible to the Compiler
@@ -147,10 +147,10 @@ With `Result<T, E>`, you can't accidentally ignore errors:
 
 ```csharp
 // This won't compile - Result<User, UserError> is not User
-User user = GetUser(42); // ❌ Compile error
+User user = GetUser(42); // Compile error
 
 // You must explicitly handle the result
-Result<User, UserError> result = GetUser(42); // ✅
+Result<User, UserError> result = GetUser(42); // OK
 ```
 
 ### Composition Becomes Natural

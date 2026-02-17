@@ -152,11 +152,7 @@ var result = MessagePackSerializer.Deserialize<Option<int>>(bytes, options);
 
 ## Compatibility
 
-All packages target:
-
-- .NET Standard 2.0+ (for broad compatibility)
-- .NET 6.0+ (for modern features)
-- .NET 8.0+ (latest LTS)
+The core library and tooling packages target .NET Standard 2.0 through .NET 8.0 for broad compatibility. Integration packages (ASP.NET Core, Entity Framework Core) target .NET 8.0 only, matching their framework dependencies.
 
 See [Compatibility](Compatibility.md) for detailed version support.
 

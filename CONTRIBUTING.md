@@ -1,8 +1,8 @@
 # Contributing to Monad.NET
 
-Thank you for your interest in contributing to Monad.NET! This document provides guidelines and instructions for contributing.
+Guidelines and instructions for contributing to Monad.NET.
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Code of Conduct](#code-of-conduct)
 - [Getting Started](#getting-started)
@@ -86,23 +86,28 @@ dotnet test
 ```
 Monad.NET/
 ├── src/
-│   └── Monad.NET/           # Main library
-│       ├── Option.cs        # Option<T> monad
-│       ├── Result.cs        # Result<T, E> monad
-│       ├── Validation.cs    # Validation<T, E> monad
-│       ├── Try.cs           # Try<T> monad
-│       ├── RemoteData.cs    # RemoteData<T, E> monad
-│       ├── NonEmptyList.cs  # NonEmptyList<T> monad
-│       ├── Writer.cs        # Writer<W, T> monad
-│       ├── Reader.cs        # Reader<R, A> monad
-│       ├── OptionAsync.cs   # Async extensions for Option
-│       ├── ResultAsync.cs   # Async extensions for Result
-│       ├── Linq.cs          # LINQ query syntax support
-│       └── Collections.cs   # Collection extensions
+│   ├── Monad.NET/           # Core library
+│   │   ├── Option.cs        # Option<T> monad
+│   │   ├── Result.cs        # Result<T, E> monad
+│   │   ├── Validation.cs    # Validation<T, E> monad
+│   │   ├── Try.cs           # Try<T> monad
+│   │   ├── RemoteData.cs    # RemoteData<T, E> monad
+│   │   ├── NonEmptyList.cs  # NonEmptyList<T> monad
+│   │   ├── Writer.cs        # Writer<W, T> monad
+│   │   ├── Reader.cs        # Reader<R, A> monad
+│   │   ├── State.cs         # State<S, A> monad
+│   │   ├── IO.cs            # IO<T> monad
+│   │   └── Collections.*.cs # Collection extensions (split by type)
+│   ├── Monad.NET.Analyzers/      # Roslyn analyzers
+│   ├── Monad.NET.SourceGenerators/ # Source generators
+│   ├── Monad.NET.AspNetCore/     # ASP.NET Core integration
+│   └── Monad.NET.EntityFrameworkCore/ # EF Core integration
 ├── tests/
 │   └── Monad.NET.Tests/     # Unit tests
 ├── examples/
 │   └── Monad.NET.Examples/  # Example usage
+├── benchmarks/
+│   └── Monad.NET.Benchmarks/ # Performance benchmarks
 └── docs/                    # Documentation
 ```
 
@@ -231,7 +236,7 @@ public Option<U> Map<U>(Func<T, U> mapper)
 | Element | Convention | Example |
 |---------|------------|---------|
 | Types | PascalCase | `Option<T>`, `RemoteData<T, E>` |
-| Methods | PascalCase | `Map`, `AndThen`, `UnwrapOr` |
+| Methods | PascalCase | `Map`, `Bind`, `GetValueOr` |
 | Properties | PascalCase | `IsSome`, `IsOk`, `Head` |
 | Private fields | _camelCase | `_value`, `_isSuccess` |
 | Parameters | camelCase | `mapper`, `defaultValue` |

@@ -176,11 +176,9 @@ var ui = userData.Match(
 var increment = State<int, Unit>.Modify(s => s + 1);
 var getCount = State<int, int>.Get();
 
-var computation = 
-    from _ in increment
-    from __ in increment
-    from count in getCount
-    select count;
+var computation = increment
+    .Bind(_ => increment)
+    .Bind(_ => getCount);
 
 var (value, finalState) = computation.Run(0);
 // value = 2, finalState = 2

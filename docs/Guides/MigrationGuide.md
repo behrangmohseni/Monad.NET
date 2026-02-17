@@ -1,6 +1,6 @@
 # Migration Guide
 
-This guide helps you migrate from other functional programming libraries to Monad.NET.
+How to migrate from other functional programming libraries to Monad.NET.
 
 ## Table of Contents
 
@@ -14,7 +14,7 @@ This guide helps you migrate from other functional programming libraries to Mona
 
 ## Migrating from language-ext
 
-[language-ext](https://github.com/louthy/language-ext) is a comprehensive functional programming library for C#. Monad.NET offers a lighter-weight alternative with a focus on simplicity and ease of adoption.
+[language-ext](https://github.com/louthy/language-ext) is a full-featured functional programming library for C#. Monad.NET offers a lighter-weight alternative with a focus on simplicity and ease of adoption.
 
 ### Why Migrate?
 
@@ -22,7 +22,7 @@ This guide helps you migrate from other functional programming libraries to Mona
 |--------|--------------|-----------|
 | **Learning curve** | Steep — many concepts and overloads | Gentle — focused API surface |
 | **Dependencies** | External dependencies | Zero on .NET 6+; polyfills on netstandard2.x |
-| **API complexity** | Comprehensive but complex | Focused and pragmatic |
+| **API complexity** | Full-featured but complex | Focused and pragmatic |
 | **Naming** | Haskell-inspired (`Seq`, `Lst`, `Arr`) | C#-friendly (`IReadOnlyList`, etc.) |
 | **Performance** | Good with custom collections | Struct-based, zero allocations |
 

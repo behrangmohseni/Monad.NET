@@ -1,6 +1,6 @@
 # Architectural Decisions
 
-This document records the architectural decisions made for Monad.NET, explaining the reasoning and trade-offs behind key design choices. Each decision is documented in an ADR (Architectural Decision Record) format.
+Architectural decisions for Monad.NET, with reasoning and trade-offs behind key design choices. Each decision follows the ADR (Architectural Decision Record) format.
 
 ## Table of Contents
 
@@ -279,7 +279,7 @@ Apply `[MethodImpl(MethodImplOptions.AggressiveInlining)]` to **all** public met
 
 ### Rationale
 
-Comprehensive benchmarking demonstrates **1.8x to 4.2x performance improvements** across all operation categories when using `AggressiveInlining`:
+Benchmarking demonstrates **1.8x to 4.2x performance improvements** across all operation categories when using `AggressiveInlining`:
 
 | Category | Direct (Inlined) | No Inline | Speedup |
 |----------|-----------------|-----------|---------|
@@ -633,11 +633,11 @@ With conditional compilation:
 
 | Feature | .NET 10 | .NET 8 | .NET 6 | netstandard2.0 |
 |---------|---------|--------|--------|----------------|
-| CallerArgumentExpression | ✅ | ✅ | ✅ | Polyfill |
-| ThrowIfNull | ✅ | ✅ | ✅ | Polyfill |
-| Index/Range | ✅ | ✅ | ✅ | Polyfill |
-| IAsyncEnumerable | ✅ | ✅ | ✅ | ❌ |
-| Required members | ✅ | ✅ | ❌ | ❌ |
+| CallerArgumentExpression | Yes | Yes | Yes | Polyfill |
+| ThrowIfNull | Yes | Yes | Yes | Polyfill |
+| Index/Range | Yes | Yes | Yes | Polyfill |
+| IAsyncEnumerable | Yes | Yes | Yes | No |
+| Required members | Yes | Yes | No | No |
 
 ### Rationale
 
@@ -730,7 +730,7 @@ This variation is intentional, not inconsistent.
 | Date | ADR | Change |
 |------|-----|--------|
 | 2025-01-01 | ADR-001 | Initial documentation |
-| 2025-01-01 | ADR-002 | Added comprehensive benchmark data |
+| 2025-01-01 | ADR-002 | Added benchmark data |
 | 2025-01-01 | ADR-003 | Initial documentation |
 | 2025-01-01 | ADR-004 | Initial documentation |
 | 2025-01-01 | ADR-005 | Initial documentation |

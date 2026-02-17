@@ -298,7 +298,7 @@ Accumulates errors instead of short-circuiting.
 > `Bind` short-circuits on first error — use `Result<T,E>` if you only need the first error.
 
 ```csharp
-// ✅ Accumulates ALL errors
+// Accumulates ALL errors
 var result = ValidateName(input.Name)
     .Apply(ValidateEmail(input.Email), (name, email) => new User(name, email));
 ```
@@ -505,7 +505,7 @@ Computations depending on environment.
 | Method | Description |
 |--------|-------------|
 | `From(Func<R, A>)` | Creates from function |
-| `Pure(A value)` | Creates constant value |
+| `Return(A value)` | Creates constant value |
 | `Ask()` | Returns environment itself |
 | `Asks(Func<R, A>)` | Extracts from environment |
 
@@ -533,8 +533,7 @@ Stateful computations that thread state through operations.
 
 | Method | Description |
 |--------|-------------|
-| `Pure(A value)` | Creates State that returns value without modifying state |
-| `Return(A value)` | Alias for Pure |
+| `Return(A value)` | Creates State that returns value without modifying state |
 | `Get()` | Creates State that returns the current state |
 | `Put(S newState)` | Creates State that replaces the state |
 | `Modify(Func<S, S>)` | Creates State that transforms the state |
@@ -592,15 +591,13 @@ Defers side effects for pure functional code.
 |--------|-------------|
 | `IO<T>.Of(Func<T> effect)` | Creates IO from effect function |
 | `IO<T>.Return(T value)` | Creates IO with pure value (no side effects) |
-| `IO<T>.Return(T value)` | Alias for `Pure` |
-| `IO<T>.Delay(Func<T> effect)` | Alias for `Of`, emphasizes lazy evaluation |
 
 ### Static Helpers (IO class)
 
 | Method | Description |
 |--------|-------------|
 | `IO.Of<T>(effect)` | Create IO from effect |
-| `IO.Pure<T>(value)` | Create pure IO |
+| `IO.Return<T>(value)` | Create pure IO |
 | `IO.Execute(action)` | Execute action, return `IO<Unit>` |
 | `IO.WriteLine(msg)` | Write to console |
 | `IO.ReadLine()` | Read line from console (`IO<string?>`) |

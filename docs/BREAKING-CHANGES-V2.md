@@ -1,6 +1,6 @@
 # Breaking Changes in Monad.NET v2.0
 
-This document describes the breaking changes in Monad.NET v2.0 and provides migration guidance.
+Breaking changes in Monad.NET v2.0 and migration guidance.
 
 ## Overview
 
@@ -245,19 +245,13 @@ The following methods are still available but hidden from IntelliSense (marked w
 
 ## LINQ Query Syntax
 
-LINQ query syntax support remains in `Linq.cs` but is now documented as **advanced usage**. The recommended approach is to use core methods directly:
+LINQ query syntax support has been completely removed from all monad types. Use `Map`, `Bind`, and `Filter` directly:
 
 ```csharp
-// Recommended
+// Recommended approach
 var result = option
     .Map(x => x * 2)
     .Bind(Transform);
-
-// Advanced (still works but less discoverable)
-var result = from x in option
-             let doubled = x * 2
-             from r in Transform(doubled)
-             select r;
 ```
 
 ## Summary of Changes

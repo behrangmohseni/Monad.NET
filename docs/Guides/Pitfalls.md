@@ -1,6 +1,6 @@
 # Pitfalls & Gotchas
 
-This guide covers common mistakes and how to avoid them.
+Common mistakes and how to avoid them.
 
 ## Table of Contents
 
@@ -54,20 +54,20 @@ This creates an ambiguous state that looks like an error but has no valid error 
 ### How to Avoid
 
 ```csharp
-// ❌ BAD: Default values
+// BAD: Default values
 Result<int, string> result = default;
 var results = new Result<int, string>[10]; // All defaults!
 
-// ✅ GOOD: Factory methods
+// GOOD: Factory methods
 Result<int, string> result = Result<int, string>.Ok(42);
 Result<int, string> error = Result<int, string>.Error("failed");
 
-// ✅ GOOD: Initialize arrays explicitly
+// GOOD: Initialize arrays explicitly
 var results = Enumerable.Range(0, 10)
     .Select(_ => Result<int, string>.Ok(0))
     .ToArray();
 
-// ✅ GOOD: Use List<T> and add items
+// GOOD: Use List<T> and add items
 var results = new List<Result<int, string>>();
 results.Add(Result<int, string>.Ok(42));
 ```
@@ -94,7 +94,7 @@ The analyzer will warn on:
 `Validation<T,E>.Bind()` **short-circuits on first error** — just like `Result`:
 
 ```csharp
-// ❌ This stops at first error!
+// BAD: This stops at first error!
 var user = ValidateName(name)
     .Bind(n => ValidateEmail(email).Map(e => (n, e)))
     .Bind(pair => ValidateAge(age).Map(a => new User(pair.n, pair.e, a)));
@@ -106,7 +106,7 @@ var user = ValidateName(name)
 Use `Apply`, `Zip`, or `Combine` to accumulate errors:
 
 ```csharp
-// ✅ Accumulates ALL errors
+// GOOD: Accumulates ALL errors
 var user = ValidateName(name)
     .Apply(ValidateEmail(email), (n, e) => (n, e))
     .Apply(ValidateAge(age), (pair, a) => new User(pair.n, pair.e, a));
@@ -132,10 +132,10 @@ var user = ValidateName(name)
 ```csharp
 RemoteData<User, Error> data = RemoteData<User, Error>.Loading();
 
-// ❌ THROWS — not in Success state
+// THROWS -- not in Success state
 var user = data.GetValue();
 
-// ❌ THROWS — IsSuccess is false
+// THROWS -- IsSuccess is false
 var user = data.GetValueOr(defaultUser); // Still throws for NotAsked/Loading
 ```
 
@@ -144,7 +144,7 @@ var user = data.GetValueOr(defaultUser); // Still throws for NotAsked/Loading
 Use `Match` for exhaustive handling:
 
 ```csharp
-// ✅ Handles all four states
+// GOOD: Handles all four states
 var display = data.Match(
     notAsked: () => "Click to load",
     loading: () => "Loading...",
@@ -152,7 +152,7 @@ var display = data.Match(
     failure: error => $"Error: {error.Message}"
 );
 
-// ✅ Convert to Result first if you only care about Success/Failure
+// GOOD: Convert to Result first if you only care about Success/Failure
 var result = data.ToResult(
     notAskedError: new Error("Data not requested"),
     loadingError: new Error("Still loading")
@@ -171,17 +171,17 @@ var result = data.ToResult(
 var result = Try<int>.Of(() => int.Parse("not a number"));
 // Exception is captured, NOT thrown
 
-// ❌ This silently swallows the exception
+// BAD: This silently swallows the exception
 var value = result.GetValueOr(0);
 ```
 
 ### When to Rethrow
 
 ```csharp
-// ✅ Explicit rethrow when needed
+// GOOD: Explicit rethrow when needed
 var value = result.GetOrThrow(); // Throws FormatException
 
-// ✅ Convert to Result for typed error handling
+// GOOD: Convert to Result for typed error handling
 var asResult = result.ToResult(ex => new ParseError(ex.Message));
 ```
 
@@ -196,20 +196,20 @@ var asResult = result.ToResult(ex => new ParseError(ex.Message));
 ```csharp
 string? name = null;
 
-// ❌ THROWS ArgumentNullException
+// THROWS ArgumentNullException
 var option = Option<string>.Some(name!);
 ```
 
 ### The Solution
 
 ```csharp
-// ✅ Use None() for absence
+// GOOD: Use None() for absence
 var option = name is null ? Option<string>.None() : Option<string>.Some(name);
 
-// ✅ Or use the extension method (handles null safely)
+// GOOD: Or use the extension method (handles null safely)
 var option = name.ToOption(); // None if null, Some if not null
 
-// ✅ Implicit conversion also handles null
+// GOOD: Implicit conversion also handles null
 Option<string> option = name; // None if null
 ```
 
@@ -222,7 +222,7 @@ Option<string> option = name; // None if null
 `Writer<string, T>` concatenates strings, which is O(n²) for many operations:
 
 ```csharp
-// ❌ SLOW — O(n²) string concatenation
+// BAD: SLOW -- O(n^2) string concatenation
 var result = Writer<string, int>.Tell(1, "step 1")
     .Bind(x => Writer<string, int>.Tell(x + 1, "step 2"), (a, b) => a + b)
     .Bind(x => Writer<string, int>.Tell(x + 1, "step 3"), (a, b) => a + b)
@@ -232,7 +232,7 @@ var result = Writer<string, int>.Tell(1, "step 1")
 ### The Solution
 
 ```csharp
-// ✅ Use List<T> for better performance
+// GOOD: Use List<T> for better performance
 var result = Writer<List<string>, int>.Tell(1, new List<string> { "step 1" })
     .Bind(
         x => Writer<List<string>, int>.Tell(x + 1, new List<string> { "step 2" }),
@@ -249,7 +249,7 @@ var result = Writer<List<string>, int>.Tell(1, new List<string> { "step 1" })
 v2.0 removed async extensions from `Option<T>` and `Result<T,E>`. This code no longer works:
 
 ```csharp
-// ❌ DOES NOT COMPILE in v2.0
+// DOES NOT COMPILE in v2.0
 var result = await option.MapAsync(async x => await ProcessAsync(x));
 ```
 
@@ -258,16 +258,16 @@ var result = await option.MapAsync(async x => await ProcessAsync(x));
 Use standard `await` inside `Map`/`Bind`, or use `Match`:
 
 ```csharp
-// ✅ Await inside Map (if the lambda returns Task)
+// Await inside Map (if the lambda returns Task)
 // Note: This requires the Map to understand Task<T> — use Match instead
 
-// ✅ RECOMMENDED: Use Match for async operations
+// RECOMMENDED: Use Match for async operations
 var result = await option.Match(
     some: async x => Option<Result>.Some(await ProcessAsync(x)),
     none: () => Task.FromResult(Option<Result>.None())
 );
 
-// ✅ Or handle explicitly
+// Or handle explicitly
 if (option.TryGet(out var value))
 {
     var processed = await ProcessAsync(value);
@@ -275,7 +275,7 @@ if (option.TryGet(out var value))
 }
 ```
 
-See [Async Patterns Guide](AsyncPatterns.md) for comprehensive async guidance.
+See [Async Patterns Guide](AsyncPatterns.md) for async guidance.
 
 ---
 

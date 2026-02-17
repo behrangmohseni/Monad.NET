@@ -1,6 +1,6 @@
 # From OOP to FP: A Mental Shift
 
-> **For C# developers:** This guide helps you shift from object-oriented thinking to functional thinking.
+> **For C# developers:** Shifting from object-oriented thinking to functional thinking.
 
 ## You Already Know More FP Than You Think
 

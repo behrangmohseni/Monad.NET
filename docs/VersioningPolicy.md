@@ -1,6 +1,6 @@
 # API Versioning and Deprecation Policy
 
-This document outlines the versioning strategy, backward compatibility guarantees, and deprecation policy for Monad.NET.
+Versioning strategy, backward compatibility guarantees, and deprecation policy for Monad.NET.
 
 ## Table of Contents
 
@@ -228,8 +228,8 @@ var value = option.GetValueOr(default);
 
 | Version | Status | Support Until |
 |---------|--------|---------------|
-| 1.x | Current | Active development |
-| 0.x | N/A | No 0.x versions were released |
+| 2.x | In development (beta) | Active development |
+| 1.x | Stable | Maintenance (critical bug fixes and security patches) |
 
 **Maintenance mode** means:
 - Critical bug fixes only
@@ -246,6 +246,7 @@ var value = option.GetValueOr(default);
 |---------|------|--------------|
 | 1.0.0-alpha.1 | 2025-12-14 | First public release |
 | 1.0.0 | 2025-12-28 | First stable API |
+| 2.0.0-beta.2 | 2026-02-02 | Pre-release with API simplification |
 | 2.0.0 | TBD | Major improvements (see roadmap) |
 
 ### API Stability by Version
