@@ -1,6 +1,6 @@
 # Monad.NET Analyzer Rules
 
-This document describes the Roslyn analyzers included with Monad.NET. These analyzers help you use the library correctly and idiomatically.
+Roslyn analyzers included with Monad.NET. These analyzers help you use the library correctly and idiomatically.
 
 ## Installation
 

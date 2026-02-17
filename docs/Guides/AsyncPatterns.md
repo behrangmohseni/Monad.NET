@@ -1,6 +1,6 @@
 # Async Patterns Guide
 
-This guide explains how to use Monad.NET types with async/await in v2.0.
+Using Monad.NET types with async/await in v2.0.
 
 ## Background: Why v2.0 Changed Async
 
@@ -35,7 +35,7 @@ v2.0 takes a **selective approach**: async extensions only where they provide ge
 ```csharp
 Option<int> userId = GetUserId();
 
-// ✅ Use Match when you need different async behavior per case
+// GOOD: Use Match when you need different async behavior per case
 User? result = await userId.Match(
     some: async id => await _userService.GetUserAsync(id),
     none: () => Task.FromResult<User?>(null)
@@ -47,7 +47,7 @@ User? result = await userId.Match(
 ```csharp
 Option<int> userId = GetUserId();
 
-// ✅ Use TryGet for simple conditional async
+// GOOD: Use TryGet for simple conditional async
 if (userId.TryGet(out var id))
 {
     var user = await _userService.GetUserAsync(id);
@@ -58,7 +58,7 @@ if (userId.TryGet(out var id))
 ### Pattern 3: Convert to Async Task First
 
 ```csharp
-// ✅ When the Option itself comes from async
+// GOOD: When the Option itself comes from async
 Option<User> userOption = await GetUserAsync(id).ToOption();
 
 // Then use sync methods
@@ -70,10 +70,10 @@ var email = userOption
 ### Anti-Pattern: Don't Do This
 
 ```csharp
-// ❌ BAD: Wrapping sync operations in Task.Run
+// BAD: Wrapping sync operations in Task.Run
 var result = await Task.Run(() => option.Map(x => x * 2));
 
-// ❌ BAD: Creating unnecessary async wrappers
+// BAD: Creating unnecessary async wrappers
 async Task<Option<T>> MapAsyncWrapper<T, U>(Option<T> opt, Func<T, Task<U>> f)
 {
     // Don't recreate what was removed!
@@ -112,7 +112,7 @@ public async Task<Result<Order, OrderError>> ProcessOrderAsync(OrderRequest requ
 ```csharp
 Result<int, string> result = GetResult();
 
-// ✅ Different async operations based on success/failure
+// GOOD: Different async operations based on success/failure
 await result.Match(
     ok: async value => await ProcessSuccessAsync(value),
     err: async error => await LogErrorAsync(error)
@@ -147,15 +147,15 @@ var (successes, failures) = results.Partition();
 `Try<T>` retains async support because it's designed for wrapping exception-prone code:
 
 ```csharp
-// ✅ MapAsync for transforming async results
+// GOOD: MapAsync for transforming async results
 var result = await Try<string>.OfAsync(() => httpClient.GetStringAsync(url))
     .MapAsync(async json => await ParseAsync(json));
 
-// ✅ BindAsync for chaining async Try operations
+// GOOD: BindAsync for chaining async Try operations
 var data = await Try<Config>.OfAsync(() => LoadConfigAsync())
     .BindAsync(async config => await Try<Data>.OfAsync(() => FetchDataAsync(config)));
 
-// ✅ Recovery patterns
+// GOOD: Recovery patterns
 var value = await Try<int>.OfAsync(() => primaryService.GetValueAsync())
     .RecoverWith(ex => Try<int>.OfAsync(() => fallbackService.GetValueAsync()));
 ```
@@ -167,7 +167,7 @@ var value = await Try<int>.OfAsync(() => primaryService.GetValueAsync())
 `Validation<T,E>` has `MapAsync` for async validation logic:
 
 ```csharp
-// ✅ Async validation that checks a database
+// GOOD: Async validation that checks a database
 Validation<string, ValidationError> email = ValidateEmailFormat(input);
 
 var validated = await email.MapAsync(async e => 
@@ -199,20 +199,20 @@ var result = (await nameTask)
 `IO<T>` has full async support via `IOAsync<T>`:
 
 ```csharp
-// ✅ Create async IO operations
+// GOOD: Create async IO operations
 var fetchUser = IOAsync<User>.Of(async () => 
     await _httpClient.GetFromJsonAsync<User>(url));
 
-// ✅ Compose async IO
+// GOOD: Compose async IO
 var program = fetchUser
     .Bind(user => IOAsync<Order>.Of(async () => 
         await _orderService.GetLatestOrderAsync(user.Id)))
     .Map(order => order.Total);
 
-// ✅ Execute
+// GOOD: Execute
 var total = await program.RunAsync();
 
-// ✅ Convert sync IO to async
+// GOOD: Convert sync IO to async
 var syncIO = IO<int>.Of(() => ComputeValue());
 var asyncIO = syncIO.ToAsync();
 ```
@@ -224,13 +224,13 @@ var asyncIO = syncIO.ToAsync();
 ### Mistake 1: Blocking on Async
 
 ```csharp
-// ❌ BAD: .Result or .Wait() causes deadlocks
+// BAD: .Result or .Wait() causes deadlocks
 var result = option.Match(
     some: id => _service.GetUserAsync(id).Result,  // DEADLOCK RISK
     none: () => null
 );
 
-// ✅ GOOD: Properly await
+// GOOD: Properly await
 var result = await option.Match(
     some: async id => await _service.GetUserAsync(id),
     none: () => Task.FromResult<User?>(null)
@@ -240,13 +240,13 @@ var result = await option.Match(
 ### Mistake 2: Fire-and-Forget
 
 ```csharp
-// ❌ BAD: Async operation not awaited
+// BAD: Async operation not awaited
 option.Match(
     some: async id => await SendEmailAsync(id),  // Not awaited!
     none: () => { }
 );
 
-// ✅ GOOD: Await the Match
+// GOOD: Await the Match
 await option.Match(
     some: async id => { await SendEmailAsync(id); },
     none: () => Task.CompletedTask
@@ -256,10 +256,10 @@ await option.Match(
 ### Mistake 3: Unnecessary Async Wrappers
 
 ```csharp
-// ❌ BAD: Wrapping sync code in async
+// BAD: Wrapping sync code in async
 var result = await Task.FromResult(option.Map(x => x * 2));
 
-// ✅ GOOD: Just use sync
+// GOOD: Just use sync
 var result = option.Map(x => x * 2);
 ```
 

@@ -1,6 +1,6 @@
 # Core Types
 
-This document provides detailed documentation for all monad types in Monad.NET.
+Detailed reference for all monad types in Monad.NET.
 
 > **Struct Default Warning:** Most types are `readonly struct` for performance. However, `default(T)` behavior varies:
 > - **Safe:** `Option<T>` (→ None), `RemoteData<T,E>` (→ NotAsked)
@@ -390,12 +390,10 @@ var increment = State<int, Unit>.Modify(s => s + 1);
 var getCount = State<int, int>.Get();
 
 // Chain operations that read/write state
-var computation = 
-    from _ in increment
-    from __ in increment
-    from ___ in increment
-    from count in getCount
-    select count;
+var computation = increment
+    .Bind(_ => increment)
+    .Bind(_ => increment)
+    .Bind(_ => getCount);
 
 var (value, finalState) = computation.Run(0);
 // value = 3, finalState = 3
@@ -416,13 +414,11 @@ State<List<int>, Option<int>> Pop() =>
     });
 
 // Push 1, 2, 3 then pop twice
-var stackOps = 
-    from _ in Push(1)
-    from __ in Push(2)
-    from ___ in Push(3)
-    from a in Pop()  // Returns 3
-    from b in Pop()  // Returns 2
-    select (a, b);
+var stackOps = Push(1)
+    .Bind(_ => Push(2))
+    .Bind(_ => Push(3))
+    .Bind(_ => Pop())
+    .Bind(a => Pop().Map(b => (a, b)));
 
 var result = stackOps.Run(new List<int>());
 // result.Value = (Some(3), Some(2))
@@ -465,11 +461,10 @@ IO<Unit> WriteLine(string msg) =>
     IO<Unit>.Of(() => { Console.WriteLine(msg); return Unit.Default; });
 
 // Compose a program
-var program = 
-    from _ in WriteLine("What is your name?")
-    from name in readLine
-    from __ in WriteLine($"Hello, {name}!")
-    select Unit.Default;
+var program = WriteLine("What is your name?")
+    .Bind(_ => readLine)
+    .Bind(name => WriteLine($"Hello, {name}!"))
+    .Map(_ => Unit.Default);
 
 // Nothing happens until Run() is called
 program.Run();
@@ -520,7 +515,6 @@ var fastest = IO.Race(
 **Factory Methods:**
 - `IO<T>.Of(effect)` — Create from effect function
 - `IO<T>.Return(value)` / `Return(value)` — Create with pure value
-- `IO<T>.Delay(effect)` — Alias for `Of`, emphasizes laziness
 - `IO.Execute(action)` — Execute action, return Unit
 
 **Composition:**

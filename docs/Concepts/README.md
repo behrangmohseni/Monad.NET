@@ -10,7 +10,7 @@ We recommend reading these guides in order if you're new to functional programmi
 
 Start here. Understand the problems with traditional exception-based error handling and why explicit error types are better.
 
-**Key takeaways:**
+**Summary:**
 - Exceptions hide errors from method signatures
 - Result makes errors visible and composable
 - The compiler becomes your friend
@@ -19,7 +19,7 @@ Start here. Understand the problems with traditional exception-based error handl
 
 The mental model that makes everything click. Think of your code as two parallel tracks: success and error.
 
-**Key takeaways:**
+**Summary:**
 - Data flows on two tracks: success and error
 - Operations switch tracks on failure
 - Map, Bind, and Match are railway switches
@@ -28,7 +28,7 @@ The mental model that makes everything click. Think of your code as two parallel
 
 Handle missing values without null. Learn how `Option<T>` improves upon nullable reference types.
 
-**Key takeaways:**
+**Summary:**
 - Option makes "might be missing" explicit
 - Chain operations with Map and Bind
 - No more NullReferenceException surprises
@@ -37,7 +37,7 @@ Handle missing values without null. Learn how `Option<T>` improves upon nullable
 
 Handle operations that can fail with meaningful error information.
 
-**Key takeaways:**
+**Summary:**
 - Result carries error information (Option just says "missing")
 - Define typed error types for rich error handling
 - Perfect for APIs and service layers
@@ -46,7 +46,7 @@ Handle operations that can fail with meaningful error information.
 
 Learn to build complex operations from simple, reusable pieces.
 
-**Key takeaways:**
+**Summary:**
 - Linear pipelines with Bind
 - Accumulating data through transformations
 - Error recovery and logging patterns
@@ -55,7 +55,7 @@ Learn to build complex operations from simple, reusable pieces.
 
 Bridge your OOP knowledge to functional concepts. See common C# patterns translated.
 
-**Key takeaways:**
+**Summary:**
 - You already know FP from LINQ
 - Expressions over statements
 - Transform, don't mutate

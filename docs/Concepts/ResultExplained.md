@@ -1,6 +1,6 @@
 # Result Explained
 
-> **For C# developers:** This guide explains `Result<T, E>` - the type for operations that can succeed or fail with meaningful error information.
+> **For C# developers:** `Result<T, E>` -- the type for operations that can succeed or fail with meaningful error information.
 
 ## Beyond Option: When You Need to Know Why
 
@@ -58,7 +58,7 @@ public User GetUser(int id)
 }
 
 // Caller has no idea this can fail
-var user = GetUser(42);  // 💥 Might explode
+var user = GetUser(42);  // Might throw at runtime
 ```
 
 ### Result (Explicit Failures)
@@ -91,7 +91,7 @@ var ok = Result<int, string>.Ok(42);
 var err = Result<int, string>.Error("Something went wrong");
 
 // From try/catch (wrapping exceptions)
-Result<int, Exception> parsed = Try<int>.Run(() => int.Parse(input)).ToResult();
+Result<int, Exception> parsed = Try<int>.Of(() => int.Parse(input)).ToResult(ex => ex);
 ```
 
 ### Checking State
@@ -111,7 +111,7 @@ else
 }
 
 // Or use TryGet pattern
-if (result.TryGetValue(out var value))
+if (result.TryGet(out var value))
 {
     Console.WriteLine($"Success: {value}");
 }
@@ -126,7 +126,7 @@ Result<int, string> result = Result<int, string>.Ok(42);
 int value = result.GetValueOr(0);  // 42, or 0 if Error
 
 // Lazy fallback
-int lazy = result.GetValueOrElse(() => ComputeExpensiveDefault());
+int lazy = result.Match(ok => ok, _ => ComputeExpensiveDefault());
 
 // Unsafe (throws if Error)
 int risky = result.GetValue();  // Throws InvalidOperationException if Error

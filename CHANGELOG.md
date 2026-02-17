@@ -70,13 +70,13 @@ All core struct types now detect `default()` usage and throw `InvalidOperationEx
 
 | Type | IsInitialized | ThrowIfDefault |
 |------|---------------|----------------|
-| `Option<T>` | ✅ Added | ✅ Added |
-| `Result<T,E>` | ✅ (beta.1) | ✅ (beta.1) |
-| `Try<T>` | ✅ Added | ✅ Added |
-| `Validation<T,E>` | ✅ Added | ✅ Added |
-| `RemoteData<T,E>` | ✅ Added | ✅ Added |
-| `Reader<R,A>` | ✅ Added | ✅ Added |
-| `NonEmptyList<T>` | ✅ (existing) | ✅ (existing) |
+| `Option<T>` | Yes Added | Yes Added |
+| `Result<T,E>` | Yes (beta.1) | Yes (beta.1) |
+| `Try<T>` | Yes Added | Yes Added |
+| `Validation<T,E>` | Yes Added | Yes Added |
+| `RemoteData<T,E>` | Yes Added | Yes Added |
+| `Reader<R,A>` | Yes Added | Yes Added |
+| `NonEmptyList<T>` | Yes (existing) | Yes (existing) |
 
 #### 6 New Code Fix Providers for Analyzers
 
@@ -93,7 +93,7 @@ Coverage improved from 2/17 (12%) to 8/17 (47%) diagnostics with auto-fixes:
 
 #### Thread-Safety Tests
 
-Added comprehensive concurrency tests for all core types to verify thread-safe behavior under concurrent access.
+Added concurrency tests for all core types to verify thread-safe behavior under concurrent access.
 
 #### ADR-009: Property Naming Conventions
 
@@ -223,7 +223,7 @@ result.MapError(...)
 
 ### Added
 
-- **NuGet Packages Documentation** - New comprehensive documentation page
+- **NuGet Packages Documentation** - New documentation page
   - `docs/NuGetPackages.md` - Lists all packages with NuGet badges and descriptions
   - Updated README with link to NuGet packages page
 
@@ -253,7 +253,7 @@ result.MapError(...)
   - Core types must have DebuggerDisplay and DebuggerTypeProxy
   - Library must have zero runtime dependencies
 
-- **Architectural Decision Records (ADRs)** - Comprehensive documentation
+- **Architectural Decision Records (ADRs)** - Formal documentation
   - ADR-001: Struct-based Monad Types
   - ADR-002: Nullable Reference Type Integration
   - ADR-003: Aggressive Inlining Strategy
@@ -432,7 +432,7 @@ All features from the alpha releases (1.0.0-alpha.1 through 1.0.0-alpha.13) are 
 ### Changed
 
 - Updated API documentation with new methods
-- Added comprehensive tests for all new features (50+ new tests)
+- Added tests for all new features (50+ new tests)
 
 ---
 
@@ -448,7 +448,7 @@ All features from the alpha releases (1.0.0-alpha.1 through 1.0.0-alpha.13) are 
   - `ChooseParallelAsync<T, U>` - Map to Options in parallel, collect Some values
   - `PartitionParallelAsync<T, U, TError>` - Map to Results in parallel, separate Ok/Err
   - All methods support `maxDegreeOfParallelism` parameter for controlled concurrency
-  - Comprehensive tests for all parallel operations
+  - Tests for all parallel operations
 
 - **When/Unless Guard Extensions** for `Option<T>` - Conditional Option creation
   - `OptionExtensions.When<T>(bool condition, Func<T> factory)` - Some if condition true
@@ -456,7 +456,7 @@ All features from the alpha releases (1.0.0-alpha.1 through 1.0.0-alpha.13) are 
   - `OptionExtensions.Unless<T>(bool condition, Func<T> factory)` - Some if condition false
   - `OptionExtensions.Unless<T>(bool condition, T value)` - Some if condition false
   - Lazy evaluation for factory overloads
-  - 12 comprehensive tests
+  - 12 tests
 
 ### Changed
 
@@ -481,8 +481,8 @@ All features from the alpha releases (1.0.0-alpha.1 through 1.0.0-alpha.13) are 
   - Static helpers: `ReaderAsync.Parallel`, `ReaderAsync.From`, `ReaderAsync.Ask`, etc.
   - Collection operations: `Sequence`, `SequenceParallel`, `Traverse`, `TraverseParallel`
   - LINQ query support with `Select` and `SelectMany`
-  - Comprehensive XML documentation with examples
-  - 40+ comprehensive tests
+  - Full XML documentation with examples
+  - 40+ tests
 
 - **Reader.ToAsync()** - Convert synchronous Reader to ReaderAsync
 
@@ -539,7 +539,7 @@ All features from the alpha releases (1.0.0-alpha.1 through 1.0.0-alpha.13) are 
   - `IO.Parallel`, `IO.Race` for concurrent execution
   - Built-in helpers: `IO.WriteLine`, `IO.ReadLine`, `IO.Now`, `IO.Random`, etc.
   - Full LINQ query syntax support
-  - 78 comprehensive tests
+  - 78 tests
 
 - **Enhanced discriminated union source generator**
   - `Is{Case}` properties for checking union case type
@@ -565,7 +565,7 @@ All features from the alpha releases (1.0.0-alpha.1 through 1.0.0-alpha.13) are 
   - `CollectSuccessAsync`, `CollectFailureAsync` - Filter Try streams
   - `SelectAsync`, `WhereAsync`, `TapAsync` - General async stream operations
   - `AnyAsync`, `AllAsync`, `AggregateAsync`, `CountAsync`, `ToListAsync`
-  - 28 comprehensive tests
+  - 28 tests
 
 - **Monad.NET.SourceGenerators** - New source generator package for discriminated unions
   - `[Union]` attribute for marking abstract partial records/classes
@@ -573,7 +573,7 @@ All features from the alpha releases (1.0.0-alpha.1 through 1.0.0-alpha.13) are 
   - Auto-generates `Match` (void) method for side effects
   - Compile-time exhaustiveness checking - all cases must be handled
   - Works with nested record and class types
-  - 14 comprehensive tests
+  - 14 tests
 
 - **Monad.NET.EntityFrameworkCore** - New EF Core integration package
   - `OptionValueConverter<T>` for reference type Option properties
@@ -581,7 +581,7 @@ All features from the alpha releases (1.0.0-alpha.1 through 1.0.0-alpha.13) are 
   - Query extensions: `FirstOrNone`, `SingleOrNone`, `ElementAtOrNone`, `LastOrNone`
   - Async variants: `FirstOrNoneAsync`, `SingleOrNoneAsync`, etc.
   - Model builder extensions for automatic Option configuration
-  - 25 comprehensive tests
+  - 25 tests
 
 ---
 
@@ -615,7 +615,7 @@ All features from the alpha releases (1.0.0-alpha.1 through 1.0.0-alpha.13) are 
   - `ToValidationProblemResult()` for RFC 7807 ValidationProblemDetails
   - `ResultExceptionMiddleware` for global exception handling
   - Async support with `ToActionResultAsync()` variants
-  - 29 comprehensive tests
+  - 29 tests
 
 - **Deconstruction support** for all monad types
   - `Option<T>`: `var (value, isSome) = option`
@@ -623,7 +623,7 @@ All features from the alpha releases (1.0.0-alpha.1 through 1.0.0-alpha.13) are 
   - `Try<T>`: `var (value, isSuccess)` or `var (value, exception, isSuccess)`
   - `Validation<T, E>`: `var (value, isValid)` or `var (value, errors, isValid)`
   - `RemoteData<T, E>`: `var (data, isSuccess)` or full state deconstruction
-  - 29 comprehensive tests
+  - 29 tests
 
 ---
 
@@ -638,7 +638,7 @@ All features from the alpha releases (1.0.0-alpha.1 through 1.0.0-alpha.13) are 
   - `Apply`, `Zip`, `ZipWith` for combining computations
   - `Sequence`, `Traverse`, `Replicate`, `WhileM` extensions
   - Full LINQ query syntax support
-  - 33 comprehensive tests
+  - 33 tests
 
 ---
 
@@ -671,7 +671,7 @@ All features from the alpha releases (1.0.0-alpha.1 through 1.0.0-alpha.13) are 
 - Improved documentation with real-world examples
 - Added "Which Monad Should I Use?" quick reference table
 - Added Performance section with struct-based design details
-- Added comprehensive FAQ section
+- Added FAQ section
 - Updated code examples to use modern C# patterns (`is not null`)
 - Removed version numbers from installation instructions for easier updates
 

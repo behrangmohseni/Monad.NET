@@ -1,6 +1,6 @@
 # Monad.NET API Comparison - V2.0 Changes
 
-This document provides a comprehensive comparison of APIs showing what changed in Monad.NET V2.0. Methods marked with ~~strikethrough~~ were removed in V2.0.
+Side-by-side comparison of APIs showing what changed in Monad.NET V2.0. Methods marked with ~~strikethrough~~ were removed in V2.0.
 
 ---
 
@@ -91,11 +91,11 @@ These naming variations are **intentional**, not inconsistent. Each follows esta
 
 | Type | TryGet() | TryGetError() |
 |------|--------------|-----------------|-------------------|----------------------|
-| **Option\<T\>** | ✅ | ✅ | - | - |
-| **Result\<T,E\>** | ✅ | ✅ | ✅ | ✅ |
-| **Validation\<T,E\>** | ✅ | ✅ | `GetErrorsOrThrow()` | `GetErrorsOrThrow(msg)` |
-| **Try\<T\>** | ✅ | ✅ | `GetExceptionOrThrow()` | `GetExceptionOrThrow(msg)` |
-| **RemoteData\<T,E\>** | ❌ | ❌ | ❌ | ❌ |
+| **Option\<T\>** | Yes | Yes | - | - |
+| **Result\<T,E\>** | Yes | Yes | Yes | Yes |
+| **Validation\<T,E\>** | Yes | Yes | `GetErrorsOrThrow()` | `GetErrorsOrThrow(msg)` |
+| **Try\<T\>** | Yes | Yes | `GetExceptionOrThrow()` | `GetExceptionOrThrow(msg)` |
+| **RemoteData\<T,E\>** | No | No | No | No |
 
 ### TryGet Pattern (C# idiomatic)
 
@@ -115,16 +115,16 @@ These naming variations are **intentional**, not inconsistent. Each follows esta
 
 | Type | Map Value | Map Error | BiMap |
 |------|-----------|-----------|-------|
-| **Option\<T\>** | `Map<U>(Func<T,U>)` | - | ❌ |
+| **Option\<T\>** | `Map<U>(Func<T,U>)` | - | No |
 | **Result\<T,E\>** | `Map<U>(Func<T,U>)` | `MapErr<F>(Func<E,F>)` | `BiMap<U,F>(...)` |
 | **Validation\<T,E\>** | `Map<U>(Func<T,U>)` | `MapErrors<F>(...)` | `BiMap<U,F>(...)` |
-| **Try\<T\>** | `Map<U>(Func<T,U>)` | - | ❌ |
+| **Try\<T\>** | `Map<U>(Func<T,U>)` | - | No |
 | **RemoteData\<T,E\>** | `Map<U>(Func<T,U>)` | `MapError<F>(...)` | `BiMap<U,F>(...)` |
 | **Writer\<W,T\>** | `Map<U>(Func<T,U>)` | `MapLog<ULog>(...)` | `BiMap<ULog,U>(...)` |
-| **Reader\<R,A\>** | `Map<B>(Func<A,B>)` | - | ❌ |
-| **State\<S,T\>** | `Map<U>(Func<T,U>)` | - | ❌ |
-| **IO\<T\>** | `Map<U>(Func<T,U>)` | - | ❌ |
-| **NonEmptyList\<T\>** | `Map<U>(...)`, `MapIndexed<U>(...)` | - | ❌ |
+| **Reader\<R,A\>** | `Map<B>(Func<A,B>)` | - | No |
+| **State\<S,T\>** | `Map<U>(Func<T,U>)` | - | No |
+| **IO\<T\>** | `Map<U>(Func<T,U>)` | - | No |
+| **NonEmptyList\<T\>** | `Map<U>(...)`, `MapIndexed<U>(...)` | - | No |
 
 ### V1.0 Inconsistencies in Map Error Naming (Fixed in V2.0)
 - `Result`: `MapErr` → **V2.0: `MapError`**
@@ -135,16 +135,16 @@ These naming variations are **intentional**, not inconsistent. Each follows esta
 
 | Type | Bind (V2.0) | V1.0 Aliases (Removed) |
 |------|-------------|------------------------|
-| **Option\<T\>** | ✅ | `AndThen` |
-| **Result\<T,E\>** | ✅ | `FlatMap`, `AndThen` |
-| **Validation\<T,E\>** | ✅ | `FlatMap`, `AndThen` |
-| **Try\<T\>** | ✅ | `FlatMap`, `AndThen` |
-| **RemoteData\<T,E\>** | ✅ | `FlatMap`, `AndThen` |
-| **Writer\<W,T\>** | ✅ (needs combine) | `FlatMap` |
-| **Reader\<R,A\>** | ✅ | `FlatMap`, `AndThen` |
-| **State\<S,T\>** | ✅ | `FlatMap`, `AndThen` |
-| **IO\<T\>** | ✅ | `FlatMap`, `AndThen` |
-| **NonEmptyList\<T\>** | ✅ | `FlatMap` |
+| **Option\<T\>** | Yes | `AndThen` |
+| **Result\<T,E\>** | Yes | `FlatMap`, `AndThen` |
+| **Validation\<T,E\>** | Yes | `FlatMap`, `AndThen` |
+| **Try\<T\>** | Yes | `FlatMap`, `AndThen` |
+| **RemoteData\<T,E\>** | Yes | `FlatMap`, `AndThen` |
+| **Writer\<W,T\>** | Yes (needs combine) | `FlatMap` |
+| **Reader\<R,A\>** | Yes | `FlatMap`, `AndThen` |
+| **State\<S,T\>** | Yes | `FlatMap`, `AndThen` |
+| **IO\<T\>** | Yes | `FlatMap`, `AndThen` |
+| **NonEmptyList\<T\>** | Yes | `FlatMap` |
 
 ### V2.0 Status
 - All types now use `Bind` consistently
@@ -157,11 +157,11 @@ These naming variations are **intentional**, not inconsistent. Each follows esta
 
 | Type | Filter | Filter with error | Ensure |
 |------|--------|-------------------|--------|
-| **Option\<T\>** | `Filter(pred)` | ❌ | ❌ |
-| **Result\<T,E\>** | `Filter(pred, E)` | `Filter(pred, Func<E>)`, `Filter(pred, Func<T,E>)` | ❌ |
-| **Validation\<T,E\>** | ❌ | ❌ | `Ensure(pred, E)`, `Ensure(pred, Func<E>)` |
-| **Try\<T\>** | `Filter(pred)` | `Filter(pred, string)`, `Filter(pred, Func<Ex>)` | ❌ |
-| **NonEmptyList\<T\>** | `Filter(pred)` → `Option<NonEmptyList<T>>` | ❌ | ❌ |
+| **Option\<T\>** | `Filter(pred)` | No | No |
+| **Result\<T,E\>** | `Filter(pred, E)` | `Filter(pred, Func<E>)`, `Filter(pred, Func<T,E>)` | No |
+| **Validation\<T,E\>** | No | No | `Ensure(pred, E)`, `Ensure(pred, Func<E>)` |
+| **Try\<T\>** | `Filter(pred)` | `Filter(pred, string)`, `Filter(pred, Func<Ex>)` | No |
+| **NonEmptyList\<T\>** | `Filter(pred)` → `Option<NonEmptyList<T>>` | No | No |
 
 ### Inconsistency
 - `Validation` uses `Ensure` instead of `Filter`
@@ -179,10 +179,10 @@ These naming variations are **intentional**, not inconsistent. Each follows esta
 | **Result\<T,E\>** | `Zip<U>(Result)` | `ZipWith<U,V>(...)` |
 | **Validation\<T,E\>** | `Zip<U>(...)` | `ZipWith<U,V>(...)` |
 | **Try\<T\>** | `Zip<U>(...)` | `ZipWith<U,V>(...)` |
-| **RemoteData\<T,E\>** | ❌ | ❌ |
+| **RemoteData\<T,E\>** | No | No |
 | **State\<S,T\>** | `Zip<U>(...)` | `ZipWith<U,V>(...)` |
 | **IO\<T\>** | `Zip<U>(...)` | `ZipWith<U,V>(...)` |
-| **Reader\<R,A\>** | ❌ | `Zip<B,C>(other, combiner)` |
+| **Reader\<R,A\>** | No | `Zip<B,C>(other, combiner)` |
 
 ### Inconsistency
 - `RemoteData` missing `Zip/ZipWith`
@@ -194,10 +194,10 @@ These naming variations are **intentional**, not inconsistent. Each follows esta
 |------|-----|----|--------|
 | **Option\<T\>** | `And<U>(Option<U>)` | `Or(Option<T>)` | `OrElse(Func<Option<T>>)` |
 | **Result\<T,E\>** | `And<U>(Result)` | `Or(Result)` | `OrElse<F>(Func)` |
-| **Validation\<T,E\>** | `And(Validation)` | ❌ | ❌ |
-| **Try\<T\>** | ❌ | ❌ | ❌ |
-| **RemoteData\<T,E\>** | ❌ | `Or(RemoteData)` | `OrElse(Func)` |
-| **IO\<T\>** | ❌ | ❌ | `OrElse(IO)`, `OrElse(T)` |
+| **Validation\<T,E\>** | `And(Validation)` | No | No |
+| **Try\<T\>** | No | No | No |
+| **RemoteData\<T,E\>** | No | `Or(RemoteData)` | `OrElse(Func)` |
+| **IO\<T\>** | No | No | `OrElse(IO)`, `OrElse(T)` |
 
 ---
 
@@ -213,9 +213,9 @@ These naming variations are **intentional**, not inconsistent. Each follows esta
 | **Writer\<W,T\>** | `Tap(Action<T>)` | `TapLog(Action<W>)` | Instance |
 | **Reader\<R,A\>** | `Tap(Action<A>)` | `TapEnv(Action<R>)` | Instance |
 | **State\<S,T\>** | `Tap(Action<T>)` | `TapState(Action<S>)` | Instance |
-| **IO\<T\>** | `Tap(Action<T>)` | ❌ | Instance |
-| **IOAsync\<T\>** | `Tap(Action<T>)` | ❌ | Instance |
-| **NonEmptyList\<T\>** | `Tap(Action<T>)`, `TapIndexed(...)` | ❌ | Instance |
+| **IO\<T\>** | `Tap(Action<T>)` | No | Instance |
+| **IOAsync\<T\>** | `Tap(Action<T>)` | No | Instance |
+| **NonEmptyList\<T\>** | `Tap(Action<T>)`, `TapIndexed(...)` | No | Instance |
 
 ### V2.0 Status
 - Consistent naming: `TapError()` for all error-capable types (except `TapErrors()` for `Validation` plural)
@@ -232,7 +232,7 @@ These naming variations are **intentional**, not inconsistent. Each follows esta
 | **Validation\<T,E\>** | `Match(validAction, invalidAction)` | `Match<U>(validFunc, invalidFunc)` |
 | **Try\<T\>** | `Match(successAction, failureAction)` | `Match<U>(successFunc, failureFunc)` |
 | **RemoteData\<T,E\>** | 4-way match | 4-way match |
-| **Writer\<W,T\>** | ❌ | `Match<U>(Func<T,W,U>)` |
+| **Writer\<W,T\>** | No | `Match<U>(Func<T,W,U>)` |
 
 ### Note
 All types consistently have Match, but parameter naming varies with the type semantics.
@@ -243,11 +243,11 @@ All types consistently have Match, but parameter naming varies with the type sem
 
 | Type | ToOption | ToResult | ToValidation | Other |
 |------|----------|----------|--------------|-------|
-| **Option\<T\>** | - | `OkOr<E>(E)`, `OkOrElse<E>(Func)` | ❌ | `AsEnumerable()`, `ToArray()`, `ToList()` |
+| **Option\<T\>** | - | `OkOr<E>(E)`, `OkOrElse<E>(Func)` | No | `AsEnumerable()`, `ToArray()`, `ToList()` |
 | **Result\<T,E\>** | `Ok()` | - | `ToValidation()` | `Err()`, `AsEnumerable()`, `ToArray()`, `ToList()` |
-| **Validation\<T,E\>** | `ToOption()` | `ToResult()`, `ToResult(combine)` | - | ❌ |
-| **Try\<T\>** | `ToOption()` | `ToResult()`, `ToResult<E>(mapper)` | ❌ | ❌ | ❌ |
-| **RemoteData\<T,E\>** | `ToOption()` | `ToResult()`, `ToResult(notAsked, loading)` | ❌ | ❌ | ❌ |
+| **Validation\<T,E\>** | `ToOption()` | `ToResult()`, `ToResult(combine)` | - | No |
+| **Try\<T\>** | `ToOption()` | `ToResult()`, `ToResult<E>(mapper)` | No | No | No |
+| **RemoteData\<T,E\>** | `ToOption()` | `ToResult()`, `ToResult(notAsked, loading)` | No | No | No |
 
 ### Inconsistencies
 - `Option` doesn't have `ToOption()` (identity)
@@ -260,11 +260,11 @@ All types consistently have Match, but parameter naming varies with the type sem
 
 | Type | Contains | ContainsError | Exists | ExistsError |
 |------|----------|---------------|--------|-------------|
-| **Option\<T\>** | ✅ | - | ✅ | - |
-| **Result\<T,E\>** | ✅ | ✅ | ✅ | ✅ |
-| **Validation\<T,E\>** | ✅ | ❌ | ✅ | ❌ |
-| **Try\<T\>** | ✅ | ❌ | ✅ | ❌ |
-| **RemoteData\<T,E\>** | ❌ | ❌ | ❌ | ❌ |
+| **Option\<T\>** | Yes | - | Yes | - |
+| **Result\<T,E\>** | Yes | Yes | Yes | Yes |
+| **Validation\<T,E\>** | Yes | No | Yes | No |
+| **Try\<T\>** | Yes | No | Yes | No |
+| **RemoteData\<T,E\>** | No | No | No | No |
 
 ### Inconsistencies
 - `RemoteData` missing all Contains/Exists methods
@@ -276,12 +276,12 @@ All types consistently have Match, but parameter naming varies with the type sem
 
 | Type | Recover | RecoverWith / OrElse |
 |------|---------|----------------------|
-| **Option\<T\>** | ❌ | `Or(Option)`, `OrElse(Func)` |
-| **Result\<T,E\>** | ❌ | `Or(Result)`, `OrElse<F>(Func)` |
+| **Option\<T\>** | No | `Or(Option)`, `OrElse(Func)` |
+| **Result\<T,E\>** | No | `Or(Result)`, `OrElse<F>(Func)` |
 | **Try\<T\>** | `Recover(Func<Ex,T>)` | `RecoverWith(Func<Ex,Try<T>>)` |
-| **RemoteData\<T,E\>** | ❌ | `Or(RemoteData)`, `OrElse(Func)` |
-| **IO\<T\>** | ❌ | `OrElse(IO)`, `OrElse(T)` |
-| **IOAsync\<T\>** | ❌ | `OrElse(IOAsync)` |
+| **RemoteData\<T,E\>** | No | `Or(RemoteData)`, `OrElse(Func)` |
+| **IO\<T\>** | No | `OrElse(IO)`, `OrElse(T)` |
+| **IOAsync\<T\>** | No | `OrElse(IOAsync)` |
 
 ### Inconsistency
 - Only `Try` has `Recover/RecoverWith`
@@ -309,10 +309,10 @@ All types consistently have Match, but parameter naming varies with the type sem
 | Type | From Value | From Error |
 |------|------------|------------|
 | **Option\<T\>** | `T` → `Option<T>` (handles null → None) | - |
-| **Result\<T,E\>** | `T` → `Result<T,E>` (Ok) | ❌ |
-| **Validation\<T,E\>** | `T` → `Validation<T,E>` (Valid) | ❌ |
+| **Result\<T,E\>** | `T` → `Result<T,E>` (Ok) | No |
+| **Validation\<T,E\>** | `T` → `Validation<T,E>` (Valid) | No |
 | **Try\<T\>** | `T` → `Try<T>` (Success) | `Exception` → `Try<T>` (Failure) |
-| **RemoteData\<T,E\>** | `T` → `RemoteData<T,E>` (Success) | ❌ |
+| **RemoteData\<T,E\>** | `T` → `RemoteData<T,E>` (Success) | No |
 | **NonEmptyList\<T\>** | `T` → `NonEmptyList<T>` (single) | - |
 
 ---
@@ -323,11 +323,11 @@ All types consistently have Match, but parameter naming varies with the type sem
 |------|----------|-----------|-------|
 | **Option\<T\>** | ~~Removed~~ | ~~Removed~~ | Use standard async/await |
 | **Result\<T,E\>** | ~~Removed~~ | ~~Removed~~ | Use standard async/await |
-| **Validation\<T,E\>** | ✅ | - | For async validation logic |
-| **Try\<T\>** | ✅ | ✅ | For exception-prone async ops |
-| **RemoteData\<T,E\>** | ✅ | - | For UI state transformations |
+| **Validation\<T,E\>** | Yes | - | For async validation logic |
+| **Try\<T\>** | Yes | Yes | For exception-prone async ops |
+| **RemoteData\<T,E\>** | Yes | - | For UI state transformations |
 | **IO\<T\>** | - | - | `RunAsync`, `ToAsync` |
-| **IOAsync\<T\>** | ✅ | ✅ | Full async support |
+| **IOAsync\<T\>** | Yes | Yes | Full async support |
 | **Reader\<R,A\>** | - | - | ~~ReaderAsync removed~~ |
 
 ### V2.0 Changes
@@ -397,14 +397,14 @@ All three names refer to the same monadic bind operation:
 
 | Type | AndThen | FlatMap | Bind | Duplication Level |
 |------|---------|---------|------|-------------------|
-| **Option\<T\>** | ✅ | ❌ | ❌ | None (only 1) |
-| **Result\<T,E\>** | ✅ | ✅ | ✅ | **HIGH - 3 aliases** |
-| **Validation\<T,E\>** | ✅ | ✅ | ✅ | **HIGH - 3 aliases** |
-| **Try\<T\>** | ✅ | ✅ | ✅ | **HIGH - 3 aliases** |
-| **RemoteData\<T,E\>** | ✅ | ✅ | ✅ | **HIGH - 3 aliases** |
-| **Reader\<R,A\>** | ✅ | ✅ | ✅ | **HIGH - 3 aliases** |
-| **State\<S,T\>** | ✅ | ✅ | ✅ | **HIGH - 3 aliases** |
-| **IO\<T\>** | ✅ | ✅ | ✅ | **HIGH - 3 aliases** |
+| **Option\<T\>** | Yes | No | No | None (only 1) |
+| **Result\<T,E\>** | Yes | Yes | Yes | **HIGH - 3 aliases** |
+| **Validation\<T,E\>** | Yes | Yes | Yes | **HIGH - 3 aliases** |
+| **Try\<T\>** | Yes | Yes | Yes | **HIGH - 3 aliases** |
+| **RemoteData\<T,E\>** | Yes | Yes | Yes | **HIGH - 3 aliases** |
+| **Reader\<R,A\>** | Yes | Yes | Yes | **HIGH - 3 aliases** |
+| **State\<S,T\>** | Yes | Yes | Yes | **HIGH - 3 aliases** |
+| **IO\<T\>** | Yes | Yes | Yes | **HIGH - 3 aliases** |
 
 **Recommendation**: Keep `Bind` (standard FP convention for monadic bind).
 
@@ -414,11 +414,11 @@ Multiple names for creating a "successful" value:
 
 | Type | Pure | Return | Of | Other | Duplication Level |
 |------|------|--------|----|----|-------------------|
-| **State\<S,A\>** | ✅ | ✅ | ✅ (Func variant) | - | **HIGH - 3 names** |
-| **IO\<T\>** | ✅ | ✅ | ✅ (Func variant) | `Delay` (same as Of) | **VERY HIGH - 4 names** |
-| **IOAsync\<T\>** | ✅ | ❌ | ✅ | - | Medium - 2 names |
-| **Reader\<R,A\>** | ✅ | ❌ | ❌ | `From` | Medium - 2 names |
-| **Writer\<W,T\>** | ❌ | ❌ | ✅ | `Tell` | Medium - 2 names |
+| **State\<S,A\>** | Yes | Yes | Yes (Func variant) | - | **HIGH - 3 names** |
+| **IO\<T\>** | Yes | Yes | Yes (Func variant) | `Delay` (same as Of) | **VERY HIGH - 4 names** |
+| **IOAsync\<T\>** | Yes | No | Yes | - | Medium - 2 names |
+| **Reader\<R,A\>** | Yes | No | No | `From` | Medium - 2 names |
+| **Writer\<W,T\>** | No | No | Yes | `Tell` | Medium - 2 names |
 
 **Recommendation**: Standardize on `Return` for value lifting (C# convention) and `Create` or `Of` for deferred/lazy creation.
 
@@ -426,7 +426,7 @@ Multiple names for creating a "successful" value:
 
 | Type | Get() | Unwrap() | Same Behavior? |
 |------|-------|----------|----------------|
-| **Try\<T\>** | ✅ | ✅ | **YES - Duplicate** |
+| **Try\<T\>** | Yes | Yes | **YES - Duplicate** |
 
 **Recommendation**: Keep `GetValue()` (C#-idiomatic), remove Rust-style `Unwrap()`.
 
@@ -434,10 +434,10 @@ Multiple names for creating a "successful" value:
 
 | Type | GetOrElse(T) | UnwrapOr(T) | GetOrElse(Func) | UnwrapOrElse(Func) |
 |------|--------------|-------------|-----------------|-------------------|
-| **Option\<T\>** | ❌ | ✅ | ❌ | ✅ |
-| **Result\<T,E\>** | ❌ | ✅ | ❌ | ✅ |
-| **Try\<T\>** | ✅ | ❌ | ✅ | ❌ |
-| **RemoteData\<T,E\>** | ❌ | ✅ | ❌ | ✅ |
+| **Option\<T\>** | No | Yes | No | Yes |
+| **Result\<T,E\>** | No | Yes | No | Yes |
+| **Try\<T\>** | Yes | No | Yes | No |
+| **RemoteData\<T,E\>** | No | Yes | No | Yes |
 
 **Issue**: `Try` uses `GetOrElse` while all other types use `UnwrapOr/UnwrapOrElse`.
 
@@ -449,10 +449,10 @@ Both patterns throw an exception with a custom message:
 
 | Type | Expect(msg) | GetOrThrow(msg) | Same Behavior? |
 |------|-------------|-----------------|----------------|
-| **Option\<T\>** | ✅ | ✅ | **YES - Duplicate** |
-| **Result\<T,E\>** | ✅ | ✅ | **YES - Duplicate** |
-| **Validation\<T,E\>** | ✅ | ✅ | **YES - Duplicate** |
-| **Try\<T\>** | ✅ | ✅ | **YES - Duplicate** |
+| **Option\<T\>** | Yes | Yes | **YES - Duplicate** |
+| **Result\<T,E\>** | Yes | Yes | **YES - Duplicate** |
+| **Validation\<T,E\>** | Yes | Yes | **YES - Duplicate** |
+| **Try\<T\>** | Yes | Yes | **YES - Duplicate** |
 
 **Recommendation**: Keep `GetOrThrow` (C#-idiomatic, explicit about behavior), remove Rust-style `Expect`.
 

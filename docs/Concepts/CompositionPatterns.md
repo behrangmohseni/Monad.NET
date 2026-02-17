@@ -1,6 +1,6 @@
 # Composition Patterns
 
-> **For C# developers:** This guide shows how to combine operations elegantly using functional composition.
+> **For C# developers:** Combining operations using functional composition.
 
 ## What is Composition?
 

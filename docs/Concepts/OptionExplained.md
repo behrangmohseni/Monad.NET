@@ -1,6 +1,6 @@
 # Option Explained
 
-> **For C# developers:** This guide explains `Option<T>` and how it improves upon nullable reference types.
+> **For C# developers:** `Option<T>` and how it improves upon nullable reference types.
 
 ## The Billion Dollar Mistake
 
@@ -8,10 +8,10 @@ Tony Hoare, who invented null references, famously called them his "billion doll
 
 ```csharp
 var user = GetUser(42);
-Console.WriteLine(user.Name); // 💥 NullReferenceException
+Console.WriteLine(user.Name); // NullReferenceException
 ```
 
-You've written defensive code like this thousands of times:
+A common defensive pattern looks like this:
 
 ```csharp
 if (user != null)
@@ -70,7 +70,7 @@ string name = user.Name;  // Warning: possible null
 
 // You can still ignore warnings
 #nullable disable
-string name = user.Name;  // No warning, still crashes 💥
+string name = user.Name;  // No warning, still crashes at runtime
 ```
 
 **Problems:**
@@ -85,7 +85,7 @@ string name = user.Name;  // No warning, still crashes 💥
 Option<User> user = GetUser(42);
 
 // This won't compile - Option<User> is not User
-string name = user.Name;  // ❌ Compile error
+string name = user.Name;  // Compile error
 
 // You must explicitly handle both cases
 string name = user.Match(
@@ -143,7 +143,7 @@ Option<int> option = Option<int>.Some(42);
 
 // Safe extraction
 int value = option.GetValueOr(0);           // 42, or 0 if None
-int lazy = option.GetValueOrElse(() => ComputeDefault()); // Lazy evaluation
+int lazy = option.Match(v => v, () => ComputeDefault()); // Lazy evaluation
 
 // Unsafe (throws if None)
 int risky = option.GetValue();     // 42, or throws InvalidOperationException

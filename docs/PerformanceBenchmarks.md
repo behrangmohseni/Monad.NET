@@ -1,6 +1,6 @@
 # Performance Benchmarks
 
-This document provides comprehensive performance comparisons between Monad.NET and alternative approaches like nullable types and exceptions.
+Performance comparisons between Monad.NET and alternative approaches like nullable types and exceptions.
 
 ## Table of Contents
 
@@ -288,7 +288,7 @@ While Monad.NET is highly optimized, there are scenarios where using these types
 In extremely tight loops that execute millions of times per second, even the minimal overhead of monadic types can accumulate:
 
 ```csharp
-// ❌ AVOID: Monadic types in hot inner loops
+// AVOID: Monadic types in hot inner loops
 for (int i = 0; i < 10_000_000; i++)
 {
     var result = Option<int>.Some(i)
@@ -297,7 +297,7 @@ for (int i = 0; i < 10_000_000; i++)
     // Even with zero allocation, method call overhead accumulates
 }
 
-// ✅ PREFER: Direct operations in hot inner loops
+// PREFER: Direct operations in hot inner loops
 for (int i = 0; i < 10_000_000; i++)
 {
     var value = i * 2;
@@ -320,7 +320,7 @@ for (int i = 0; i < 10_000_000; i++)
 For ultra-low-latency systems (high-frequency trading, real-time audio processing, game physics), the nanosecond-level overhead matters:
 
 ```csharp
-// ❌ AVOID: In latency-critical audio callback
+// AVOID: In latency-critical audio callback
 void AudioCallback(float[] buffer)
 {
     for (int i = 0; i < buffer.Length; i++)
@@ -331,7 +331,7 @@ void AudioCallback(float[] buffer)
     }
 }
 
-// ✅ PREFER: Direct operations
+// PREFER: Direct operations
 void AudioCallback(float[] buffer)
 {
     for (int i = 0; i < buffer.Length; i++)
@@ -346,7 +346,7 @@ void AudioCallback(float[] buffer)
 For numerical algorithms processing large datasets:
 
 ```csharp
-// ❌ AVOID: Matrix operations with monadic wrapping
+// AVOID: Matrix operations with monadic wrapping
 Matrix MultiplyMatrices(Matrix a, Matrix b)
 {
     for (int i = 0; i < rows; i++)
@@ -358,7 +358,7 @@ Matrix MultiplyMatrices(Matrix a, Matrix b)
             }
 }
 
-// ✅ PREFER: Direct computation, wrap only the outer operation
+// PREFER: Direct computation, wrap only the outer operation
 Result<Matrix, MatrixError> MultiplyMatrices(Matrix a, Matrix b)
 {
     if (!CanMultiply(a, b))
@@ -398,16 +398,16 @@ Despite the above, monadic types are appropriate in the vast majority of scenari
 
 | Scenario | Use Monadic Types? | Reason |
 |----------|-------------------|--------|
-| Business logic | ✅ Yes | Type safety > nanoseconds |
-| API handlers | ✅ Yes | Network latency dominates |
-| Database operations | ✅ Yes | I/O latency dominates |
-| UI code | ✅ Yes | User perception threshold is ~100ms |
-| Configuration parsing | ✅ Yes | Runs once at startup |
-| Validation | ✅ Yes | Safety and error collection benefits |
-| Inner game loops | ⚠️ Maybe | Profile first, optimize if needed |
-| Audio/video processing | ❌ No | Real-time constraints |
-| High-frequency trading | ❌ No | Nanosecond latency requirements |
-| Tight numeric loops | ❌ No | Use outside the loop |
+| Business logic | Yes | Type safety > nanoseconds |
+| API handlers | Yes | Network latency dominates |
+| Database operations | Yes | I/O latency dominates |
+| UI code | Yes | User perception threshold is ~100ms |
+| Configuration parsing | Yes | Runs once at startup |
+| Validation | Yes | Safety and error collection benefits |
+| Inner game loops | Maybe | Profile first, optimize if needed |
+| Audio/video processing | No | Real-time constraints |
+| High-frequency trading | No | Nanosecond latency requirements |
+| Tight numeric loops | No | Use outside the loop |
 
 ### The 80/20 Rule
 
