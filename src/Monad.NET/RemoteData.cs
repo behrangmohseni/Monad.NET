@@ -20,19 +20,16 @@ public readonly struct RemoteData<T, TError> : IEquatable<RemoteData<T, TError>>
     private readonly T? _data;
     private readonly TError? _error;
     private readonly RemoteDataState _state;
-    private readonly bool _isInitialized;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private string DebuggerDisplay => _isInitialized
-        ? _state switch
-        {
-            RemoteDataState.NotAsked => "NotAsked",
-            RemoteDataState.Loading => "Loading",
-            RemoteDataState.Success => $"Success({_data})",
-            RemoteDataState.Failure => $"Failure({_error})",
-            _ => "Unknown"
-        }
-        : "Uninitialized";
+    private string DebuggerDisplay => _state switch
+    {
+        RemoteDataState.NotAsked => "NotAsked",
+        RemoteDataState.Loading => "Loading",
+        RemoteDataState.Success => $"Success({_data})",
+        RemoteDataState.Failure => $"Failure({_error})",
+        _ => "Unknown"
+    };
 
     private enum RemoteDataState
     {
@@ -48,54 +45,24 @@ public readonly struct RemoteData<T, TError> : IEquatable<RemoteData<T, TError>>
         _data = data;
         _error = error;
         _state = state;
-        _isInitialized = true;
-    }
-
-    /// <summary>
-    /// Indicates whether the RemoteData was properly initialized via factory methods.
-    /// A default-constructed RemoteData (e.g., default(RemoteData&lt;T,E&gt;)) is not initialized.
-    /// Always create RemoteData instances via factory methods: <see cref="NotAsked"/>, <see cref="Loading"/>,
-    /// <see cref="Ok(T)"/>, or <see cref="Error(TError)"/>.
-    /// </summary>
-    public bool IsInitialized
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => _isInitialized;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void ThrowIfDefault()
-    {
-        if (!_isInitialized)
-            ThrowHelper.ThrowRemoteDataIsDefault();
     }
 
     /// <summary>
     /// Returns true if the data has not been requested yet.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the RemoteData was not properly initialized.</exception>
     public bool IsNotAsked
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get
-        {
-            ThrowIfDefault();
-            return _state == RemoteDataState.NotAsked;
-        }
+        get => _state == RemoteDataState.NotAsked;
     }
 
     /// <summary>
     /// Returns true if the data is currently being loaded.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the RemoteData was not properly initialized.</exception>
     public bool IsLoading
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get
-        {
-            ThrowIfDefault();
-            return _state == RemoteDataState.Loading;
-        }
+        get => _state == RemoteDataState.Loading;
     }
 
     /// <summary>
@@ -104,15 +71,10 @@ public readonly struct RemoteData<T, TError> : IEquatable<RemoteData<T, TError>>
     /// <remarks>
     /// This follows F# naming conventions for consistency across monadic types.
     /// </remarks>
-    /// <exception cref="InvalidOperationException">Thrown if the RemoteData was not properly initialized.</exception>
     public bool IsOk
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get
-        {
-            ThrowIfDefault();
-            return _state == RemoteDataState.Success;
-        }
+        get => _state == RemoteDataState.Success;
     }
 
     /// <summary>
@@ -121,15 +83,10 @@ public readonly struct RemoteData<T, TError> : IEquatable<RemoteData<T, TError>>
     /// <remarks>
     /// This follows F# naming conventions for consistency across monadic types.
     /// </remarks>
-    /// <exception cref="InvalidOperationException">Thrown if the RemoteData was not properly initialized.</exception>
     public bool IsError
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get
-        {
-            ThrowIfDefault();
-            return _state == RemoteDataState.Failure;
-        }
+        get => _state == RemoteDataState.Failure;
     }
 
     /// <summary>
@@ -175,12 +132,11 @@ public readonly struct RemoteData<T, TError> : IEquatable<RemoteData<T, TError>>
     /// <summary>
     /// Returns the data if successful.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if not in Success state or if the RemoteData was not properly initialized.</exception>
+    /// <exception cref="InvalidOperationException">Thrown if not in Success state.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     [EditorBrowsable(EditorBrowsableState.Never)]
     public T GetValue()
     {
-        ThrowIfDefault();
         if (_state == RemoteDataState.Success)
             return _data!;
 
@@ -198,11 +154,10 @@ public readonly struct RemoteData<T, TError> : IEquatable<RemoteData<T, TError>>
     /// <summary>
     /// Returns the error if failed.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if not in Failure state or if the RemoteData was not properly initialized.</exception>
+    /// <exception cref="InvalidOperationException">Thrown if not in Failure state.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public TError GetError()
     {
-        ThrowIfDefault();
         if (_state != RemoteDataState.Failure)
             ThrowHelper.ThrowInvalidOperation("Cannot get error on non-Failure state.");
 
@@ -212,11 +167,9 @@ public readonly struct RemoteData<T, TError> : IEquatable<RemoteData<T, TError>>
     /// <summary>
     /// Returns the data if successful, otherwise returns a default value.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the RemoteData was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T GetValueOr(T defaultValue)
     {
-        ThrowIfDefault();
         return _state == RemoteDataState.Success ? _data! : defaultValue;
     }
 
@@ -225,7 +178,6 @@ public readonly struct RemoteData<T, TError> : IEquatable<RemoteData<T, TError>>
     /// </summary>
     /// <param name="data">When this method returns, contains the data if Success; otherwise, the default value.</param>
     /// <returns>True if the RemoteData is in Success state; otherwise, false.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if the RemoteData was not properly initialized.</exception>
     /// <example>
     /// <code>
     /// if (remoteData.TryGet(out var data))
@@ -237,7 +189,6 @@ public readonly struct RemoteData<T, TError> : IEquatable<RemoteData<T, TError>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryGet(out T? data)
     {
-        ThrowIfDefault();
         data = _data;
         return _state == RemoteDataState.Success;
     }
@@ -247,7 +198,6 @@ public readonly struct RemoteData<T, TError> : IEquatable<RemoteData<T, TError>>
     /// </summary>
     /// <param name="error">When this method returns, contains the error if Failure; otherwise, the default value.</param>
     /// <returns>True if the RemoteData is in Failure state; otherwise, false.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if the RemoteData was not properly initialized.</exception>
     /// <example>
     /// <code>
     /// if (remoteData.TryGetError(out var error))
@@ -259,7 +209,6 @@ public readonly struct RemoteData<T, TError> : IEquatable<RemoteData<T, TError>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryGetError(out TError? error)
     {
-        ThrowIfDefault();
         error = _error;
         return _state == RemoteDataState.Failure;
     }
@@ -267,12 +216,10 @@ public readonly struct RemoteData<T, TError> : IEquatable<RemoteData<T, TError>>
     /// <summary>
     /// Maps the data if successful.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the RemoteData was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public RemoteData<U, TError> Map<U>(Func<T, U> mapper)
     {
         ThrowHelper.ThrowIfNull(mapper);
-        ThrowIfDefault();
 
         return _state switch
         {
@@ -287,12 +234,10 @@ public readonly struct RemoteData<T, TError> : IEquatable<RemoteData<T, TError>>
     /// <summary>
     /// Maps the error if failed.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the RemoteData was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public RemoteData<T, F> MapError<F>(Func<TError, F> mapper)
     {
         ThrowHelper.ThrowIfNull(mapper);
-        ThrowIfDefault();
 
         return _state switch
         {
@@ -308,12 +253,10 @@ public readonly struct RemoteData<T, TError> : IEquatable<RemoteData<T, TError>>
     /// Chains a remote data operation.
     /// This is the monadic bind operation.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the RemoteData was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public RemoteData<U, TError> Bind<U>(Func<T, RemoteData<U, TError>> binder)
     {
         ThrowHelper.ThrowIfNull(binder);
-        ThrowIfDefault();
 
         return _state switch
         {
@@ -333,13 +276,11 @@ public readonly struct RemoteData<T, TError> : IEquatable<RemoteData<T, TError>>
     /// <param name="dataMapper">Function to transform the data if successful.</param>
     /// <param name="errorMapper">Function to transform the error if failed.</param>
     /// <returns>A new RemoteData with transformed data or error.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if the RemoteData was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public RemoteData<U, F> BiMap<U, F>(Func<T, U> dataMapper, Func<TError, F> errorMapper)
     {
         ThrowHelper.ThrowIfNull(dataMapper);
         ThrowHelper.ThrowIfNull(errorMapper);
-        ThrowIfDefault();
 
         return _state switch
         {
@@ -354,23 +295,19 @@ public readonly struct RemoteData<T, TError> : IEquatable<RemoteData<T, TError>>
     /// <summary>
     /// Returns this RemoteData if Success, otherwise returns the alternative.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if this RemoteData was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public RemoteData<T, TError> Or(RemoteData<T, TError> alternative)
     {
-        ThrowIfDefault();
         return _state == RemoteDataState.Success ? this : alternative;
     }
 
     /// <summary>
     /// Recovers from a Failure state by providing an alternative RemoteData.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if this RemoteData was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public RemoteData<T, TError> OrElse(Func<TError, RemoteData<T, TError>> recovery)
     {
         ThrowHelper.ThrowIfNull(recovery);
-        ThrowIfDefault();
 
         return _state == RemoteDataState.Failure ? recovery(_error!) : this;
     }
@@ -378,7 +315,6 @@ public readonly struct RemoteData<T, TError> : IEquatable<RemoteData<T, TError>>
     /// <summary>
     /// Pattern matches on all four states.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the RemoteData was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Match(
         Action notAskedAction,
@@ -390,7 +326,6 @@ public readonly struct RemoteData<T, TError> : IEquatable<RemoteData<T, TError>>
         ThrowHelper.ThrowIfNull(loadingAction);
         ThrowHelper.ThrowIfNull(successAction);
         ThrowHelper.ThrowIfNull(failureAction);
-        ThrowIfDefault();
 
         switch (_state)
         {
@@ -412,7 +347,6 @@ public readonly struct RemoteData<T, TError> : IEquatable<RemoteData<T, TError>>
     /// <summary>
     /// Pattern matches on all four states and returns a result.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the RemoteData was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public U Match<U>(
         Func<U> notAskedFunc,
@@ -424,7 +358,6 @@ public readonly struct RemoteData<T, TError> : IEquatable<RemoteData<T, TError>>
         ThrowHelper.ThrowIfNull(loadingFunc);
         ThrowHelper.ThrowIfNull(successFunc);
         ThrowHelper.ThrowIfNull(failureFunc);
-        ThrowIfDefault();
 
         return _state switch
         {
@@ -440,11 +373,9 @@ public readonly struct RemoteData<T, TError> : IEquatable<RemoteData<T, TError>>
     /// Converts this RemoteData to an Option.
     /// Returns Some if Success, None for all other states.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the RemoteData was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Option<T> ToOption()
     {
-        ThrowIfDefault();
         return _state == RemoteDataState.Success
             ? Option<T>.Some(_data!)
             : Option<T>.None();
@@ -454,11 +385,9 @@ public readonly struct RemoteData<T, TError> : IEquatable<RemoteData<T, TError>>
     /// Converts this RemoteData to a Result.
     /// Returns Ok if Success, Err if Failure, throws for NotAsked/Loading.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the RemoteData was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Result<T, TError> ToResult()
     {
-        ThrowIfDefault();
         if (_state == RemoteDataState.Success)
             return Result<T, TError>.Ok(_data!);
         if (_state == RemoteDataState.Failure)
@@ -474,11 +403,9 @@ public readonly struct RemoteData<T, TError> : IEquatable<RemoteData<T, TError>>
     /// <summary>
     /// Converts this RemoteData to a Result with default errors for NotAsked/Loading states.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the RemoteData was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Result<T, TError> ToResult(TError notAskedError, TError loadingError)
     {
-        ThrowIfDefault();
         return _state switch
         {
             RemoteDataState.Success => Result<T, TError>.Ok(_data!),
@@ -531,12 +458,9 @@ public readonly struct RemoteData<T, TError> : IEquatable<RemoteData<T, TError>>
     /// </summary>
     /// <param name="other">The other RemoteData to compare to.</param>
     /// <returns>A negative value if this is less than other, zero if equal, positive if greater.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if either RemoteData was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int CompareTo(RemoteData<T, TError> other)
     {
-        ThrowIfDefault();
-        other.ThrowIfDefault();
         var stateCompare = _state.CompareTo(other._state);
         if (stateCompare != 0)
             return stateCompare;
@@ -585,7 +509,6 @@ public readonly struct RemoteData<T, TError> : IEquatable<RemoteData<T, TError>>
     /// </summary>
     /// <param name="data">The success data, or default if not Success.</param>
     /// <param name="isSuccess">True if the RemoteData is in Success state.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the RemoteData was not properly initialized.</exception>
     /// <example>
     /// <code>
     /// var (data, isSuccess) = remoteData;
@@ -596,7 +519,6 @@ public readonly struct RemoteData<T, TError> : IEquatable<RemoteData<T, TError>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Deconstruct(out T? data, out bool isSuccess)
     {
-        ThrowIfDefault();
         data = _data;
         isSuccess = _state == RemoteDataState.Success;
     }
@@ -610,7 +532,6 @@ public readonly struct RemoteData<T, TError> : IEquatable<RemoteData<T, TError>>
     /// <param name="isLoading">True if in Loading state.</param>
     /// <param name="isSuccess">True if in Success state.</param>
     /// <param name="isFailure">True if in Failure state.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the RemoteData was not properly initialized.</exception>
     /// <example>
     /// <code>
     /// var (data, error, isNotAsked, isLoading, isSuccess, isFailure) = remoteData;
@@ -625,7 +546,6 @@ public readonly struct RemoteData<T, TError> : IEquatable<RemoteData<T, TError>>
         out bool isSuccess,
         out bool isFailure)
     {
-        ThrowIfDefault();
         data = _data;
         error = _error;
         isNotAsked = _state == RemoteDataState.NotAsked;

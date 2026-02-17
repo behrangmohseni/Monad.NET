@@ -32,65 +32,33 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
 {
     private readonly T? _value;
     private readonly bool _isSome;
-    private readonly bool _isInitialized;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private string DebuggerDisplay => _isInitialized
-        ? (_isSome ? $"Some({_value})" : "None")
-        : "Uninitialized";
+    private string DebuggerDisplay => _isSome ? $"Some({_value})" : "None";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Option(T value, bool isSome)
     {
         _value = value;
         _isSome = isSome;
-        _isInitialized = true;
-    }
-
-    /// <summary>
-    /// Indicates whether the Option was properly initialized via factory methods.
-    /// A default-constructed Option (e.g., default(Option&lt;T&gt;)) is not initialized.
-    /// Always create Options via <see cref="Some(T)"/> or <see cref="None()"/> factory methods.
-    /// </summary>
-    public bool IsInitialized
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => _isInitialized;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void ThrowIfDefault()
-    {
-        if (!_isInitialized)
-            ThrowHelper.ThrowOptionIsDefault();
     }
 
     /// <summary>
     /// Returns true if the option is a Some value.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the Option was not properly initialized.</exception>
     public bool IsSome
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get
-        {
-            ThrowIfDefault();
-            return _isSome;
-        }
+        get => _isSome;
     }
 
     /// <summary>
     /// Returns true if the option is a None value.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the Option was not properly initialized.</exception>
     public bool IsNone
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get
-        {
-            ThrowIfDefault();
-            return !_isSome;
-        }
+        get => !_isSome;
     }
 
     /// <summary>
@@ -134,12 +102,11 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     /// <summary>
     /// Returns the contained Some value.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the value is None or if the Option was not properly initialized.</exception>
+    /// <exception cref="InvalidOperationException">Thrown if the value is None.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     [EditorBrowsable(EditorBrowsableState.Never)]
     public T GetValue()
     {
-        ThrowIfDefault();
         if (!_isSome)
             ThrowHelper.ThrowOptionIsNone();
 
@@ -149,18 +116,16 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     /// <summary>
     /// Returns the contained Some value or a default value.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the Option was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T GetValueOr(T defaultValue)
     {
-        ThrowIfDefault();
         return _isSome ? _value! : defaultValue;
     }
 
     /// <summary>
     /// Returns the contained Some value, or throws an <see cref="InvalidOperationException"/> if None.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the value is None or if the Option was not properly initialized.</exception>
+    /// <exception cref="InvalidOperationException">Thrown if the value is None.</exception>
     /// <example>
     /// <code>
     /// var option = Option&lt;int&gt;.Some(42);
@@ -173,7 +138,6 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T GetOrThrow()
     {
-        ThrowIfDefault();
         if (!_isSome)
             ThrowHelper.ThrowOptionIsNone();
 
@@ -185,7 +149,6 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     /// </summary>
     /// <param name="value">When this method returns, contains the value if Some; otherwise, the default value.</param>
     /// <returns>True if the Option contains a value; otherwise, false.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if the Option was not properly initialized.</exception>
     /// <example>
     /// <code>
     /// if (option.TryGet(out var value))
@@ -197,7 +160,6 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryGet(out T? value)
     {
-        ThrowIfDefault();
         value = _value;
         return _isSome;
     }
@@ -208,7 +170,6 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     /// </summary>
     /// <param name="value">The value to check for.</param>
     /// <returns>True if the Option is Some and contains the specified value; otherwise, false.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if the Option was not properly initialized.</exception>
     /// <example>
     /// <code>
     /// var option = Option&lt;int&gt;.Some(42);
@@ -220,7 +181,6 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Contains(T value)
     {
-        ThrowIfDefault();
         return _isSome && EqualityComparer<T>.Default.Equals(_value, value);
     }
 
@@ -229,7 +189,6 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     /// </summary>
     /// <param name="predicate">The predicate to test the value against.</param>
     /// <returns>True if the Option is Some and the predicate returns true; otherwise, false.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if the Option was not properly initialized.</exception>
     /// <example>
     /// <code>
     /// var option = Option&lt;int&gt;.Some(42);
@@ -242,18 +201,15 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     public bool Exists(Func<T, bool> predicate)
     {
         ThrowHelper.ThrowIfNull(predicate);
-        ThrowIfDefault();
         return _isSome && predicate(_value!);
     }
 
     /// <summary>
     /// Maps an Option&lt;T&gt; to Option&lt;U&gt; by applying a function to a contained value.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the Option was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Option<U> Map<U>(Func<T, U> mapper)
     {
-        ThrowIfDefault();
         return _isSome ? Option<U>.Some(mapper(_value!)) : Option<U>.None();
     }
 
@@ -262,33 +218,27 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     /// - Some(t) if predicate returns true (where t is the wrapped value)
     /// - None if predicate returns false
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the Option was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Option<T> Filter(Func<T, bool> predicate)
     {
-        ThrowIfDefault();
         return _isSome && predicate(_value!) ? this : None();
     }
 
     /// <summary>
     /// Returns the provided default result (if none), or applies a function to the contained value (if any).
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the Option was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public U MapOr<U>(U defaultValue, Func<T, U> mapper)
     {
-        ThrowIfDefault();
         return _isSome ? mapper(_value!) : defaultValue;
     }
 
     /// <summary>
     /// Computes a default function result (if none), or applies a different function to the contained value (if any).
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the Option was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public U MapOrElse<U>(Func<U> defaultFunc, Func<T, U> mapper)
     {
-        ThrowIfDefault();
         return _isSome ? mapper(_value!) : defaultFunc();
     }
 
@@ -296,11 +246,9 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     /// Returns None if the option is None, otherwise calls the function with the wrapped value and returns the result.
     /// This is the monadic bind operation.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the Option was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Option<U> Bind<U>(Func<T, Option<U>> binder)
     {
-        ThrowIfDefault();
         return _isSome ? binder(_value!) : Option<U>.None();
     }
 
@@ -311,7 +259,6 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     /// <typeparam name="U">The type of the other value.</typeparam>
     /// <param name="other">The other Option to combine with.</param>
     /// <returns>An Option containing a tuple of both values, or None.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if this Option was not properly initialized.</exception>
     /// <example>
     /// <code>
     /// var name = Option&lt;string&gt;.Some("Alice");
@@ -322,7 +269,6 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Option<(T, U)> Zip<U>(Option<U> other)
     {
-        ThrowIfDefault();
         return _isSome && other.IsSome
             ? Option<(T, U)>.Some((_value!, other.GetValue()))
             : Option<(T, U)>.None();
@@ -337,7 +283,6 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     /// <param name="other">The other Option to combine with.</param>
     /// <param name="combiner">A function to combine the values.</param>
     /// <returns>An Option containing the combined result, or None.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if this Option was not properly initialized.</exception>
     /// <example>
     /// <code>
     /// var firstName = Option&lt;string&gt;.Some("Alice");
@@ -348,7 +293,6 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Option<V> ZipWith<U, V>(Option<U> other, Func<T, U, V> combiner)
     {
-        ThrowIfDefault();
         return _isSome && other.IsSome
             ? Option<V>.Some(combiner(_value!, other.GetValue()))
             : Option<V>.None();
@@ -357,44 +301,36 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     /// <summary>
     /// Returns None if the option is None, otherwise returns optionB.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if this Option was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Option<U> And<U>(Option<U> optionB)
     {
-        ThrowIfDefault();
         return _isSome ? optionB : Option<U>.None();
     }
 
     /// <summary>
     /// Returns the option if it contains a value, otherwise returns optionB.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if this Option was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Option<T> Or(Option<T> optionB)
     {
-        ThrowIfDefault();
         return _isSome ? this : optionB;
     }
 
     /// <summary>
     /// Returns the option if it contains a value, otherwise calls the function and returns the result.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if this Option was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Option<T> OrElse(Func<Option<T>> optionFunc)
     {
-        ThrowIfDefault();
         return _isSome ? this : optionFunc();
     }
 
     /// <summary>
     /// Returns Some if exactly one of the two options is Some, otherwise returns None.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if this Option was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Option<T> Xor(Option<T> optionB)
     {
-        ThrowIfDefault();
         if (_isSome && !optionB._isSome)
             return this;
         if (!_isSome && optionB._isSome)
@@ -406,11 +342,9 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     /// <summary>
     /// Executes the provided action if the option contains a value.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the Option was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Match(Action<T> someAction, Action noneAction)
     {
-        ThrowIfDefault();
         if (_isSome)
             someAction(_value!);
         else
@@ -420,11 +354,9 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     /// <summary>
     /// Pattern matches on the option and returns a result.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the Option was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public U Match<U>(Func<T, U> someFunc, Func<U> noneFunc)
     {
-        ThrowIfDefault();
         return _isSome ? someFunc(_value!) : noneFunc();
     }
 
@@ -433,7 +365,6 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     /// </summary>
     /// <param name="action">The action to execute with the contained value.</param>
     /// <returns>The original Option unchanged.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if the Option was not properly initialized.</exception>
     /// <example>
     /// <code>
     /// option.Tap(x => Console.WriteLine($"Value: {x}"))
@@ -443,7 +374,6 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Option<T> Tap(Action<T> action)
     {
-        ThrowIfDefault();
         if (_isSome)
             action(_value!);
         return this;
@@ -454,7 +384,6 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     /// </summary>
     /// <param name="action">The action to execute when None.</param>
     /// <returns>The original Option unchanged.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if the Option was not properly initialized.</exception>
     /// <example>
     /// <code>
     /// option.TapNone(() => Console.WriteLine("No value found"))
@@ -464,7 +393,6 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Option<T> TapNone(Action action)
     {
-        ThrowIfDefault();
         if (!_isSome)
             action();
         return this;
@@ -473,22 +401,18 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     /// <summary>
     /// Converts this Option to a Result, mapping Some(v) to Ok(v) and None to Err(err).
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the Option was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Result<T, TError> OkOr<TError>(TError err)
     {
-        ThrowIfDefault();
         return _isSome ? Result<T, TError>.Ok(_value!) : Result<T, TError>.Error(err);
     }
 
     /// <summary>
     /// Converts this Option to a Result, mapping Some(v) to Ok(v) and None to Err computed from the function.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown if the Option was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Result<T, TError> OkOrElse<TError>(Func<TError> errFunc)
     {
-        ThrowIfDefault();
         return _isSome ? Result<T, TError>.Ok(_value!) : Result<T, TError>.Error(errFunc());
     }
 
@@ -497,7 +421,6 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     /// Returns a sequence containing the value if Some, or an empty sequence if None.
     /// </summary>
     /// <returns>An enumerable containing zero or one element.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if the Option was not properly initialized.</exception>
     /// <example>
     /// <code>
     /// var option = Option&lt;int&gt;.Some(42);
@@ -512,7 +435,6 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public IEnumerable<T> AsEnumerable()
     {
-        ThrowIfDefault();
         if (_isSome)
             yield return _value!;
     }
@@ -522,11 +444,9 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     /// Returns an array containing the value if Some, or an empty array if None.
     /// </summary>
     /// <returns>An array containing zero or one element.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if the Option was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T[] ToArray()
     {
-        ThrowIfDefault();
         return _isSome ? new[] { _value! } : Array.Empty<T>();
     }
 
@@ -535,11 +455,9 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     /// Returns a list containing the value if Some, or an empty list if None.
     /// </summary>
     /// <returns>A list containing zero or one element.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if the Option was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public List<T> ToList()
     {
-        ThrowIfDefault();
         return _isSome ? [_value!] : [];
     }
 
@@ -576,12 +494,9 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     /// </summary>
     /// <param name="other">The other Option to compare to.</param>
     /// <returns>A negative value if this is less than other, zero if equal, positive if greater.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if either Option was not properly initialized.</exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int CompareTo(Option<T> other)
     {
-        ThrowIfDefault();
-        other.ThrowIfDefault();
         if (!_isSome && !other._isSome)
             return 0;
         if (!_isSome)
@@ -620,7 +535,6 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     /// </summary>
     /// <param name="value">The contained value, or default if None.</param>
     /// <param name="isSome">True if the Option contains a value.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the Option was not properly initialized.</exception>
     /// <example>
     /// <code>
     /// var (value, isSome) = option;
@@ -631,7 +545,6 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Deconstruct(out T? value, out bool isSome)
     {
-        ThrowIfDefault();
         value = _value;
         isSome = _isSome;
     }

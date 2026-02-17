@@ -23,10 +23,11 @@ public class AnalyzerIntegrationTests
             new NullableToSomeAnalyzer(),
             new BindToMapAnalyzer(),
             new DiscardedMonadAnalyzer(),
-            new ThrowInMatchAnalyzer()
+            new ThrowInMatchAnalyzer(),
+            new DefaultMonadConstructionAnalyzer()
         };
 
-        Assert.Equal(11, analyzers.Length);
+        Assert.Equal(12, analyzers.Length);
         Assert.All(analyzers, a => Assert.NotEmpty(a.SupportedDiagnostics));
     }
 
@@ -45,7 +46,8 @@ public class AnalyzerIntegrationTests
             DiagnosticDescriptors.FilterConstant,
             DiagnosticDescriptors.MapIdentity,
             DiagnosticDescriptors.OptionNullComparison,
-            DiagnosticDescriptors.DoubleNegation
+            DiagnosticDescriptors.DoubleNegation,
+            DiagnosticDescriptors.DefaultMonadConstruction
         };
 
         Assert.All(descriptors, d =>
@@ -132,5 +134,12 @@ public class AnalyzerIntegrationTests
     {
         var analyzer = new DoubleNegationAnalyzer();
         Assert.Contains(analyzer.SupportedDiagnostics, d => d.Id == "MNT012");
+    }
+
+    [Fact]
+    public void DefaultMonadConstructionAnalyzer_SupportsExpectedDiagnostic()
+    {
+        var analyzer = new DefaultMonadConstructionAnalyzer();
+        Assert.Contains(analyzer.SupportedDiagnostics, d => d.Id == "MNT018");
     }
 }

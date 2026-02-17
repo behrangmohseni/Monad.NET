@@ -29,11 +29,10 @@ public readonly struct NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList
 {
     private readonly T _head;
     private readonly ImmutableArray<T> _tail;
-    private readonly bool _isInitialized;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private string DebuggerDisplay => _isInitialized
-        ? $"NonEmptyList[{Count}] {{ {_head}, ... }}"
+    private string DebuggerDisplay => !_tail.IsDefault
+        ? $"NonEmptyList[{1 + _tail.Length}] {{ {_head}, ... }}"
         : "NonEmptyList (uninitialized)";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -41,7 +40,6 @@ public readonly struct NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList
     {
         _head = head;
         _tail = tail.IsDefault ? ImmutableArray<T>.Empty : tail;
-        _isInitialized = true;
     }
 
     /// <summary>
@@ -51,7 +49,7 @@ public readonly struct NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList
     public bool IsInitialized
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => _isInitialized;
+        get => !_tail.IsDefault;
     }
 
     /// <summary>
@@ -63,7 +61,7 @@ public readonly struct NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            if (!_isInitialized)
+            if (_tail.IsDefault)
                 ThrowHelper.ThrowNonEmptyListNotInitialized();
             return _head;
         }
@@ -79,7 +77,7 @@ public readonly struct NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            if (!_isInitialized)
+            if (_tail.IsDefault)
                 ThrowHelper.ThrowNonEmptyListNotInitialized();
             return _tail;
         }
@@ -94,7 +92,7 @@ public readonly struct NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            if (!_isInitialized)
+            if (_tail.IsDefault)
                 ThrowHelper.ThrowNonEmptyListNotInitialized();
             return 1 + _tail.Length;
         }
@@ -110,7 +108,7 @@ public readonly struct NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            if (!_isInitialized)
+            if (_tail.IsDefault)
                 ThrowHelper.ThrowNonEmptyListNotInitialized();
 
             if (index < 0 || index >= Count)
@@ -238,7 +236,7 @@ public readonly struct NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T Last()
     {
-        if (!_isInitialized)
+        if (_tail.IsDefault)
             ThrowHelper.ThrowNonEmptyListNotInitialized();
 
         return _tail.Length > 0 ? _tail[_tail.Length - 1] : _head;
@@ -251,7 +249,7 @@ public readonly struct NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public NonEmptyList<U> Map<U>(Func<T, U> mapper)
     {
-        if (!_isInitialized)
+        if (_tail.IsDefault)
             ThrowHelper.ThrowNonEmptyListNotInitialized();
         ThrowHelper.ThrowIfNull(mapper);
 
@@ -267,7 +265,7 @@ public readonly struct NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public NonEmptyList<U> MapIndexed<U>(Func<T, int, U> mapper)
     {
-        if (!_isInitialized)
+        if (_tail.IsDefault)
             ThrowHelper.ThrowNonEmptyListNotInitialized();
         ThrowHelper.ThrowIfNull(mapper);
 
@@ -291,7 +289,7 @@ public readonly struct NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public NonEmptyList<T> Tap(Action<T> action)
     {
-        if (!_isInitialized)
+        if (_tail.IsDefault)
             ThrowHelper.ThrowNonEmptyListNotInitialized();
         ThrowHelper.ThrowIfNull(action);
 
@@ -316,7 +314,7 @@ public readonly struct NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public NonEmptyList<T> TapIndexed(Action<T, int> action)
     {
-        if (!_isInitialized)
+        if (_tail.IsDefault)
             ThrowHelper.ThrowNonEmptyListNotInitialized();
         ThrowHelper.ThrowIfNull(action);
 
@@ -334,7 +332,7 @@ public readonly struct NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList
     /// <exception cref="InvalidOperationException">Thrown if the list is not initialized.</exception>
     public NonEmptyList<U> Bind<U>(Func<T, NonEmptyList<U>> binder)
     {
-        if (!_isInitialized)
+        if (_tail.IsDefault)
             ThrowHelper.ThrowNonEmptyListNotInitialized();
         ThrowHelper.ThrowIfNull(binder);
 
@@ -359,7 +357,7 @@ public readonly struct NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList
     /// <exception cref="InvalidOperationException">Thrown if the list is not initialized.</exception>
     public Option<NonEmptyList<T>> Filter(Func<T, bool> predicate)
     {
-        if (!_isInitialized)
+        if (_tail.IsDefault)
             ThrowHelper.ThrowNonEmptyListNotInitialized();
         ThrowHelper.ThrowIfNull(predicate);
 
@@ -378,7 +376,7 @@ public readonly struct NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public NonEmptyList<T> Append(T item)
     {
-        if (!_isInitialized)
+        if (_tail.IsDefault)
             ThrowHelper.ThrowNonEmptyListNotInitialized();
         ThrowHelper.ThrowIfNull(item);
 
@@ -392,7 +390,7 @@ public readonly struct NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public NonEmptyList<T> Prepend(T item)
     {
-        if (!_isInitialized)
+        if (_tail.IsDefault)
             ThrowHelper.ThrowNonEmptyListNotInitialized();
         ThrowHelper.ThrowIfNull(item);
 
@@ -406,9 +404,9 @@ public readonly struct NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public NonEmptyList<T> Concat(NonEmptyList<T> other)
     {
-        if (!_isInitialized)
+        if (_tail.IsDefault)
             ThrowHelper.ThrowNonEmptyListNotInitialized();
-        if (!other._isInitialized)
+        if (other._tail.IsDefault)
             ThrowHelper.ThrowNonEmptyListNotInitialized();
 
         var newTail = _tail.Add(other._head).AddRange(other._tail);
@@ -423,7 +421,7 @@ public readonly struct NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T Reduce(Func<T, T, T> reducer)
     {
-        if (!_isInitialized)
+        if (_tail.IsDefault)
             ThrowHelper.ThrowNonEmptyListNotInitialized();
         ThrowHelper.ThrowIfNull(reducer);
 
@@ -441,7 +439,7 @@ public readonly struct NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public U Fold<U>(U initial, Func<U, T, U> folder)
     {
-        if (!_isInitialized)
+        if (_tail.IsDefault)
             ThrowHelper.ThrowNonEmptyListNotInitialized();
         ThrowHelper.ThrowIfNull(folder);
 
@@ -458,7 +456,7 @@ public readonly struct NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList
     /// <exception cref="InvalidOperationException">Thrown if the list is not initialized.</exception>
     public NonEmptyList<T> Reverse()
     {
-        if (!_isInitialized)
+        if (_tail.IsDefault)
             ThrowHelper.ThrowNonEmptyListNotInitialized();
 
         var all = _tail.Insert(0, _head);
@@ -473,7 +471,7 @@ public readonly struct NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList
     /// <exception cref="NotSupportedException">Thrown if T doesn't implement IComparable&lt;T&gt;.</exception>
     public NonEmptyList<T> Sort()
     {
-        if (!_isInitialized)
+        if (_tail.IsDefault)
             ThrowHelper.ThrowNonEmptyListNotInitialized();
 
         if (!typeof(IComparable<T>).IsAssignableFrom(typeof(T)))
@@ -489,7 +487,7 @@ public readonly struct NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList
     /// <exception cref="InvalidOperationException">Thrown if the list is not initialized.</exception>
     public NonEmptyList<T> SortBy<TKey>(Func<T, TKey> keySelector)
     {
-        if (!_isInitialized)
+        if (_tail.IsDefault)
             ThrowHelper.ThrowNonEmptyListNotInitialized();
         ThrowHelper.ThrowIfNull(keySelector);
 
@@ -504,7 +502,7 @@ public readonly struct NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList
     /// <exception cref="InvalidOperationException">Thrown if the list is not initialized.</exception>
     public Option<NonEmptyList<T>> TakeFirst(int count)
     {
-        if (!_isInitialized)
+        if (_tail.IsDefault)
             ThrowHelper.ThrowNonEmptyListNotInitialized();
 
         if (count <= 0)
@@ -525,7 +523,7 @@ public readonly struct NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public List<T> ToList()
     {
-        if (!_isInitialized)
+        if (_tail.IsDefault)
             ThrowHelper.ThrowNonEmptyListNotInitialized();
 
         var list = new List<T>(Count) { _head };
@@ -540,7 +538,7 @@ public readonly struct NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T[] ToArray()
     {
-        if (!_isInitialized)
+        if (_tail.IsDefault)
             ThrowHelper.ThrowNonEmptyListNotInitialized();
 
         var array = new T[Count];
@@ -553,7 +551,7 @@ public readonly struct NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList
     /// <inheritdoc />
     public IEnumerator<T> GetEnumerator()
     {
-        if (!_isInitialized)
+        if (_tail.IsDefault)
             ThrowHelper.ThrowNonEmptyListNotInitialized();
 
         yield return _head;
@@ -568,11 +566,11 @@ public readonly struct NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList
     public bool Equals(NonEmptyList<T> other)
     {
         // Both uninitialized are equal
-        if (!_isInitialized && !other._isInitialized)
+        if (_tail.IsDefault && other._tail.IsDefault)
             return true;
 
         // One initialized, one not - not equal
-        if (_isInitialized != other._isInitialized)
+        if (_tail.IsDefault != other._tail.IsDefault)
             return false;
 
         // Both initialized - compare contents
@@ -592,7 +590,7 @@ public readonly struct NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList
     /// <inheritdoc />
     public override int GetHashCode()
     {
-        if (!_isInitialized)
+        if (_tail.IsDefault)
             return 0;
 
         var hash = new HashCode();
@@ -604,7 +602,7 @@ public readonly struct NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList
     /// <inheritdoc />
     public override string ToString()
     {
-        if (!_isInitialized)
+        if (_tail.IsDefault)
             return "NonEmptyList (uninitialized)";
 
         return $"NonEmptyList[{string.Join(", ", this)}]";
@@ -645,7 +643,7 @@ public readonly struct NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Deconstruct(out T head, out IReadOnlyList<T> tail)
     {
-        if (!_isInitialized)
+        if (_tail.IsDefault)
             ThrowHelper.ThrowNonEmptyListNotInitialized();
 
         head = _head;

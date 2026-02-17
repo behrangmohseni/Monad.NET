@@ -516,83 +516,69 @@ public class ResultTests
 
     #region Default Struct Tests
 
+    /// <summary>
+    /// default(Result) behaves as Error state (_isOk defaults to false).
+    /// </summary>
     [Fact]
-    public void DefaultStruct_IsNotInitialized()
+    public void DefaultStruct_BehavesAsError()
     {
         var result = default(Result<int, string>);
 
-        Assert.False(result.IsInitialized);
+        Assert.False(result.IsOk);
+        Assert.True(result.IsError);
     }
 
     [Fact]
-    public void DefaultStruct_ToString_ReturnsUninitializedMessage()
+    public void DefaultStruct_ToString_ReturnsErrFormat()
     {
         var result = default(Result<int, string>);
 
-        Assert.Equal("Uninitialized (default struct)", result.ToString());
+        Assert.Equal("Err()", result.ToString());
     }
 
     [Fact]
-    public void DefaultStruct_IsOk_ThrowsInvalidOperationException()
-    {
-        var result = default(Result<int, string>);
-
-        var ex = Assert.Throws<InvalidOperationException>(() => _ = result.IsOk);
-        Assert.Contains("not properly initialized", ex.Message);
-    }
-
-    [Fact]
-    public void DefaultStruct_IsError_ThrowsInvalidOperationException()
-    {
-        var result = default(Result<int, string>);
-
-        var ex = Assert.Throws<InvalidOperationException>(() => _ = result.IsError);
-        Assert.Contains("not properly initialized", ex.Message);
-    }
-
-    [Fact]
-    public void DefaultStruct_GetValue_ThrowsInvalidOperationException()
+    public void DefaultStruct_GetValue_ThrowsBecauseErr()
     {
         var result = default(Result<int, string>);
 
         var ex = Assert.Throws<InvalidOperationException>(() => result.GetValue());
-        Assert.Contains("not properly initialized", ex.Message);
+        Assert.Contains("Err", ex.Message);
     }
 
     [Fact]
-    public void DefaultStruct_GetError_ThrowsInvalidOperationException()
+    public void DefaultStruct_GetError_ThrowsBecauseDefaultConstructed()
     {
         var result = default(Result<int, string>);
 
         var ex = Assert.Throws<InvalidOperationException>(() => result.GetError());
-        Assert.Contains("not properly initialized", ex.Message);
+        Assert.Contains("default-constructed", ex.Message);
     }
 
     [Fact]
-    public void DefaultStruct_Map_ThrowsInvalidOperationException()
+    public void DefaultStruct_Map_ReturnsErr()
     {
         var result = default(Result<int, string>);
+        var mapped = result.Map(x => x * 2);
 
-        var ex = Assert.Throws<InvalidOperationException>(() => result.Map(x => x * 2));
-        Assert.Contains("not properly initialized", ex.Message);
+        Assert.True(mapped.IsError);
     }
 
     [Fact]
-    public void DefaultStruct_Match_ThrowsInvalidOperationException()
+    public void DefaultStruct_Match_ExecutesErrBranch()
     {
         var result = default(Result<int, string>);
+        var value = result.Match(ok => 1, err => 2);
 
-        var ex = Assert.Throws<InvalidOperationException>(() => result.Match(ok => ok, err => 0));
-        Assert.Contains("not properly initialized", ex.Message);
+        Assert.Equal(2, value);
     }
 
     [Fact]
-    public void DefaultStruct_Bind_ThrowsInvalidOperationException()
+    public void DefaultStruct_Bind_ReturnsErr()
     {
         var result = default(Result<int, string>);
+        var bound = result.Bind(x => Result<int, string>.Ok(x * 2));
 
-        var ex = Assert.Throws<InvalidOperationException>(() => result.Bind(x => Result<int, string>.Ok(x * 2)));
-        Assert.Contains("not properly initialized", ex.Message);
+        Assert.True(bound.IsError);
     }
 
     [Fact]
@@ -606,13 +592,13 @@ public class ResultTests
     }
 
     [Fact]
-    public void DefaultStruct_Equals_DefaultAndInitialized_ReturnsFalse()
+    public void DefaultStruct_Equals_DefaultAndErrorWithValue_ReturnsFalse()
     {
         var defaultResult = default(Result<int, string>);
-        var initializedResult = Result<int, string>.Error("error");
+        var errorResult = Result<int, string>.Error("error");
 
-        Assert.False(defaultResult.Equals(initializedResult));
-        Assert.False(defaultResult == initializedResult);
+        Assert.False(defaultResult.Equals(errorResult));
+        Assert.False(defaultResult == errorResult);
     }
 
     [Fact]
@@ -624,23 +610,13 @@ public class ResultTests
     }
 
     [Fact]
-    public void DefaultStruct_CompareTo_ThrowsInvalidOperationException()
+    public void DefaultStruct_CompareTo_Works()
     {
-        var result1 = default(Result<int, string>);
-        var result2 = Result<int, string>.Ok(42);
-
-        var ex = Assert.Throws<InvalidOperationException>(() => result1.CompareTo(result2));
-        Assert.Contains("not properly initialized", ex.Message);
-    }
-
-    [Fact]
-    public void InitializedResult_IsInitialized_ReturnsTrue()
-    {
+        var defaultResult = default(Result<int, string>);
         var okResult = Result<int, string>.Ok(42);
-        var errResult = Result<int, string>.Error("error");
 
-        Assert.True(okResult.IsInitialized);
-        Assert.True(errResult.IsInitialized);
+        // Err < Ok, so default (Err) is less than Ok
+        Assert.True(defaultResult.CompareTo(okResult) < 0);
     }
 
     #endregion
