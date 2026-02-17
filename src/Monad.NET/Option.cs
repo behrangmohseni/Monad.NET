@@ -417,6 +417,38 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     }
 
     /// <summary>
+    /// Converts this Option to a Result.
+    /// Maps Some(v) to Ok(v) and None to Error with the specified error.
+    /// </summary>
+    /// <param name="error">The error to use if the Option is None.</param>
+    /// <returns>Ok(value) if Some; Error(error) if None.</returns>
+    /// <remarks>
+    /// This is equivalent to <see cref="OkOr{TError}(TError)"/> and provides
+    /// a consistent naming convention with other monad type conversions (ToOption, ToResult, etc.).
+    /// </remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Result<T, TError> ToResult<TError>(TError error)
+    {
+        return OkOr(error);
+    }
+
+    /// <summary>
+    /// Converts this Option to a Result.
+    /// Maps Some(v) to Ok(v) and None to Error computed from the factory function.
+    /// </summary>
+    /// <param name="errorFactory">The function to compute the error if the Option is None.</param>
+    /// <returns>Ok(value) if Some; Error(errorFactory()) if None.</returns>
+    /// <remarks>
+    /// This is equivalent to <see cref="OkOrElse{TError}(Func{TError})"/> and provides
+    /// a consistent naming convention with other monad type conversions (ToOption, ToResult, etc.).
+    /// </remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Result<T, TError> ToResult<TError>(Func<TError> errorFactory)
+    {
+        return OkOrElse(errorFactory);
+    }
+
+    /// <summary>
     /// Converts the Option to an enumerable sequence.
     /// Returns a sequence containing the value if Some, or an empty sequence if None.
     /// </summary>

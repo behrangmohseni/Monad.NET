@@ -341,6 +341,17 @@ public readonly struct Validation<T, TError> : IEquatable<Validation<T, TError>>
     }
 
     /// <summary>
+    /// Maps each individual error using the specified mapper function.
+    /// This is equivalent to <see cref="MapErrors{F}(Func{TError, F})"/> and provides
+    /// a consistent naming convention with Result&lt;T, TError&gt;.MapError().
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Validation<T, F> MapError<F>(Func<TError, F> mapper)
+    {
+        return MapErrors(mapper);
+    }
+
+    /// <summary>
     /// Maps both the valid value and errors.
     /// </summary>
     /// <typeparam name="U">The new valid value type.</typeparam>
@@ -548,6 +559,32 @@ public readonly struct Validation<T, TError> : IEquatable<Validation<T, TError>>
             return this;
 
         return predicate(_value!) ? this : Validation<T, TError>.Error(errorFactory());
+    }
+
+    /// <summary>
+    /// Validates the value against a predicate, returning Invalid with the specified error if the predicate fails.
+    /// This is equivalent to <see cref="Ensure(Func{T, bool}, TError)"/> and provides
+    /// a consistent naming convention with Result&lt;T, TError&gt;.FilterOrElse().
+    /// </summary>
+    /// <param name="predicate">The predicate to test the value against.</param>
+    /// <param name="error">The error to return if the predicate fails.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Validation<T, TError> FilterOrElse(Func<T, bool> predicate, TError error)
+    {
+        return Ensure(predicate, error);
+    }
+
+    /// <summary>
+    /// Validates the value against a predicate, returning Invalid with a lazy error if the predicate fails.
+    /// This is equivalent to <see cref="Ensure(Func{T, bool}, Func{TError})"/> and provides
+    /// a consistent naming convention with Result&lt;T, TError&gt;.FilterOrElse().
+    /// </summary>
+    /// <param name="predicate">The predicate to test the value against.</param>
+    /// <param name="errorFactory">The factory function to create the error if the predicate fails.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Validation<T, TError> FilterOrElse(Func<T, bool> predicate, Func<TError> errorFactory)
+    {
+        return Ensure(predicate, errorFactory);
     }
 
     /// <summary>
@@ -818,6 +855,19 @@ public static class ValidationExtensions
             action(validation.GetErrors());
 
         return validation;
+    }
+
+    /// <summary>
+    /// Executes an action if the validation is invalid, allowing method chaining.
+    /// This is equivalent to <see cref="TapErrors{T, TError}(Validation{T, TError}, Action{ImmutableArray{TError}})"/>
+    /// and provides a consistent naming convention with Result&lt;T, TError&gt;.TapError().
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Validation<T, TError> TapError<T, TError>(
+        this Validation<T, TError> validation,
+        Action<ImmutableArray<TError>> action)
+    {
+        return TapErrors(validation, action);
     }
 
     /// <summary>

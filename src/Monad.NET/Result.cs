@@ -539,6 +539,46 @@ public readonly struct Result<T, TError> : IEquatable<Result<T, TError>>, ICompa
     }
 
     /// <summary>
+    /// Validates the Ok value against a predicate, returning Err with the specified error if the predicate fails.
+    /// This is equivalent to <see cref="FilterOrElse(Func{T, bool}, TError)"/> and provides
+    /// a consistent naming convention with Validation&lt;T, TError&gt;.Ensure().
+    /// </summary>
+    /// <param name="predicate">The predicate to test the Ok value against.</param>
+    /// <param name="error">The error to return if Ok and the predicate returns false.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Result<T, TError> Ensure(Func<T, bool> predicate, TError error)
+    {
+        return FilterOrElse(predicate, error);
+    }
+
+    /// <summary>
+    /// Validates the Ok value against a predicate, returning Err with an error from the factory if the predicate fails.
+    /// This is equivalent to <see cref="FilterOrElse(Func{T, bool}, Func{TError})"/> and provides
+    /// a consistent naming convention with Validation&lt;T, TError&gt;.Ensure().
+    /// </summary>
+    /// <param name="predicate">The predicate to test the Ok value against.</param>
+    /// <param name="errorFactory">A function that creates the error if the predicate fails.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Result<T, TError> Ensure(Func<T, bool> predicate, Func<TError> errorFactory)
+    {
+        return FilterOrElse(predicate, errorFactory);
+    }
+
+    /// <summary>
+    /// Validates the Ok value against a predicate, returning Err with an error from the factory if the predicate fails.
+    /// The error factory receives the original value.
+    /// This is equivalent to <see cref="FilterOrElse(Func{T, bool}, Func{T, TError})"/> and provides
+    /// a consistent naming convention with Validation&lt;T, TError&gt;.Ensure().
+    /// </summary>
+    /// <param name="predicate">The predicate to test the Ok value against.</param>
+    /// <param name="errorFactory">A function that creates the error from the value if the predicate fails.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Result<T, TError> Ensure(Func<T, bool> predicate, Func<T, TError> errorFactory)
+    {
+        return FilterOrElse(predicate, errorFactory);
+    }
+
+    /// <summary>
     /// Calls the function if the result is Ok, otherwise returns the Err value.
     /// This is the monadic bind operation for control flow based on Result values.
     /// </summary>
@@ -647,6 +687,18 @@ public readonly struct Result<T, TError> : IEquatable<Result<T, TError>>, ICompa
     public Option<TError> Err()
     {
         return _isOk ? Option<TError>.None() : (_error is null ? Option<TError>.None() : Option<TError>.Some(_error));
+    }
+
+    /// <summary>
+    /// Converts the error to an Option.
+    /// Returns Some(error) if Error, None if Ok.
+    /// This is equivalent to <see cref="Err()"/> and provides
+    /// a consistent naming convention with other conversion methods.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Option<TError> ToErrorOption()
+    {
+        return Err();
     }
 
     /// <summary>
