@@ -219,4 +219,18 @@ internal static class DiagnosticDescriptors
         isEnabledByDefault: true,
         description: "If one branch of a Match call is empty (does nothing), consider using Tap() or TapErr()/TapNone() which are designed for handling only one case.",
         helpLinkUri: "https://github.com/behrangmohseni/Monad.NET/blob/main/docs/Guides/Analyzers.md#mnt017");
+
+    /// <summary>
+    /// MNT018: Avoid using default construction for monad types.
+    /// </summary>
+    public static readonly DiagnosticDescriptor DefaultMonadConstruction = new(
+        id: "MNT018",
+        title: "Avoid default construction of monad types",
+        messageFormat: "Avoid using 'default' for {0}; use {1} instead",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        description: "Default-constructed monad types (e.g., default(Option<T>)) bypass factory methods and may produce unexpected states. " +
+                     "Use the appropriate factory method: Option.None(), Result.Error(), Try.Error(), Validation.Error(), or RemoteData.NotAsked().",
+        helpLinkUri: "https://github.com/behrangmohseni/Monad.NET/blob/main/docs/Guides/Analyzers.md#mnt018");
 }

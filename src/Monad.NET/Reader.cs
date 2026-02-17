@@ -16,10 +16,9 @@ namespace Monad.NET;
 public readonly struct Reader<R, A> : IEquatable<Reader<R, A>>
 {
     private readonly Func<R, A>? _run;
-    private readonly bool _isInitialized;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private string DebuggerDisplay => _isInitialized
+    private string DebuggerDisplay => _run is not null
         ? "Reader<" + typeof(R).Name + ", " + typeof(A).Name + ">"
         : "Uninitialized";
 
@@ -30,13 +29,13 @@ public readonly struct Reader<R, A> : IEquatable<Reader<R, A>>
     public bool IsInitialized
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => _isInitialized;
+        get => _run is not null;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void ThrowIfDefault()
     {
-        if (!_isInitialized)
+        if (_run is null)
             ThrowHelper.ThrowReaderIsDefault();
     }
 
@@ -45,7 +44,6 @@ public readonly struct Reader<R, A> : IEquatable<Reader<R, A>>
     {
         ThrowHelper.ThrowIfNull(run);
         _run = run;
-        _isInitialized = true;
     }
 
     /// <summary>
@@ -224,10 +222,10 @@ public readonly struct Reader<R, A> : IEquatable<Reader<R, A>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Equals(Reader<R, A> other)
     {
-        if (!_isInitialized && !other._isInitialized)
+        if (_run is null && other._run is null)
             return true;
 
-        if (!_isInitialized || !other._isInitialized)
+        if (_run is null || other._run is null)
             return false;
 
         return ReferenceEquals(_run, other._run);
@@ -242,7 +240,7 @@ public readonly struct Reader<R, A> : IEquatable<Reader<R, A>>
     /// <inheritdoc />
     public override int GetHashCode()
     {
-        return _isInitialized ? (_run?.GetHashCode() ?? 0) : 0;
+        return _run is not null ? (_run.GetHashCode()) : 0;
     }
 
     /// <summary>
@@ -266,7 +264,7 @@ public readonly struct Reader<R, A> : IEquatable<Reader<R, A>>
     /// <inheritdoc />
     public override string ToString()
     {
-        return _isInitialized
+        return _run is not null
             ? $"Reader<{typeof(R).Name}, {typeof(A).Name}>"
             : "Reader (Uninitialized)";
     }
@@ -280,7 +278,7 @@ public readonly struct Reader<R, A> : IEquatable<Reader<R, A>>
             _reader = reader;
         }
 
-        public bool IsInitialized => _reader._isInitialized;
+        public bool IsInitialized => _reader.IsInitialized;
         public string EnvironmentType => typeof(R).Name;
         public string ResultType => typeof(A).Name;
     }
