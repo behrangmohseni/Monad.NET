@@ -261,6 +261,31 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
     }
 
     /// <summary>
+    /// Returns the error (exception) if failed.
+    /// This is equivalent to <see cref="GetException()"/> and provides
+    /// a consistent naming convention across monad types.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if successful.</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public Exception GetError()
+    {
+        return GetException();
+    }
+
+    /// <summary>
+    /// Returns the error (exception) if failed, or throws an <see cref="InvalidOperationException"/> if successful.
+    /// This is equivalent to <see cref="GetExceptionOrThrow()"/> and provides
+    /// a consistent naming convention across monad types.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if successful.</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Exception GetErrorOrThrow()
+    {
+        return GetExceptionOrThrow();
+    }
+
+    /// <summary>
     /// Returns the value if successful, otherwise returns the default value.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -307,6 +332,19 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
     {
         exception = _exception;
         return !_isSuccess;
+    }
+
+    /// <summary>
+    /// Tries to get the error (exception) using the TryGet pattern.
+    /// This is equivalent to <see cref="TryGetException(out Exception?)"/> and provides
+    /// a consistent naming convention across monad types.
+    /// </summary>
+    /// <param name="error">When this method returns, contains the exception if failed; otherwise, null.</param>
+    /// <returns>True if the Try is a failure; otherwise, false.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool TryGetError(out Exception? error)
+    {
+        return TryGetException(out error);
     }
 
     /// <summary>
