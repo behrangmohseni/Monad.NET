@@ -652,8 +652,12 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
         if (_isSuccess)
             return EqualityComparer<T>.Default.Equals(_value, other._value);
 
-        // Compare exception types and messages
-        return _exception!.GetType() == other._exception!.GetType()
+        if (_exception is null && other._exception is null)
+            return true;
+        if (_exception is null || other._exception is null)
+            return false;
+
+        return _exception.GetType() == other._exception.GetType()
                && _exception.Message == other._exception.Message;
     }
 
@@ -668,9 +672,11 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override int GetHashCode()
     {
-        return _isSuccess
-            ? HashCode.Combine(_isSuccess, _value)
-            : HashCode.Combine(_isSuccess, _exception!.GetType(), _exception.Message);
+        if (_isSuccess)
+            return HashCode.Combine(_isSuccess, _value);
+        if (_exception is null)
+            return HashCode.Combine(_isSuccess);
+        return HashCode.Combine(_isSuccess, _exception.GetType(), _exception.Message);
     }
 
     /// <summary>
@@ -693,9 +699,11 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
     /// <inheritdoc />
     public override string ToString()
     {
-        return _isSuccess
-            ? $"Success({_value})"
-            : $"Failure({_exception!.GetType().Name}: {_exception.Message})";
+        if (_isSuccess)
+            return $"Success({_value})";
+        if (_exception is null)
+            return "Failure(default)";
+        return $"Failure({_exception.GetType().Name}: {_exception.Message})";
     }
 
     /// <summary>
