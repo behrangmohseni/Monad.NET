@@ -22,7 +22,7 @@ public static partial class TryExtensions
             {
                 action(@try.GetValue());
             }
-            catch (Exception ex)
+            catch (Exception ex) when (!ThrowHelper.IsFatal(ex))
             {
                 return Try<T>.Error(ex);
             }

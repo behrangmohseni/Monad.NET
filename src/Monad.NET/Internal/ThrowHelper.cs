@@ -67,6 +67,17 @@ internal static class ThrowHelper
         throw new ArgumentException(message, paramName);
     }
 
+    /// <summary>
+    /// Returns true for exceptions that must never be swallowed:
+    /// cancellation signals and fatal CLR conditions.
+    /// Use in exception filters: <c>catch (Exception ex) when (!ThrowHelper.IsFatal(ex))</c>
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static bool IsFatal(Exception ex) => ex is
+        OperationCanceledException or
+        OutOfMemoryException or
+        ThreadAbortException;
+
     // Monad-specific throw helpers
 
     /// <summary>

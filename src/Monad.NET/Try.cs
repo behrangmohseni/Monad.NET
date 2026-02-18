@@ -133,7 +133,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
         {
             return Ok(func());
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ThrowHelper.IsFatal(ex))
         {
             return Error(ex);
         }
@@ -152,11 +152,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
             cancellationToken.ThrowIfCancellationRequested();
             return Ok(await func().ConfigureAwait(false));
         }
-        catch (OperationCanceledException)
-        {
-            throw; // Re-throw cancellation
-        }
-        catch (Exception ex)
+        catch (Exception ex) when (!ThrowHelper.IsFatal(ex))
         {
             return Error(ex);
         }
@@ -172,11 +168,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
             cancellationToken.ThrowIfCancellationRequested();
             return Ok(await func(cancellationToken).ConfigureAwait(false));
         }
-        catch (OperationCanceledException)
-        {
-            throw; // Re-throw cancellation
-        }
-        catch (Exception ex)
+        catch (Exception ex) when (!ThrowHelper.IsFatal(ex))
         {
             return Error(ex);
         }
@@ -400,7 +392,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
         {
             return Try<U>.Ok(mapper(_value!));
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ThrowHelper.IsFatal(ex))
         {
             return Try<U>.Error(ex);
         }
@@ -420,7 +412,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
         {
             return binder(_value!);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ThrowHelper.IsFatal(ex))
         {
             return Try<U>.Error(ex);
         }
@@ -479,7 +471,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
         {
             return Try<V>.Ok(combiner(_value!, other.GetValue()));
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ThrowHelper.IsFatal(ex))
         {
             return Try<V>.Error(ex);
         }
@@ -500,7 +492,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
                 ? this
                 : Error(new InvalidOperationException("Predicate not satisfied"));
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ThrowHelper.IsFatal(ex))
         {
             return Error(ex);
         }
@@ -521,7 +513,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
                 ? this
                 : Error(new InvalidOperationException(errorMessage));
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ThrowHelper.IsFatal(ex))
         {
             return Error(ex);
         }
@@ -542,7 +534,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
                 ? this
                 : Error(exceptionFactory());
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ThrowHelper.IsFatal(ex))
         {
             return Error(ex);
         }
@@ -561,7 +553,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
         {
             return Ok(recovery(_exception!));
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ThrowHelper.IsFatal(ex))
         {
             return Error(ex);
         }
@@ -581,7 +573,7 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
         {
             return recovery(_exception!);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!ThrowHelper.IsFatal(ex))
         {
             return Error(ex);
         }
