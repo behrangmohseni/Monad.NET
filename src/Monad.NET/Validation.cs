@@ -74,9 +74,10 @@ public readonly struct Validation<T, TError> : IEquatable<Validation<T, TError>>
     }
 
     /// <summary>
-    /// Gets the contained value for pattern matching. Returns the value if Valid, default otherwise.
-    /// Use with pattern matching in switch expressions.
+    /// Gets the contained value. Throws <see cref="InvalidOperationException"/> if the Validation is Invalid.
+    /// Safe to use with pattern matching in switch expressions.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the Validation is Invalid.</exception>
     /// <example>
     /// <code>
     /// var message = validation switch
@@ -90,17 +91,28 @@ public readonly struct Validation<T, TError> : IEquatable<Validation<T, TError>>
     public T? Value
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => _value;
+        get
+        {
+            if (!_isValid)
+                ThrowHelper.ThrowValidationIsInvalid(_errors.IsDefault ? ImmutableArray<TError>.Empty : _errors);
+            return _value;
+        }
     }
 
     /// <summary>
-    /// Gets the contained errors for pattern matching. Returns the errors if Invalid, empty array otherwise.
-    /// Use with pattern matching in switch expressions.
+    /// Gets the contained errors. Throws <see cref="InvalidOperationException"/> if the Validation is Valid.
+    /// Safe to use with pattern matching in switch expressions.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the Validation is Valid.</exception>
     public ImmutableArray<TError> Errors
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => _errors.IsDefault ? ImmutableArray<TError>.Empty : _errors;
+        get
+        {
+            if (_isValid)
+                ThrowHelper.ThrowValidationIsValid(_value!);
+            return _errors.IsDefault ? ImmutableArray<TError>.Empty : _errors;
+        }
     }
 
     /// <summary>

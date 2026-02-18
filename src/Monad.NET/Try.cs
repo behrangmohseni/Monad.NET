@@ -69,9 +69,10 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
     }
 
     /// <summary>
-    /// Gets the contained value for pattern matching. Returns the value if Success, default otherwise.
-    /// Use with pattern matching in switch expressions.
+    /// Gets the contained value. Throws <see cref="InvalidOperationException"/> if the Try is Failure.
+    /// Safe to use with pattern matching in switch expressions.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the Try is Failure.</exception>
     /// <example>
     /// <code>
     /// var message = tryResult switch
@@ -85,17 +86,28 @@ public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>
     public T? Value
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => _value;
+        get
+        {
+            if (!_isSuccess)
+                ThrowHelper.ThrowTryIsFailure(_exception!);
+            return _value;
+        }
     }
 
     /// <summary>
-    /// Gets the contained exception for pattern matching. Returns the exception if Failure, null otherwise.
-    /// Use with pattern matching in switch expressions.
+    /// Gets the contained exception. Throws <see cref="InvalidOperationException"/> if the Try is Success.
+    /// Safe to use with pattern matching in switch expressions.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the Try is Success.</exception>
     public Exception? Exception
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => _exception;
+        get
+        {
+            if (_isSuccess)
+                ThrowHelper.ThrowTryIsSuccess(_value!);
+            return _exception;
+        }
     }
 
     /// <summary>
