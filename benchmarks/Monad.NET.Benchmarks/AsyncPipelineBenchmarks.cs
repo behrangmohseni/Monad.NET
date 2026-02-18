@@ -15,46 +15,52 @@ namespace Monad.NET.Benchmarks;
 public class AsyncPipelineBenchmarks
 {
     private const int DelayMs = 0; // Set to 0 for pure overhead measurement
-    
+
     // Simulated async services
     private static async Task<User?> GetUserNullableAsync(int id)
     {
-        if (DelayMs > 0) await Task.Delay(DelayMs);
+        if (DelayMs > 0)
+            await Task.Delay(DelayMs);
         return id > 0 ? new User(id, $"User{id}", $"user{id}@example.com") : null;
     }
 
     private static async Task<Option<User>> GetUserOptionAsync(int id)
     {
-        if (DelayMs > 0) await Task.Delay(DelayMs);
+        if (DelayMs > 0)
+            await Task.Delay(DelayMs);
         return id > 0 ? Option<User>.Some(new User(id, $"User{id}", $"user{id}@example.com")) : Option<User>.None();
     }
 
     private static async Task<Result<User, string>> GetUserResultAsync(int id)
     {
-        if (DelayMs > 0) await Task.Delay(DelayMs);
-        return id > 0 
+        if (DelayMs > 0)
+            await Task.Delay(DelayMs);
+        return id > 0
             ? Result<User, string>.Ok(new User(id, $"User{id}", $"user{id}@example.com"))
             : Result<User, string>.Error("User not found");
     }
 
     private static async Task<Order?> GetOrderNullableAsync(int userId)
     {
-        if (DelayMs > 0) await Task.Delay(DelayMs);
+        if (DelayMs > 0)
+            await Task.Delay(DelayMs);
         return userId > 0 ? new Order(userId * 10, userId, 99.99m) : null;
     }
 
     private static async Task<Option<Order>> GetOrderOptionAsync(int userId)
     {
-        if (DelayMs > 0) await Task.Delay(DelayMs);
-        return userId > 0 
-            ? Option<Order>.Some(new Order(userId * 10, userId, 99.99m)) 
+        if (DelayMs > 0)
+            await Task.Delay(DelayMs);
+        return userId > 0
+            ? Option<Order>.Some(new Order(userId * 10, userId, 99.99m))
             : Option<Order>.None();
     }
 
     private static async Task<Result<Order, string>> GetOrderResultAsync(int userId)
     {
-        if (DelayMs > 0) await Task.Delay(DelayMs);
-        return userId > 0 
+        if (DelayMs > 0)
+            await Task.Delay(DelayMs);
+        return userId > 0
             ? Result<Order, string>.Ok(new Order(userId * 10, userId, 99.99m))
             : Result<Order, string>.Error("Order not found");
     }
@@ -66,11 +72,13 @@ public class AsyncPipelineBenchmarks
     public async Task<string?> Traditional_SimpleAsyncChain()
     {
         var user = await GetUserNullableAsync(1);
-        if (user == null) return null;
-        
+        if (user == null)
+            return null;
+
         var order = await GetOrderNullableAsync(user.Id);
-        if (order == null) return null;
-        
+        if (order == null)
+            return null;
+
         return $"Order {order.Id} for {user.Name}";
     }
 
@@ -109,25 +117,29 @@ public class AsyncPipelineBenchmarks
     public async Task<OrderSummary?> Traditional_ComplexPipeline()
     {
         var user = await GetUserNullableAsync(1);
-        if (user == null) return null;
-        
-        if (!user.Email.Contains('@')) return null;
-        
+        if (user == null)
+            return null;
+
+        if (!user.Email.Contains('@'))
+            return null;
+
         var order = await GetOrderNullableAsync(user.Id);
-        if (order == null) return null;
-        
-        if (order.Amount <= 0) return null;
-        
+        if (order == null)
+            return null;
+
+        if (order.Amount <= 0)
+            return null;
+
         var summary = new OrderSummary(
             order.Id,
             user.Name,
             user.Email,
             order.Amount,
             CalculateDiscount(order.Amount));
-        
+
         // Simulate logging side effect
         _ = summary.ToString();
-        
+
         return summary;
     }
 
@@ -193,9 +205,9 @@ public class AsyncPipelineBenchmarks
     {
         var userTask = GetUserNullableAsync(1);
         var orderTask = GetOrderNullableAsync(1);
-        
+
         await Task.WhenAll(userTask, orderTask);
-        
+
         return (userTask.Result, orderTask.Result);
     }
 
@@ -205,10 +217,10 @@ public class AsyncPipelineBenchmarks
     {
         var userTask = GetUserOptionAsync(1);
         var orderTask = GetOrderOptionAsync(1);
-        
+
         var user = await userTask;
         var order = await orderTask;
-        
+
         return user.Zip(order);
     }
 
@@ -247,14 +259,15 @@ public class AsyncPipelineBenchmarks
     {
         var tasks = UserIds.Select(id => GetUserOptionAsync(id));
         var results = new List<User>();
-        
+
         foreach (var task in tasks)
         {
             var result = await task;
-            if (result.IsNone) return Option<IReadOnlyList<User>>.None();
+            if (result.IsNone)
+                return Option<IReadOnlyList<User>>.None();
             results.Add(result.GetValue());
         }
-        
+
         return Option<IReadOnlyList<User>>.Some(results);
     }
 
@@ -286,16 +299,16 @@ public class AsyncPipelineBenchmarks
     [BenchmarkCategory("Error Recovery")]
     public async Task<Option<User>> Option_WithFallback()
     {
-        return await GetUserOptionAsync(-1)
-            .OrElseAsync(() => GetUserOptionAsync(1));
+        var result = await GetUserOptionAsync(-1);
+        return result.IsSome ? result : await GetUserOptionAsync(1);
     }
 
     [Benchmark]
     [BenchmarkCategory("Error Recovery")]
     public async Task<Result<User, string>> Result_WithFallback()
     {
-        return await GetUserResultAsync(-1)
-            .OrElseAsync(err => GetUserResultAsync(1));
+        var result = await GetUserResultAsync(-1);
+        return result.IsOk ? result : await GetUserResultAsync(1);
     }
 
     #endregion

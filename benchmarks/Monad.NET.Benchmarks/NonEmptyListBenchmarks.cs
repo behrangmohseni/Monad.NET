@@ -10,9 +10,9 @@ namespace Monad.NET.Benchmarks;
 [Orderer(SummaryOrderPolicy.FastestToSlowest)]
 public class NonEmptyListBenchmarks
 {
-    private NonEmptyList<int> _small = null!;
-    private NonEmptyList<int> _medium = null!;
-    private NonEmptyList<int> _large = null!;
+    private NonEmptyList<int> _small;
+    private NonEmptyList<int> _medium;
+    private NonEmptyList<int> _large;
     private int[] _mediumArray = null!;
     private int[] _largeArray = null!;
 

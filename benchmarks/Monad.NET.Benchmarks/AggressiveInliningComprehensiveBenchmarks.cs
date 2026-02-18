@@ -26,7 +26,7 @@ namespace Monad.NET.Benchmarks;
 public class AggressiveInliningComprehensiveBenchmarks
 {
     private const int Iterations = 10000;
-    
+
     // Test data
     private Option<int> _someOption;
     private Option<int> _noneOption;
@@ -51,7 +51,7 @@ public class AggressiveInliningComprehensiveBenchmarks
     }
 
     #region Category 1: Property Accessors
-    
+
     [Benchmark(Baseline = true)]
     [BenchmarkCategory("1-PropertyAccessor", "Option")]
     public int Option_IsSome_Direct()
@@ -59,12 +59,14 @@ public class AggressiveInliningComprehensiveBenchmarks
         int count = 0;
         for (int i = 0; i < Iterations; i++)
         {
-            if (_someOption.IsSome) count++;
-            if (_noneOption.IsSome) count++;
+            if (_someOption.IsSome)
+                count++;
+            if (_noneOption.IsSome)
+                count++;
         }
         return count;
     }
-    
+
     [Benchmark]
     [BenchmarkCategory("1-PropertyAccessor", "Option")]
     public int Option_IsSome_NoInline()
@@ -72,12 +74,14 @@ public class AggressiveInliningComprehensiveBenchmarks
         int count = 0;
         for (int i = 0; i < Iterations; i++)
         {
-            if (GetIsSome_NoInline(_someOption)) count++;
-            if (GetIsSome_NoInline(_noneOption)) count++;
+            if (GetIsSome_NoInline(_someOption))
+                count++;
+            if (GetIsSome_NoInline(_noneOption))
+                count++;
         }
         return count;
     }
-    
+
     [Benchmark(Baseline = true)]
     [BenchmarkCategory("1-PropertyAccessor", "Result")]
     public int Result_IsOk_Direct()
@@ -85,12 +89,14 @@ public class AggressiveInliningComprehensiveBenchmarks
         int count = 0;
         for (int i = 0; i < Iterations; i++)
         {
-            if (_okResult.IsOk) count++;
-            if (_errResult.IsOk) count++;
+            if (_okResult.IsOk)
+                count++;
+            if (_errResult.IsOk)
+                count++;
         }
         return count;
     }
-    
+
     [Benchmark]
     [BenchmarkCategory("1-PropertyAccessor", "Result")]
     public int Result_IsOk_NoInline()
@@ -98,16 +104,18 @@ public class AggressiveInliningComprehensiveBenchmarks
         int count = 0;
         for (int i = 0; i < Iterations; i++)
         {
-            if (GetIsOk_NoInline(_okResult)) count++;
-            if (GetIsOk_NoInline(_errResult)) count++;
+            if (GetIsOk_NoInline(_okResult))
+                count++;
+            if (GetIsOk_NoInline(_errResult))
+                count++;
         }
         return count;
     }
-    
+
     #endregion
 
     #region Category 2: Factory Methods
-    
+
     [Benchmark(Baseline = true)]
     [BenchmarkCategory("2-Factory", "Option")]
     public Option<int> Option_Some_Direct()
@@ -119,7 +127,7 @@ public class AggressiveInliningComprehensiveBenchmarks
         }
         return result;
     }
-    
+
     [Benchmark]
     [BenchmarkCategory("2-Factory", "Option")]
     public Option<int> Option_Some_NoInline()
@@ -131,7 +139,7 @@ public class AggressiveInliningComprehensiveBenchmarks
         }
         return result;
     }
-    
+
     [Benchmark(Baseline = true)]
     [BenchmarkCategory("2-Factory", "Option-None")]
     public Option<int> Option_None_Direct()
@@ -143,7 +151,7 @@ public class AggressiveInliningComprehensiveBenchmarks
         }
         return result;
     }
-    
+
     [Benchmark]
     [BenchmarkCategory("2-Factory", "Option-None")]
     public Option<int> Option_None_NoInline()
@@ -155,7 +163,7 @@ public class AggressiveInliningComprehensiveBenchmarks
         }
         return result;
     }
-    
+
     [Benchmark(Baseline = true)]
     [BenchmarkCategory("2-Factory", "Result")]
     public Result<int, string> Result_Ok_Direct()
@@ -167,7 +175,7 @@ public class AggressiveInliningComprehensiveBenchmarks
         }
         return result;
     }
-    
+
     [Benchmark]
     [BenchmarkCategory("2-Factory", "Result")]
     public Result<int, string> Result_Ok_NoInline()
@@ -183,7 +191,7 @@ public class AggressiveInliningComprehensiveBenchmarks
     #endregion
 
     #region Category 3: Value Access (Simple)
-    
+
     [Benchmark(Baseline = true)]
     [BenchmarkCategory("3-ValueAccess", "UnwrapOr")]
     public int Option_UnwrapOr_Direct()
@@ -196,7 +204,7 @@ public class AggressiveInliningComprehensiveBenchmarks
         }
         return sum;
     }
-    
+
     [Benchmark]
     [BenchmarkCategory("3-ValueAccess", "UnwrapOr")]
     public int Option_UnwrapOr_NoInline()
@@ -209,7 +217,7 @@ public class AggressiveInliningComprehensiveBenchmarks
         }
         return sum;
     }
-    
+
     [Benchmark(Baseline = true)]
     [BenchmarkCategory("3-ValueAccess", "UnwrapOrDefault")]
     public int Option_UnwrapOrDefault_Direct()
@@ -217,12 +225,12 @@ public class AggressiveInliningComprehensiveBenchmarks
         int sum = 0;
         for (int i = 0; i < Iterations; i++)
         {
-            sum += _someOption.GetValueOrDefault();
-            sum += _noneOption.GetValueOrDefault();
+            sum += _someOption.GetValueOr(0);
+            sum += _noneOption.GetValueOr(0);
         }
         return sum;
     }
-    
+
     [Benchmark]
     [BenchmarkCategory("3-ValueAccess", "UnwrapOrDefault")]
     public int Option_UnwrapOrDefault_NoInline()
@@ -239,7 +247,7 @@ public class AggressiveInliningComprehensiveBenchmarks
     #endregion
 
     #region Category 4: Conditional Access (With Callback)
-    
+
     [Benchmark(Baseline = true)]
     [BenchmarkCategory("4-ConditionalAccess", "UnwrapOrElse")]
     public int Option_UnwrapOrElse_Direct()
@@ -247,12 +255,12 @@ public class AggressiveInliningComprehensiveBenchmarks
         int sum = 0;
         for (int i = 0; i < Iterations; i++)
         {
-            sum += _someOption.GetValueOrElse(() => -1);
-            sum += _noneOption.GetValueOrElse(() => -1);
+            sum += _someOption.MapOrElse(() => -1, x => x);
+            sum += _noneOption.MapOrElse(() => -1, x => x);
         }
         return sum;
     }
-    
+
     [Benchmark]
     [BenchmarkCategory("4-ConditionalAccess", "UnwrapOrElse")]
     public int Option_UnwrapOrElse_NoInline()
@@ -269,7 +277,7 @@ public class AggressiveInliningComprehensiveBenchmarks
     #endregion
 
     #region Category 5: Transform Operations
-    
+
     [Benchmark(Baseline = true)]
     [BenchmarkCategory("5-Transform", "Map")]
     public Option<int> Option_Map_Direct()
@@ -281,7 +289,7 @@ public class AggressiveInliningComprehensiveBenchmarks
         }
         return result;
     }
-    
+
     [Benchmark]
     [BenchmarkCategory("5-Transform", "Map")]
     public Option<int> Option_Map_NoInline()
@@ -293,7 +301,7 @@ public class AggressiveInliningComprehensiveBenchmarks
         }
         return result;
     }
-    
+
     [Benchmark(Baseline = true)]
     [BenchmarkCategory("5-Transform", "Filter")]
     public Option<int> Option_Filter_Direct()
@@ -305,7 +313,7 @@ public class AggressiveInliningComprehensiveBenchmarks
         }
         return result;
     }
-    
+
     [Benchmark]
     [BenchmarkCategory("5-Transform", "Filter")]
     public Option<int> Option_Filter_NoInline()
@@ -317,7 +325,7 @@ public class AggressiveInliningComprehensiveBenchmarks
         }
         return result;
     }
-    
+
     [Benchmark(Baseline = true)]
     [BenchmarkCategory("5-Transform", "Result-Map")]
     public Result<int, string> Result_Map_Direct()
@@ -329,7 +337,7 @@ public class AggressiveInliningComprehensiveBenchmarks
         }
         return result;
     }
-    
+
     [Benchmark]
     [BenchmarkCategory("5-Transform", "Result-Map")]
     public Result<int, string> Result_Map_NoInline()
@@ -345,7 +353,7 @@ public class AggressiveInliningComprehensiveBenchmarks
     #endregion
 
     #region Category 6: Chaining Operations (AndThen)
-    
+
     [Benchmark(Baseline = true)]
     [BenchmarkCategory("6-Chaining", "AndThen")]
     public Option<int> Option_AndThen_Direct()
@@ -357,7 +365,7 @@ public class AggressiveInliningComprehensiveBenchmarks
         }
         return result;
     }
-    
+
     [Benchmark]
     [BenchmarkCategory("6-Chaining", "AndThen")]
     public Option<int> Option_AndThen_NoInline()
@@ -369,7 +377,7 @@ public class AggressiveInliningComprehensiveBenchmarks
         }
         return result;
     }
-    
+
     [Benchmark(Baseline = true)]
     [BenchmarkCategory("6-Chaining", "Result-AndThen")]
     public Result<int, string> Result_AndThen_Direct()
@@ -381,7 +389,7 @@ public class AggressiveInliningComprehensiveBenchmarks
         }
         return result;
     }
-    
+
     [Benchmark]
     [BenchmarkCategory("6-Chaining", "Result-AndThen")]
     public Result<int, string> Result_AndThen_NoInline()
@@ -397,7 +405,7 @@ public class AggressiveInliningComprehensiveBenchmarks
     #endregion
 
     #region Category 7: Pattern Matching
-    
+
     [Benchmark(Baseline = true)]
     [BenchmarkCategory("7-Match", "Option")]
     public int Option_Match_Direct()
@@ -410,7 +418,7 @@ public class AggressiveInliningComprehensiveBenchmarks
         }
         return sum;
     }
-    
+
     [Benchmark]
     [BenchmarkCategory("7-Match", "Option")]
     public int Option_Match_NoInline()
@@ -423,7 +431,7 @@ public class AggressiveInliningComprehensiveBenchmarks
         }
         return sum;
     }
-    
+
     [Benchmark(Baseline = true)]
     [BenchmarkCategory("7-Match", "Result")]
     public int Result_Match_Direct()
@@ -436,7 +444,7 @@ public class AggressiveInliningComprehensiveBenchmarks
         }
         return sum;
     }
-    
+
     [Benchmark]
     [BenchmarkCategory("7-Match", "Result")]
     public int Result_Match_NoInline()
@@ -453,7 +461,7 @@ public class AggressiveInliningComprehensiveBenchmarks
     #endregion
 
     #region Category 8: Complex Pipelines
-    
+
     [Benchmark(Baseline = true)]
     [BenchmarkCategory("8-Pipeline", "Option")]
     public Option<string> Option_Pipeline_Direct()
@@ -468,7 +476,7 @@ public class AggressiveInliningComprehensiveBenchmarks
         }
         return result;
     }
-    
+
     [Benchmark]
     [BenchmarkCategory("8-Pipeline", "Option")]
     public Option<string> Option_Pipeline_NoInline()
@@ -483,7 +491,7 @@ public class AggressiveInliningComprehensiveBenchmarks
         }
         return result;
     }
-    
+
     [Benchmark(Baseline = true)]
     [BenchmarkCategory("8-Pipeline", "Result")]
     public Result<string, string> Result_Pipeline_Direct()
@@ -493,13 +501,13 @@ public class AggressiveInliningComprehensiveBenchmarks
         {
             result = Result<int, string>.Ok(i)
                 .Map(x => x * 2)
-                .Bind(x => x >= 0 
-                    ? Result<string, string>.Ok($"Value: {x}") 
+                .Bind(x => x >= 0
+                    ? Result<string, string>.Ok($"Value: {x}")
                     : Result<string, string>.Error("Negative"));
         }
         return result;
     }
-    
+
     [Benchmark]
     [BenchmarkCategory("8-Pipeline", "Result")]
     public Result<string, string> Result_Pipeline_NoInline()
@@ -509,8 +517,8 @@ public class AggressiveInliningComprehensiveBenchmarks
         {
             var res = CreateOk_NoInline<int, string>(i);
             var mapped = MapResult_NoInline(res, x => x * 2);
-            result = AndThenResult_NoInline(mapped, x => x >= 0 
-                ? CreateOk_NoInline<string, string>($"Value: {x}") 
+            result = AndThenResult_NoInline(mapped, x => x >= 0
+                ? CreateOk_NoInline<string, string>($"Value: {x}")
                 : CreateErr_NoInline<string, string>("Negative"));
         }
         return result;
@@ -519,58 +527,58 @@ public class AggressiveInliningComprehensiveBenchmarks
     #endregion
 
     #region NoInline Wrapper Methods
-    
+
     // Property accessors
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static bool GetIsSome_NoInline<T>(Option<T> option) => option.IsSome;
-    
+
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static bool GetIsOk_NoInline<T, E>(Result<T, E> result) => result.IsOk;
-    
+
     // Factory methods
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static Option<T> CreateSome_NoInline<T>(T value) => Option<T>.Some(value);
-    
+
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static Option<T> CreateNone_NoInline<T>() => Option<T>.None();
-    
+
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static Result<T, E> CreateOk_NoInline<T, E>(T value) => Result<T, E>.Ok(value);
-    
+
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static Result<T, E> CreateErr_NoInline<T, E>(E error) => Result<T, E>.Error(error);
-    
+
     // Value access
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static T UnwrapOr_NoInline<T>(Option<T> option, T defaultValue) => option.GetValueOr(defaultValue);
-    
+
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private static T UnwrapOrDefault_NoInline<T>(Option<T> option) where T : struct => option.GetValueOrDefault();
-    
+    private static T UnwrapOrDefault_NoInline<T>(Option<T> option) where T : struct => option.GetValueOr(default);
+
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private static T UnwrapOrElse_NoInline<T>(Option<T> option, Func<T> defaultFunc) => option.GetValueOrElse(defaultFunc);
-    
+    private static T UnwrapOrElse_NoInline<T>(Option<T> option, Func<T> defaultFunc) => option.MapOrElse(defaultFunc, x => x);
+
     // Transform operations
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static Option<U> Map_NoInline<T, U>(Option<T> option, Func<T, U> mapper) => option.Map(mapper);
-    
+
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static Option<T> Filter_NoInline<T>(Option<T> option, Func<T, bool> predicate) => option.Filter(predicate);
-    
+
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static Result<U, E> MapResult_NoInline<T, U, E>(Result<T, E> result, Func<T, U> mapper) => result.Map(mapper);
-    
+
     // Chaining operations
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static Option<U> AndThen_NoInline<T, U>(Option<T> option, Func<T, Option<U>> binder) => option.Bind(binder);
-    
+
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static Result<U, E> AndThenResult_NoInline<T, U, E>(Result<T, E> result, Func<T, Result<U, E>> binder) => result.Bind(binder);
-    
+
     // Pattern matching
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static U Match_NoInline<T, U>(Option<T> option, Func<T, U> some, Func<U> none) => option.Match(some, none);
-    
+
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static U MatchResult_NoInline<T, E, U>(Result<T, E> result, Func<T, U> ok, Func<E, U> err) => result.Match(ok, err);
 

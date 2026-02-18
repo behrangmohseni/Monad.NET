@@ -37,11 +37,14 @@ public class ComparisonBenchmarks
     public int? Nullable_ChainedOperations()
     {
         int? value = 42;
-        if (!value.HasValue) return null;
+        if (!value.HasValue)
+            return null;
         var v1 = value.Value * 2;
-        if (v1 <= 0) return null;
+        if (v1 <= 0)
+            return null;
         var v2 = v1 + 10;
-        if (v2 <= 50) return null;
+        if (v2 <= 50)
+            return null;
         return v2 * 3;
     }
 
@@ -63,7 +66,8 @@ public class ComparisonBenchmarks
 
     private static int DivideWithException(int a, int b)
     {
-        if (b == 0) throw new DivideByZeroException();
+        if (b == 0)
+            throw new DivideByZeroException();
         return a / b;
     }
 
@@ -131,15 +135,20 @@ public class ComparisonBenchmarks
     public string? TraditionalPipeline()
     {
         User? user = TestUser;
-        if (user == null) return null;
-        if (!user.Name.StartsWith('T')) return null;
+        if (user == null)
+            return null;
+        if (!user.Name.StartsWith('T'))
+            return null;
 
         Order? order = TestOrder;
-        if (order == null) return null;
-        if (order.UserId != user.Id) return null;
+        if (order == null)
+            return null;
+        if (order.UserId != user.Id)
+            return null;
 
         var email = user.Email;
-        if (string.IsNullOrEmpty(email)) return null;
+        if (string.IsNullOrEmpty(email))
+            return null;
 
         return $"Order {order.Id} for {user.Name}: {order.Amount:C}";
     }
@@ -177,7 +186,7 @@ public class ComparisonBenchmarks
         var options = Enumerable.Range(0, Iterations)
             .Select(i => i % 2 == 0 ? Option<int>.Some(i) : Option<int>.None());
 
-        return options.Choose().ToList();
+        return options.SelectMany(o => o.AsEnumerable()).ToList();
     }
 
     #endregion
