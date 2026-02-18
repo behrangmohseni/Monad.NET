@@ -53,10 +53,9 @@ public static partial class ResultExtensions
         ThrowHelper.ThrowIfNull(second);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result1 = await first.ConfigureAwait(false);
+        await Task.WhenAll(first, second).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
-        var result2 = await second.ConfigureAwait(false);
-        return Combine(result1, result2);
+        return Combine(first.Result, second.Result);
     }
 
     /// <summary>
@@ -83,10 +82,9 @@ public static partial class ResultExtensions
         ThrowHelper.ThrowIfNull(combiner);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result1 = await first.ConfigureAwait(false);
+        await Task.WhenAll(first, second).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
-        var result2 = await second.ConfigureAwait(false);
-        return Combine(result1, result2, combiner);
+        return Combine(first.Result, second.Result, combiner);
     }
 
     /// <summary>
@@ -104,12 +102,9 @@ public static partial class ResultExtensions
         ThrowHelper.ThrowIfNull(third);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result1 = await first.ConfigureAwait(false);
+        await Task.WhenAll(first, second, third).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
-        var result2 = await second.ConfigureAwait(false);
-        cancellationToken.ThrowIfCancellationRequested();
-        var result3 = await third.ConfigureAwait(false);
-        return Combine(result1, result2, result3);
+        return Combine(first.Result, second.Result, third.Result);
     }
 
     /// <summary>
@@ -129,12 +124,9 @@ public static partial class ResultExtensions
         ThrowHelper.ThrowIfNull(combiner);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result1 = await first.ConfigureAwait(false);
+        await Task.WhenAll(first, second, third).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
-        var result2 = await second.ConfigureAwait(false);
-        cancellationToken.ThrowIfCancellationRequested();
-        var result3 = await third.ConfigureAwait(false);
-        return Combine(result1, result2, result3, combiner);
+        return Combine(first.Result, second.Result, third.Result, combiner);
     }
 
     /// <summary>
@@ -195,11 +187,9 @@ public static partial class ResultExtensions
         ThrowHelper.ThrowIfNull(second);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result1 = await first.ConfigureAwait(false);
+        await Task.WhenAll(first, second).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
-        var result2 = await second.ConfigureAwait(false);
-
-        return CombineErrors(result1, result2);
+        return CombineErrors(first.Result, second.Result);
     }
 
     /// <summary>
