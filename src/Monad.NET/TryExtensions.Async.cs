@@ -27,11 +27,7 @@ public static partial class TryExtensions
             var result = await mapper(@try.GetValue()).ConfigureAwait(false);
             return Try<U>.Ok(result);
         }
-        catch (OperationCanceledException)
-        {
-            throw; // Re-throw cancellation
-        }
-        catch (Exception ex)
+        catch (Exception ex) when (!ThrowHelper.IsFatal(ex))
         {
             return Try<U>.Error(ex);
         }
@@ -57,11 +53,7 @@ public static partial class TryExtensions
             cancellationToken.ThrowIfCancellationRequested();
             return await binder(@try.GetValue()).ConfigureAwait(false);
         }
-        catch (OperationCanceledException)
-        {
-            throw; // Re-throw cancellation
-        }
-        catch (Exception ex)
+        catch (Exception ex) when (!ThrowHelper.IsFatal(ex))
         {
             return Try<U>.Error(ex);
         }
@@ -88,11 +80,7 @@ public static partial class TryExtensions
             var result = await mapper(@try.GetValue(), cancellationToken).ConfigureAwait(false);
             return Try<U>.Ok(result);
         }
-        catch (OperationCanceledException)
-        {
-            throw; // Re-throw cancellation
-        }
-        catch (Exception ex)
+        catch (Exception ex) when (!ThrowHelper.IsFatal(ex))
         {
             return Try<U>.Error(ex);
         }
@@ -114,11 +102,7 @@ public static partial class TryExtensions
             cancellationToken.ThrowIfCancellationRequested();
             return await binder(@try.GetValue(), cancellationToken).ConfigureAwait(false);
         }
-        catch (OperationCanceledException)
-        {
-            throw; // Re-throw cancellation
-        }
-        catch (Exception ex)
+        catch (Exception ex) when (!ThrowHelper.IsFatal(ex))
         {
             return Try<U>.Error(ex);
         }
@@ -180,11 +164,7 @@ public static partial class TryExtensions
             var result = await mapper(@try.GetValue(), cancellationToken).ConfigureAwait(false);
             return Try<U>.Ok(result);
         }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch (Exception ex)
+        catch (Exception ex) when (!ThrowHelper.IsFatal(ex))
         {
             return Try<U>.Error(ex);
         }
@@ -236,11 +216,7 @@ public static partial class TryExtensions
             cancellationToken.ThrowIfCancellationRequested();
             return await binder(@try.GetValue(), cancellationToken).ConfigureAwait(false);
         }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch (Exception ex)
+        catch (Exception ex) when (!ThrowHelper.IsFatal(ex))
         {
             return Try<U>.Error(ex);
         }
