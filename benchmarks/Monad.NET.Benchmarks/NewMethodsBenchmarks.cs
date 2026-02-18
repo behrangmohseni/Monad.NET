@@ -91,18 +91,18 @@ public class NewMethodsBenchmarks
 
     #endregion
 
-    #region Result.ThrowIfErr Benchmarks
+    #region Result.ThrowIfError Benchmarks
 
     [Benchmark]
-    public int ThrowIfErr_Ok()
+    public int ThrowIfError_Ok()
     {
-        return _ok.ThrowIfErr(new InvalidOperationException("Error"));
+        return _ok.ThrowIfError(new InvalidOperationException("Error"));
     }
 
     [Benchmark]
-    public int ThrowIfErr_Ok_Factory()
+    public int ThrowIfError_Ok_Factory()
     {
-        return _ok.ThrowIfErr(e => new InvalidOperationException(e));
+        return _ok.ThrowIfError(e => new InvalidOperationException(e));
     }
 
     #endregion
@@ -213,8 +213,8 @@ public class NewMethodsBenchmarks
     [Benchmark]
     public Validation<int, string> BindValidation_Comparison()
     {
-        return _valid.Bind(x => x > 0 
-            ? Validation<int, string>.Ok(x) 
+        return _valid.Bind(x => x > 0
+            ? Validation<int, string>.Ok(x)
             : Validation<int, string>.Error("Must be positive"));
     }
 

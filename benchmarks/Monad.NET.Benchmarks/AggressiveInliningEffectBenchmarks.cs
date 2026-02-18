@@ -53,7 +53,8 @@ public class AggressiveInliningEffectBenchmarks
         var opt = _inlinedSome;
         for (var i = 0; i < Iterations; i++)
         {
-            if (opt.IsSome) count++;
+            if (opt.IsSome)
+                count++;
         }
         return count;
     }
@@ -66,7 +67,8 @@ public class AggressiveInliningEffectBenchmarks
         var opt = _noInlineSome;
         for (var i = 0; i < Iterations; i++)
         {
-            if (opt.IsSome) count++;
+            if (opt.IsSome)
+                count++;
         }
         return count;
     }
@@ -317,7 +319,8 @@ public class AggressiveInliningEffectBenchmarks
         var res = _inlinedOk;
         for (var i = 0; i < Iterations; i++)
         {
-            if (res.IsOk) count++;
+            if (res.IsOk)
+                count++;
         }
         return count;
     }
@@ -330,7 +333,8 @@ public class AggressiveInliningEffectBenchmarks
         var res = _noInlineOk;
         for (var i = 0; i < Iterations; i++)
         {
-            if (res.IsOk) count++;
+            if (res.IsOk)
+                count++;
         }
         return count;
     }
@@ -542,7 +546,7 @@ public readonly struct TestResult_Inlined<T, E>
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public TestResult_Inlined<U, E> Map<U>(Func<T, U> mapper) =>
-        _isOk ? TestResult_Inlined<U, E>.Ok(mapper(_value)) : TestResult_Inlined<U, E>.Error(_error);
+        _isOk ? TestResult_Inlined<U, E>.Ok(mapper(_value)) : TestResult_Inlined<U, E>.Err(_error);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public U Match<U>(Func<T, U> ok, Func<E, U> err) =>
@@ -576,7 +580,7 @@ public readonly struct TestResult_NoInline<T, E>
     public T GetValueOr(T defaultValue) => _isOk ? _value : defaultValue;
 
     public TestResult_NoInline<U, E> Map<U>(Func<T, U> mapper) =>
-        _isOk ? TestResult_NoInline<U, E>.Ok(mapper(_value)) : TestResult_NoInline<U, E>.Error(_error);
+        _isOk ? TestResult_NoInline<U, E>.Ok(mapper(_value)) : TestResult_NoInline<U, E>.Err(_error);
 
     public U Match<U>(Func<T, U> ok, Func<E, U> err) =>
         _isOk ? ok(_value) : err(_error);

@@ -14,7 +14,7 @@ namespace Monad.NET.Benchmarks;
 public class InliningBenchmarks
 {
     private const int Iterations = 10_000;
-    
+
     private Option<int> _some;
     private Result<int, string> _ok;
     private Validation<int, string> _valid;
@@ -151,7 +151,7 @@ public class InliningBenchmarks
         var val = _valid;
         for (var i = 0; i < Iterations; i++)
         {
-            if (val.IsValid)
+            if (val.IsOk)
                 sum += i;
         }
         return sum;
