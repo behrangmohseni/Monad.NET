@@ -154,21 +154,6 @@ public class ArchitectureTests
     }
 
     /// <summary>
-    /// All monad types should be serializable.
-    /// </summary>
-    [Theory]
-    [InlineData(typeof(Option<>))]
-    [InlineData(typeof(Result<,>))]
-    [InlineData(typeof(Try<>))]
-    [InlineData(typeof(Validation<,>))]
-    [InlineData(typeof(Unit))]
-    public void CoreMonadTypes_ShouldBeSerializable(Type type)
-    {
-        var hasSerializable = type.GetCustomAttribute<SerializableAttribute>() != null;
-        Assert.True(hasSerializable, $"{type.Name} should have [Serializable] attribute");
-    }
-
-    /// <summary>
     /// Core monad types should implement IEquatable&lt;T&gt; for value equality.
     /// </summary>
     [Theory]

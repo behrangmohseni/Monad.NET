@@ -23,7 +23,6 @@ namespace Monad.NET;
 /// <seealso cref="Result{T,TError}"/>
 /// <seealso cref="Option{T}"/>
 /// <seealso cref="TryExtensions"/>
-[Serializable]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DebuggerTypeProxy(typeof(TryDebugView<>))]
 public readonly struct Try<T> : IEquatable<Try<T>>, IComparable<Try<T>>

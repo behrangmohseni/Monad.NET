@@ -414,38 +414,6 @@ public class ApiContractTests
 
     #endregion
 
-    #region Serialization Attributes
-
-    [Fact]
-    public void Option_ShouldBeSerializable()
-    {
-        var type = typeof(Option<int>);
-        Assert.True(type.GetCustomAttributes(typeof(SerializableAttribute), false).Length > 0);
-    }
-
-    [Fact]
-    public void Result_ShouldBeSerializable()
-    {
-        var type = typeof(Result<int, string>);
-        Assert.True(type.GetCustomAttributes(typeof(SerializableAttribute), false).Length > 0);
-    }
-
-    [Fact]
-    public void Validation_ShouldBeSerializable()
-    {
-        var type = typeof(Validation<int, string>);
-        Assert.True(type.GetCustomAttributes(typeof(SerializableAttribute), false).Length > 0);
-    }
-
-    [Fact]
-    public void Try_ShouldBeSerializable()
-    {
-        var type = typeof(Try<int>);
-        Assert.True(type.GetCustomAttributes(typeof(SerializableAttribute), false).Length > 0);
-    }
-
-    #endregion
-
     #region RemoteData<T, TError> API Contract
 
     [Theory]

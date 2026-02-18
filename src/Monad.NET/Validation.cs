@@ -28,7 +28,6 @@ namespace Monad.NET;
 /// </remarks>
 /// <seealso cref="Result{T,TError}"/>
 /// <seealso cref="Option{T}"/>
-[Serializable]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DebuggerTypeProxy(typeof(ValidationDebugView<,>))]
 public readonly struct Validation<T, TError> : IEquatable<Validation<T, TError>>, IComparable<Validation<T, TError>>
