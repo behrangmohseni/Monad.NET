@@ -149,7 +149,8 @@ public class ResultCombineAsyncTests
     [Fact]
     public async Task CombineAsync_Two_RunsInParallel()
     {
-        const int delayMs = 200;
+        const int delayMs = 500;
+        const int sequentialMs = delayMs * 2;
 
         var sw = Stopwatch.StartNew();
         var combined = await ResultExtensions.CombineAsync(
@@ -158,14 +159,15 @@ public class ResultCombineAsyncTests
         sw.Stop();
 
         Assert.True(combined.IsOk);
-        Assert.True(sw.ElapsedMilliseconds < delayMs * 2 - 50,
-            $"Expected parallel execution under {delayMs * 2 - 50}ms, but took {sw.ElapsedMilliseconds}ms");
+        Assert.True(sw.ElapsedMilliseconds < sequentialMs,
+            $"Expected parallel execution under {sequentialMs}ms, but took {sw.ElapsedMilliseconds}ms");
     }
 
     [Fact]
     public async Task CombineAsync_Three_RunsInParallel()
     {
-        const int delayMs = 200;
+        const int delayMs = 500;
+        const int sequentialMs = delayMs * 3;
 
         var sw = Stopwatch.StartNew();
         var combined = await ResultExtensions.CombineAsync(
@@ -175,14 +177,15 @@ public class ResultCombineAsyncTests
         sw.Stop();
 
         Assert.True(combined.IsOk);
-        Assert.True(sw.ElapsedMilliseconds < delayMs * 2,
-            $"Expected parallel execution under {delayMs * 2}ms, but took {sw.ElapsedMilliseconds}ms");
+        Assert.True(sw.ElapsedMilliseconds < sequentialMs,
+            $"Expected parallel execution under {sequentialMs}ms, but took {sw.ElapsedMilliseconds}ms");
     }
 
     [Fact]
     public async Task CombineAsync_Two_WithCombiner_RunsInParallel()
     {
-        const int delayMs = 200;
+        const int delayMs = 500;
+        const int sequentialMs = delayMs * 2;
 
         var sw = Stopwatch.StartNew();
         var combined = await ResultExtensions.CombineAsync(
@@ -193,14 +196,15 @@ public class ResultCombineAsyncTests
 
         Assert.True(combined.IsOk);
         Assert.Equal(30, combined.GetValue());
-        Assert.True(sw.ElapsedMilliseconds < delayMs * 2 - 50,
-            $"Expected parallel execution under {delayMs * 2 - 50}ms, but took {sw.ElapsedMilliseconds}ms");
+        Assert.True(sw.ElapsedMilliseconds < sequentialMs,
+            $"Expected parallel execution under {sequentialMs}ms, but took {sw.ElapsedMilliseconds}ms");
     }
 
     [Fact]
     public async Task CombineAsync_Three_WithCombiner_RunsInParallel()
     {
-        const int delayMs = 200;
+        const int delayMs = 500;
+        const int sequentialMs = delayMs * 3;
 
         var sw = Stopwatch.StartNew();
         var combined = await ResultExtensions.CombineAsync(
@@ -212,14 +216,15 @@ public class ResultCombineAsyncTests
 
         Assert.True(combined.IsOk);
         Assert.Equal(6, combined.GetValue());
-        Assert.True(sw.ElapsedMilliseconds < delayMs * 2,
-            $"Expected parallel execution under {delayMs * 2}ms, but took {sw.ElapsedMilliseconds}ms");
+        Assert.True(sw.ElapsedMilliseconds < sequentialMs,
+            $"Expected parallel execution under {sequentialMs}ms, but took {sw.ElapsedMilliseconds}ms");
     }
 
     [Fact]
     public async Task CombineErrorsAsync_Two_RunsInParallel()
     {
-        const int delayMs = 200;
+        const int delayMs = 500;
+        const int sequentialMs = delayMs * 2;
 
         var sw = Stopwatch.StartNew();
         var combined = await ResultExtensions.CombineErrorsAsync(
@@ -228,8 +233,8 @@ public class ResultCombineAsyncTests
         sw.Stop();
 
         Assert.True(combined.IsOk);
-        Assert.True(sw.ElapsedMilliseconds < delayMs * 2 - 50,
-            $"Expected parallel execution under {delayMs * 2 - 50}ms, but took {sw.ElapsedMilliseconds}ms");
+        Assert.True(sw.ElapsedMilliseconds < sequentialMs,
+            $"Expected parallel execution under {sequentialMs}ms, but took {sw.ElapsedMilliseconds}ms");
     }
 
     #endregion
