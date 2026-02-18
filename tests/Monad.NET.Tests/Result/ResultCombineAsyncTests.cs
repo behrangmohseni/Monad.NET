@@ -149,7 +149,7 @@ public class ResultCombineAsyncTests
     [Fact]
     public async Task CombineAsync_Two_RunsInParallel()
     {
-        const int delayMs = 500;
+        const int delayMs = 1000;
         const int sequentialMs = delayMs * 2;
 
         var sw = Stopwatch.StartNew();
@@ -166,7 +166,7 @@ public class ResultCombineAsyncTests
     [Fact]
     public async Task CombineAsync_Three_RunsInParallel()
     {
-        const int delayMs = 500;
+        const int delayMs = 1000;
         const int sequentialMs = delayMs * 3;
 
         var sw = Stopwatch.StartNew();
@@ -184,7 +184,7 @@ public class ResultCombineAsyncTests
     [Fact]
     public async Task CombineAsync_Two_WithCombiner_RunsInParallel()
     {
-        const int delayMs = 500;
+        const int delayMs = 1000;
         const int sequentialMs = delayMs * 2;
 
         var sw = Stopwatch.StartNew();
@@ -203,7 +203,7 @@ public class ResultCombineAsyncTests
     [Fact]
     public async Task CombineAsync_Three_WithCombiner_RunsInParallel()
     {
-        const int delayMs = 500;
+        const int delayMs = 1000;
         const int sequentialMs = delayMs * 3;
 
         var sw = Stopwatch.StartNew();
@@ -223,7 +223,7 @@ public class ResultCombineAsyncTests
     [Fact]
     public async Task CombineErrorsAsync_Two_RunsInParallel()
     {
-        const int delayMs = 500;
+        const int delayMs = 1000;
         const int sequentialMs = delayMs * 2;
 
         var sw = Stopwatch.StartNew();
