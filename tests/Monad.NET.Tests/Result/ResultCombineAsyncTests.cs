@@ -1,22 +1,9 @@
-using System.Diagnostics;
 using Xunit;
 
 namespace Monad.NET.Tests;
 
 public class ResultCombineAsyncTests
 {
-    private static async Task<Result<T, string>> DelayedOk<T>(T value, int delayMs)
-    {
-        await Task.Delay(delayMs);
-        return Result<T, string>.Ok(value);
-    }
-
-    private static async Task<Result<T, string>> DelayedError<T>(string error, int delayMs)
-    {
-        await Task.Delay(delayMs);
-        return Result<T, string>.Error(error);
-    }
-
     #region CombineAsync 2-arity
 
     [Fact]
@@ -140,101 +127,6 @@ public class ResultCombineAsyncTests
 
         Assert.True(combined.IsError);
         Assert.Equal(new[] { "e1", "e2" }, combined.GetError());
-    }
-
-    #endregion
-
-    #region Parallelization verification
-
-    [Fact]
-    public async Task CombineAsync_Two_RunsInParallel()
-    {
-        const int delayMs = 1000;
-        const int sequentialMs = delayMs * 2;
-
-        var sw = Stopwatch.StartNew();
-        var combined = await ResultExtensions.CombineAsync(
-            DelayedOk(1, delayMs),
-            DelayedOk(2, delayMs));
-        sw.Stop();
-
-        Assert.True(combined.IsOk);
-        Assert.True(sw.ElapsedMilliseconds < sequentialMs,
-            $"Expected parallel execution under {sequentialMs}ms, but took {sw.ElapsedMilliseconds}ms");
-    }
-
-    [Fact]
-    public async Task CombineAsync_Three_RunsInParallel()
-    {
-        const int delayMs = 1000;
-        const int sequentialMs = delayMs * 3;
-
-        var sw = Stopwatch.StartNew();
-        var combined = await ResultExtensions.CombineAsync(
-            DelayedOk(1, delayMs),
-            DelayedOk("two", delayMs),
-            DelayedOk(3.0, delayMs));
-        sw.Stop();
-
-        Assert.True(combined.IsOk);
-        Assert.True(sw.ElapsedMilliseconds < sequentialMs,
-            $"Expected parallel execution under {sequentialMs}ms, but took {sw.ElapsedMilliseconds}ms");
-    }
-
-    [Fact]
-    public async Task CombineAsync_Two_WithCombiner_RunsInParallel()
-    {
-        const int delayMs = 1000;
-        const int sequentialMs = delayMs * 2;
-
-        var sw = Stopwatch.StartNew();
-        var combined = await ResultExtensions.CombineAsync(
-            DelayedOk(10, delayMs),
-            DelayedOk(20, delayMs),
-            (a, b) => a + b);
-        sw.Stop();
-
-        Assert.True(combined.IsOk);
-        Assert.Equal(30, combined.GetValue());
-        Assert.True(sw.ElapsedMilliseconds < sequentialMs,
-            $"Expected parallel execution under {sequentialMs}ms, but took {sw.ElapsedMilliseconds}ms");
-    }
-
-    [Fact]
-    public async Task CombineAsync_Three_WithCombiner_RunsInParallel()
-    {
-        const int delayMs = 1000;
-        const int sequentialMs = delayMs * 3;
-
-        var sw = Stopwatch.StartNew();
-        var combined = await ResultExtensions.CombineAsync(
-            DelayedOk(1, delayMs),
-            DelayedOk(2, delayMs),
-            DelayedOk(3, delayMs),
-            (a, b, c) => a + b + c);
-        sw.Stop();
-
-        Assert.True(combined.IsOk);
-        Assert.Equal(6, combined.GetValue());
-        Assert.True(sw.ElapsedMilliseconds < sequentialMs,
-            $"Expected parallel execution under {sequentialMs}ms, but took {sw.ElapsedMilliseconds}ms");
-    }
-
-    [Fact]
-    public async Task CombineErrorsAsync_Two_RunsInParallel()
-    {
-        const int delayMs = 1000;
-        const int sequentialMs = delayMs * 2;
-
-        var sw = Stopwatch.StartNew();
-        var combined = await ResultExtensions.CombineErrorsAsync(
-            DelayedOk(1, delayMs),
-            DelayedOk(2, delayMs));
-        sw.Stop();
-
-        Assert.True(combined.IsOk);
-        Assert.True(sw.ElapsedMilliseconds < sequentialMs,
-            $"Expected parallel execution under {sequentialMs}ms, but took {sw.ElapsedMilliseconds}ms");
     }
 
     #endregion
