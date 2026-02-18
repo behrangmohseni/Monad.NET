@@ -66,9 +66,10 @@ public readonly struct Result<T, TError> : IEquatable<Result<T, TError>>, ICompa
     }
 
     /// <summary>
-    /// Gets the contained value for pattern matching. Returns the value if Ok, default otherwise.
-    /// Use with pattern matching in switch expressions.
+    /// Gets the contained value. Throws <see cref="InvalidOperationException"/> if the Result is Error.
+    /// Safe to use with pattern matching in switch expressions.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is Error.</exception>
     /// <example>
     /// <code>
     /// var message = result switch
@@ -82,17 +83,28 @@ public readonly struct Result<T, TError> : IEquatable<Result<T, TError>>, ICompa
     public T? Value
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => _value;
+        get
+        {
+            if (!_isOk)
+                ThrowHelper.ThrowResultIsErr(_error!);
+            return _value;
+        }
     }
 
     /// <summary>
-    /// Gets the contained error for pattern matching. Returns the error if Error, default otherwise.
-    /// Use with pattern matching in switch expressions.
+    /// Gets the contained error. Throws <see cref="InvalidOperationException"/> if the Result is Ok.
+    /// Safe to use with pattern matching in switch expressions.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the Result is Ok.</exception>
     public TError? ErrorValue
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => _error;
+        get
+        {
+            if (_isOk)
+                ThrowHelper.ThrowResultIsOk(_value!);
+            return _error;
+        }
     }
 
     /// <summary>

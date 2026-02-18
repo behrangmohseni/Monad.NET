@@ -61,9 +61,10 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     }
 
     /// <summary>
-    /// Gets the contained value for pattern matching. Returns the value if Some, default otherwise.
-    /// Use with pattern matching in switch expressions.
+    /// Gets the contained value. Throws <see cref="InvalidOperationException"/> if the Option is None.
+    /// Safe to use with pattern matching in switch expressions.
     /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the Option is None.</exception>
     /// <example>
     /// <code>
     /// var message = option switch
@@ -77,7 +78,12 @@ public readonly struct Option<T> : IEquatable<Option<T>>, IComparable<Option<T>>
     public T? Value
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => _value;
+        get
+        {
+            if (!_isSome)
+                ThrowHelper.ThrowOptionIsNone();
+            return _value;
+        }
     }
 
     /// <summary>
