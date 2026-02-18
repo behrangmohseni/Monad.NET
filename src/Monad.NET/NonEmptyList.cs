@@ -22,7 +22,6 @@ namespace Monad.NET;
 /// Always use factory methods like <see cref="Of(T)"/> or <see cref="FromEnumerable"/> to create instances.
 /// </para>
 /// </remarks>
-[Serializable]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DebuggerTypeProxy(typeof(NonEmptyListDebugView<>))]
 public readonly struct NonEmptyList<T> : IEnumerable<T>, IEquatable<NonEmptyList<T>>

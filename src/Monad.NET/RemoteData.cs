@@ -12,7 +12,6 @@ namespace Monad.NET;
 /// </summary>
 /// <typeparam name="T">The type of the data</typeparam>
 /// <typeparam name="TError">The type of the error</typeparam>
-[Serializable]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DebuggerTypeProxy(typeof(RemoteDataDebugView<,>))]
 public readonly struct RemoteData<T, TError> : IEquatable<RemoteData<T, TError>>, IComparable<RemoteData<T, TError>>
