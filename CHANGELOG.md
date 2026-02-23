@@ -5,9 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.0.0-beta.3] - 2026-02-23
+
+### Summary
+
+Version 2.0 beta 3 is the most significant pre-release yet, with **API standardization**, **LINQ removal**, **performance improvements**, and **safety enhancements**. Factory methods and error accessors are now consistent across all monad types. Fatal exceptions are no longer silently swallowed by `Try<T>`.
+
+> **Note:** This is a beta release. Please report any issues or feedback on [GitHub Issues](https://github.com/behrangmohseni/Monad.NET/issues).
 
 ### Breaking Changes
+
+#### API Cleanup
+
+Obsolete methods, parse extensions, and legacy naming have been removed:
+
+- **Removed obsolete methods:** `GetValueOrElse`, `GetValueOrDefault`, `GetValueOrRecover`, `GetOrThrow(string)`, `GetExceptionOrThrow(string)`, `GetErrorsOrThrow(string)`, `GetValueOrElse(Func)` across Option, Result, Try, Validation, RemoteData
+- **Removed parse extensions:** `Option.ParseInt`, `Option.ParseGuid`, `Option.ParseDouble`, etc. (~64 methods) — use `int.TryParse()` with `ToOption()` instead
+- **Renamed:** `TErr` type parameter to `TError` across all types for readability
+- **Removed:** `Reader.ToAsync()` — use async computation directly
 
 #### LINQ Support Removed
 
@@ -28,9 +43,113 @@ var result = option.Bind(x => other.Map(y => x + y));
 - `Select`/`SelectMany` extension methods from `IO`, `Reader`, `State`
 
 **Removed analyzer:**
-- `MNT013: ValidationLinqShortCircuits` - No longer needed
+- `MNT013: ValidationLinqShortCircuits` — No longer needed
 
 **Rationale:** LINQ support caused semantic confusion, especially with `Validation` where `SelectMany` short-circuits on the first error (defeating the purpose of error accumulation). The library now has a cleaner, more consistent API with only `Map`/`Bind`/`Filter` methods.
+
+#### `_isInitialized` Runtime Guard Removed
+
+The internal `_isInitialized` field and `IsInitialized` property have been removed from `Option<T>`, `Result<T,E>`, `Validation<T,E>`, `Try<T>`, and `RemoteData<T,E>`. These types now detect `default` structs through their existing internal state (e.g., whether both `_value` and `_error` are null). This reduces struct size and removes a redundant field while preserving the same runtime safety.
+
+`Reader<R,A>` and `NonEmptyList<T>` still retain `IsInitialized` because they require it for their internal semantics.
+
+#### `[Serializable]` Attribute Removed
+
+The `[Serializable]` attribute has been removed from all core types. `BinaryFormatter` serialization has been [obsoleted and disabled by default since .NET 8](https://learn.microsoft.com/en-us/dotnet/fundamentals/syslib-diagnostics/syslib0011). JSON serialization via `System.Text.Json` is the recommended approach and continues to work.
+
+### Added
+
+#### Cross-Type API Consistency Aliases
+
+All monad types now share consistent method names for equivalent operations. These are non-breaking additions:
+
+| Type | New Method | Existing Equivalent |
+|------|-----------|-------------------|
+| `Option<T>` | `ToResult(error)`, `ToResult(errorFactory)` | `OkOr`, `OkOrElse` |
+| `Try<T>` | `GetError()`, `GetErrorOrThrow()`, `TryGetError()` | `GetException`, `GetExceptionOrThrow`, `TryGetException` |
+| `Result<T,E>` | `Ensure(predicate, error)` (3 overloads) | `FilterOrElse` |
+| `Result<T,E>` | `ToErrorOption()` | `Err()` |
+| `Validation<T,E>` | `MapError(mapper)` | `MapErrors` |
+| `Validation<T,E>` | `FilterOrElse(predicate, error)` (2 overloads) | `Ensure` |
+| `Validation<T,E>` | `TapError(action)` | `TapErrors` |
+
+#### Async Extensions for Option and Result
+
+Re-added essential async extension methods split into dedicated files:
+
+- `OptionExtensions.Async.cs` — `MapAsync`, `BindAsync`, `FilterAsync`, `MatchAsync`, `TapAsync`, `TapNoneAsync` for `Option<T>`
+- `ResultExtensions.Async.cs` — `MapAsync`, `BindAsync`, `MapErrorAsync`, `MatchAsync`, `TapAsync`, `TapErrorAsync`, `CombineAsync` for `Result<T,E>`
+- `TryExtensions.Async.cs` — `MapAsync`, `BindAsync`, `RecoverAsync`, `MatchAsync`, `TapAsync` for `Try<T>`
+- `ValidationExtensions.Async.cs` — `MapAsync`, `BindAsync`, `EnsureAsync`, `MatchAsync`, `TapAsync` for `Validation<T,E>`
+
+#### Span Support and Native AOT Compatibility
+
+- Added `[JsonSerializable]` attributes to JSON converters for AOT trimming support
+- NonEmptyList: Added `AsSpan()`, `AsMemory()`, `CopyTo(Span<T>)` for zero-copy access
+
+#### New Analyzer: DefaultMonadConstructionAnalyzer
+
+Added `MNT017: DefaultMonadConstruction` analyzer that detects `default(Result<T,E>)`, `default(Validation<T,E>)`, and `default(Try<T>)` at compile time, catching invalid construction before runtime.
+
+#### Real-World Integration Tests
+
+New `Monad.NET.RealWorld.Tests` project with 37 tests demonstrating practical utility:
+- ASP.NET Core controller patterns
+- Composability across monad types
+- Error handling consistency
+- Result vs exceptions comparisons
+
+#### FP Concepts Guide
+
+New `docs/Concepts/` documentation section for developers new to functional programming:
+- Option Explained, Result Explained
+- Railway-Oriented Programming
+- Why Functional Error Handling
+- Composition Patterns
+- From OOP to FP
+
+### Changed
+
+#### Try<T> No Longer Swallows Fatal Exceptions
+
+`Try<T>` methods (`Map`, `Bind`, `Filter`, `Recover`, `RecoverWith`, `Tap`, `ZipWith`, `Of`) previously caught all `Exception` types, silently converting them to `Error` states. This could hide cancellation signals and critical CLR failures.
+
+Fatal exceptions (`OperationCanceledException`, `OutOfMemoryException`, `ThreadAbortException`) are now re-thrown immediately via a centralized `ThrowHelper.IsFatal()` check.
+
+#### Value Property Guards
+
+Accessing `Value` on an `Error` Result (or `ErrorValue` on an `Ok` Result, etc.) now throws `InvalidOperationException` with a clear message instead of returning `default`. This applies to all core types.
+
+#### CombineAsync and CombineErrorsAsync Parallelized
+
+`Result.CombineAsync` and `Validation.CombineErrorsAsync` now run their constituent tasks in parallel using `Task.WhenAll` instead of sequential awaits.
+
+#### Monolithic Source Files Split
+
+Core monad files have been split into focused units for better maintainability:
+- `Option.cs` → `Option.cs` + `OptionExtensions.cs` + `OptionExtensions.Async.cs`
+- `Result.cs` → `Result.cs` + `ResultExtensions.cs` + `ResultExtensions.Async.cs`
+- `Try.cs` → `Try.cs` + `TryExtensions.cs` + `TryExtensions.Async.cs`
+- `Validation.cs` → `Validation.cs` + `ValidationExtensions.cs` + `ValidationExtensions.Async.cs`
+- `RemoteData.cs` → `RemoteData.cs` + `RemoteDataExtensions.cs`
+
+### Fixed
+
+- Try equality is now null-safe for default-constructed instances
+- Multi-target test projects now match library TFMs
+- Removed flaky timing-based parallelism tests
+- Added AspNetCore.Tests and Benchmarks projects to solution file
+- Fixed stale benchmark code
+
+### Test Coverage
+
+- Total: 2,035 unique tests (run across .NET 6.0, 8.0, and 10.0)
+  - Monad.NET.Tests: 1,894
+  - Monad.NET.RealWorld.Tests: 37
+  - Monad.NET.SourceGenerators.Tests: 33
+  - Monad.NET.AspNetCore.Tests: 29
+  - Monad.NET.EntityFrameworkCore.Tests: 25
+  - Monad.NET.Analyzers.Tests: 17
 
 ---
 
@@ -60,11 +179,13 @@ public readonly struct Reader<R, A> : IEquatable<Reader<R, A>> { ... }
 
 #### LINQ Support Removed (Superseded)
 
-> **Note:** This breaking change from beta.2 has been superseded. LINQ support has been completely removed in a later release. See [Unreleased] section above.
+> **Note:** This breaking change from beta.2 has been superseded. LINQ support has been completely removed in beta.3. See beta.3 section above.
 
 ### Added
 
 #### Consistent Default Struct Detection for All Types
+
+> **Note:** The `IsInitialized` property and `_isInitialized` field were later removed in beta.3. Default struct detection now uses existing internal state. `Reader<R,A>` and `NonEmptyList<T>` still retain `IsInitialized`.
 
 All core struct types now detect `default()` usage and throw `InvalidOperationException`:
 

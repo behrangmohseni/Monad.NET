@@ -30,12 +30,14 @@ var result = user.ToOption()
 
 ## Upgrading to v2.0
 
-Version 2.0 is a major release focused on **C#-idiomatic naming** and **API simplification**:
+Version 2.0 is a major release focused on **C#-idiomatic naming**, **API simplification**, and **cross-type consistency**:
 
 - **~285 methods removed** for better discoverability
-- **Rust-style → C#-style naming**: `Unwrap()` → `GetValue()`, `FlatMap` → `Bind`, `MapErr` → `MapError`
-- **`default(Result<T,E>)` now protected**: Throws `InvalidOperationException` to prevent invalid states
-- **2,042 tests** ensure correctness across all changes
+- **Rust-style to C#-style naming**: `Unwrap()` to `GetValue()`, `FlatMap` to `Bind`, `MapErr` to `MapError`
+- **LINQ support removed**: Use `Map`/`Bind`/`Filter` directly for clearer semantics
+- **Consistent factory methods**: `Ok()`/`Error()` across all types
+- **`default` struct protection**: Throws `InvalidOperationException` to prevent invalid states
+- **2,035 tests** ensure correctness across all changes
 
 All core functionality remains — removed methods have straightforward replacements using `Match()`, `GetValueOr()`, and `Map()`/`Bind()`.
 

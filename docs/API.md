@@ -93,6 +93,8 @@ Represents an optional value - either `Some(value)` or `None`.
 | `Match(someAction, noneAction)` | `void` | Pattern matching with actions |
 | `OkOr<E>(E error)` | `Result<T, E>` | Converts to Result |
 | `OkOrElse<E>(Func<E>)` | `Result<T, E>` | Converts to Result with lazy error |
+| `ToResult<E>(E error)` | `Result<T, E>` | Converts to Result (alias for OkOr) |
+| `ToResult<E>(Func<E>)` | `Result<T, E>` | Converts to Result with lazy error (alias for OkOrElse) |
 | `Tap(Action<T>)` | `Option<T>` | Executes action if Some |
 | `TapNone(Action)` | `Option<T>` | Executes action if None |
 | `AsEnumerable()` | `IEnumerable<T>` | Returns 0 or 1 element sequence |
@@ -181,9 +183,8 @@ Represents success (`Ok`) or failure (`Error`).
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `IsOk` | `bool` | True if success (throws if uninitialized) |
-| `IsError` | `bool` | True if error (throws if uninitialized) |
-| `IsInitialized` | `bool` | True if properly constructed via `Ok()` or `Error()` |
+| `IsOk` | `bool` | True if success (throws if default-constructed) |
+| `IsError` | `bool` | True if error (throws if default-constructed) |
 
 ### Methods
 
@@ -199,12 +200,14 @@ Represents success (`Ok`) or failure (`Error`).
 | `MapError<F>(Func<E, F>)` | `Result<T, F>` | Transforms the Err value |
 | `BiMap<U, F>(Func<T, U>, Func<E, F>)` | `Result<U, F>` | Transforms both Ok and Err values |
 | `Bind<U>(Func<T, Result<U, E>>)` | `Result<U, E>` | Chains operations |
+| `Ensure(Func<T, bool>, E)` | `Result<T, E>` | Validates against predicate (alias for FilterOrElse) |
 | `OrElse<F>(Func<E, Result<T, F>>)` | `Result<T, F>` | Handles error |
 | `Match<U>(okFunc, errFunc)` | `U` | Pattern matching |
 | `Tap(Action<T>)` | `Result<T, E>` | Executes action if Ok |
 | `TapError(Action<E>)` | `Result<T, E>` | Executes action if Error |
 | `Ok()` | `Option<T>` | Converts Ok to Some |
 | `Err()` | `Option<E>` | Converts Error to Some |
+| `ToErrorOption()` | `Option<E>` | Converts Error to Some (alias for Err) |
 | `Deconstruct(out T?, out bool)` | `void` | Deconstructs to `(value, isOk)` |
 | `Deconstruct(out T?, out E?, out bool)` | `void` | Deconstructs to `(value, error, isOk)` |
 
@@ -268,11 +271,17 @@ Accumulates errors instead of short-circuiting.
 | `GetValueOr(T)` | `T` | Gets value or default |
 | `Map<U>(Func<T, U>)` | `Validation<U, E>` | Transforms value |
 | `MapErrors<F>(Func<E, F>)` | `Validation<T, F>` | Transforms errors |
+| `MapError<F>(Func<E, F>)` | `Validation<T, F>` | Transforms errors (alias for MapErrors) |
 | `Apply<T2, U>(other, combiner)` | `Validation<U, E>` | Combines validations |
 | `And(Validation<T, E>)` | `Validation<T, E>` | Combines, keeping errors |
 | `Ensure(Func<T, bool>, E)` | `Validation<T, E>` | Validates against predicate |
 | `Ensure(Func<T, bool>, Func<E>)` | `Validation<T, E>` | Validates with lazy error |
+| `FilterOrElse(Func<T, bool>, E)` | `Validation<T, E>` | Validates against predicate (alias for Ensure) |
+| `FilterOrElse(Func<T, bool>, Func<E>)` | `Validation<T, E>` | Validates with lazy error (alias for Ensure) |
 | `Match<U>(validFunc, invalidFunc)` | `U` | Pattern matching |
+| `Tap(Action<T>)` | `Validation<T, E>` | Executes action if valid |
+| `TapErrors(Action<IReadOnlyList<E>>)` | `Validation<T, E>` | Executes action if invalid |
+| `TapError(Action<IReadOnlyList<E>>)` | `Validation<T, E>` | Executes action if invalid (alias for TapErrors) |
 | `ToResult()` | `Result<T, IReadOnlyList<E>>` | Converts to Result |
 | `ToOption()` | `Option<T>` | Valid to Some |
 | `Deconstruct(out T?, out bool)` | `void` | Deconstructs to `(value, isValid)` |
@@ -333,9 +342,12 @@ Captures exceptions as values.
 |--------|-------------|-------------|
 | `GetValue()` | `T` | Gets value or throws |
 | `GetException()` | `Exception` | Gets exception or throws |
+| `GetError()` | `Exception` | Gets exception or throws (alias for GetException) |
+| `GetErrorOrThrow()` | `Exception` | Gets exception or throws (alias for GetExceptionOrThrow) |
 | `GetValueOr(T)` | `T` | Gets value or default |
 | `TryGet(out T? value)` | `bool` | C#-style TryGet pattern |
 | `TryGetException(out Exception? ex)` | `bool` | C#-style TryGet for exception |
+| `TryGetError(out Exception? ex)` | `bool` | C#-style TryGet for exception (alias for TryGetException) |
 | `Map<U>(Func<T, U>)` | `Try<U>` | Transforms value |
 | `Bind<U>(Func<T, Try<U>>)` | `Try<U>` | Chains operations |
 | `Filter(predicate)` | `Try<T>` | Filters by predicate |
