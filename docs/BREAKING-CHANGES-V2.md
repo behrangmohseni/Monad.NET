@@ -119,10 +119,23 @@ result.GetError(); // Returns null — invalid!
 var result = default(Result<int, string>);
 result.IsOk;       // throws InvalidOperationException
 result.IsError;    // throws InvalidOperationException
-result.IsInitialized; // false (new property)
 ```
 
+Default-constructed instances of `Result<T,E>`, `Validation<T,E>`, and `Try<T>` are detected and throw on any operation. This applies to all types listed in the [struct default values table](Guides/Pitfalls.md#struct-default-values-critical).
+
 **Migration:** Always use factory methods `Result<T,E>.Ok(value)` or `Result<T,E>.Error(error)` instead of default construction.
+
+### `[Serializable]` Attribute Removed
+
+The `[Serializable]` attribute has been removed from all core types. `BinaryFormatter` serialization has been [obsoleted and disabled by default since .NET 8](https://learn.microsoft.com/en-us/dotnet/fundamentals/syslib-diagnostics/syslib0011). JSON serialization via `System.Text.Json` continues to work and is the recommended approach.
+
+### Try<T> No Longer Swallows Fatal Exceptions
+
+`Try<T>` methods previously caught all `Exception` types including `OperationCanceledException`, `OutOfMemoryException`, and `ThreadAbortException`, silently converting them to `Error` states. Fatal exceptions are now re-thrown immediately.
+
+### Value Property Access Guarded
+
+Accessing `Value` on a failed Result (or `ErrorValue` on a successful Result, etc.) now throws `InvalidOperationException` with a clear message instead of returning `default`. This applies to `Value`, `ErrorValue`, `Exception`, and `Errors` across all core types.
 
 ## Removed Extensions
 
@@ -271,8 +284,10 @@ var result = option
 
 The API surface has been reduced from ~722 to ~437 public methods, bringing it closer to industry standards while maintaining all core functionality.
 
-**Test Coverage:** 2,042 tests ensure all changes are correctly implemented:
-- Core library tests: 1,968
+**Test Coverage:** 2,035 unique tests ensure all changes are correctly implemented:
+- Core library tests: 1,894
+- Real-world integration tests: 37
 - Source generator tests: 33
+- ASP.NET Core integration tests: 29
 - EF Core integration tests: 25
-- Analyzer tests: 16
+- Analyzer tests: 17

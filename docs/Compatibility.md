@@ -10,6 +10,7 @@ Monad.NET supports a wide range of .NET versions:
 | .NET Standard 2.1 | .NET Core 3.0+ | Span, Index, Range support |
 | .NET 6.0 | .NET 6.0 | Previous LTS release |
 | .NET 8.0 | .NET 8.0 | Current LTS release |
+| .NET 10.0 | .NET 10.0 | Tested in CI (preview) |
 
 ## Package Compatibility Matrix
 
@@ -26,7 +27,7 @@ Monad.NET supports a wide range of .NET versions:
 
 ### Core Library (Monad.NET)
 
-The core library has **zero external dependencies** for .NET 8.0+.
+The core library has **zero external dependencies** for .NET 6.0+.
 
 For older frameworks, minimal polyfill packages are included:
 

@@ -592,7 +592,7 @@ If removing methods is too breaking, consider:
 - **All tests updated** to use new C#-idiomatic naming
 - **All examples updated** to use the new naming
 - **Analyzers updated** to detect `Bind` patterns
-- **All 2,042 tests pass** (1,968 core + 33 source generators + 25 EF Core + 16 analyzers)
+- **All 2,035 tests pass** (1,894 core + 37 real-world + 33 source generators + 29 ASP.NET Core + 25 EF Core + 17 analyzers)
 
 ---
 
